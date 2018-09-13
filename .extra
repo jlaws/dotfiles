@@ -6,4 +6,4 @@ GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
 git config --global user.email "$GIT_AUTHOR_EMAIL"
 
 alias rmdd='rm -rf $HOME/Library/Developer/Xcode/DerivedData'
-alias cdk='cd Workspace/kratos'
+alias cdk='cd ~/Workspace/kratos'
