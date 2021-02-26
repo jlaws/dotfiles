@@ -7,6 +7,8 @@ git config --global user.email "$GIT_AUTHOR_EMAIL"
 
 export PATH="$PATH:~/src/xplat1/tools/buck/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
 
+alias t='top -o cpu'
+
 alias rmdd='rm -rf $HOME/Library/Developer/Xcode/DerivedData'
 alias rme='rm -rf $(buck root)/.dbx_gyp_wrapper_state $(buck root)/tools/bmbf/venv $(buck root)/tools/dxbuild/venv'
 alias rmb='rm -rf $(buck root)/buck-out && killall -9 watchman && buck clean'
@@ -19,9 +21,11 @@ alias cdx4='cd ~/src/xplat4'
 alias cdx5='cd ~/src/xplat5'
 alias cdx6='cd ~/src/xplat6'
 
-alias ga='git add -A && arc diff'
+alias ga='git commit --amend --no-edit'
 alias gs='git checkout master && git pull'
 alias gr='git rebase master'
+alias gm='git checkout master'
+alias gcf='git checkout --'
 alias grmb='git branch | grep -v "master" | xargs git branch -D'
 alias gitclean='git clean -ffxd && cp ~/.buckconfig.local $(buck root)/'
 
@@ -37,7 +41,7 @@ alias op='open -a "Xcode" $(buck root)/buck-out/gen/paper/paper-cocoa/Paper.xcod
 alias ot='open -a "Xcode" $(buck root)/buck-out/gen/transfers/Transfers.xcodeproj'
 alias opw='open -a "Xcode" $(buck root)/buck-out/gen/ios/passwords/app/Passwords.xcodeproj'
 
-alias md='make project_dbapp_noext'
+alias md='make project_dbapp_noext_notests'
 alias mde='make project_dbapp'
 alias ms='make project_docscanner'
 alias mp='make project_paper'
@@ -80,3 +84,20 @@ function ft() {
 }
 
 [ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+
+function agr { ag -0 -l "$1" | AGR_FROM="$1" AGR_TO="$2" xargs -0 perl -pi -e 's/$ENV{AGR_FROM}/$ENV{AGR_TO}/g'; }
+
+# HSTR configuration - add this to ~/.bashrc
+alias hh=hstr                    # hh to be alias for hstr
+export HSTR_CONFIG=hicolor       # get more colors
+shopt -s histappend              # append new history items to .bash_history
+export HISTCONTROL=ignorespace   # leading space hides commands from history
+export HISTFILESIZE=10000        # increase history file size (default is 500)
+export HISTSIZE=${HISTFILESIZE}  # increase history size (default is 500)
+# ensure synchronization between bash memory and history file
+export PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}"
+# if this is interactive shell, then bind hstr to Ctrl-r (for Vi mode check doc)
+if [[ $- =~ .*i.* ]]; then bind '"\C-r": "\C-a hstr -- \C-j"'; fi
+# if this is interactive shell, then bind 'kill last command' to Ctrl-x k
+if [[ $- =~ .*i.* ]]; then bind '"\C-xk": "\C-a hstr -k \C-j"'; fi
+
