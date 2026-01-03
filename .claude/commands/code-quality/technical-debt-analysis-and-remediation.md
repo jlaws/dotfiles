@@ -340,7 +340,85 @@ debt_budget = {
 - Documentation: All public APIs
 ```
 
-### 8. Success Metrics
+---
+
+## Legacy System Modernization
+
+### 8. Strangler Fig Pattern
+
+The strangler fig pattern enables gradual replacement of legacy components while maintaining continuous business operations.
+
+**Phase 1: Legacy Assessment**
+```yaml
+Assessment_Areas:
+  - Technical debt inventory
+  - Outdated dependencies and deprecated APIs
+  - Security vulnerabilities
+  - Performance bottlenecks
+  - Architectural anti-patterns
+
+Output:
+  - Modernization readiness report
+  - Component complexity scores (1-10)
+  - Dependency mapping
+  - Quick wins vs complex refactoring targets
+```
+
+**Phase 2: Test Coverage Establishment**
+- Analyze existing test coverage for legacy components
+- Generate characterization tests for components with <40% coverage
+- Implement contract tests for all integration points
+- Establish performance baselines
+
+**Phase 3: Strangler Fig Infrastructure**
+```python
+# Implement proxy layer with gradual traffic routing
+class StranglerProxy:
+    def __init__(self):
+        self.new_service = ModernService()
+        self.legacy = LegacyService()
+
+    def handle_request(self, request):
+        if feature_flag("use_new_service"):
+            return self.new_service.process(request)
+        return self.legacy.process(request)
+```
+
+**Phase 4: Component Migration**
+```yaml
+Migration_Strategy:
+  - Extract business logic from legacy code
+  - Implement using modern patterns (DI, SOLID)
+  - Ensure backward compatibility via adapters
+  - Maintain data consistency with dual writes
+
+Progressive_Rollout:
+  - Start: 5% traffic to modernized components
+  - Monitor: Error rates, latency, business metrics
+  - Rollback triggers: Error rate >1%, latency >2x baseline
+  - Progression: 5% → 25% → 50% → 100%
+  - Observation period: 24 hours between increases
+```
+
+**Phase 5: Decommissioning**
+- Verify no remaining dependencies (30 days at 0% traffic minimum)
+- Archive legacy code with documentation
+- Update CI/CD pipelines
+- Clean up unused database tables
+- Document sunset timeline for any retained components
+
+### 9. Legacy Modernization Configuration
+
+```yaml
+Modernization_Modes:
+  parallel_systems: "Keep both running for gradual migration"
+  big_bang: "Full cutover after validation (higher risk)"
+  by_feature: "Migrate complete features vs technical components"
+  database_first: "Prioritize database before application layer"
+  api_first: "Modernize API while maintaining legacy backend"
+```
+
+### 10. Success Metrics
 
 Track progress with clear KPIs:
 

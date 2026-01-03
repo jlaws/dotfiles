@@ -487,6 +487,196 @@ module "alertmanager" {
 }
 ```
 
+---
+
+## Migration & Data Pipeline Monitoring
+
+### 8. Change Data Capture (CDC) Monitoring
+
+**Debezium/CDC Pipeline Metrics**
+```python
+from prometheus_client import Counter, Gauge, Histogram
+
+class CDCObservabilityManager:
+    def __init__(self, config):
+        self.config = config
+        self.metrics = {
+            'events_processed': Counter(
+                'cdc_events_processed_total',
+                'Total CDC events processed',
+                ['source', 'table', 'operation']
+            ),
+            'consumer_lag': Gauge(
+                'cdc_consumer_lag_messages',
+                'Consumer lag in messages',
+                ['topic', 'partition']
+            ),
+            'replication_lag': Gauge(
+                'cdc_replication_lag_seconds',
+                'Replication lag between source and target',
+                ['source_table', 'target_table']
+            )
+        }
+
+    async def process_cdc_events(self):
+        for message in self.consumer:
+            event = self.parse_cdc_event(message.value)
+
+            self.metrics['events_processed'].labels(
+                source=event.source_db,
+                table=event.table,
+                operation=event.operation
+            ).inc()
+
+            await self.apply_to_target(event.table, event.operation, event.data)
+```
+
+### 9. Database Migration Monitoring
+
+**Migration Progress Tracking**
+```javascript
+const prometheus = require('prom-client');
+
+class MigrationMonitor {
+    constructor() {
+        this.metrics = {
+            migrationDuration: new prometheus.Histogram({
+                name: 'migration_duration_seconds',
+                help: 'Duration of database migrations',
+                labelNames: ['version', 'status'],
+                buckets: [1, 5, 15, 30, 60, 300, 600, 1800]
+            }),
+            rowsProcessed: new prometheus.Counter({
+                name: 'migration_rows_total',
+                help: 'Total rows processed during migration',
+                labelNames: ['version', 'table', 'operation']
+            }),
+            migrationErrors: new prometheus.Counter({
+                name: 'migration_errors_total',
+                help: 'Total migration errors',
+                labelNames: ['version', 'error_type']
+            }),
+            dataLag: new prometheus.Gauge({
+                name: 'migration_data_lag_seconds',
+                help: 'Data lag between source and target',
+                labelNames: ['migration_id']
+            })
+        };
+    }
+
+    async trackMigration(migrationId, migrationFn) {
+        const timer = this.metrics.migrationDuration.startTimer({ version: migrationId });
+
+        try {
+            await migrationFn((table, count) => {
+                this.metrics.rowsProcessed.inc({ version: migrationId, table }, count);
+            });
+
+            timer({ status: 'success' });
+        } catch (error) {
+            this.metrics.migrationErrors.inc({
+                version: migrationId,
+                error_type: error.name
+            });
+            timer({ status: 'failed' });
+            throw error;
+        }
+    }
+}
+```
+
+### 10. Migration Anomaly Detection
+
+```python
+class MigrationAnomalyDetector:
+    def __init__(self, thresholds):
+        self.thresholds = thresholds
+
+    async def detect_anomalies(self, migration_id, stats):
+        anomalies = []
+
+        # Throughput check
+        if stats.rows_per_second < stats.expected_rows_per_second * 0.5:
+            anomalies.append({
+                'type': 'low_throughput',
+                'severity': 'warning',
+                'message': f'Throughput {stats.rows_per_second}/s below expected {stats.expected_rows_per_second}/s'
+            })
+
+        # Error rate check
+        if stats.error_rate > self.thresholds.get('error_rate', 0.01):
+            anomalies.append({
+                'type': 'high_error_rate',
+                'severity': 'critical',
+                'message': f'Error rate {stats.error_rate:.2%} exceeds threshold'
+            })
+
+        # Data lag check
+        if stats.replication_lag > self.thresholds.get('max_lag_seconds', 300):
+            anomalies.append({
+                'type': 'high_replication_lag',
+                'severity': 'critical',
+                'message': f'Replication lag {stats.replication_lag}s exceeds threshold'
+            })
+
+        return anomalies
+
+    async def handle_anomalies(self, migration_id, anomalies):
+        for anomaly in anomalies:
+            if anomaly['severity'] == 'critical':
+                await self.alerting.send_alert(
+                    title=f'Migration {migration_id}: {anomaly["type"]}',
+                    message=anomaly['message'],
+                    severity='critical'
+                )
+```
+
+### 11. Migration Dashboard Panels
+
+```json
+{
+    "panels": [
+        {
+            "title": "Migration Progress",
+            "type": "graph",
+            "targets": [{
+                "expr": "rate(migration_rows_total[5m])",
+                "legendFormat": "{{version}} - {{table}}"
+            }]
+        },
+        {
+            "title": "Replication Lag",
+            "type": "stat",
+            "targets": [{"expr": "migration_data_lag_seconds"}],
+            "fieldConfig": {
+                "thresholds": {
+                    "steps": [
+                        {"value": 0, "color": "green"},
+                        {"value": 60, "color": "yellow"},
+                        {"value": 300, "color": "red"}
+                    ]
+                }
+            }
+        },
+        {
+            "title": "Migration Error Rate",
+            "type": "graph",
+            "targets": [{"expr": "rate(migration_errors_total[5m])"}]
+        },
+        {
+            "title": "CDC Events Processed",
+            "type": "graph",
+            "targets": [{
+                "expr": "rate(cdc_events_processed_total[5m])",
+                "legendFormat": "{{table}} - {{operation}}"
+            }]
+        }
+    ]
+}
+```
+
+---
+
 ## Output Format
 
 1. **Infrastructure Assessment**: Current monitoring capabilities analysis
@@ -497,5 +687,6 @@ module "alertmanager" {
 6. **Alert Runbooks**: Detailed alert response procedures
 7. **SLO Definitions**: Service level objectives and error budgets
 8. **Integration Guide**: Service instrumentation instructions
+9. **Migration Monitoring**: CDC pipelines and data migration observability
 
 Focus on creating a monitoring system that provides actionable insights, reduces MTTR, and enables proactive issue detection.
