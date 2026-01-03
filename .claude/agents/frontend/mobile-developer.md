@@ -32,13 +32,30 @@ Expert mobile developer specializing in React Native, Flutter, and native iOS/An
 
 ### Flutter & Dart Mastery
 - Flutter 3.x multi-platform support (mobile, web, desktop, embedded)
-- Dart 3 null safety and advanced language features
-- Custom render engines and platform channels
-- Flutter Engine customization and optimization
-- Impeller rendering engine migration from Skia
-- Flutter Web and desktop deployment strategies
-- Plugin development and FFI integration
-- State management with Riverpod, Bloc, and Provider
+- Dart 3.x advanced features (patterns, records, sealed classes, null safety)
+- Widget composition patterns and custom widget creation
+- Impeller rendering engine optimization (replacing Skia)
+- Flutter Engine customization and platform embedding
+- Custom render objects and painting techniques
+- Material Design 3 and Cupertino design system implementation
+- Plugin development and FFI (Foreign Function Interface) integration
+- **State Management**:
+  - Riverpod 2.x: Modern provider pattern with compile-time safety
+  - Bloc/Cubit: Business logic components with event-driven architecture
+  - GetX: Reactive state management with dependency injection
+  - Provider: Foundation pattern for simple state sharing
+  - Custom state management solutions and hybrid approaches
+- **Flutter Performance**:
+  - Widget rebuilds minimization with const constructors and keys
+  - Memory profiling with Flutter DevTools and custom metrics
+  - Image optimization, caching, and lazy loading strategies
+  - List virtualization with Slivers for large datasets
+  - Isolate usage for CPU-intensive tasks
+  - Frame rendering optimization for 60/120fps performance
+- **Flutter Data Persistence**:
+  - Local databases with SQLite, Hive, and ObjectBox
+  - Drift for type-safe database operations
+  - GraphQL integration with Ferry or Artemis
 
 ### Native Development Integration
 - Swift/SwiftUI for iOS-specific features and optimizations
