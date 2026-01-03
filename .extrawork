@@ -1,0 +1,43 @@
+export PATH="${HOMEBREW_PREFIX}/opt/openssl/bin:$PATH"
+
+export PATH="/usr/local/sbin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/$PATH"
+
+[ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
+
+eval "$(rbenv init - bash)"
+
+~/.git-completion.sh
+
+GIT_AUTHOR_NAME="Joe Laws"
+GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
+git config --global user.name "$GIT_AUTHOR_NAME"
+GIT_AUTHOR_EMAIL="joe.laws@reddit.com"
+GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+git config --global user.email "$GIT_AUTHOR_EMAIL"
+
+alias cd1='cd ~/src/ios1'
+alias cd2='cd ~/src/ios2'
+alias cd3='cd ~/src/ios3'
+alias cd4='cd ~/src/ios4'
+alias cd5='cd ~/src/ios5'
+alias op='open Reddit.xcworkspace'
+alias op1='open ~/src/ios1/Reddit.xcworkspace'
+alias op2='open ~/src/ios2/Reddit.xcworkspace'
+alias op3='open ~/src/ios3/Reddit.xcworkspace'
+alias op4='open ~/src/ios4/Reddit.xcworkspace'
+alias op5='open ~/src/ios5/Reddit.xcworkspace'
+
+alias grmb='git branch | grep -v "develop" | xargs git branch -D'
+alias rmdd='rm -rf $HOME/Library/Developer/Xcode/DerivedData'
+alias fm='make lint-auto'
+alias mp='make project verbose=1'
+alias gs='git checkout develop && git pull'
+alias gr='git rebase develop'
+
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export AWS_SDK_LOAD_CONFIG=true
+
+function rgr { rg -0 -l "$1" | AGR_FROM="$1" AGR_TO="$2" xargs -0 perl -pi -e 's/$ENV{AGR_FROM}/$ENV{AGR_TO}/g'; }
+
+alias dorig='find . -name \*.orig -delete'

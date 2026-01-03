@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(wc:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh api:*)",
+      "Bash(while IFS= read -r file)",
+      "Bash(do curl -sL \"https://raw.githubusercontent.com/wshobson/agents/main/$file\" -o \"$file\")",
+      "Bash(done)"
+    ]
+  }
+}

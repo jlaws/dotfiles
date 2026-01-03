@@ -1,0 +1,10 @@
+
+{
+  "permissions": {
+    "defaultMode": "plan"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}

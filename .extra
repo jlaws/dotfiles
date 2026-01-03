@@ -1,0 +1,22 @@
+export PATH="${HOMEBREW_PREFIX}/opt/openssl/bin:$PATH"
+
+export PATH="/usr/local/sbin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/$PATH"
+
+[ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
+
+GIT_AUTHOR_NAME="Joe Laws"
+GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
+git config --global user.name "$GIT_AUTHOR_NAME"
+GIT_AUTHOR_EMAIL="joe.laws@gmail.com"
+GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+git config --global user.email "$GIT_AUTHOR_EMAIL"
+
+alias grmb='git branch | grep -v "master" | xargs git branch -D'
+alias rmp='rm -rf ~/Library/Caches/CocoaPods && rm -rf Pods && pod deintegrate && rm Podfile.lock'
+alias rmdd='rm -rf $HOME/Library/Developer/Xcode/DerivedData'
+alias cdk='cd ~/Workspace/kratos'
+alias gr='git checkout master && git pull'
+alias gs='git checkout master && git pull && git checkout joe && git rebase master'
+
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
