@@ -135,7 +135,7 @@ configure_macos() {
 	sudo nvram SystemAudioVolume=" "
 
 	# Reduce transparency
-	defaults write com.apple.universalaccess reduceTransparency -bool true
+	sudo defaults write com.apple.universalaccess reduceTransparency -bool true
 
 	# Set highlight color to green
 	defaults write NSGlobalDomain AppleHighlightColor -string "0.764700 0.976500 0.568600"
@@ -173,7 +173,7 @@ configure_macos() {
 	defaults write com.apple.LaunchServices LSQuarantine -bool false
 
 	# Clean up "Open With" menu
-	/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user
+	#/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user
 
 	# Show control characters
 	defaults write NSGlobalDomain NSTextShowsControlCharacters -bool true
@@ -231,9 +231,9 @@ configure_macos() {
 	defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
 	# Ctrl+scroll to zoom
-	defaults write com.apple.universalaccess closeViewScrollWheelToggle -bool true
-	defaults write com.apple.universalaccess HIDScrollZoomModifierMask -int 262144
-	defaults write com.apple.universalaccess closeViewZoomFollowsFocus -bool true
+	sudo defaults write com.apple.universalaccess closeViewScrollWheelToggle -bool true
+	sudo defaults write com.apple.universalaccess HIDScrollZoomModifierMask -int 262144
+	sudo defaults write com.apple.universalaccess closeViewZoomFollowsFocus -bool true
 
 	# Disable press-and-hold (enable key repeat)
 	defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
@@ -408,55 +408,55 @@ configure_macos() {
 	# -------------------------------------------------------------------------
 	print_step "Configuring Safari..."
 
-	defaults write com.apple.Safari UniversalSearchEnabled -bool false
-	defaults write com.apple.Safari SuppressSearchSuggestions -bool true
-	defaults write com.apple.Safari WebKitTabToLinksPreferenceKey -bool true
-	defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2TabsToLinks -bool true
-	defaults write com.apple.Safari ShowFullURLInSmartSearchField -bool true
-	defaults write com.apple.Safari HomePage -string "about:blank"
-	defaults write com.apple.Safari AutoOpenSafeDownloads -bool false
-	defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2BackspaceKeyNavigationEnabled -bool true
-	defaults write com.apple.Safari ShowFavoritesBar -bool false
-	defaults write com.apple.Safari ShowSidebarInTopSites -bool false
-	defaults write com.apple.Safari DebugSnapshotsUpdatePolicy -int 2
-	defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
-	defaults write com.apple.Safari FindOnPageMatchesWordStartsOnly -bool false
-	defaults write com.apple.Safari ProxiesInBookmarksBar "()"
-	defaults write com.apple.Safari IncludeDevelopMenu -bool true
-	defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
-	defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
-	defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
-	defaults write com.apple.Safari WebContinuousSpellCheckingEnabled -bool true
-	defaults write com.apple.Safari WebAutomaticSpellingCorrectionEnabled -bool false
-	defaults write com.apple.Safari AutoFillFromAddressBook -bool false
-	defaults write com.apple.Safari AutoFillPasswords -bool false
-	defaults write com.apple.Safari AutoFillCreditCardData -bool false
-	defaults write com.apple.Safari AutoFillMiscellaneousForms -bool false
-	defaults write com.apple.Safari WarnAboutFraudulentWebsites -bool true
-	defaults write com.apple.Safari WebKitPluginsEnabled -bool false
-	defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2PluginsEnabled -bool false
-	defaults write com.apple.Safari WebKitJavaEnabled -bool false
-	defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaEnabled -bool false
-	defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaEnabledForLocalFiles -bool false
-	defaults write com.apple.Safari WebKitJavaScriptCanOpenWindowsAutomatically -bool false
-	defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaScriptCanOpenWindowsAutomatically -bool false
-	defaults write com.apple.Safari SendDoNotTrackHTTPHeader -bool true
-	defaults write com.apple.Safari InstallExtensionUpdatesAutomatically -bool true
+	sudo defaults write com.apple.Safari UniversalSearchEnabled -bool false
+	sudo defaults write com.apple.Safari SuppressSearchSuggestions -bool true
+	sudo defaults write com.apple.Safari WebKitTabToLinksPreferenceKey -bool true
+	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2TabsToLinks -bool true
+	sudo defaults write com.apple.Safari ShowFullURLInSmartSearchField -bool true
+	sudo defaults write com.apple.Safari HomePage -string "about:blank"
+	sudo defaults write com.apple.Safari AutoOpenSafeDownloads -bool false
+	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2BackspaceKeyNavigationEnabled -bool true
+	sudo defaults write com.apple.Safari ShowFavoritesBar -bool false
+	sudo defaults write com.apple.Safari ShowSidebarInTopSites -bool false
+	sudo defaults write com.apple.Safari DebugSnapshotsUpdatePolicy -int 2
+	sudo defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
+	sudo defaults write com.apple.Safari FindOnPageMatchesWordStartsOnly -bool false
+	sudo defaults write com.apple.Safari ProxiesInBookmarksBar "()"
+	sudo defaults write com.apple.Safari IncludeDevelopMenu -bool true
+	sudo defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
+	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
+	sudo defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
+	sudo defaults write com.apple.Safari WebContinuousSpellCheckingEnabled -bool true
+	sudo defaults write com.apple.Safari WebAutomaticSpellingCorrectionEnabled -bool false
+	sudo defaults write com.apple.Safari AutoFillFromAddressBook -bool false
+	sudo defaults write com.apple.Safari AutoFillPasswords -bool false
+	sudo defaults write com.apple.Safari AutoFillCreditCardData -bool false
+	sudo defaults write com.apple.Safari AutoFillMiscellaneousForms -bool false
+	sudo defaults write com.apple.Safari WarnAboutFraudulentWebsites -bool true
+	sudo defaults write com.apple.Safari WebKitPluginsEnabled -bool false
+	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2PluginsEnabled -bool false
+	sudo defaults write com.apple.Safari WebKitJavaEnabled -bool false
+	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaEnabled -bool false
+	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaEnabledForLocalFiles -bool false
+	sudo defaults write com.apple.Safari WebKitJavaScriptCanOpenWindowsAutomatically -bool false
+	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaScriptCanOpenWindowsAutomatically -bool false
+	sudo defaults write com.apple.Safari SendDoNotTrackHTTPHeader -bool true
+	sudo defaults write com.apple.Safari InstallExtensionUpdatesAutomatically -bool true
 
 	# -------------------------------------------------------------------------
 	# Mail
 	# -------------------------------------------------------------------------
 	print_step "Configuring Mail..."
 
-	defaults write com.apple.mail DisableReplyAnimations -bool true
-	defaults write com.apple.mail DisableSendAnimations -bool true
-	defaults write com.apple.mail AddressesIncludeNameOnPasteboard -bool false
-	defaults write com.apple.mail NSUserKeyEquivalents -dict-add "Send" "@\U21a9"
-	defaults write com.apple.mail DraftsViewerAttributes -dict-add "DisplayInThreadedMode" -string "yes"
-	defaults write com.apple.mail DraftsViewerAttributes -dict-add "SortedDescending" -string "yes"
-	defaults write com.apple.mail DraftsViewerAttributes -dict-add "SortOrder" -string "received-date"
-	defaults write com.apple.mail DisableInlineAttachmentViewing -bool true
-	defaults write com.apple.mail SpellCheckingBehavior -string "NoSpellCheckingEnabled"
+	sudo defaults write com.apple.mail DisableReplyAnimations -bool true
+	sudo defaults write com.apple.mail DisableSendAnimations -bool true
+	sudo defaults write com.apple.mail AddressesIncludeNameOnPasteboard -bool false
+	sudo defaults write com.apple.mail NSUserKeyEquivalents -dict-add "Send" "@\U21a9"
+	sudo defaults write com.apple.mail DraftsViewerAttributes -dict-add "DisplayInThreadedMode" -string "yes"
+	sudo defaults write com.apple.mail DraftsViewerAttributes -dict-add "SortedDescending" -string "yes"
+	sudo defaults write com.apple.mail DraftsViewerAttributes -dict-add "SortOrder" -string "received-date"
+	sudo defaults write com.apple.mail DisableInlineAttachmentViewing -bool true
+	sudo defaults write com.apple.mail SpellCheckingBehavior -string "NoSpellCheckingEnabled"
 
 	# -------------------------------------------------------------------------
 	# Terminal & iTerm
