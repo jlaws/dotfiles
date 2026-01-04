@@ -131,10 +131,13 @@ cd ~/Workspace/dotfiles
 Install additional Claude plugins
 
 ```
-/plugin install commit-commands
 /plugin install code-review
+/plugin install commit-commands
+/plugin install context7
 /plugin install feature-dev
 /plugin install pr-review-toolkit
+/plugin install ralph-wiggum
+/plugin install swift-lsp
 ```
 
 ## Credits
