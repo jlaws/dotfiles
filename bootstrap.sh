@@ -1,27 +1,28 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
-cd "$(dirname "${BASH_SOURCE}")";
+cd "$(dirname "${0}")";
 
 git pull origin main;
 
 function doIt() {
 	rsync --exclude ".git/" \
 		--exclude ".DS_Store" \
-		--exclude ".osx" \
 		--exclude "bootstrap.sh" \
+		--exclude "brew.sh" \
+		--exclude "mac.sh" \
 		--exclude "README.md" \
 		--exclude "LICENSE-MIT.txt" \
 		-avh --no-perms . ~;
-	source ~/.bash_profile;
+	source ~/.zshrc;
 }
 
-if [ "$1" == "--force" -o "$1" == "-f" ]; then
+if [ "$1" = "--force" ] || [ "$1" = "-f" ]; then
 	doIt;
 else
-	read -p "This may overwrite existing files in your home directory. Are you sure? (y/n) " -n 1;
+	read -q "REPLY?This may overwrite existing files in your home directory. Are you sure? (y/n) ";
 	echo "";
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
 		doIt;
 	fi;
 fi;
-unset doIt;
+unset -f doIt;

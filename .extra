@@ -167,3 +167,45 @@ alias reload="exec ${SHELL} -l"
 
 # Print each PATH entry on a separate line
 alias path='echo ${PATH//:/\\n}'
+
+# Ruby environment
+eval "$(rbenv init - zsh)" 2>/dev/null
+
+# AWS
+export AWS_SDK_LOAD_CONFIG=true
+
+# Top by CPU
+alias t='top -o cpu'
+
+# Git shortcuts
+alias ga='git commit --amend --no-edit'
+alias gm='git checkout master'
+alias gcf='git checkout --'
+
+# Linting and formatting
+alias fm='make lint-auto'
+alias fr='swift-format -r -i -m format Sources Tests Package.swift && swiftlint autocorrect'
+alias fp='swift-format -r -i -m format Sources Tests Package.swift Stats .build && swiftlint autocorrect'
+
+# Cleanup commands
+alias dorig='find . -name \*.orig -delete'
+alias rma='rmdd && killall -9 watchman'
+alias gitclean='git clean -ffxd'
+
+# Search and replace functions
+function rgr { rg -0 -l "$1" | AGR_FROM="$1" AGR_TO="$2" xargs -0 perl -pi -e 's/$ENV{AGR_FROM}/$ENV{AGR_TO}/g'; }
+function agr { ag -0 -l "$1" | AGR_FROM="$1" AGR_TO="$2" xargs -0 perl -pi -e 's/$ENV{AGR_FROM}/$ENV{AGR_TO}/g'; }
+
+# Buck query helper
+function ft() {
+    buck query "attrfilter('module_name', '$1', '//...')" | tail -1
+}
+
+# Autojump fallback for older homebrew location
+[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+
+# hstr configuration (zsh version)
+alias hh=hstr
+export HSTR_CONFIG=hicolor
+export HISTFILESIZE=10000
+export HISTSIZE=${HISTFILESIZE}
