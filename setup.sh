@@ -268,7 +268,7 @@ configure_macos() {
 	sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool false
 
 	# Set timezone
-	sudo systemsetup -settimezone "America/New York" > /dev/null
+	sudo systemsetup -settimezone "America/New_York" > /dev/null
 
 	# -------------------------------------------------------------------------
 	# Energy Settings
@@ -278,12 +278,30 @@ configure_macos() {
 	sudo pmset -a lidwake 1
 	sudo pmset -a autorestart 1
 	sudo systemsetup -setrestartfreeze on
-	sudo pmset -a displaysleep 15
+
+	# Display sleep: faster on battery
+	sudo pmset -b displaysleep 5
+	sudo pmset -c displaysleep 15
+
+	# System sleep
+	sudo pmset -b sleep 15
 	sudo pmset -c sleep 0
-	sudo pmset -b sleep 5
-	sudo pmset -a standbydelay 86400
 	sudo systemsetup -setcomputersleep Off > /dev/null
+
+	# Standby: enter sooner on battery (1 hour vs 24 hours)
+	sudo pmset -b standbydelay 3600
+	sudo pmset -c standbydelay 86400
+
+	# Hibernate mode 0 = RAM only (no disk backup)
 	sudo pmset -a hibernatemode 0
+
+	# Disk sleep on battery
+	sudo pmset -b disksleep 5
+	sudo pmset -c disksleep 0
+
+	# Disable Power Nap on battery (prevents wake for background tasks)
+	sudo pmset -b powernap 0
+	sudo pmset -c powernap 1
 
 	# -------------------------------------------------------------------------
 	# Screen
@@ -332,9 +350,6 @@ configure_macos() {
 
 	# Enable firewall stealth mode (don't respond to ping)
 	sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on 2>/dev/null || true
-
-	# Disable remote Apple events
-	sudo systemsetup -setremoteappleevents off 2>/dev/null || true
 
 	# Disable wake-on-network
 	sudo systemsetup -setwakeonnetworkaccess off 2>/dev/null || true
@@ -475,13 +490,15 @@ configure_macos() {
 	defaults write com.apple.dock showhidden -bool true
 	defaults write com.apple.dock show-recents -bool false
 
-	# Hot corners: TL=Mission Control, TR=Desktop, BL=Screen Saver
-	defaults write com.apple.dock wvous-tl-corner -int 2
-	defaults write com.apple.dock wvous-tl-modifier -int 0
-	defaults write com.apple.dock wvous-tr-corner -int 4
-	defaults write com.apple.dock wvous-tr-modifier -int 0
-	defaults write com.apple.dock wvous-bl-corner -int 5
-	defaults write com.apple.dock wvous-bl-modifier -int 0
+	# Hot corners: all disabled
+	defaults write com.apple.dock wvous-tl-corner -int 1
+	defaults write com.apple.dock wvous-tl-modifier -int 1048576
+	defaults write com.apple.dock wvous-tr-corner -int 1
+	defaults write com.apple.dock wvous-tr-modifier -int 1048576
+	defaults write com.apple.dock wvous-bl-corner -int 1
+	defaults write com.apple.dock wvous-bl-modifier -int 1048576
+	defaults write com.apple.dock wvous-br-corner -int 1
+	defaults write com.apple.dock wvous-br-modifier -int 1048576
 
 	# Lock Dock contents to prevent accidental removal
 	defaults write com.apple.dock contents-immutable -bool true
