@@ -251,9 +251,9 @@ configure_macos() {
 	# Disable press-and-hold (enable key repeat)
 	defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
-	# Fast keyboard repeat
-	defaults write NSGlobalDomain KeyRepeat -int 1
-	defaults write NSGlobalDomain InitialKeyRepeat -int 10
+	# Fast keyboard repeat (values: lower = faster; 2/15 balances speed vs accidental repeats)
+	defaults write NSGlobalDomain KeyRepeat -int 2
+	defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
 	# Language and locale
 	defaults write NSGlobalDomain AppleLanguages -array "en"
