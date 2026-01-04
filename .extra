@@ -1,9 +1,39 @@
-export PATH="${HOMEBREW_PREFIX}/opt/openssl/bin:$PATH"
-export PATH="/usr/local/sbin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/$PATH"
-export PATH="/Users/jlaws/.antigravity/antigravity/bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
+# =============================================================================
+# Environment Configuration
+# =============================================================================
 
+# Locale
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+# PATH additions
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="/Users/jlaws/.antigravity/antigravity/bin:$PATH"
+export PATH="/usr/local/sbin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
+export PATH="${HOMEBREW_PREFIX}/opt/openssl/bin:$PATH"
+
+# AWS
+export AWS_SDK_LOAD_CONFIG=true
+
+# History
+export HISTFILESIZE=10000
+export HISTSIZE=${HISTFILESIZE}
+export HSTR_CONFIG=hicolor
+
+# =============================================================================
+# Tool Initialization
+# =============================================================================
+
+# Autojump
 [ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
+[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+
+# Ruby (rbenv)
+eval "$(rbenv init - zsh)" 2>/dev/null
+
+# =============================================================================
+# Git Configuration
+# =============================================================================
 
 GIT_AUTHOR_NAME="Joe Laws"
 GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
@@ -12,21 +42,35 @@ GIT_AUTHOR_EMAIL="joe.laws@gmail.com"
 GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
 git config --global user.email "$GIT_AUTHOR_EMAIL"
 
-alias grmb='git branch | grep -v "master" | xargs git branch -D'
-alias rmp='rm -rf ~/Library/Caches/CocoaPods && rm -rf Pods && pod deintegrate && rm Podfile.lock'
-alias rmdd='rm -rf $HOME/Library/Developer/Xcode/DerivedData'
-alias cdk='cd ~/Workspace/kratos'
-alias gr='git checkout master && git pull'
-alias gs='git checkout master && git pull && git checkout joe && git rebase master'
-
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
-
 # =============================================================================
-# Aliases (converted from bash .aliases for zsh)
+# ls & Color Configuration
 # =============================================================================
 
-# Easier navigation: .., ..., ...., ....., ~ and -
+# Detect which `ls` flavor is in use
+if ls --color > /dev/null 2>&1; then
+	# GNU `ls`
+	colorflag="--color"
+	export LS_COLORS='no=00:fi=00:di=01;31:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:'
+else
+	# macOS `ls`
+	colorflag="-G"
+	export LSCOLORS='BxBxhxDxfxhxhxhxhxcxcx'
+fi
+
+alias ls="command ls ${colorflag}"
+alias l="ls -lF ${colorflag}"
+alias la="ls -lAF ${colorflag}"
+alias lsd="ls -lF ${colorflag} | grep --color=never '^d'"
+
+# Colored grep
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+# =============================================================================
+# Navigation Aliases
+# =============================================================================
+
 alias ..="cd .."
 alias ...="cd ../.."
 alias ....="cd ../../.."
@@ -34,116 +78,55 @@ alias .....="cd ../../../.."
 alias ~="cd ~"
 alias -- -="cd -"
 
-# Shortcuts
+# Directory shortcuts
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias p="cd ~/Workspace"
+
+# =============================================================================
+# Git Aliases
+# =============================================================================
+
 alias g="git"
+alias ga='git commit --amend --no-edit'
+alias gm='git checkout master'
+alias gcf='git checkout --'
+alias gr='git checkout master && git pull'
+alias gs='git checkout master && git pull && git checkout joe && git rebase master'
+alias grmb='git branch | grep -v "master" | xargs git branch -D'
+alias gitclean='git clean -ffxd'
 
-# Detect which `ls` flavor is in use
-if ls --color > /dev/null 2>&1; then # GNU `ls`
-	colorflag="--color"
-	export LS_COLORS='no=00:fi=00:di=01;31:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:'
-else # macOS `ls`
-	colorflag="-G"
-	export LSCOLORS='BxBxhxDxfxhxhxhxhxcxcx'
-fi
+# =============================================================================
+# Cleanup & Maintenance
+# =============================================================================
 
-# List all files colorized in long format
-alias l="ls -lF ${colorflag}"
+# Xcode
+alias rmdd='rm -rf $HOME/Library/Developer/Xcode/DerivedData'
+alias rma='rmdd && killall -9 watchman'
 
-# List all files colorized in long format, excluding . and ..
-alias la="ls -lAF ${colorflag}"
+# CocoaPods
+alias rmp='rm -rf ~/Library/Caches/CocoaPods && rm -rf Pods && pod deintegrate && rm Podfile.lock'
 
-# List only directories
-alias lsd="ls -lF ${colorflag} | grep --color=never '^d'"
+# System cleanup
+alias cleanup="find . -type f -name '*.DS_Store' -ls -delete"
+alias dorig='find . -name \*.orig -delete'
+alias emptytrash="sudo rm -rfv /Volumes/*/.Trashes; sudo rm -rfv ~/.Trash; sudo rm -rfv /private/var/log/asl/*.asl; sqlite3 ~/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV* 'delete from LSQuarantineEvent'"
+alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user && killall Finder"
 
-# Always use color output for `ls`
-alias ls="command ls ${colorflag}"
-
-# Always enable colored `grep` output
-alias grep='grep --color=auto'
-alias fgrep='fgrep --color=auto'
-alias egrep='egrep --color=auto'
-
-# Enable aliases to be sudo'ed
-alias sudo='sudo '
-
-# Get week number
-alias week='date +%V'
-
-# Get macOS Software Updates, and update installed Ruby gems, Homebrew, npm, and their installed packages
+# System updates
 alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; npm install npm -g; npm update -g; sudo gem update --system; sudo gem update; sudo gem cleanup'
 
-# Google Chrome
-alias chrome='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome'
+# =============================================================================
+# Network
+# =============================================================================
 
-# IP addresses
 alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
 alias localip="ipconfig getifaddr en0"
 alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
-
-# Show active network interfaces
 alias ifactive="ifconfig | pcregrep -M -o '^[^\t:]+:([^\n]|\n\t)*status: active'"
-
-# Flush Directory Service cache
 alias flush="dscacheutil -flushcache && killall -HUP mDNSResponder"
 
-# Clean up LaunchServices to remove duplicates in the "Open With" menu
-alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user && killall Finder"
-
-# Canonical hex dump; some systems have this symlinked
-command -v hd > /dev/null || alias hd="hexdump -C"
-
-# macOS has no `md5sum`, so use `md5` as a fallback
-command -v md5sum > /dev/null || alias md5sum="md5"
-
-# macOS has no `sha1sum`, so use `shasum` as a fallback
-command -v sha1sum > /dev/null || alias sha1sum="shasum"
-
-# Trim new lines and copy to clipboard
-alias c="tr -d '\n' | pbcopy"
-
-# Recursively delete `.DS_Store` files
-alias cleanup="find . -type f -name '*.DS_Store' -ls -delete"
-
-# Empty the Trash on all mounted volumes and the main HDD.
-# Also, clear Apple's System Logs to improve shell startup speed.
-# Finally, clear download history from quarantine.
-alias emptytrash="sudo rm -rfv /Volumes/*/.Trashes; sudo rm -rfv ~/.Trash; sudo rm -rfv /private/var/log/asl/*.asl; sqlite3 ~/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV* 'delete from LSQuarantineEvent'"
-
-# Show/hide hidden files in Finder
-alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
-alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
-
-# Hide/show all desktop icons (useful when presenting)
-alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
-alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
-
-# URL-encode strings
-alias urlencode='python3 -c "import sys, urllib.parse; print(urllib.parse.quote_plus(sys.argv[1]));"'
-
-# Merge PDF files, preserving hyperlinks
-# Usage: `mergepdf input{1,2,3}.pdf`
-alias mergepdf='gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=_merged.pdf'
-
-# Disable Spotlight
-alias spotoff="sudo mdutil -a -i off"
-# Enable Spotlight
-alias spoton="sudo mdutil -a -i on"
-
-# PlistBuddy alias, because sometimes `defaults` just doesn't cut it
-alias plistbuddy="/usr/libexec/PlistBuddy"
-
-# Airport CLI alias
-alias airport='/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport'
-
-# Intuitive map function
-# For example, to list all directories that contain a certain file:
-# find . -name .gitattributes | map dirname
-alias map="xargs -n1"
-
-# HTTP method aliases
+# HTTP methods (requires libwww-perl)
 alias GET="lwp-request -m 'GET'"
 alias HEAD="lwp-request -m 'HEAD'"
 alias POST="lwp-request -m 'POST'"
@@ -152,60 +135,92 @@ alias DELETE="lwp-request -m 'DELETE'"
 alias TRACE="lwp-request -m 'TRACE'"
 alias OPTIONS="lwp-request -m 'OPTIONS'"
 
-# Volume control
+# =============================================================================
+# macOS System
+# =============================================================================
+
+# Finder
+alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
+alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
+alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
+alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
+
+# Spotlight
+alias spotoff="sudo mdutil -a -i off"
+alias spoton="sudo mdutil -a -i on"
+
+# Volume
 alias stfu="osascript -e 'set volume output muted true'"
 alias pumpitup="osascript -e 'set volume output volume 100'"
 
-# Kill all the tabs in Chrome to free up memory
-alias chromekill="ps ux | grep '[C]hrome Helper --type=renderer' | grep -v extension-process | tr -s ' ' | cut -d ' ' -f2 | xargs kill"
-
-# Lock the screen (when going AFK)
+# Screen lock
 alias afk="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend"
 
-# Reload the shell (i.e. invoke as a login shell)
-alias reload="exec ${SHELL} -l"
+# System tools
+alias plistbuddy="/usr/libexec/PlistBuddy"
+alias airport='/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport'
 
-# Print each PATH entry on a separate line
-alias path='echo ${PATH//:/\\n}'
+# =============================================================================
+# Applications
+# =============================================================================
 
-# Ruby environment
-eval "$(rbenv init - zsh)" 2>/dev/null
+alias chrome='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome'
+alias chromekill="ps ux | grep '[C]hrome Helper --type=renderer' | grep -v extension-process | tr -s ' ' | cut -d ' ' -f2 | xargs kill"
 
-# AWS
-export AWS_SDK_LOAD_CONFIG=true
+# =============================================================================
+# Development Tools
+# =============================================================================
 
-# Top by CPU
-alias t='top -o cpu'
-
-# Git shortcuts
-alias ga='git commit --amend --no-edit'
-alias gm='git checkout master'
-alias gcf='git checkout --'
-
-# Linting and formatting
+# Linting and formatting (Swift)
 alias fm='make lint-auto'
 alias fr='swift-format -r -i -m format Sources Tests Package.swift && swiftlint autocorrect'
 alias fp='swift-format -r -i -m format Sources Tests Package.swift Stats .build && swiftlint autocorrect'
 
-# Cleanup commands
-alias dorig='find . -name \*.orig -delete'
-alias rma='rmdd && killall -9 watchman'
-alias gitclean='git clean -ffxd'
+# =============================================================================
+# Utility Aliases
+# =============================================================================
 
-# Search and replace functions
-function rgr { rg -0 -l "$1" | AGR_FROM="$1" AGR_TO="$2" xargs -0 perl -pi -e 's/$ENV{AGR_FROM}/$ENV{AGR_TO}/g'; }
-function agr { ag -0 -l "$1" | AGR_FROM="$1" AGR_TO="$2" xargs -0 perl -pi -e 's/$ENV{AGR_FROM}/$ENV{AGR_TO}/g'; }
+# Enable aliases to be sudo'ed
+alias sudo='sudo '
 
-# Buck query helper
-function ft() {
-    buck query "attrfilter('module_name', '$1', '//...')" | tail -1
+# Shell
+alias reload="exec ${SHELL} -l"
+alias path='echo ${PATH//:/\\n}'
+alias hh=hstr
+
+# Date/time
+alias week='date +%V'
+
+# Clipboard
+alias c="tr -d '\n' | pbcopy"
+
+# Process monitoring
+alias t='top -o cpu'
+
+# PDF merge (requires ghostscript)
+alias mergepdf='gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=_merged.pdf'
+
+# URL encoding
+alias urlencode='python3 -c "import sys, urllib.parse; print(urllib.parse.quote_plus(sys.argv[1]));"'
+
+# Map function for piping
+alias map="xargs -n1"
+
+# Command fallbacks for macOS
+command -v hd > /dev/null || alias hd="hexdump -C"
+command -v md5sum > /dev/null || alias md5sum="md5"
+command -v sha1sum > /dev/null || alias sha1sum="shasum"
+
+# =============================================================================
+# Functions
+# =============================================================================
+
+# Search and replace using ripgrep
+function rgr {
+	rg -0 -l "$1" | AGR_FROM="$1" AGR_TO="$2" xargs -0 perl -pi -e 's/$ENV{AGR_FROM}/$ENV{AGR_TO}/g'
 }
 
-# Autojump fallback for older homebrew location
-[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
-
-# hstr configuration (zsh version)
-alias hh=hstr
-export HSTR_CONFIG=hicolor
-export HISTFILESIZE=10000
-export HISTSIZE=${HISTFILESIZE}
+# Search and replace using ag (silver searcher)
+function agr {
+	ag -0 -l "$1" | AGR_FROM="$1" AGR_TO="$2" xargs -0 perl -pi -e 's/$ENV{AGR_FROM}/$ENV{AGR_TO}/g'
+}
