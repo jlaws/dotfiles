@@ -33,14 +33,30 @@ print_step() {
 	echo "  → $1"
 }
 
+# macOS version detection for conditional settings
+get_macos_major_version() {
+	sw_vers -productVersion | cut -d '.' -f 1
+}
+
+is_apple_silicon() {
+	[[ $(uname -m) == "arm64" ]]
+}
+
+macos_version_gte() {
+	local required="$1"
+	local current=$(sw_vers -productVersion)
+	[[ "$(printf '%s\n' "$required" "$current" | sort -V | head -n1)" == "$required" ]]
+}
+
 # =============================================================================
 # Pre-flight Checks
 # =============================================================================
 
 print_section "Pre-flight Checks"
 
-# Close System Preferences to prevent conflicts
-print_step "Closing System Preferences..."
+# Close System Settings/Preferences to prevent conflicts
+print_step "Closing System Settings..."
+osascript -e 'tell application "System Settings" to quit' 2>/dev/null || true
 osascript -e 'tell application "System Preferences" to quit' 2>/dev/null || true
 
 # Request sudo upfront
@@ -221,8 +237,8 @@ configure_macos() {
 	defaults -currentHost write NSGlobalDomain com.apple.trackpad.trackpadCornerClickBehavior -int 1
 	defaults -currentHost write NSGlobalDomain com.apple.trackpad.enableSecondaryClick -bool true
 
-	# Disable natural scrolling
-	defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false
+	# Use natural scrolling
+	defaults write NSGlobalDomain com.apple.swipescrolldirection -bool true
 
 	# Better Bluetooth audio
 	defaults write com.apple.BluetoothAudioAgent "Apple Bitpool Min (editable)" -int 40
@@ -248,11 +264,11 @@ configure_macos() {
 	defaults write NSGlobalDomain AppleMeasurementUnits -string "Inches"
 	defaults write NSGlobalDomain AppleMetricUnits -bool false
 
-	# Show language menu at login
-	sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool true
+	# Don't show language menu at login
+	sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool false
 
 	# Set timezone
-	sudo systemsetup -settimezone "America/Denver" > /dev/null
+	sudo systemsetup -settimezone "America/New York" > /dev/null
 
 	# -------------------------------------------------------------------------
 	# Energy Settings
@@ -290,6 +306,40 @@ configure_macos() {
 	sudo defaults write /Library/Preferences/com.apple.windowserver DisplayResolutionEnabled -bool true
 
 	# -------------------------------------------------------------------------
+	# Control Center & Menu Bar
+	# -------------------------------------------------------------------------
+	print_step "Configuring Control Center & Menu Bar..."
+
+	# Show battery percentage in menu bar
+	defaults write com.apple.menuextra.battery ShowPercent -string "YES"
+
+	# Clock: show date in menu bar
+	defaults write com.apple.menuextra.clock ShowDate -int 1
+
+	# Clock: show day of week
+	defaults write com.apple.menuextra.clock ShowDayOfWeek -bool true
+
+	# Clock: flash time separators (disabled)
+	defaults write com.apple.menuextra.clock FlashDateSeparators -bool false
+
+	# -------------------------------------------------------------------------
+	# Privacy & Security
+	# -------------------------------------------------------------------------
+	print_step "Configuring Privacy & Security..."
+
+	# Enable firewall
+	sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on 2>/dev/null || true
+
+	# Enable firewall stealth mode (don't respond to ping)
+	sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on 2>/dev/null || true
+
+	# Disable remote Apple events
+	sudo systemsetup -setremoteappleevents off 2>/dev/null || true
+
+	# Disable wake-on-network
+	sudo systemsetup -setwakeonnetworkaccess off 2>/dev/null || true
+
+	# -------------------------------------------------------------------------
 	# Finder
 	# -------------------------------------------------------------------------
 	print_step "Configuring Finder..."
@@ -323,8 +373,11 @@ configure_macos() {
 	# Full path in title
 	defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
 
-	# Folders on top
+	# Folders on top when sorting by name
 	defaults write com.apple.finder _FXSortFoldersFirst -bool true
+
+	# Keep folders on top on Desktop
+	defaults write com.apple.finder _FXSortFoldersFirstOnDesktop -bool true
 
 	# Search current folder
 	defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
@@ -356,8 +409,11 @@ configure_macos() {
 	# No trash warning
 	defaults write com.apple.finder WarnOnEmptyTrash -bool false
 
-	# AirDrop over Ethernet
+	# AirDrop over Ethernet and older Macs
 	defaults write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
+
+	# AirDrop: Contacts only for security (0=off, 1=contacts, 2=everyone)
+	defaults write com.apple.sharingd DiscoverableMode -int 1
 
 	# Show ~/Library
 	chflags nohidden ~/Library 2>/dev/null || true
@@ -373,6 +429,32 @@ configure_macos() {
 		Privileges -bool true
 
 	# -------------------------------------------------------------------------
+	# Spotlight
+	# -------------------------------------------------------------------------
+	print_step "Configuring Spotlight..."
+
+	# Configure Spotlight search categories (disable web suggestions for privacy)
+	defaults write com.apple.spotlight orderedItems -array \
+		'{"enabled" = 1;"name" = "APPLICATIONS";}' \
+		'{"enabled" = 1;"name" = "SYSTEM_PREFS";}' \
+		'{"enabled" = 1;"name" = "DIRECTORIES";}' \
+		'{"enabled" = 1;"name" = "PDF";}' \
+		'{"enabled" = 1;"name" = "DOCUMENTS";}' \
+		'{"enabled" = 0;"name" = "FONTS";}' \
+		'{"enabled" = 0;"name" = "MESSAGES";}' \
+		'{"enabled" = 0;"name" = "CONTACT";}' \
+		'{"enabled" = 0;"name" = "EVENT_TODO";}' \
+		'{"enabled" = 1;"name" = "IMAGES";}' \
+		'{"enabled" = 0;"name" = "BOOKMARKS";}' \
+		'{"enabled" = 0;"name" = "MUSIC";}' \
+		'{"enabled" = 0;"name" = "MOVIES";}' \
+		'{"enabled" = 1;"name" = "PRESENTATIONS";}' \
+		'{"enabled" = 1;"name" = "SPREADSHEETS";}' \
+		'{"enabled" = 1;"name" = "SOURCE";}' \
+		'{"enabled" = 0;"name" = "MENU_WEBSEARCH";}' \
+		'{"enabled" = 0;"name" = "MENU_SPOTLIGHT_SUGGESTIONS";}'
+
+	# -------------------------------------------------------------------------
 	# Dock
 	# -------------------------------------------------------------------------
 	print_step "Configuring Dock..."
@@ -386,8 +468,6 @@ configure_macos() {
 	defaults write com.apple.dock launchanim -bool false
 	defaults write com.apple.dock expose-animation-duration -float 0.1
 	defaults write com.apple.dock expose-group-by-app -bool false
-	defaults write com.apple.dashboard mcx-disabled -bool true
-	defaults write com.apple.dock dashboard-in-overlay -bool true
 	defaults write com.apple.dock mru-spaces -bool false
 	defaults write com.apple.dock autohide-delay -float 0
 	defaults write com.apple.dock autohide-time-modifier -float 0
@@ -402,6 +482,31 @@ configure_macos() {
 	defaults write com.apple.dock wvous-tr-modifier -int 0
 	defaults write com.apple.dock wvous-bl-corner -int 5
 	defaults write com.apple.dock wvous-bl-modifier -int 0
+
+	# Lock Dock contents to prevent accidental removal
+	defaults write com.apple.dock contents-immutable -bool true
+
+	# -------------------------------------------------------------------------
+	# Stage Manager & Window Management (macOS Ventura+)
+	# -------------------------------------------------------------------------
+	if macos_version_gte "13.0"; then
+		print_step "Configuring Stage Manager..."
+
+		# Disable Stage Manager (set to true to enable)
+		defaults write com.apple.WindowManager GloballyEnabled -bool false
+
+		# Auto-hide recent apps strip when using Stage Manager
+		defaults write com.apple.WindowManager AutoHide -bool true
+
+		# Group windows by application
+		defaults write com.apple.WindowManager AppWindowGroupingBehavior -bool false
+	fi
+
+	# Desktop click behavior (macOS Sonoma+)
+	if macos_version_gte "14.0"; then
+		# Click wallpaper to reveal desktop: 0=Only in Stage Manager, 1=Always
+		defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -int 0
+	fi
 
 	# -------------------------------------------------------------------------
 	# Safari
@@ -435,9 +540,6 @@ configure_macos() {
 	sudo defaults write com.apple.Safari WarnAboutFraudulentWebsites -bool true
 	sudo defaults write com.apple.Safari WebKitPluginsEnabled -bool false
 	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2PluginsEnabled -bool false
-	sudo defaults write com.apple.Safari WebKitJavaEnabled -bool false
-	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaEnabled -bool false
-	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaEnabledForLocalFiles -bool false
 	sudo defaults write com.apple.Safari WebKitJavaScriptCanOpenWindowsAutomatically -bool false
 	sudo defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaScriptCanOpenWindowsAutomatically -bool false
 	sudo defaults write com.apple.Safari SendDoNotTrackHTTPHeader -bool true
