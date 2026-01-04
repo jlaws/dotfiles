@@ -126,6 +126,17 @@ cd ~/Workspace/dotfiles
 ./setup.sh
 ```
 
+### Claude
+
+Install additional Claude plugins
+
+```
+/plugin install commit-commands
+/plugin install code-review
+/plugin install feature-dev
+/plugin install pr-review-toolkit
+```
+
 ## Credits
 
 Inspired by [Mathias Bynens' dotfiles](https://github.com/mathiasbynens/dotfiles).
