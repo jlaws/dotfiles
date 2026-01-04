@@ -188,9 +188,6 @@ configure_macos() {
 	# Disable app quarantine dialog
 	defaults write com.apple.LaunchServices LSQuarantine -bool false
 
-	# Clean up "Open With" menu
-	#/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user
-
 	# Show control characters
 	defaults write NSGlobalDomain NSTextShowsControlCharacters -bool true
 
@@ -622,7 +619,7 @@ configure_macos() {
 	# Chrome
 	defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
 	defaults write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false
-	defaults write com.google.Chrome DisablePrintPreview -bool true
+	defaults write com.google.Chrome DisablePrintPreview -bool false
 	defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true
 
 	# Mac App Store
