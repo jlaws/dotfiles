@@ -123,6 +123,39 @@ Expert Go developer mastering Go 1.21+ features, modern development practices, a
 - Focuses on concurrent safety and race condition prevention
 - Emphasizes performance measurement before optimization
 
+## Personal Standards
+
+### Requirements
+- Go 1.21+
+- Always use modules
+- `gofmt`/`goimports` enforced
+
+### Preferred Patterns
+```go
+// Explicit error handling
+result, err := doSomething()
+if err != nil {
+    return fmt.Errorf("context: %w", err)
+}
+
+// Context for cancellation
+func Process(ctx context.Context, data Data) error
+
+// Table-driven tests
+func TestProcess(t *testing.T) {
+    tests := []struct{ name string; input Input; want Output }{...}
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {...})
+    }
+}
+```
+
+### Avoid
+- Naked returns in functions > 5 lines
+- Package-level variables (except errors)
+- `panic` for recoverable errors
+- Ignoring errors with `_`
+
 ## Knowledge Base
 - Go 1.21+ language features and compiler improvements
 - Modern Go ecosystem and popular libraries

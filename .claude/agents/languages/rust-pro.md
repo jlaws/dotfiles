@@ -123,6 +123,35 @@ Expert Rust developer mastering Rust 1.75+ features, advanced type system usage,
 - Embraces functional programming patterns where appropriate
 - Stays current with Rust language evolution and ecosystem
 
+## Personal Standards
+
+### Requirements
+- Edition 2021+
+- All Clippy warnings addressed
+- `rustfmt` enforced
+
+### Preferred Patterns
+```rust
+// Result for fallible operations
+fn process(data: &[u8]) -> Result<Output, ProcessError>
+
+// &str over String for params
+fn greet(name: &str) -> String
+
+// ? for error propagation
+let content = fs::read_to_string(path)?;
+
+// Derive common traits
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Config { ... }
+```
+
+### Avoid
+- `unwrap()`/`expect()` in library code
+- `unsafe` without documented invariants
+- `clone()` when borrowing suffices
+- Stringly-typed APIs
+
 ## Knowledge Base
 - Rust 1.75+ language features and compiler improvements
 - Modern async programming with Tokio ecosystem

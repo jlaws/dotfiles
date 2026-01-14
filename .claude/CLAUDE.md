@@ -1,13 +1,5 @@
 # Claude Code Configuration
 
-## Author
-- **Name**: Joe Laws
-- **Email**: joe.laws@gmail.com
-- **Primary**: Swift 6+, SwiftUI, iOS/macOS
-- **Secondary**: TypeScript, Python, Go, Rust
-
----
-
 ## Communication Style
 
 ### Do
@@ -26,314 +18,70 @@
 
 ---
 
-## Code Style (Universal)
+## Standards Reference
 
-### Formatting
-- **Indentation**: 2 spaces (no tabs)
-- **Line endings**: LF (Unix)
-- **Charset**: UTF-8 (no BOM)
-- **Trailing whitespace**: Trim
-- **Final newline**: Always
-- **Line length**: 80-100 soft limit
-
-### Naming
-- Variables/functions: `camelCase` (JS/TS/Swift) or `snake_case` (Python/Rust/Go)
-- Types/Classes: `PascalCase`
-- Constants: `SCREAMING_SNAKE_CASE` or language idiom
-- Booleans: `is`, `has`, `can`, `should` prefix
-- Functions: verb prefix (`get`, `set`, `create`, `handle`)
-
-### Organization
-- Group imports: stdlib, third-party, local (blank lines between)
-- One concept per file when practical
-- Keep files under 300 lines
-- Tests colocated or in parallel directory
-
----
-
-## Development Philosophy
-
-### TDD First
-1. **Red**: Write failing test defining expected behavior
-2. **Green**: Write minimal code to pass
-3. **Refactor**: Clean up while tests stay green
-
-### Clean Code
-- **Single Responsibility**: One reason to change per function/class
-- **DRY**: Extract duplicates, but don't over-abstract prematurely
-- **YAGNI**: Don't build until needed
-- **Composition over Inheritance**: Prefer protocols/interfaces
-- **Explicit over Implicit**: Clarity beats cleverness
-
-### Quality Standards
-- No `any` in TypeScript (use `unknown`)
-- No force unwraps in Swift (unless provably safe)
-- All public APIs documented
-- Error handling: explicit, typed, recoverable
-
-### Refactoring Triggers
-- Function > 30 lines → extract
-- > 3 parameters → parameter object
-- Nested conditionals > 2 levels → early returns
-- Duplicated code > 2x → extract utility
-
----
-
-## Git Workflow
-
-### Branches
-- **Main**: `main` (always deployable)
-- **Features**: `feature/short-description`
-- **Fixes**: `fix/issue-description`
-- **Cleanup**: `cleanup/what-changed`
-- **Docs**: `docs/what-documented`
-
-### Commits
-- Format: `type: description` (lowercase, imperative)
-- Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
-- Keep atomic (one logical change)
-- Describe what and why, not how
-
-### PRs
-- Title matches primary commit
-- Include test plan
-- Reference related issues
-- Keep small and focused
-
----
-
-## Swift & iOS
-
-### Standards
-- Swift 6+ with strict concurrency
-- iOS 16+ minimum (latest minus 2)
-- SwiftUI over UIKit for new views
-- Swift Package Manager for dependencies
-
-### Patterns
-```swift
-// Early exit with guard
-guard let value = optional else { return }
-
-// Async/await over completion handlers
-func fetch() async throws -> Data
-
-// Typed throws (Swift 6)
-func process() throws(ValidationError)
-
-// Value types preferred
-struct User: Sendable, Codable, Identifiable { }
-
-// @Observable over ObservableObject (iOS 17+)
-@Observable final class ViewModel { }
-```
+### Code Quality
+| Resource | Type | Path |
+|----------|------|------|
+| Code Style | skill | `skills/workflow/code-style/` |
+| Clean Code | skill | `skills/workflow/clean-code/` |
+| Anti-Patterns | skill | `skills/workflow/anti-patterns/` |
+| Code Review | skill | `skills/workflow/code-review-excellence/` |
+| Refactoring | agent | `agents/review/refactoring-expert.md` |
+| Lint | command | `commands/code-quality/lint.md` |
+| Code Improve | command | `commands/code-quality/code-improve.md` |
 
 ### Testing
-- XCTest with `@Test` macro (Swift Testing)
-- One test file per source file
-- Mock protocols, not concrete types
+| Resource | Type | Path |
+|----------|------|------|
+| TDD | skill | `skills/testing/test-driven-development/` |
+| TDD Orchestrator | agent | `agents/testing/tdd-orchestrator.md` |
+| Test Automator | agent | `agents/testing/test-automator.md` |
+| Debugger | agent | `agents/testing/debugger.md` |
+| Unit Tests | command | `commands/testing/automated-unit-test-generation.md` |
 
-### Avoid
-- Force unwraps (`!`) without validation
-- Implicitly unwrapped optionals (except `@IBOutlet`)
-- Massive view controllers
-- `Any`/`AnyObject` when concrete types known
-- Main thread blocking
+### Security
+| Resource | Type | Path |
+|----------|------|------|
+| Security Checklist | skill | `skills/security/security-checklist/` |
+| Secrets Management | skill | `skills/security/secrets-management/` |
+| Auth Patterns | skill | `skills/security/auth-implementation-patterns/` |
+| Security Auditor | agent | `agents/security/security-auditor.md` |
+| SAST Scan | command | `commands/security/sast-scan.md` |
 
----
+### Architecture
+| Resource | Type | Path |
+|----------|------|------|
+| Architecture Patterns | skill | `skills/architecture/architecture-patterns/` |
+| API Design | skill | `skills/architecture/api-design-principles/` |
+| ADRs | skill | `skills/architecture/architecture-decision-records/` |
+| System Architect | agent | `agents/architecture/system-architect.md` |
+| Backend Architect | agent | `agents/architecture/backend-architect.md` |
+| Architect Review | agent | `agents/review/architect-review.md` |
 
-## TypeScript & JavaScript
+### Git & Workflow
+| Resource | Type | Path |
+|----------|------|------|
+| Git Workflow | command | `commands/workflow/git-workflow.md` |
+| GitHub Issues | command | `commands/code-quality/github-issue-resolution.md` |
+| Technical Debt | command | `commands/code-quality/technical-debt-analysis-and-remediation.md` |
+| Onboard | command | `commands/planning/onboard.md` |
 
-### Configuration
-- `strict: true` always
-- No implicit any
-- Target ES2022+
+### Languages
+| Resource | Type | Path |
+|----------|------|------|
+| Swift | agent | `agents/languages/swift-pro.md` |
+| iOS Development | agent | `agents/frontend/ios-developer.md` |
+| TypeScript | agent | `agents/languages/typescript-pro.md` |
+| Python | agent | `agents/languages/python-pro.md` |
+| Go | agent | `agents/languages/golang-pro.md` |
+| Rust | agent | `agents/languages/rust-pro.md` |
+| Shell | agent | `agents/languages/shell-pro.md` |
 
-### Patterns
-```typescript
-// Interfaces over type aliases for objects
-interface User {
-  id: string;
-  name: string;
-}
-
-// const assertions for literals
-const ROLES = ['admin', 'user'] as const;
-type Role = typeof ROLES[number];
-
-// unknown over any
-function parse(input: unknown): Result { }
-
-// Discriminated unions for state
-type State =
-  | { status: 'loading' }
-  | { status: 'success'; data: Data }
-  | { status: 'error'; error: Error };
-```
-
-### Frameworks
-- React: Functional components with hooks only
-- Next.js: App Router, React Server Components
-- Testing: Vitest or Jest with Testing Library
-
-### Avoid
-- `any` type
-- `enum` (use const objects or unions)
-- Class components
-- Default exports
-- `var` keyword
-
----
-
-## Python
-
-### Standards
-- Python 3.11+
-- Type hints required for public functions
-- Ruff for linting and formatting
-
-### Patterns
-```python
-# Type hints required
-def process(items: list[dict[str, Any]]) -> Result:
-    ...
-
-# Dataclasses or Pydantic
-@dataclass
-class User:
-    id: str
-    name: str
-
-# pathlib over os.path
-from pathlib import Path
-config = Path.home() / ".config" / "app"
-
-# Context managers for resources
-async with aiohttp.ClientSession() as session:
-    ...
-```
-
-### Testing
-- pytest with fixtures
-- Parametrize for multiple inputs
-- pytest-asyncio for async tests
-
-### Package Management
-- Prefer `uv` for speed
-- `poetry` for complex projects
-- Pin dependencies in `pyproject.toml`
-
----
-
-## Go
-
-### Standards
-- Go 1.21+
-- Always use modules
-- `gofmt`/`goimports` enforced
-
-### Patterns
-```go
-// Explicit error handling
-result, err := doSomething()
-if err != nil {
-    return fmt.Errorf("context: %w", err)
-}
-
-// Context for cancellation
-func Process(ctx context.Context, data Data) error
-
-// Table-driven tests
-func TestProcess(t *testing.T) {
-    tests := []struct{ name string; input Input; want Output }{...}
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {...})
-    }
-}
-```
-
-### Avoid
-- Naked returns in functions > 5 lines
-- Package-level variables (except errors)
-- `panic` for recoverable errors
-- Ignoring errors with `_`
-
----
-
-## Rust
-
-### Standards
-- Edition 2021+
-- All Clippy warnings addressed
-- `rustfmt` enforced
-
-### Patterns
-```rust
-// Result for fallible operations
-fn process(data: &[u8]) -> Result<Output, ProcessError>
-
-// &str over String for params
-fn greet(name: &str) -> String
-
-// ? for error propagation
-let content = fs::read_to_string(path)?;
-
-// Derive common traits
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Config { ... }
-```
-
-### Avoid
-- `unwrap()`/`expect()` in library code
-- `unsafe` without documented invariants
-- `clone()` when borrowing suffices
-- Stringly-typed APIs
-
----
-
-## Security
-
-### Secrets
-- Never commit secrets, API keys, or credentials
-- Use environment variables or secret managers
-- Add sensitive patterns to `.gitignore`
-
-### Input Handling
-- Validate and sanitize all user input
-- Parameterized queries only (no string concat for SQL)
-- Escape output based on context
-
-### Dependencies
-- Audit before adding (`npm audit`, `cargo audit`)
-- Keep updated for security patches
-- Prefer well-maintained libraries
-
-### Red Flags
-- `eval()`, `exec()`, dynamic code execution
-- Direct SQL string construction
-- Disabled security features
-- Hardcoded credentials
-
----
-
-## Anti-Patterns
-
-### Code
-- Premature abstraction (wait for 2+ implementations)
-- Over-engineering (start simple)
-- God objects (split by responsibility)
-- Deep nesting > 2-3 levels (early returns)
-- Magic numbers/strings (use constants)
-
-### Process
-- Writing code before understanding the problem
-- Skipping tests "to save time"
-- Large PRs that are hard to review
-- Catching exceptions without handling
-- Copy-pasting without understanding
-
-### Communication
-- Vague commits ("fix stuff", "update code")
-- Undocumented public APIs
-- TODOs without context
-- Commented-out code in codebase
+### Documentation
+| Resource | Type | Path |
+|----------|------|------|
+| Docs Generate | command | `commands/documentation/docs-generate.md` |
+| Code Explain | command | `commands/documentation/code-explain.md` |
+| Technical Writer | agent | `agents/documentation/technical-writer.md` |
+| API Documenter | agent | `agents/documentation/api-documenter.md` |
