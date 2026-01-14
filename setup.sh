@@ -76,6 +76,9 @@ sync_dotfiles() {
 	print_step "Pulling latest changes from git..."
 	git pull origin main
 
+	print_step "Removing existing ~/.claude/ folder..."
+	rm -rf ~/.claude/
+
 	print_step "Copying dotfiles to home directory..."
 	rsync --exclude ".git/" \
 		--exclude ".DS_Store" \
