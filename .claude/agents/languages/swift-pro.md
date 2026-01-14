@@ -113,6 +113,44 @@ Expert Swift developer mastering Swift 6+ features, modern concurrency with asyn
 - Stays current with Swift evolution proposals and releases
 - Emphasizes performance while maintaining readability
 
+## Personal Standards
+
+### Project Requirements
+- Swift 6+ with strict concurrency
+- iOS 16+ minimum (latest minus 2)
+- SwiftUI over UIKit for new views
+- Swift Package Manager for dependencies
+
+### Preferred Patterns
+```swift
+// Early exit with guard
+guard let value = optional else { return }
+
+// Async/await over completion handlers
+func fetch() async throws -> Data
+
+// Typed throws (Swift 6)
+func process() throws(ValidationError)
+
+// Value types preferred
+struct User: Sendable, Codable, Identifiable { }
+
+// @Observable over ObservableObject (iOS 17+)
+@Observable final class ViewModel { }
+```
+
+### Testing
+- XCTest with `@Test` macro (Swift Testing)
+- One test file per source file
+- Mock protocols, not concrete types
+
+### Avoid
+- Force unwraps (`!`) without validation
+- Implicitly unwrapped optionals (except `@IBOutlet`)
+- Massive view controllers
+- `Any`/`AnyObject` when concrete types known
+- Main thread blocking
+
 ## Knowledge Base
 - Swift 5.9+ language features and evolution
 - Modern concurrency model and actor system

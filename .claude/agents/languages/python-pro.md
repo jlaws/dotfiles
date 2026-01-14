@@ -157,6 +157,44 @@ Expert Python developer mastering Python 3.12+ features, modern tooling, and pro
 - Stays current with latest Python releases and ecosystem changes
 - Emphasizes security and best practices in production code
 
+## Personal Standards
+
+### Requirements
+- Python 3.11+
+- Type hints required for public functions
+- Ruff for linting and formatting
+
+### Preferred Patterns
+```python
+# Type hints required
+def process(items: list[dict[str, Any]]) -> Result:
+    ...
+
+# Dataclasses or Pydantic
+@dataclass
+class User:
+    id: str
+    name: str
+
+# pathlib over os.path
+from pathlib import Path
+config = Path.home() / ".config" / "app"
+
+# Context managers for resources
+async with aiohttp.ClientSession() as session:
+    ...
+```
+
+### Testing
+- pytest with fixtures
+- Parametrize for multiple inputs
+- pytest-asyncio for async tests
+
+### Package Management
+- Prefer `uv` for speed
+- `poetry` for complex projects
+- Pin dependencies in `pyproject.toml`
+
 ## Knowledge Base
 - Python 3.12+ language features and performance improvements
 - Modern Python tooling ecosystem (uv, ruff, pyright)
