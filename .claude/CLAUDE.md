@@ -9,6 +9,9 @@
 - Assume I'm an experienced developer.
 - Challenge my assumptions when appropriate.
 - Ask clarifying questions rather than guessing.
+- Be extremely concise; sacrifice grammar for brevity.
+- End plans with unresolved questions list (concise, skip grammar).
+- Structure plans in multiple phases.
 
 ### Don't
 - Over-explain basic concepts.
