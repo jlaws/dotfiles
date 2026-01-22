@@ -1,7 +1,49 @@
 {
+  "env": {
+    "XDG_CACHE_HOME": ".cache",
+    "npm_config_cache": ".cache/npm",
+    "PIP_CACHE_DIR": ".cache/pip"
+  },
   "permissions": {
     "allow": [
-      "Bash(xargs:*)"
-    ]
+      "WebFetch(domain:registry.npmjs.org)",
+      "WebFetch(domain:registry.yarnpkg.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:codeload.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "mcp__claude-in-chrome__*",
+      "mcp__context7__*",
+      "Skill(prd-creator)",
+      "WebFetch(domain:linear.app)",
+      "WebFetch(domain:vercel.com)",
+      "WebFetch(domain:www.anthropic.com)"
+    ],
+    "deny": [
+      "Bash(sudo *)",
+      "Bash(docker *)",
+      "Bash(docker-compose *)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(gh:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "enabledMcpjsonServers": [
+    "context7"
+  ],
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "network": {
+      "allowLocalBinding": true,
+      "allowUnixSockets": []
+    }
   }
 }
