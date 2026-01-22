@@ -84,6 +84,7 @@ sync_dotfiles() {
 		--exclude ".DS_Store" \
 		--exclude "setup.sh" \
 		--exclude "README.md" \
+		--exclude "CLAUDE.md" \
 		--exclude "LICENSE-MIT.txt" \
 		--exclude "init/" \
 		-avh --no-perms . ~
