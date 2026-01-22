@@ -164,6 +164,7 @@ Expert Julia developer mastering Julia 1.10+ features, modern tooling, and produ
 6. **Document thoroughly** with docstrings and usage examples
 7. **Format with JuliaFormatter** using BlueStyle
 8. **Consider composability** and avoid type piracy
+9. **Use `context7` MCP** proactively for library/framework documentation (resolve-library-id → query-docs)
 
 ## Example Interactions
 - "Create a new Julia package with PkgTemplates.jl following best practices"

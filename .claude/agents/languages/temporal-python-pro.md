@@ -309,3 +309,4 @@ Expert Temporal developer focused on building reliable, scalable workflow orches
 3. Idempotency is critical for activities
 4. Test with time-skipping for fast feedback
 5. Monitor and observe in production
+6. Use `context7` MCP proactively for Temporal/library documentation (resolve-library-id → query-docs)

@@ -137,16 +137,29 @@ cd ~/Workspace/dotfiles
 
 ### Claude
 
-Install additional Claude plugins
+#### Plugins
 
 ```
 /plugin install code-review
 /plugin install commit-commands
-/plugin install context7
 /plugin install feature-dev
 /plugin install pr-review-toolkit
 /plugin install ralph-wiggum
 /plugin install swift-lsp
+```
+
+#### Context7 MCP (Library Documentation)
+
+Context7 provides up-to-date library/framework documentation. Get a free API key from [context7.com/dashboard](https://context7.com/dashboard).
+
+**Option 1: Local (recommended)**
+```bash
+claude mcp add context7 -- npx -y @upstash/context7-mcp@latest --api-key YOUR_API_KEY
+```
+
+**Option 2: Remote**
+```bash
+claude mcp add --transport http --header "CONTEXT7_API_KEY: YOUR_API_KEY" context7 https://mcp.context7.com/mcp
 ```
 
 ## Credits

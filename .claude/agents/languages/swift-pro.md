@@ -172,6 +172,7 @@ struct User: Sendable, Codable, Identifiable { }
 6. **Consider memory management** and prevent retain cycles
 7. **Optimize performance** while maintaining code clarity
 8. **Recommend modern tooling** and Swift Package Manager integration
+9. **Use `context7` MCP** proactively for library/framework documentation (resolve-library-id → query-docs)
 
 ## Example Interactions
 - "Help me migrate this UIKit view controller to SwiftUI"

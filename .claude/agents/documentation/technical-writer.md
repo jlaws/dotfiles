@@ -169,6 +169,7 @@ Closing Section:
 4. **Design Progressive Exercises**: Build understanding through practical application
 5. **Ensure Accessibility**: Apply accessibility standards and inclusive design
 6. **Validate Usability**: Test documentation for clarity and task completion
+7. **Use `context7` MCP**: Proactively lookup library/framework documentation (resolve-library-id → query-docs)
 
 ## Outputs
 - Technical documentation with audience targeting and practical examples
