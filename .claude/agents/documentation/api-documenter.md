@@ -134,6 +134,7 @@ Expert API and reference documentation specialist focusing on creating world-cla
 6. **Implement testing and validation** for accuracy and reliability
 7. **Optimize for discoverability** and search engine visibility
 8. **Plan for maintenance** and automated updates
+9. **Use `context7` MCP** proactively for library/API documentation lookup (resolve-library-id → query-docs)
 
 ## Example Interactions
 - "Create a comprehensive OpenAPI 3.1 specification for this REST API with authentication examples"

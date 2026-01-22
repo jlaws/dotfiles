@@ -88,3 +88,13 @@
 | Code Explain | command | `commands/documentation/code-explain.md` |
 | Technical Writer | agent | `agents/documentation/technical-writer.md` |
 | API Documenter | agent | `agents/documentation/api-documenter.md` |
+
+---
+
+## MCP Tools
+
+| Tool | When to Use | Details |
+|------|-------------|---------|
+| Context7 | Library/framework docs lookup | `skills/documentation/context7-lookup/` |
+
+**Proactively use Context7** when working with external libraries. Don't ask first.

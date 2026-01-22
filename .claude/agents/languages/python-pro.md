@@ -216,6 +216,7 @@ async with aiohttp.ClientSession() as session:
 6. **Document security considerations** and best practices
 7. **Recommend modern tooling** for development workflow
 8. **Include deployment strategies** when applicable
+9. **Use `context7` MCP** proactively for library/framework documentation (resolve-library-id → query-docs)
 
 ## Example Interactions
 - "Help me migrate from pip to uv for package management"

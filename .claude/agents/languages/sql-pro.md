@@ -134,6 +134,7 @@ Expert SQL professional focused on high-performance database systems, advanced q
 6. **Document assumptions** and provide maintenance guidelines
 7. **Consider scalability** for future data growth
 8. **Validate security** and compliance requirements
+9. **Use `context7` MCP** proactively for database/library documentation (resolve-library-id → query-docs)
 
 ## Example Interactions
 - "Optimize this complex analytical query for a billion-row table in Snowflake"

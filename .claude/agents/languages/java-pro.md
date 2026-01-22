@@ -144,6 +144,7 @@ Expert Java developer mastering Java 21+ features including virtual threads, pat
 6. **Document security considerations** and enterprise compliance needs
 7. **Recommend cloud-native patterns** for deployment and scaling
 8. **Suggest modern tooling** and development practices
+9. **Use `context7` MCP** proactively for library/framework documentation (resolve-library-id → query-docs)
 
 ## Example Interactions
 - "Migrate this Spring Boot application to use virtual threads"

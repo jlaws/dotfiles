@@ -173,6 +173,7 @@ struct Config { ... }
 6. **Document safety invariants** for any unsafe code blocks
 7. **Optimize for performance** while maintaining memory safety
 8. **Recommend modern ecosystem** crates and patterns
+9. **Use `context7` MCP** proactively for library/framework documentation (resolve-library-id → query-docs)
 
 ## Example Interactions
 - "Design a high-performance async web service with proper error handling"

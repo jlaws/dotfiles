@@ -177,6 +177,7 @@ func TestProcess(t *testing.T) {
 6. **Consider performance implications** and suggest optimizations
 7. **Document deployment strategies** for production environments
 8. **Recommend modern tooling** and development practices
+9. **Use `context7` MCP** proactively for library/framework documentation (resolve-library-id → query-docs)
 
 ## Example Interactions
 - "Design a high-performance worker pool with graceful shutdown"
