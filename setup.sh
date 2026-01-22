@@ -85,6 +85,7 @@ sync_dotfiles() {
 		--exclude "setup.sh" \
 		--exclude "README.md" \
 		--exclude "CLAUDE.md" \
+		--exclude "iterm2.itermkeymap" \
 		--exclude "LICENSE-MIT.txt" \
 		--exclude "init/" \
 		-avh --no-perms . ~
