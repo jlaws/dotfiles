@@ -70,7 +70,7 @@ Copies all dotfiles to your home directory using `rsync`, preserving any local c
 ### 2. Install Packages (via Homebrew)
 - **GNU utilities**: `coreutils`, `findutils`, `gnu-sed`, `moreutils`
 - **Updated tools**: `vim`, `grep`, `openssh`, `wget`
-- **Git tools**: `git`, `git-lfs`
+- **Git tools**: `git`, `git-lfs`, `gh`
 - **Shell utilities**: `autojump`
 
 ### 3. Configure macOS
