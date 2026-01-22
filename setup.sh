@@ -133,9 +133,13 @@ install_homebrew_packages() {
 	print_step "Installing git tools..."
 	brew install git
 	brew install git-lfs
+	brew install gh
 
 	print_step "Installing shell utilities..."
 	brew install autojump
+
+	print_step "Installing Claude Code..."
+	curl -fsSL https://claude.ai/install.sh | bash
 
 	print_step "Cleaning up..."
 	brew cleanup
