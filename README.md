@@ -18,7 +18,15 @@ Dotfiles and macOS setup for a streamlined development environment.
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
 
-### 2. Install Powerline Fonts (Optional)
+### 2. Install Homebrew
+
+```zsh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Follow the post-install instructions to add Homebrew to your PATH.
+
+### 3. Install Powerline Fonts (Optional)
 
 For the best terminal experience with special characters:
 
@@ -33,14 +41,14 @@ rm -rf fonts
 
 Then set your terminal font to a Powerline font (e.g., "Meslo LG M for Powerline").
 
-### 3. Clone This Repository
+### 4. Clone This Repository
 
 ```zsh
 git clone https://github.com/jlaws/dotfiles.git ~/Workspace/dotfiles
 cd ~/Workspace/dotfiles
 ```
 
-### 4. Run the Setup Script
+### 5. Run the Setup Script
 
 ```zsh
 ./setup.sh
@@ -59,7 +67,7 @@ The setup script performs three main tasks:
 ### 1. Sync Dotfiles
 Copies all dotfiles to your home directory using `rsync`, preserving any local changes not in the repo.
 
-### 2. Install Homebrew Packages
+### 2. Install Packages (via Homebrew)
 - **GNU utilities**: `coreutils`, `findutils`, `gnu-sed`, `moreutils`
 - **Updated tools**: `vim`, `grep`, `openssh`, `wget`
 - **Git tools**: `git`, `git-lfs`
@@ -84,7 +92,8 @@ Some settings can't be automated and require manual setup:
 - **Keyboard** → Modifier Keys (Caps Lock → Escape, if desired)
 
 ### Applications
-- **Terminal/iTerm2**: Set font to a Powerline font
+- **iTerm2**: Set font to a Powerline font
+- **iTerm2**: Import keymappings: Preferences → Keys → Key Mappings → Presets → Import → select `iterm2.itermkeymap`
 - **Xcode**: Sign in with Apple ID, install additional components
 
 ## File Overview

@@ -100,8 +100,9 @@ install_homebrew_packages() {
 
 	# Check if Homebrew is installed
 	if ! command -v brew &> /dev/null; then
-		print_step "Installing Homebrew..."
-		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+		print_error "Homebrew is required but not installed. Please install it first:"
+		echo "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+		return 1
 	fi
 
 	print_step "Updating Homebrew..."
