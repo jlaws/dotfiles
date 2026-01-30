@@ -26,7 +26,11 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 
 Follow the post-install instructions to add Homebrew to your PATH.
 
-### 3. Install Powerline Fonts (Optional)
+### 3. Install Ghostty Terminal
+
+Download and install [Ghostty](https://ghostty.org/).
+
+### 4. Install Powerline Fonts (Optional)
 
 For the best terminal experience with special characters:
 
@@ -41,14 +45,14 @@ rm -rf fonts
 
 Then set your terminal font to a Powerline font (e.g., "Meslo LG M for Powerline").
 
-### 4. Clone This Repository
+### 5. Clone This Repository
 
 ```zsh
 git clone https://github.com/jlaws/dotfiles.git ~/Workspace/dotfiles
 cd ~/Workspace/dotfiles
 ```
 
-### 5. Run the Setup Script
+### 6. Run the Setup Script
 
 ```zsh
 ./setup.sh

@@ -4,12 +4,19 @@
 # macOS Setup Script
 # =============================================================================
 # Consolidates dotfiles sync, Homebrew installation, and macOS configuration.
-# Run with --force or -f to skip confirmation prompts.
 #
 # Usage:
-#   ./setup.sh           # Interactive mode (prompts for confirmation)
-#   ./setup.sh --force   # Skip all prompts
-#   ./setup.sh -f        # Skip all prompts
+#   ./setup.sh                # Interactive: run all steps
+#   ./setup.sh --force|-f     # Run all steps without prompts
+#   ./setup.sh <command>      # Run a specific step
+#
+# Commands:
+#   dotfiles    Sync dotfiles to home directory
+#   claude      Sync Claude Code configuration
+#   brew        Install Homebrew packages
+#   macos       Configure macOS system preferences
+#   restart     Restart affected applications
+#   all         Run all steps (default)
 # =============================================================================
 
 set -e
@@ -76,12 +83,10 @@ sync_dotfiles() {
 	print_step "Pulling latest changes from git..."
 	git pull origin main
 
-	print_step "Removing existing ~/.claude/ folder..."
-	rm -rf ~/.claude/
-
 	print_step "Copying dotfiles to home directory..."
 	rsync --exclude ".git/" \
 		--exclude ".DS_Store" \
+		--exclude ".claude/" \
 		--exclude "setup.sh" \
 		--exclude "README.md" \
 		--exclude "CLAUDE.md" \
@@ -89,6 +94,23 @@ sync_dotfiles() {
 		--exclude "LICENSE-MIT.txt" \
 		--exclude "init/" \
 		-avh --no-perms . ~
+}
+
+# =============================================================================
+# Claude Code Configuration
+# =============================================================================
+
+sync_claude() {
+	print_section "Syncing Claude Code Configuration"
+
+	print_step "Pulling latest changes from git..."
+	git pull origin main
+
+	print_step "Removing existing ~/.claude/ folder..."
+	rm -rf ~/.claude/
+
+	print_step "Copying Claude configuration to ~/.claude/..."
+	rsync -avh --no-perms .claude/ ~/.claude/
 }
 
 # =============================================================================
@@ -507,8 +529,8 @@ configure_macos() {
 	defaults write com.apple.dock wvous-br-corner -int 1
 	defaults write com.apple.dock wvous-br-modifier -int 1048576
 
-	# Lock Dock contents to prevent accidental removal
-	defaults write com.apple.dock contents-immutable -bool true
+	# Allow Dock contents to be edited
+	defaults write com.apple.dock contents-immutable -bool false
 
 	# -------------------------------------------------------------------------
 	# Stage Manager & Window Management (macOS Ventura+)
@@ -670,37 +692,79 @@ restart_apps() {
 # Main
 # =============================================================================
 
+run_all() {
+	sync_dotfiles
+	sync_claude
+	install_homebrew_packages
+	configure_macos
+	restart_apps
+
+	print_section "Setup Complete"
+	echo "Some changes require a logout or restart to take effect."
+	echo ""
+
+	source ~/.zshrc
+}
+
+usage() {
+	echo "Usage: ./setup.sh [command]"
+	echo ""
+	echo "Commands:"
+	echo "  dotfiles    Sync dotfiles to home directory"
+	echo "  claude      Sync Claude Code configuration"
+	echo "  brew        Install Homebrew packages"
+	echo "  macos       Configure macOS system preferences"
+	echo "  restart     Restart affected applications"
+	echo "  all         Run all steps (default)"
+	echo ""
+	echo "Options:"
+	echo "  --force, -f   Skip confirmation prompt (only for 'all')"
+}
+
 main() {
 	echo ""
 	echo "╔═══════════════════════════════════════════════════════════════════════════╗"
 	echo "║                           macOS Setup Script                              ║"
 	echo "╚═══════════════════════════════════════════════════════════════════════════╝"
 
-	if [ "$1" = "--force" ] || [ "$1" = "-f" ]; then
-		sync_dotfiles
-		install_homebrew_packages
-		configure_macos
-		restart_apps
-	else
-		read -q "REPLY?This will overwrite files and change system settings. Continue? (y/n) "
-		echo ""
-		if [[ $REPLY =~ ^[Yy]$ ]]; then
+	case "${1:-}" in
+		dotfiles)
 			sync_dotfiles
+			;;
+		claude)
+			sync_claude
+			;;
+		brew)
 			install_homebrew_packages
+			;;
+		macos)
 			configure_macos
+			;;
+		restart)
 			restart_apps
-		else
-			echo "Aborted."
+			;;
+		--force|-f|all)
+			run_all
+			;;
+		--help|-h)
+			usage
+			;;
+		"")
+			read -q "REPLY?This will overwrite files and change system settings. Continue? (y/n) "
+			echo ""
+			if [[ $REPLY =~ ^[Yy]$ ]]; then
+				run_all
+			else
+				echo "Aborted."
+				exit 1
+			fi
+			;;
+		*)
+			echo "Unknown command: $1"
+			usage
 			exit 1
-		fi
-	fi
-
-	print_section "Setup Complete"
-	echo "Some changes require a logout or restart to take effect."
-	echo ""
-
-	# Source the new shell config
-	source ~/.zshrc
+			;;
+	esac
 }
 
 main "$@"
