@@ -86,11 +86,11 @@ alias p="cd ~/Workspace"
 
 alias g="git"
 alias ga='git commit --amend --no-edit'
-alias gm='git checkout master'
+alias gm='git checkout main'
 alias gcf='git checkout --'
-alias gr='git checkout master && git pull'
-alias gs='git checkout master && git pull && git checkout joe && git rebase master'
-alias grmb='git branch | grep -v "master" | xargs git branch -D'
+alias gr='git checkout main && git pull && git branch --merged | grep -v "\*\|main\|master" | xargs -n 1 git branch -d'
+alias gs='git checkout main && git pull && git checkout joe && git rebase main'
+alias grmb='git branch | grep -v "main\|master" | xargs git branch -D'
 alias gitclean='git clean -ffxd'
 
 # =============================================================================
