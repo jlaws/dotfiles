@@ -237,3 +237,9 @@ docker buildx build --platform linux/amd64,linux/arm64 -t myapp:latest --push .
 ```
 
 Note: GPU images are amd64-only. Do not attempt multi-platform for CUDA-based images.
+
+## Cross-References
+
+- **devops:pipeline-design** -- CI/CD pipeline structure, deployment strategies, security scanning
+- **devops:github-actions-patterns** -- container build actions, GHA cache for Docker layers
+- **devops:gitops-workflow** -- ArgoCD/Flux image update automation, GitOps deployment

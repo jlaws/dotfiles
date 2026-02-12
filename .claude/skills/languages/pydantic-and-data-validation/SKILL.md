@@ -247,3 +247,9 @@ class UserProfile(CamelModel):
 - **Discriminated unions require `Literal` type** on the discriminator field in every variant. Missing it produces cryptic validation errors.
 - **JSON Schema**: `model_json_schema()` excludes computed fields by default. Pass `mode="serialization"` to include them.
 - **Circular references**: use `model_rebuild()` after all models are defined, or `from __future__ import annotations`.
+
+## Cross-References
+
+- **languages:fastapi-templates** -- FastAPI request/response models, dependency injection with Pydantic
+- **languages:async-python-patterns** -- async validators, concurrent validation pipelines
+- **ai-ml:structured-output-patterns** -- LLM structured extraction with Pydantic models

@@ -163,3 +163,9 @@ argocd app diff my-app             # What would change
 argocd app sync my-app --prune     # Force sync with pruning
 argocd app sync my-app --force     # Force sync (recreates resources)
 ```
+
+## Cross-References
+
+- **devops:pipeline-design** -- CI/CD pipeline structure, approval gates, DORA metrics
+- **devops:github-actions-patterns** -- reusable workflows, OIDC auth for cloud deploys
+- **devops:docker-patterns** -- container builds, multi-stage images for GitOps pipelines

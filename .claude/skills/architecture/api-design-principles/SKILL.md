@@ -193,6 +193,29 @@ def create_context():
     return {"loaders": {"user": UserLoader(), "orders_by_user": OrdersByUserLoader()}}
 ```
 
+### Persisted Queries
+
+```graphql
+# Client sends hash instead of full query
+GET /graphql?extensions={"persistedQuery":{"version":1,"sha256Hash":"abc123..."}}
+```
+
+Benefits: smaller payloads, allowlisted queries only, CDN caching.
+
+### Schema Federation
+
+Apollo Federation composes subgraphs into a supergraph for microservices. Each service owns its types and extends shared entities via `@key` directives. The gateway/router handles query planning across services.
+
+### GraphQL Error Conventions
+
+- Use union return types for business errors:
+  ```graphql
+  union CreateUserResult = User | ValidationError | NotFoundError
+  type ValidationError { field: String!; message: String! }
+  ```
+- Never throw from resolvers for business logic errors -- reserve exceptions for unexpected failures
+- Return error types as part of the schema so clients get type-safe error handling
+
 ## API Versioning
 
 ```
@@ -207,3 +230,8 @@ Query:   /api/users?version=1
 - **Inconsistent Error Formats**: Standardize error responses
 - **Ignoring HTTP Semantics**: POST for idempotent operations breaks expectations
 - **Tight Coupling**: API structure shouldn't mirror database schema
+
+## Cross-References
+
+- **frontend:graphql-client-patterns** -- client-side GraphQL libraries, cache normalization, optimistic updates
+- **architecture:api-client-sdk-design** -- SDK generation, client library patterns

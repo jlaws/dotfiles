@@ -120,3 +120,9 @@ deploy:
 - **Both**: Coverage reports need explicit format → `cobertura` for GitLab MR display, `lcov` for Codecov
 - **Both**: Unbounded artifacts/cache destroy pipeline speed → set expiration policies
 - **Kubernetes**: Prefer GitOps (ArgoCD/Flux) over direct kubectl from CI for production
+
+## Cross-References
+
+- **devops:github-actions-patterns** -- deep GitHub Actions patterns: reusable workflows, OIDC, matrix strategies
+- **devops:docker-patterns** -- container build optimization, multi-stage builds for CI
+- **devops:gitops-workflow** -- ArgoCD/Flux deployment patterns, GitOps pipeline integration

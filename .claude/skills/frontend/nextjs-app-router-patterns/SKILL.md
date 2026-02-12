@@ -236,3 +236,46 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(product, { status: 201 })
 }
 ```
+
+## Pattern 7: Forms with useActionState
+
+```typescript
+'use client'
+import { useActionState } from 'react'
+import { createUser } from '@/app/actions/user'
+
+export function CreateUserForm() {
+  const [state, formAction, isPending] = useActionState(createUser, { errors: {} })
+  return (
+    <form action={formAction}>
+      <input name="email" />
+      {state.errors?.email && <p>{state.errors.email}</p>}
+      <button disabled={isPending}>{isPending ? 'Creating...' : 'Create'}</button>
+    </form>
+  )
+}
+```
+
+## Pattern 8: Middleware
+
+```typescript
+// middleware.ts
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  const token = request.cookies.get('token')?.value
+  if (!token && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+  return NextResponse.next()
+}
+
+export const config = { matcher: ['/dashboard/:path*', '/api/protected/:path*'] }
+```
+
+## Cross-References
+
+- **frontend:form-patterns** -- React Hook Form, Zod validation, multi-step forms
+- **frontend:react-state-management** -- client state patterns, Zustand/Jotai with Next.js
+- **frontend:i18n-and-localization** -- next-intl setup, locale routing middleware

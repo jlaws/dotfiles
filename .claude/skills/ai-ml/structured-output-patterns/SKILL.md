@@ -427,3 +427,9 @@ Instructor and OpenAI SDK require Pydantic V2. If you're on V1, upgrade: `pip in
 
 ### Extraction from Long Documents
 For documents exceeding the context window, chunk first and extract from each chunk, then merge/deduplicate results. Don't rely on the model to handle truncation gracefully.
+
+## Cross-References
+
+- **ai-ml:llm-application-patterns** -- prompt engineering, agent tool use, production LLM deployment
+- **ai-ml:rag-and-vector-search** -- retrieval pipelines feeding structured extraction
+- **languages:pydantic-and-data-validation** -- Pydantic v2 models for extraction schemas

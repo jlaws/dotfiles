@@ -376,3 +376,9 @@ item = await queue.get()  # Blocks if empty
 - **Shared mutable state**: async tasks share memory (unlike processes); no GIL protection between `await` points; use `asyncio.Lock` if tasks mutate shared state between awaits
 - **Too many tasks**: creating 100k tasks is fine for IO, but each has overhead; for extreme fan-out, use semaphores or chunked processing
 - **Mixing sync and async ORMs**: SQLAlchemy async requires `AsyncSession`; you can't use sync session in async code without `run_in_executor`
+
+## Cross-References
+
+- **languages:fastapi-templates** -- async route handlers, lifespan management, background tasks
+- **languages:pydantic-and-data-validation** -- async validators, model serialization in async contexts
+- **architecture:background-job-processing** -- task queues, async worker patterns

@@ -62,6 +62,46 @@ export const useStore = create<StoreState>()((...args) => ({
 export const useUser = () => useStore((state) => state.user)
 ```
 
+### Zustand Advanced Patterns
+
+```typescript
+import { create } from 'zustand'
+import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
+
+const useStore = create<AppState>()(
+  devtools(
+    subscribeWithSelector(
+      persist(
+        immer((set) => ({
+          nested: { deep: { value: 0 } },
+          updateDeep: () => set((state) => { state.nested.deep.value += 1 }),
+        })),
+        {
+          name: 'app-storage',
+          partialize: (state) => ({ nested: state.nested }), // persist subset
+          merge: (persisted, current) => deepMerge(current, persisted), // custom merge
+        }
+      )
+    ),
+    { name: 'AppStore' } // devtools display name
+  )
+)
+
+// External subscription with selector
+useStore.subscribe(
+  (state) => state.nested.deep.value,
+  (value, prevValue) => console.log('changed', prevValue, '->', value)
+)
+
+// Testing: access state outside React
+test('updateDeep increments', () => {
+  const { updateDeep } = useStore.getState()
+  act(() => updateDeep())
+  expect(useStore.getState().nested.deep.value).toBe(1)
+})
+```
+
 ## Redux Toolkit with TypeScript
 
 ```typescript
@@ -186,3 +226,9 @@ const todosSlice = createSlice({
   },
 })
 ```
+
+## Cross-References
+
+- **frontend:nextjs-app-router-patterns** -- server/client state boundary, React Server Components context
+- **frontend:form-patterns** -- form state management, React Hook Form integration
+- **frontend:i18n-and-localization** -- locale state management, context providers

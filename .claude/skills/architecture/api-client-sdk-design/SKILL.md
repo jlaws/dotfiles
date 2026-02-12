@@ -451,3 +451,9 @@ def test_integration_create_and_delete():
 - **Swallowing errors**: never catch and log silently; surface typed exceptions to SDK users
 - **Forgetting `close()`**: HTTP clients hold connections; support context managers (`with` / `using`)
 - **Versioning the SDK separately from the API**: they drift; document which API version each SDK version targets
+
+## Cross-References
+
+- **architecture:api-design-principles** -- REST/GraphQL API design, pagination, error handling
+- **frontend:graphql-client-patterns** -- client-side GraphQL libraries, cache normalization
+- **documentation:openapi-spec-generation** -- OpenAPI specs for SDK generation

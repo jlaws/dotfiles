@@ -289,3 +289,9 @@ tablist.addEventListener('keydown', (e) => {
   outline-offset: 2px;
 }
 ```
+
+## Cross-References
+
+- **frontend:design-system-patterns** -- accessible headless components, ARIA defaults
+- **frontend:form-patterns** -- accessible forms, labels, error messages, aria-describedby
+- **frontend:web-animation-patterns** -- reduced-motion preferences, prefers-reduced-motion

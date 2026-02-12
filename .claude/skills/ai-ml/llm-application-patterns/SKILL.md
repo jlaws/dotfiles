@@ -296,3 +296,9 @@ Information in the middle of long contexts is retrieved less reliably. Put criti
 - Storing entire conversation history without windowing (context overflow + cost explosion)
 - Generic tool descriptions (confuses agent tool selection)
 - No fallback for LLM failures (always handle rate limits and timeouts)
+
+## Cross-References
+
+- **ai-ml:rag-and-vector-search** -- retrieval-augmented generation, chunking, embedding strategies
+- **ai-ml:structured-output-patterns** -- JSON mode, function calling, constrained decoding
+- **ai-ml:agentic-systems-design** -- tool use, multi-agent orchestration, planning loops

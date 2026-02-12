@@ -114,3 +114,9 @@ async def client(db_session):
 - **Direct DB in routes** -- always go through service layer
 - **`on_event` deprecated** -- use lifespan context manager
 - **`obj.dict()` deprecated** -- use `obj.model_dump()` (Pydantic v2)
+
+## Cross-References
+
+- **languages:pydantic-and-data-validation** -- model design, validators, serialization patterns
+- **languages:async-python-patterns** -- asyncio patterns, structured concurrency, event loop debugging
+- **architecture:api-design-principles** -- REST/GraphQL design, pagination, error handling conventions

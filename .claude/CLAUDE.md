@@ -78,13 +78,13 @@ agentic-systems-design | ai-safety-and-alignment | causal-inference-ml | continu
 airflow-dag-patterns | data-lake-architecture | data-quality-frameworks | database-migration | dbt-transformation-patterns | eda-and-visualization | feature-store-design | jupyter-notebook-patterns | ml-pipeline-orchestration | nosql-data-modeling | notebook-to-production | postgresql-table-design | search-infrastructure | spark-optimization | sql-optimization-patterns | streaming-data-processing | web-scraping-and-data-collection
 
 ### devops
-docker-patterns | gitops-workflow | incident-management | k8s-manifest-generator | k8s-security-policies | monorepo-tools | observability | pipeline-design | terraform-module-library
+docker-patterns | github-actions-patterns | gitops-workflow | incident-management | k8s-manifest-generator | k8s-security-policies | monorepo-tools | observability | pipeline-design | terraform-module-library
 
 ### languages
-async-python-patterns | bash-defensive-patterns | cli-tool-development | cuda-gpu-programming | fastapi-templates | go-concurrency-patterns | js-ts-patterns | nodejs-backend-patterns | pydantic-and-data-validation | python-packaging-and-distribution | python-patterns | rust-project-patterns | swift-patterns
+async-python-patterns | bash-defensive-patterns | browser-extension-development | cli-tool-development | cuda-gpu-programming | fastapi-templates | go-concurrency-patterns | js-ts-patterns | nodejs-backend-patterns | pydantic-and-data-validation | python-packaging-and-distribution | python-patterns | rust-project-patterns | swift-patterns
 
 ### frontend
-accessibility-testing | i18n-and-localization | nextjs-app-router-patterns | react-native-architecture | react-state-management | tailwind-design-system
+accessibility-testing | design-system-patterns | form-patterns | graphql-client-patterns | i18n-and-localization | nextjs-app-router-patterns | react-native-architecture | react-state-management | responsive-web-design | svelte-patterns | tailwind-design-system | web-animation-patterns
 
 ### testing
 debugging-methodology | e2e-testing-patterns | language-testing-patterns | load-testing-and-perf | performance-profiling | shell-testing | test-driven-development

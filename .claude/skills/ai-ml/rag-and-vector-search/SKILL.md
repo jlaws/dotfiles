@@ -137,3 +137,9 @@ Embed the full document first (using long-context model), then pool token embedd
 `total_bytes = num_vectors * (dimensions * bytes_per_dim + M * 2 * 4)`
 
 Example: 1M vectors, 1536 dims, FP32, M=16 = ~6.1 GB vectors + ~128 MB index overhead.
+
+## Cross-References
+
+- **ai-ml:llm-application-patterns** -- prompt engineering, agent patterns, production deployment
+- **ai-ml:structured-output-patterns** -- extracting structured data from retrieved documents
+- **ai-ml:embedding-and-representation-learning** -- embedding models, fine-tuning for retrieval
