@@ -37,10 +37,12 @@ description: Error handling strategy and pattern selection guidance. Use when de
 
 ## Universal Principles
 
-### 1. Fail Fast
+### 1. Fail Fast and Fail Loud
 - Validate inputs at system boundaries immediately
 - Don't propagate bad data deep into business logic
-- Startup: fail if required config/secrets are missing
+- Startup: **fail the service** if illegal state, missing config, or missing secrets are encountered -- don't limp along in a broken state
+- Requests: **fail immediately** if invalid arguments or unexpected state is encountered -- don't let bad data propagate
+- Connect to "make invalid states unrepresentable" (see `workflow:code-quality`): validate early at boundaries, convert to constrained types, and pass constrained types downstream so invalid states can't reach business logic
 
 ### 2. Handle at the Right Level
 - Catch where you can meaningfully handle (retry, fallback, user message)

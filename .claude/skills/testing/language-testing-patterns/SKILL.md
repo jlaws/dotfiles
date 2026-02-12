@@ -27,6 +27,13 @@ description: Use when designing test suites, choosing fixtures/mocking strategie
 
 **Every test must exercise a decision point, transformation, or behavior path.**
 
+### Test User Stories, Not Internals
+- Focus tests on verifying key **user stories / user needs**, not implementation details
+- Test **public interfaces / APIs** -- not private methods or internal state
+- Coverage hierarchy: **important user story coverage > branch coverage > line coverage**
+- Write a failing test for user-reported bugs **before** fixing
+- Avoid testing trivial functionality (framework-generated getters/setters, `@ConfigurationProperties` classes, constructor assignments)
+
 ### Coverage Opinion
 - 80% line coverage as gate, focus on branch coverage for business logic
 - High coverage != well-tested. Missing edge cases matters more than line count.
@@ -58,6 +65,32 @@ function createUser(overrides?: Partial<User>): User {
 ```
 
 **Why**: Returns a callable -- tests create exactly what they need. Avoids "magic values" scattered across tests.
+
+## Testing Pyramid (Shift Left)
+
+```
+        /  E2E  \          Expensive, slow, run infrequently (release testing)
+       /----------\
+      / Integration \       Moderate cost, run in CI
+     /----------------\
+    /    Unit Tests     \   Cheap, fast, run early and often
+   /____________________\
+```
+
+- **Unit tests**: Bulk of test coverage. Fast, isolated, catch logic errors early
+- **Integration tests**: Verify component interactions (DB, APIs, message queues). Run in CI
+- **E2E tests**: Validate key user stories end-to-end. Most expensive, run for release verification
+- **Shift left**: Identify defects as early as possible where they're cheapest to fix
+- Rule of thumb: if a bug can be caught by a unit test, don't rely on integration/E2E to find it
+
+## Ship Test Utilities with Components
+
+When writing libraries or shared components, provide test utilities that make it easy for consumers to test:
+
+- **In-memory fakes / test doubles** for your classes (e.g., `InMemoryUserRepository` alongside `UserRepository`)
+- **Context managers / test fixtures** (Python: pytest fixtures; JS: setup helpers) to auto-configure test doubles
+- **Spring Boot**: provide auto-configuration for test doubles via `@TestConfiguration`
+- **Why**: lowers the barrier for consumers to write tests, promotes uniformity in testing patterns across the codebase
 
 ## Python Testing (pytest)
 

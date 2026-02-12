@@ -82,6 +82,12 @@ MIT
 - Link out to detailed docs rather than inlining everything
 - Keep badges to 3-5 max; CI, version, license are standard
 
+### Newcomer-Focused Documentation
+- Write READMEs assuming the reader has **minimal context** -- aim to get them productive quickly
+- Include: high-level purpose, major concepts/abstractions, how it fits into the broader ecosystem
+- Give directions (or better yet, a real working example) on how to get a concrete integration running
+- Keep it concise -- long docs get skimmed, short docs get read
+
 ## API Documentation Patterns
 
 ### Endpoint Documentation Template
@@ -272,6 +278,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 | "Pass the config object" (active) | "The config object should be passed" |
 | "You can override the default" (second person) | "One can override the default" |
 | "This method throws if..." (direct) | "It should be noted that this method..." |
+
+### Document the Why, Not the What
+- In code: comments explain the **why** (reasoning, constraints, tradeoffs) -- the code already shows the what
+- In READMEs: explain purpose and concepts before diving into API details
+- Don't comment obvious code (`i += 1  # increment i`); do comment surprising decisions (`# Using POST not GET because payload exceeds URL length limits`)
 
 ### Code-First Principle
 - Show code before explaining it

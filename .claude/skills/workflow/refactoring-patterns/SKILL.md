@@ -259,7 +259,7 @@ Order matters. Some refactorings enable others.
 | No tests covering the code | You can't verify behavior preservation. Write tests first. |
 | Under deadline pressure | Refactoring is investment, not firefighting. Ship first, refactor next sprint. |
 | Code is being deleted soon | Don't polish what you're throwing away. |
-| "While I'm in here..." | Resist scope creep. File a ticket for the refactoring, do it separately. |
+| "While I'm in here..." | Resist scope creep for large refactors -- file a ticket, do it separately. **Exception**: small, proportional nearby improvements (boy scout rule) are encouraged -- rename a confusing variable, fix a broken docstring, extract an obvious helper. The distinction is proportionality. See `workflow:technical-debt-remediation` Boy Scout Rule. |
 | Single ugly function that works | Ugly but correct and isolated code is fine. Refactor when you need to change it. |
 | Premature -- only one implementation | Don't create abstractions for a single concrete case. Wait for the second. |
 

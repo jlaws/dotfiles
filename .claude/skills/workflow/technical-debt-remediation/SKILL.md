@@ -105,6 +105,26 @@ ci_pipeline:
   - architecture_check: "no new violations"
 ```
 
+## Forcing Functions
+
+Make it hard to ignore problems by building discovery and enforcement into the workflow:
+
+- **Canonical run scripts**: Provide scripts for running services locally (not just documentation). If setup is broken, someone finds out immediately
+- **Encode standards in tooling**: Implement coding styles/principles in linters, formatters, pre-commit hooks, and coding agent prompts -- not just wikis
+- **Tickets over TODOs**: File tickets with deadlines rather than adding `// TODO` comments that rot. TODOs without ticket references are invisible debt
+- **Continuous releases**: Release services continuously. If deployment is painful, that pain surfaces immediately and gets fixed
+- Subset of "fail fast, fail loud" -- discover failures early, make them hard to ignore, which naturally drives continuous upkeep
+
+## Boy Scout Rule
+
+Leave the code a little better than you found it.
+
+- When encountering tech debt while working on a feature, **default towards fixing it** rather than working around it
+- In PR reviews, ask others to consider taking care of nearby technical debt
+- Don't require perfection -- use judgment weighing feature delay vs system improvement, but **default to making things a little better**
+- Why: amortizes refactoring cost, builds a culture of quality, cheaper to fix when context is fresh
+- **Distinction from scope creep**: small, proportional nearby improvements (rename a confusing variable, extract a helper, fix a broken docstring) are not the same as "while I'm in here..." full refactors. See `workflow:refactoring-patterns` for the boundary
+
 ## Stakeholder Summary Template
 
 ```markdown

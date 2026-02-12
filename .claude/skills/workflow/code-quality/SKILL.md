@@ -14,6 +14,9 @@ description: Use when writing, reviewing, or refactoring code. Covers quality pr
 | YAGNI | Solve today's problem, not tomorrow's hypothetical |
 | Composition > Inheritance | Prefer protocols/interfaces |
 | Explicit > Implicit | Clarity beats cleverness |
+| Favor Uniformity | One way to do each thing (test framework, build tool, deploy method). Migrate quickly + add automatic checks to prevent reversion. Easier to (re-)learn, maintain, and hand off |
+| Follow Ecosystem Patterns | Go all-in on chosen framework's philosophy and idioms. Codify deviations into team policy / coding agent prompts. Fewer surprises for newcomers |
+| External Configuration | Enable external config for components; follow ecosystem patterns (pydantic-settings, Spring `@ConfigurationProperties`, env vars). Easily reconfigured across environments and tests |
 
 ## Code Smells Checklist
 
@@ -32,11 +35,14 @@ description: Use when writing, reviewing, or refactoring code. Covers quality pr
 - Max 2 levels nesting; use early returns
 - Replace conditional chains with lookup maps/polymorphism
 
-**Type Safety**
-- No `any` in TypeScript (use `unknown`)
-- No force unwraps in Swift (unless provably safe)
-- Type hints on public functions in Python
-- Leverage utility types: `Pick`, `Omit`, `Partial`
+**Make Invalid States Unrepresentable**
+- Use generics / type hints to catch issues at compile-time / static analysis (Python `list[str]`, Java `List<String>`, TS `Array<string>`)
+- Use specialized types where invalid inputs are unrepresentable (pydantic `BaseModel` with `dict[str, str]` over raw `str`, typed keys over string constants)
+- No `any` in TypeScript (use `unknown`); no force unwraps in Swift (unless provably safe)
+- Use `Optional` / `Option` for null safety -- never return bare `None`/`null` when absence is possible
+- Validate early at boundaries, convert to constrained types, pass constrained types downstream
+- Leverage utility types: `Pick`, `Omit`, `Partial`, `NonNullable`
+- Priority: **compile-time > static analysis > runtime** for catching errors
 
 ## Anti-Patterns
 
