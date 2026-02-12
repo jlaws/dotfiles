@@ -53,82 +53,15 @@ p { font-size: var(--text-base); }
 
 ## Mobile-First Strategy
 
-```css
-/* Mobile-first: base styles = mobile, layer up with min-width */
-.grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 640px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1280px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; } }
-```
+Base styles = mobile. Layer up with `min-width` breakpoints: 640px (sm), 1024px (md), 1280px (lg).
 
 ## Responsive Images
 
-```html
-<!-- srcset + sizes: browser picks optimal source -->
-<img
-  srcset="hero-400.webp 400w, hero-800.webp 800w, hero-1200.webp 1200w"
-  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-  src="hero-800.webp"
-  alt="Hero image"
-  loading="lazy"
-  decoding="async"
-/>
+Use `srcset` + `sizes` for resolution switching, `<picture>` + `<source media>` for art direction. Always `loading="lazy"` below fold.
 
-<!-- Art direction: different crops per breakpoint -->
-<picture>
-  <source media="(min-width: 1024px)" srcset="hero-wide.webp" />
-  <source media="(min-width: 640px)" srcset="hero-medium.webp" />
-  <img src="hero-square.webp" alt="Hero" />
-</picture>
-```
+## CSS Grid Patterns
 
-```typescript
-// Next.js responsive image
-import Image from 'next/image'
-
-<Image
-  src="/hero.webp"
-  alt="Hero"
-  fill
-  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-  priority  // above-the-fold only
-/>
-```
-
-## CSS Grid + Flexbox Patterns
-
-```css
-/* Auto-fit grid: items wrap responsively without breakpoints */
-.auto-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
-  gap: 1.5rem;
-}
-
-/* Sidebar layout: sidebar fixed, main fluid */
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-@media (min-width: 768px) {
-  .layout { grid-template-columns: 250px minmax(0, 1fr); }
-}
-
-/* Flex wrap with minimum child width */
-.flex-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-.flex-wrap > * {
-  flex: 1 1 300px; /* grow, shrink, min-width basis */
-}
-```
+Use `repeat(auto-fit, minmax(250px, 1fr))` for breakpoint-free responsive grids. Sidebar: fixed + `minmax(0, 1fr)` behind a media query.
 
 ## Gotchas
 

@@ -15,89 +15,17 @@ description: "Use when adding animations, transitions, or motion to web UIs. Cov
 | Page/route transitions | View Transitions API |
 | Fine-grained imperative control | Web Animations API |
 
-```
-Performance-critical, simple      -> CSS only (transform, opacity)
-React component animations        -> Framer Motion
-Scroll-driven or complex sequence -> GSAP
-Cross-document navigation         -> View Transitions API
-```
-
 ## CSS Animations
 
-```css
-/* Compositor-only properties = 60fps */
-.fade-in {
-  animation: fadeIn 300ms ease-out forwards;
-  will-change: opacity, transform; /* hint before animation starts, remove after */
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Spring-like easing via cubic-bezier */
-.bounce { transition: transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1); }
-```
+Use `transform` and `opacity` only (compositor-only, 60fps). Add `will-change` before animation, remove after. Use `cubic-bezier()` for spring-like easing.
 
 ## Framer Motion
 
-```tsx
-import { motion, AnimatePresence } from 'framer-motion'
-
-// Variants for orchestrated animations
-const list = { hidden: {}, visible: { transition: { staggerChildren: 0.05 } } }
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-}
-
-function ItemList({ items }: { items: Item[] }) {
-  return (
-    <motion.ul variants={list} initial="hidden" animate="visible">
-      {items.map((i) => (
-        <motion.li key={i.id} variants={item} layout>
-          {i.name}
-        </motion.li>
-      ))}
-    </motion.ul>
-  )
-}
-
-// AnimatePresence for exit animations
-function Modal({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
-```
+Use `variants` for orchestrated animations with `staggerChildren`. `AnimatePresence` wraps conditional renders for exit animations. `layout` prop animates layout changes. `LazyMotion` + `domAnimation` for code splitting (~30KB savings).
 
 ## View Transitions API
 
-```typescript
-// SPA route transition
-function navigate(href: string) {
-  if (!document.startViewTransition) {
-    updateDOM(href)
-    return
-  }
-  document.startViewTransition(() => updateDOM(href))
-}
-
-// Named elements persist across transitions
-// CSS: .card { view-transition-name: card-1; }
-```
+Call `document.startViewTransition(() => updateDOM())` with feature detection fallback. Use `view-transition-name` CSS for element persistence across transitions.
 
 ## FLIP Technique
 
@@ -127,9 +55,6 @@ function flipAnimate(el: HTMLElement, update: () => void) {
     scroll-behavior: auto !important;
   }
 }
-
-/* Utility classes */
-.motion-safe\:animate-fade { /* only in motion-safe context */ }
 ```
 
 ```typescript

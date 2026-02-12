@@ -48,22 +48,7 @@ jobs:
 
 ## Matrix Strategies
 
-```yaml
-strategy:
-  fail-fast: false  # don't cancel siblings on failure
-  matrix:
-    os: [ubuntu-latest, macos-latest]
-    node: [18, 20, 22]
-    exclude:
-      - os: macos-latest
-        node: 18
-    include:
-      - os: ubuntu-latest
-        node: 22
-        coverage: true
-```
-
-**Limit**: 256 matrix combinations max per job.
+Use `strategy.matrix` for OS/version combinations. `fail-fast: false` continues siblings. `exclude` removes combos, `include` adds specific ones. 256 combo limit.
 
 ## OIDC Authentication (No Stored Secrets)
 
@@ -83,36 +68,7 @@ Works with AWS, GCP (`google-github-actions/auth`), Azure (`azure/login`). Trust
 
 ## Monorepo Path Filters
 
-```yaml
-on:
-  push:
-    paths:
-      - "packages/api/**"
-      - "!packages/api/**/*.md"
-
-# For PRs with dynamic filtering:
-jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      api: ${{ steps.filter.outputs.api }}
-    steps:
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
-        id: filter
-        with:
-          filters: |
-            api:
-              - 'packages/api/**'
-            web:
-              - 'packages/web/**'
-
-  api-tests:
-    needs: changes
-    if: needs.changes.outputs.api == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Run API tests"
-```
+Use `paths:` filter on push triggers. For PRs, use `dorny/paths-filter` action with conditional `if: needs.changes.outputs.X == 'true'`.
 
 ## Caching
 

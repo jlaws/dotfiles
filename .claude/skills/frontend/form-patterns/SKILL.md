@@ -16,169 +16,23 @@ description: "Use when building forms in React or Next.js. Covers React Hook For
 
 ## React Hook Form + Zod
 
-```typescript
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-
-const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  role: z.enum(['admin', 'user']),
-})
-type FormData = z.infer<typeof schema>
-
-function SignupForm() {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { role: 'user' },
-  })
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
-      <div>
-        <label htmlFor="email">Email</label>
-        <input id="email" type="email" {...register('email')} aria-describedby="email-error" />
-        {errors.email && <p id="email-error" role="alert">{errors.email.message}</p>}
-      </div>
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Submitting...' : 'Sign Up'}
-      </button>
-    </form>
-  )
-}
-```
+Use `zodResolver(schema)` with `useForm`. Register inputs with `{...register('field')}`. Display `errors.field.message` with `role='alert'` and `aria-describedby`.
 
 ## Multi-Step Wizard
 
-```typescript
-const steps = ['profile', 'address', 'confirm'] as const
-type Step = (typeof steps)[number]
-
-function WizardForm() {
-  const [step, setStep] = useState<Step>('profile')
-  const [data, setData] = useState<Partial<WizardData>>({})
-
-  function handleStepSubmit(stepData: Partial<WizardData>) {
-    const merged = { ...data, ...stepData }
-    setData(merged)
-    const idx = steps.indexOf(step)
-    if (idx < steps.length - 1) {
-      setStep(steps[idx + 1])
-    } else {
-      submitFinal(merged as WizardData)
-    }
-  }
-
-  return (
-    <>
-      {step === 'profile' && <ProfileStep defaults={data} onSubmit={handleStepSubmit} />}
-      {step === 'address' && <AddressStep defaults={data} onSubmit={handleStepSubmit} />}
-      {step === 'confirm' && <ConfirmStep data={data} onSubmit={handleStepSubmit} />}
-    </>
-  )
-}
-
-// Each step is its own React Hook Form instance
-function ProfileStep({ defaults, onSubmit }: StepProps) {
-  const { register, handleSubmit } = useForm({ defaultValues: defaults })
-  return <form onSubmit={handleSubmit(onSubmit)}>...</form>
-}
-```
+Track current step in state. Merge step data on each submit. Each step is its own RHF instance with `defaultValues` from accumulated data.
 
 ## Server Actions (Next.js)
 
-```typescript
-// action.ts
-'use server'
-import { z } from 'zod'
-
-const schema = z.object({ title: z.string().min(1), content: z.string() })
-
-export async function createPost(prevState: ActionState, formData: FormData): Promise<ActionState> {
-  const parsed = schema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) {
-    return { errors: parsed.error.flatten().fieldErrors }
-  }
-  await db.posts.create({ data: parsed.data })
-  revalidatePath('/posts')
-  return { success: true }
-}
-
-// component.tsx
-'use client'
-import { useActionState } from 'react'
-import { createPost } from './action'
-
-function PostForm() {
-  const [state, action, isPending] = useActionState(createPost, { errors: {} })
-
-  return (
-    <form action={action}>
-      <input name="title" />
-      {state.errors?.title && <p role="alert">{state.errors.title}</p>}
-      <button disabled={isPending}>Create</button>
-    </form>
-  )
-}
-```
+Mark action files `'use server'`. Parse FormData with Zod's `safeParse`. Return `{ errors }` on failure. Client uses `useActionState(action, initialState)` returning `[state, formAction, isPending]`.
 
 ## File Upload
 
-```typescript
-function FileUpload() {
-  const [preview, setPreview] = useState<string | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+Use `useRef` for hidden file input. Handle drag-and-drop via `onDrop`/`onDragOver`. Transfer dropped files to input via `new DataTransfer()` + `dt.items.add(file)` for form submission.
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) { alert('Max 5MB'); return }
-    setPreview(URL.createObjectURL(file))
-  }
+## Validation UX
 
-  // Drag and drop
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault()
-    const file = e.dataTransfer.files[0]
-    if (file) {
-      // Transfer to hidden input for form submission
-      const dt = new DataTransfer()
-      dt.items.add(file)
-      inputRef.current!.files = dt.files
-      setPreview(URL.createObjectURL(file))
-    }
-  }
-
-  return (
-    <div onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
-      <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} />
-      {preview && <img src={preview} alt="Preview" />}
-    </div>
-  )
-}
-```
-
-## Validation UX Patterns
-
-```typescript
-// Debounced async validation (e.g., username availability)
-const { register } = useForm({
-  mode: 'onBlur',  // validate on blur, not every keystroke
-})
-
-register('username', {
-  validate: debounce(async (value: string) => {
-    const available = await checkUsername(value)
-    return available || 'Username taken'
-  }, 300),
-})
-```
-
-**Strategy selection:**
-- **Inline on blur**: best for most fields -- immediate feedback without noise
-- **On submit**: better for short forms where inline feels heavy
-- **Debounced async**: required for server-validated fields (uniqueness checks)
+Use `mode: 'onBlur'` for inline validation. Debounce async validators (username availability). Prefer inline-on-blur for most fields, on-submit for short forms.
 
 ## Accessibility Checklist
 

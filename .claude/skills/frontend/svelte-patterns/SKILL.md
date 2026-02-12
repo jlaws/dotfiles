@@ -33,23 +33,7 @@ Runes replace Svelte 4's `let` reactivity and `$:` labels with explicit primitiv
 
 ## Component Props (Svelte 5)
 
-```svelte
-<script lang="ts">
-  // $props replaces export let
-  interface Props {
-    title: string
-    count?: number
-    children: import('svelte').Snippet  // replaces <slot>
-    header?: import('svelte').Snippet<[string]>  // named snippet with args
-  }
-  let { title, count = 0, children, header }: Props = $props()
-</script>
-
-<div>
-  {#if header}{@render header(title)}{/if}
-  {@render children()}
-</div>
-```
+`$props()` replaces `export let`. Use `Snippet` type for children (replaces `<slot>`). Named snippets take typed args.
 
 ## SvelteKit Routing
 
@@ -71,103 +55,19 @@ src/routes/
 
 ### Load Functions
 
-```typescript
-// +page.server.ts (server-only, access DB/secrets)
-import type { PageServerLoad } from './$types'
-
-export const load: PageServerLoad = async ({ params, locals }) => {
-  const post = await db.posts.findUnique({ where: { slug: params.slug } })
-  if (!post) throw error(404, 'Not found')
-  return { post }  // typed, available as `data` prop
-}
-
-// +page.ts (universal, runs server + client)
-import type { PageLoad } from './$types'
-
-export const load: PageLoad = async ({ fetch, params }) => {
-  const res = await fetch(`/api/posts/${params.slug}`)
-  return { post: await res.json() }
-}
-```
+Server load (`+page.server.ts`) has DB/secret access. Universal load (`+page.ts`) runs both sides. Return typed data props.
 
 ### Form Actions
 
-```typescript
-// +page.server.ts
-import { fail, redirect } from '@sveltejs/kit'
-import type { Actions } from './$types'
+Define named actions in `+page.server.ts`. Use `fail()` for validation errors, `throw redirect()` for redirects. Client-side `use:enhance` for progressive enhancement.
 
-export const actions: Actions = {
-  create: async ({ request }) => {
-    const data = await request.formData()
-    const title = data.get('title')
-    if (!title) return fail(400, { title, missing: true })
-    await db.posts.create({ data: { title: String(title) } })
-    throw redirect(303, '/posts')
-  },
-}
-```
+## Stores
 
-```svelte
-<!-- +page.svelte -->
-<script lang="ts">
-  import { enhance } from '$app/forms'
-  let { form } = $props()  // form action return data
-</script>
-
-<form method="POST" action="?/create" use:enhance>
-  <input name="title" value={form?.title ?? ''} />
-  {#if form?.missing}<p>Title is required</p>{/if}
-  <button>Create</button>
-</form>
-```
-
-## Stores (Svelte 4/5 Compatible)
-
-```typescript
-import { writable, derived, readable } from 'svelte/store'
-
-// Writable store
-export const user = writable<User | null>(null)
-
-// Derived store
-export const isLoggedIn = derived(user, ($user) => $user !== null)
-
-// Custom store with methods
-function createCounter() {
-  const { subscribe, set, update } = writable(0)
-  return {
-    subscribe,
-    increment: () => update((n) => n + 1),
-    reset: () => set(0),
-  }
-}
-export const counter = createCounter()
-```
-
-Access in components with `$` prefix: `$user`, `$isLoggedIn`, `$counter`.
+Svelte 5 runes preferred. Stores (`writable`, `derived`) still useful for cross-component shared state. Access with `$` prefix.
 
 ## Transitions
 
-```svelte
-<script>
-  import { fade, fly, slide, scale } from 'svelte/transition'
-  import { flip } from 'svelte/animate'
-  let visible = $state(true)
-</script>
-
-{#if visible}
-  <div transition:fade={{ duration: 300 }}>fades in and out</div>
-  <div in:fly={{ y: 20 }} out:fade>different in/out</div>
-{/if}
-
-<!-- Animate list reordering -->
-{#each items as item (item.id)}
-  <div animate:flip={{ duration: 200 }} transition:slide>
-    {item.name}
-  </div>
-{/each}
-```
+Built-in `transition:fade`, `in:fly`, `out:slide`. Use `animate:flip` for list reordering within `{#each}`.
 
 ## Gotchas
 

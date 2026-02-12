@@ -22,210 +22,29 @@ Heavy server interaction      -> React Query + light client state
 Atomic/granular updates       -> Jotai
 ```
 
-## Zustand (Simplest)
+## Zustand
 
-```typescript
-import { create } from 'zustand'
-import { devtools, persist } from 'zustand/middleware'
+Create stores with `create<State>()`. Wrap with `devtools()` and `persist()` middleware. Use slice pattern with `StateCreator` for scalable stores. Select specific state to prevent re-renders: `useStore(s => s.user)`.
 
-export const useStore = create<AppState>()(
-  devtools(persist((set) => ({
-    user: null,
-    theme: 'light',
-    setUser: (user) => set({ user }),
-    toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
-  }), { name: 'app-storage' }))
-)
-```
+### Zustand Advanced
 
-### Zustand with Slices (Scalable)
+Stack middleware: `devtools(subscribeWithSelector(persist(immer(...))))`. Use `partialize` for partial persistence, `subscribeWithSelector` for external subscriptions. Test via `useStore.getState()`.
 
-```typescript
-export const createUserSlice: StateCreator<UserSlice & CartSlice, [], [], UserSlice> = (set, get) => ({
-  user: null,
-  isAuthenticated: false,
-  login: async (credentials) => {
-    const user = await authApi.login(credentials)
-    set({ user, isAuthenticated: true })
-  },
-  logout: () => set({ user: null, isAuthenticated: false }),
-})
+## Redux Toolkit
 
-// Combine slices
-type StoreState = UserSlice & CartSlice
-export const useStore = create<StoreState>()((...args) => ({
-  ...createUserSlice(...args),
-  ...createCartSlice(...args),
-}))
+Use `configureStore` + `createSlice`. Type `RootState` and `AppDispatch` from store. Use `createAsyncThunk` for async operations with `pending/fulfilled/rejected` matchers.
 
-// Selective subscriptions (prevents unnecessary re-renders)
-export const useUser = () => useStore((state) => state.user)
-```
+## Jotai
 
-### Zustand Advanced Patterns
+Use `atom()` for base state, `atom(get => ...)` for derived, `atomWithStorage` for persistence. Write-only action atoms: `atom(null, (get, set) => ...)`.
 
-```typescript
-import { create } from 'zustand'
-import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
-import { immer } from 'zustand/middleware/immer'
+## React Query
 
-const useStore = create<AppState>()(
-  devtools(
-    subscribeWithSelector(
-      persist(
-        immer((set) => ({
-          nested: { deep: { value: 0 } },
-          updateDeep: () => set((state) => { state.nested.deep.value += 1 }),
-        })),
-        {
-          name: 'app-storage',
-          partialize: (state) => ({ nested: state.nested }), // persist subset
-          merge: (persisted, current) => deepMerge(current, persisted), // custom merge
-        }
-      )
-    ),
-    { name: 'AppStore' } // devtools display name
-  )
-)
-
-// External subscription with selector
-useStore.subscribe(
-  (state) => state.nested.deep.value,
-  (value, prevValue) => console.log('changed', prevValue, '->', value)
-)
-
-// Testing: access state outside React
-test('updateDeep increments', () => {
-  const { updateDeep } = useStore.getState()
-  act(() => updateDeep())
-  expect(useStore.getState().nested.deep.value).toBe(1)
-})
-```
-
-## Redux Toolkit with TypeScript
-
-```typescript
-export const store = configureStore({
-  reducer: { user: userReducer, cart: cartReducer },
-})
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
-export const useAppDispatch: () => AppDispatch = useDispatch
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
-```
-
-```typescript
-// Slice with async thunk
-export const fetchUser = createAsyncThunk('user/fetchUser',
-  async (userId: string, { rejectWithValue }) => {
-    try {
-      const response = await fetch(`/api/users/${userId}`)
-      if (!response.ok) throw new Error('Failed')
-      return await response.json()
-    } catch (error) { return rejectWithValue((error as Error).message) }
-  }
-)
-
-const userSlice = createSlice({
-  name: 'user', initialState,
-  reducers: {
-    setUser: (state, action: PayloadAction<User>) => { state.current = action.payload },
-    clearUser: (state) => { state.current = null },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchUser.pending, (state) => { state.status = 'loading' })
-      .addCase(fetchUser.fulfilled, (state, action) => { state.current = action.payload })
-      .addCase(fetchUser.rejected, (state, action) => { state.error = action.payload as string })
-  },
-})
-```
-
-## Jotai for Atomic State
-
-```typescript
-import { atom } from 'jotai'
-import { atomWithStorage } from 'jotai/utils'
-
-export const userAtom = atom<User | null>(null)
-export const isAuthenticatedAtom = atom((get) => get(userAtom) !== null)  // Derived
-export const themeAtom = atomWithStorage<'light' | 'dark'>('theme', 'light')  // Persisted
-
-// Async atom
-export const userProfileAtom = atom(async (get) => {
-  const user = get(userAtom)
-  if (!user) return null
-  return (await fetch(`/api/users/${user.id}/profile`)).json()
-})
-
-// Write-only action atom
-export const logoutAtom = atom(null, (get, set) => {
-  set(userAtom, null)
-  set(cartAtom, [])
-})
-```
-
-## React Query for Server State
-
-```typescript
-// Query keys factory
-export const userKeys = {
-  all: ['users'] as const,
-  lists: () => [...userKeys.all, 'list'] as const,
-  list: (filters: UserFilters) => [...userKeys.lists(), filters] as const,
-  detail: (id: string) => [...userKeys.all, 'detail', id] as const,
-}
-
-// Mutation with optimistic update
-export function useUpdateUser() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: updateUser,
-    onMutate: async (newUser) => {
-      await queryClient.cancelQueries({ queryKey: userKeys.detail(newUser.id) })
-      const previousUser = queryClient.getQueryData(userKeys.detail(newUser.id))
-      queryClient.setQueryData(userKeys.detail(newUser.id), newUser)
-      return { previousUser }
-    },
-    onError: (err, newUser, context) => queryClient.setQueryData(userKeys.detail(newUser.id), context?.previousUser),
-    onSettled: (data, error, variables) => queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) }),
-  })
-}
-```
+Use query key factories for cache organization. `useMutation` with `onMutate` for optimistic updates: cancel queries, snapshot previous, set optimistic data, rollback `onError`, invalidate `onSettled`.
 
 ## Combining Client + Server State
 
-```typescript
-// Zustand for UI state, React Query for server state
-const useUIStore = create<UIState>((set) => ({
-  sidebarOpen: true,
-  modal: null,
-  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-  openModal: (modal) => set({ modal }),
-  closeModal: () => set({ modal: null }),
-}))
-
-function Dashboard() {
-  const { sidebarOpen } = useUIStore()
-  const { data: users, isLoading } = useUsers({ active: true })
-  // ...
-}
-```
-
-## Legacy Redux to RTK Migration
-
-```typescript
-// Before: action types, action creators, switch reducers
-// After:
-const todosSlice = createSlice({
-  name: 'todos', initialState: [],
-  reducers: {
-    addTodo: (state, action: PayloadAction<string>) => {
-      state.push({ text: action.payload, completed: false })  // Immer allows "mutations"
-    },
-  },
-})
-```
+Zustand for UI state (sidebar, modal), React Query for server state. Never duplicate server data in client stores.
 
 ## Cross-References
 
