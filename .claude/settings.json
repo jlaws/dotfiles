@@ -69,7 +69,8 @@
       "Bash(whoami)",
       "Bash(pwd)",
       "Bash(env)",
-      "Bash(date)"
+      "Bash(date)",
+      "Bash(grep:*)"
     ],
     "deny": [
       "Bash(sudo *)",
