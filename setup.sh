@@ -93,7 +93,8 @@ sync_dotfiles() {
 		--exclude "setup.sh" \
 		--exclude "README.md" \
 		--exclude "CLAUDE.md" \
-		--exclude "LICENSE-MIT.txt" \
+		--exclude "ghosty_config.txt" \
+		--exclude "LICENSE" \
 		-avh --no-perms . ~
 }
 
