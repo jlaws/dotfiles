@@ -75,7 +75,8 @@ Copies all dotfiles to your home directory using `rsync`, preserving any local c
 - **GNU utilities**: `coreutils`, `findutils`, `gnu-sed`, `moreutils`
 - **Updated tools**: `vim`, `grep`, `openssh`, `screen`, `wget`
 - **Git tools**: `git`, `git-lfs`, `gh`
-- **Shell utilities**: `autojump`
+- **Shell utilities**: `autojump`, `mermaid-cli`
+- **Language servers**: `node`, `pyright`, `rust-analyzer`
 
 ### 3. Configure macOS
 Sets hundreds of macOS preferences including:

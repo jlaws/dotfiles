@@ -163,6 +163,7 @@ install_homebrew_packages() {
 
 	print_step "Installing shell utilities..."
 	brew install autojump
+	brew install mermaid-cli      # Mermaid diagram CLI renderer
 
 	print_step "Installing language servers..."
 	brew install node             # Required for TypeScript LSP

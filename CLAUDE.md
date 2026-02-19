@@ -16,7 +16,7 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 
 ### What setup.sh does:
 1. **Syncs dotfiles** to `~` via rsync (excludes .git, setup.sh, README)
-2. **Installs Homebrew packages**: coreutils, findutils, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump
+2. **Installs Homebrew packages**: coreutils, findutils, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump, mermaid-cli, node, pyright, rust-analyzer
 3. **Configures macOS**: ~200 `defaults write` commands for Finder, Dock, Safari, security, etc.
 
 ## Repository Structure
