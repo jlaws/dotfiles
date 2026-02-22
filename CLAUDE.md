@@ -28,7 +28,7 @@ dotfiles/
 ├── setup.sh           # Main installation script
 └── .claude/           # Claude Code knowledge base
     ├── CLAUDE.md      # Global standards + skills index (synced to ~/.claude/)
-    ├── commands/      # 7 invocable commands (all are thin wrappers to skills)
+    ├── commands/      # 8 invocable commands (all are thin wrappers to skills)
     └── skills/        # 142 contextual skill workflows
 ```
 
