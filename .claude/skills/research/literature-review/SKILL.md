@@ -1,6 +1,6 @@
 ---
 name: literature-review
-description: Systematic literature review methodology. Use when conducting a literature survey, building a related-work section, or mapping a research landscape. Covers search strategy by phase, taxonomy construction, citation graph exploration, and synthesis techniques.
+description: Systematic literature review methodology. Use when conducting a literature survey, building a related-work section, or mapping a research landscape. Do NOT use for single-paper deep analysis (use paper-analysis-methodology).
 ---
 
 # Literature Review for ML Research

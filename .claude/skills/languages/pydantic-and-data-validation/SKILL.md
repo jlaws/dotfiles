@@ -1,6 +1,6 @@
 ---
 name: pydantic-and-data-validation
-description: Build robust data models with Pydantic v2 validators, serialization, and settings management
+description: Build robust data models with Pydantic v2 validators, serialization, and settings management. Use when defining data schemas, implementing custom validators, or configuring application settings with Pydantic. Do NOT use for general Python project setup or async patterns (use python-patterns).
 ---
 
 # Pydantic and Data Validation

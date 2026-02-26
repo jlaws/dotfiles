@@ -1,6 +1,6 @@
 ---
 name: dependency-auditing
-description: "Use when auditing supply chain security. Covers dependency scanning tools, CVE triage workflows, SBOM generation, license compliance, and Dependabot/Renovate configuration."
+description: "Use when auditing supply chain security. Covers dependency scanning tools, CVE triage workflows, SBOM generation, license compliance, and Dependabot/Renovate configuration. Do NOT use for application-level threat modeling or code scanning (use security-analysis)."
 ---
 
 # Dependency Auditing

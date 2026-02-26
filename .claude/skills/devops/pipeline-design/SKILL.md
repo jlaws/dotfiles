@@ -1,6 +1,6 @@
 ---
 name: pipeline-design
-description: Use when designing CI/CD pipelines, selecting deployment strategies, or architecting continuous delivery workflows. Covers platform decisions (GitHub Actions vs GitLab CI), build pipeline structure, deployment strategies (rolling/canary/blue-green), approval gates, DORA metrics, and monorepo build tooling.
+description: Use when designing CI/CD pipelines, selecting deployment strategies, or architecting continuous delivery workflows. Covers platform decisions, deployment strategies (rolling/canary/blue-green), and DORA metrics. Do NOT use for GitHub Actions-specific syntax (use github-actions-patterns).
 ---
 
 # Pipeline Design

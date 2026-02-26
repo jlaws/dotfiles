@@ -1,6 +1,6 @@
 ---
 name: fastapi-templates
-description: FastAPI architecture opinions and non-obvious patterns. Use when building FastAPI applications.
+description: FastAPI architecture opinions and non-obvious patterns. Use when building FastAPI applications, structuring routers, or configuring middleware. Do NOT use for general Python patterns (use python-patterns) or API design theory (use api-design-principles).
 ---
 
 # FastAPI Templates

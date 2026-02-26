@@ -1,6 +1,6 @@
 ---
 name: paper-analysis-methodology
-description: Systematic methodology for analyzing ML/AI research papers using the three-pass reading method. Use when reviewing papers, extracting key insights, or producing structured summaries.
+description: Systematic methodology for analyzing ML/AI research papers using the three-pass reading method. Use when reviewing papers, extracting key insights, or producing structured summaries. Do NOT use for writing papers (use latex-paper-writing) or implementing paper algorithms (use paper-to-code-implementation).
 ---
 
 # Paper Analysis Methodology

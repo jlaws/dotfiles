@@ -1,6 +1,6 @@
 ---
 name: api-design-principles
-description: "Design REST and GraphQL APIs and build client SDKs. Covers resource design, schema patterns, pagination, error handling, auth flows, retry/backoff, and SDK architecture in Python and TypeScript."
+description: "Design REST and GraphQL APIs and build client SDKs. Use when creating API endpoints, designing GraphQL schemas, building Python/TypeScript SDKs, or implementing pagination and error handling. Do NOT use for FastAPI-specific implementation (use fastapi-templates)."
 ---
 
 # API Design Principles & Client SDK Patterns

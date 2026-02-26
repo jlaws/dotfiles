@@ -1,6 +1,6 @@
 ---
 name: refactoring-and-debt
-description: "Use when systematically refactoring code or analyzing/remediating technical debt. Covers safe refactoring operations, test-verify-commit cadence, large-scale refactoring strategies, debt inventory and impact assessment, prioritized remediation, and prevention practices."
+description: "Use when systematically refactoring code or analyzing/remediating technical debt. Covers safe refactoring operations, test-verify-commit cadence, and debt inventory. Do NOT use for general code quality checks (use code-quality) or pre-commit verification (use verification-before-completion)."
 ---
 
 # Refactoring & Technical Debt

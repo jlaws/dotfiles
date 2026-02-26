@@ -1,6 +1,6 @@
 ---
 name: react-state-management
-description: Master modern React state management with Redux Toolkit, Zustand, Jotai, and React Query. Use when setting up global state, managing server state, or choosing between state management solutions.
+description: Master modern React state management with Redux Toolkit, Zustand, Jotai, and React Query. Use when setting up global state, managing server state, or choosing between state management solutions. Do NOT use for Next.js routing or server components (use nextjs-app-router-patterns).
 ---
 
 # React State Management

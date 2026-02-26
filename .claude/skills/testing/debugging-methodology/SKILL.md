@@ -1,6 +1,6 @@
 ---
 name: debugging-methodology
-description: Master systematic debugging with proven techniques, profiling tools, and disciplined root cause analysis. Use when investigating bugs, test failures, performance issues, or unexpected behavior.
+description: Systematic debugging with root cause analysis, profiling, and evidence-based diagnosis. Use when investigating bugs, test failures, performance issues, or unexpected behavior. Do NOT use for test-first development workflow (use test-driven-development).
 ---
 
 # Debugging Methodology

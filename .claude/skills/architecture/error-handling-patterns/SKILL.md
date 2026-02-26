@@ -1,6 +1,6 @@
 ---
 name: error-handling-patterns
-description: Error handling strategy and pattern selection guidance. Use when designing error handling, choosing between exceptions and Result types, or implementing resilience patterns.
+description: Error handling strategy and pattern selection guidance. Use when designing error handling, choosing between exceptions and Result types, or implementing resilience patterns. Do NOT use for API error response format design (use api-design-principles).
 ---
 
 # Error Handling Patterns

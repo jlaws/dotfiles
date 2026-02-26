@@ -1,6 +1,6 @@
 ---
 name: confidence-scoring
-description: "Assess research quality with systematic confidence scoring, source validation, and uncertainty quantification."
+description: "Assess research quality with systematic confidence scoring, source validation, and uncertainty quantification. Use when evaluating source reliability, quantifying claim confidence, or building evidence-based assessments."
 ---
 
 # Research Confidence Scoring

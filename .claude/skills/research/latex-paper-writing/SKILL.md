@@ -1,6 +1,6 @@
 ---
 name: latex-paper-writing
-description: Academic paper structure, venue formatting (NeurIPS/ICML/ICLR), bibliography, figures, tables, and math notation for ML research.
+description: Academic paper structure, venue formatting (NeurIPS/ICML/ICLR), bibliography, figures, tables, and math notation for ML research. Use when writing LaTeX papers, formatting for conference submission, or structuring academic documents. Do NOT use for reading or analyzing existing papers (use paper-analysis-methodology).
 ---
 
 # LaTeX Paper Writing for ML Venues
