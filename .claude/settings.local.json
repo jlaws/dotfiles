@@ -5,7 +5,12 @@
       "Bash(find:*)",
       "Bash(done)",
       "Bash(ls:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(do head:*)",
+      "Bash(do:*)",
+      "Bash(sed:*)",
+      "Bash(test:*)",
+      "Bash(grep:*)"
     ]
   }
 }
