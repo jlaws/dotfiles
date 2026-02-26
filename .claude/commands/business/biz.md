@@ -1,4 +1,5 @@
 ---
+name: biz
 description: "Business strategy consultation — launches business-analyst subagent. Use when defining KPIs, planning MVPs, designing payment flows, or team processes."
 ---
 

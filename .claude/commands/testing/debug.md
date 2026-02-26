@@ -1,4 +1,5 @@
 ---
+name: debug
 description: "Systematic bug investigation — root cause analysis, not random fixes. Use when a test fails, a bug appears, or behavior is unexpected."
 ---
 

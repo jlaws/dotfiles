@@ -164,6 +164,12 @@ Present to the user:
 
 Do not auto-file issues for deferred items. List them for the user to decide.
 
+## Examples
+
+**Trigger:** "Address the PR review feedback"
+**Action:** Fetch all unresolved review comments, categorize by type, implement fixes, reply inline
+**Result:** All comments resolved with code changes committed and reviewer notified
+
 ---
 
 ## Cross-References

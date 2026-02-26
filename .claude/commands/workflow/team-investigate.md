@@ -1,4 +1,5 @@
 ---
+name: team-investigate
 description: "Competing hypothesis debugging — multiple agents investigate different theories in parallel. Use for complex bugs where the root cause is unclear."
 ---
 

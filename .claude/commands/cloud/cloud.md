@@ -1,4 +1,5 @@
 ---
+name: cloud
 description: "Cloud architecture consultation — launches cloud-architect subagent. Use when designing cloud infrastructure, optimizing costs, or planning deployments."
 ---
 

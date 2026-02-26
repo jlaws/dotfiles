@@ -155,4 +155,4 @@ For XCTest, Swift Testing, dependency injection, Result type, and custom error p
 
 ## Performance
 
-For lazy properties, custom COW, @inline hints, and Instruments profiling guidance, see [references/performance-tips.md](references/performance-tips.md).
+For lazy properties, custom COW, @inline hints, and Instruments profiling guidance, see [references/swift-performance.md](references/swift-performance.md).

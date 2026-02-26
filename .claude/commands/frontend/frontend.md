@@ -1,4 +1,5 @@
 ---
+name: frontend
 description: "Frontend consultation — frameworks, design systems, and web patterns. Use when building with React, Next.js, Svelte, Tailwind, or solving frontend challenges."
 ---
 

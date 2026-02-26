@@ -95,6 +95,12 @@ gh issue comment ${ISSUE_NUMBER} \
 gh issue close ${ISSUE_NUMBER} --comment "Resolved via #${PR_NUMBER}"
 ```
 
+## Examples
+
+**Trigger:** "Fix bug from GitHub issue #42"
+**Action:** Fetch issue details, reproduce the bug, implement fix, add tests, open PR referencing #42
+**Result:** PR created with `Fixes #42` — issue auto-closes on merge
+
 ## Delivery Checklist
 
 1. Resolution summary with root cause

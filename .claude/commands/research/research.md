@@ -1,4 +1,5 @@
 ---
+name: research
 description: "Research consultation — literature review, statistical analysis, and paper writing. Use when conducting research, reviewing literature, or writing academic papers."
 ---
 

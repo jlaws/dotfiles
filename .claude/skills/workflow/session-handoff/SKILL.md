@@ -2,6 +2,7 @@
 name: session-handoff
 description: "Create structured HANDOFF.md documents preserving decisions, file paths, test results, and next steps between sessions. Use when ending a work session, switching context, hitting context limits, or preparing for session resumption. Do NOT use for general documentation (use technical-writing-for-devtools)."
 compatibility: claude-code
+allowed-tools: Read, Grep, Glob, Bash, Write
 ---
 
 # Session Handoff
@@ -70,6 +71,12 @@ When resuming from a handoff:
 3. Run tests listed in "Test Results" to confirm current state
 4. Check "Open Issues" for unresolved blockers
 5. Start from "Next Steps" item 1
+
+## Examples
+
+**Trigger:** "I'm done for the day, save my progress"
+**Action:** Summarize current state, pending tasks, and decisions into HANDOFF.md
+**Result:** Next session loads HANDOFF.md and continues seamlessly from where you left off
 
 ## Rules
 

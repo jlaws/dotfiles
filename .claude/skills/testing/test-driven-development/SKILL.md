@@ -1,6 +1,7 @@
 ---
 name: test-driven-development
 description: Test-first development discipline. Use when implementing features, fixing bugs, or refactoring — enforces writing tests before implementation code. Covers red-green-refactor cycle, test isolation, and TDD workflow. Do NOT use for investigating existing bugs or failures (use debugging-methodology) or pre-commit verification (use verification-before-completion).
+compatibility: claude-code
 ---
 
 # Test-Driven Development (TDD)
@@ -192,7 +193,7 @@ Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix 
 
 ## Testing Anti-Patterns
 
-When adding mocks or test utilities, read @testing-anti-patterns.md to avoid common pitfalls:
+When adding mocks or test utilities, read @references/testing-anti-patterns.md to avoid common pitfalls:
 - Testing mock behavior instead of real behavior
 - Adding test-only methods to production classes
 - Mocking without understanding dependencies

@@ -273,7 +273,7 @@ Detailed implementations:
 
 - [Retry patterns and exponential backoff](retry-patterns.md)
 - [Pagination patterns](pagination-patterns.md)
-- [SDK error handling catalog](error-handling.md)
+- [SDK error handling catalog](error-handling-patterns.md)
 - [SDK testing strategies](testing-strategies.md)
 - [GraphQL schema design](graphql-schema-design.md)
 - [REST best practices](rest-best-practices.md)

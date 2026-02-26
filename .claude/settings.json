@@ -40,9 +40,6 @@
       "Bash(swiftformat *)",
       "Bash(which *)",
       "Bash(wc *)",
-      "Bash(cat *)",
-      "Bash(head *)",
-      "Bash(tail *)",
       "Bash(mkdir *)",
       "Bash(touch *)",
       "Bash(cp *)",
@@ -55,8 +52,6 @@
       "Bash(tr *)",
       "Bash(xargs *)",
       "Bash(diff *)",
-      "Bash(sed *)",
-      "Bash(awk *)",
       "Bash(echo *)",
       "Bash(printf *)",
       "Bash(tee *)",
@@ -102,7 +97,12 @@
       "Bash(rm *)",
       "Bash(git reset *)",
       "Bash(git clean *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(sed *)",
+      "Bash(awk *)"
     ]
   },
   "attribution": {
