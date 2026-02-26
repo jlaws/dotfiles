@@ -171,10 +171,5 @@ For NAS patterns, see `references/neural-architecture-search.md`.
 ## Extended References
 
 See `references/` for:
-- Diffusion training loop (DDPM epsilon prediction)
-- CFG sampling implementation
-- ControlNet conditioning and custom training
-- LoRA for diffusion models
-- Sliding window attention mask
-- Mixture of Experts (MoE) layer implementation
-- Neural architecture search (DARTS, ENAS, SuperNet, ProxylessNAS)
+- Code examples: diffusion training loops, CFG sampling, ControlNet, LoRA, sliding window attention, MoE layer (`code-examples.md`)
+- Neural architecture search: DARTS, ENAS, SuperNet, ProxylessNAS (`neural-architecture-search.md`)

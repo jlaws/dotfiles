@@ -123,3 +123,7 @@ module.exports = {
   }
 };
 ```
+
+## Extended References
+
+See `sql-zero-downtime-strategies.md` for production-ready SQL migration patterns (expand-contract, shadow tables, online DDL) across PostgreSQL, MySQL, and SQL Server.

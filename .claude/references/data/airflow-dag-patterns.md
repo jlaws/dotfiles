@@ -245,3 +245,7 @@ airflow/
 - **Don't use `depends_on_past=True`** -- creates bottlenecks
 - **Don't hardcode dates** -- use `{{ ds }}` macros
 - **Don't put heavy logic in DAG file** -- import from modules
+
+## Extended References
+
+See `data-pipeline-architecture.md` for architecture patterns (lambda, kappa, medallion), batch vs streaming trade-offs, and data quality frameworks.
