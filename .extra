@@ -15,6 +15,10 @@ export PATH="${HOMEBREW_PREFIX}/opt/openssl/bin:$PATH"
 # AWS
 export AWS_SDK_LOAD_CONFIG=true
 
+# Editor
+export EDITOR="code --wait"
+export VISUAL="$EDITOR"
+
 # History
 export HISTFILESIZE=10000
 export HISTSIZE=${HISTFILESIZE}
