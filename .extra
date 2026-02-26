@@ -16,7 +16,7 @@ export PATH="${HOMEBREW_PREFIX}/opt/openssl/bin:$PATH"
 export AWS_SDK_LOAD_CONFIG=true
 
 # Editor
-export EDITOR="code --wait"
+export EDITOR="vim"
 export VISUAL="$EDITOR"
 
 # History
