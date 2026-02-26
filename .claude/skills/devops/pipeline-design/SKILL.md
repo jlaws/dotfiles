@@ -134,6 +134,10 @@ deploy:
 
 For detailed monorepo patterns, see [references/monorepo-tools.md](references/monorepo-tools.md).
 
+## References
+
+- .claude/references/data/airflow-dag-patterns.md — Airflow DAG design patterns for data pipelines
+
 ## Cross-References
 
 - **devops:github-actions-patterns** -- deep GitHub Actions patterns: reusable workflows, OIDC, matrix strategies

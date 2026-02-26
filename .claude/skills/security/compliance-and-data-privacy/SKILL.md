@@ -1,6 +1,6 @@
 ---
 name: compliance-and-data-privacy
-description: "GDPR, PCI-DSS, SOC2, and HIPAA compliance implementation including consent systems and data handling. Use when implementing GDPR, PCI-DSS, SOC2, or HIPAA compliance, handling personal/payment data, building consent systems, or conducting compliance reviews. Do NOT use for application-level threat modeling (use security-analysis)."
+description: "GDPR, PCI-DSS, SOC2, and HIPAA compliance implementation including consent systems and data handling. Use when implementing GDPR, PCI-DSS, SOC2, or HIPAA compliance, handling personal/payment data, building consent systems, or conducting compliance reviews. Do NOT use for application-level threat modeling (use security-analysis) or auth system implementation (use auth-implementation-patterns)."
 ---
 
 # Compliance & Data Privacy
@@ -141,3 +141,7 @@ Access, Rectification, Erasure, Restrict Processing, Portability, Object
 - HIPAA BAAs must be in place BEFORE sharing PHI, not retroactively
 - Anonymized data is outside GDPR scope, but pseudonymized data is NOT -- know the difference
 - Log retention itself creates compliance obligations; don't log PII unless required
+
+## References
+
+- .claude/references/business/payment-systems.md — PCI-DSS compliant payment implementation

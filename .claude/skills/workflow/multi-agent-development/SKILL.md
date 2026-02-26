@@ -1,6 +1,6 @@
 ---
 name: multi-agent-development
-description: "Multi-agent coordination patterns for subagents and agent teams with task sizing, file ownership, and communication protocols. Use when coordinating multiple agents — subagents for simple parallel/sequential tasks, or agent teams for complex multi-perspective review, research, and implementation. Do NOT use for general Claude Code workflow optimization (use claude-code-meta-patterns)."
+description: "Multi-agent coordination patterns for subagents and agent teams with task sizing, file ownership, and communication protocols. Use when coordinating multiple agents — subagents for simple parallel/sequential tasks, or agent teams for complex multi-perspective review, research, and implementation. Do NOT use for general Claude Code workflow optimization (use code-agent-meta-patterns)."
 compatibility: claude-code
 ---
 
@@ -130,32 +130,7 @@ Chain specialists for cross-cutting issues:
 
 ### Team Composition Patterns
 
-#### Review Team
-
-- Lead gathers context (diff, changed files, branch info)
-- Distributes full context to specialist reviewers (security, quality, testing, language)
-- Each reviewer focuses on one perspective using Explore agents
-- Lead merges findings, deduplicates, produces unified report
-
-#### Research Team
-
-- Lead defines scope, distributes query sets
-- Each researcher explores different sources/angles in parallel
-- Lead synthesizes findings, builds taxonomy or comparison matrix
-
-#### Implementation Team
-
-- Lead creates phased plan with file ownership boundaries
-- Teammates implement independent modules in parallel (general-purpose agents)
-- Reviewer teammate validates each module
-- Lead integrates, runs full test suite
-
-#### Adversarial Team
-
-- Lead poses a question or problem
-- Multiple agents investigate competing hypotheses independently
-- Agents challenge each other's findings via messaging
-- Lead synthesizes with confidence-weighted conclusions
+See references/composition-patterns.md for review, research, implementation, and adversarial team archetypes.
 
 ### Task Sizing Heuristics
 
@@ -207,45 +182,7 @@ Rules:
 
 ## Conventions for Team-Enabled Skills
 
-### Convention 1: Team Configuration Block
-
-Every team-enabled skill should include:
-
-```yaml
-## Agent Team Mode
-team:
-  recommended_size: 3-5
-  agent_roles:
-    - name: role-name
-      type: Explore  # or general-purpose
-      focus: "What this agent does"
-      skills_loaded: ["category:skill-name"]
-  file_ownership: "by-module" | "by-perspective" | "shared-read-only"
-  lead_mode: "delegate" | "hands-on"
-```
-
-### Convention 2: Single-Agent Fallback
-
-Every team-enabled skill MUST work as a single agent too. Team mode is an optional enhancement, not a requirement. The skill's core workflow remains the same — team mode parallelizes it.
-
-### Convention 3: Synthesis Protocol
-
-1. Collect all teammate findings
-2. Deduplicate across perspectives
-3. Resolve contradictions (flag for user if unresolvable)
-4. Merge into the skill's standard output template
-5. Attribute findings to the perspective that caught them
-
-### Convention 4: File Ownership Declaration
-
-For implementation teams, each task declares owned files:
-
-```
-Files: src/auth/**
-Constraint: Do NOT modify files outside this path
-```
-
-Lead enforces boundaries during task creation. If a task needs files owned by another agent, add a dependency (blockedBy) so they run sequentially.
+See references/team-conventions.md for team config blocks, single-agent fallback, synthesis protocol, and file ownership conventions.
 
 ---
 

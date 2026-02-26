@@ -331,3 +331,9 @@ def monitor_predictions(predictions: list[dict], reference_stats: dict) -> list[
 - **Missing feedback loops**: if you can't measure real-world outcomes, you can't improve the model
 - **Serving the training framework**: don't serve with PyTorch if you can export to ONNX; inference runtimes are 2-10x faster
 - **Batch predictions going stale**: if batch runs at midnight and user behavior changes by noon, your predictions are wrong
+
+## References
+
+- .claude/references/ai-ml/ml-model-deployment.md — deployment patterns and serving infrastructure
+- .claude/references/ai-ml/ml-experiment-lifecycle.md — experiment tracking and model registry
+- .claude/references/ai-ml/llmops-production-monitoring.md — production monitoring for ML systems

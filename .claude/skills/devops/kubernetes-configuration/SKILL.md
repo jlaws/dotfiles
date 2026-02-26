@@ -229,3 +229,8 @@ Run all three in CI before merge.
 - [ ] Seccomp profile enabled
 - [ ] RBAC follows least privilege
 - [ ] Image pull from approved registries only
+
+## References
+
+- .claude/references/cloud/gpu-compute-management.md — GPU scheduling and resource management
+- .claude/references/cloud/cost-optimization.md — cluster cost optimization strategies

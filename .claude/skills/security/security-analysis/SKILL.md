@@ -212,3 +212,7 @@ Without team mode, execute all phases sequentially (default behavior). Team mode
 - Error messages are an info disclosure vector -- generic errors externally, detailed internally
 - Session management is often the weakest STRIDE link; model it explicitly
 - Compliance mapping gaps surface best through automated traceability matrices, not manual review
+
+## References
+
+- .claude/references/ai-ml/ai-safety-and-alignment.md — AI-specific security and safety considerations
