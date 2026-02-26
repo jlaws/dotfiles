@@ -1,5 +1,5 @@
 ---
-description: "Competing hypothesis debugging — multiple agents investigate different theories in parallel."
+description: "Competing hypothesis debugging — multiple agents investigate different theories in parallel. Use for complex bugs where the root cause is unclear."
 ---
 
 Before invoking the skill, gather evidence:

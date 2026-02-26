@@ -1,5 +1,5 @@
 ---
-description: "Business strategy consultation — launches business-analyst subagent"
+description: "Business strategy consultation — launches business-analyst subagent. Use when defining KPIs, planning MVPs, designing payment flows, or team processes."
 ---
 
 Before invoking the subagent, gather diagnostic context:

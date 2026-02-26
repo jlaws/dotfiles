@@ -1,44 +1,13 @@
 # Claude Code Configuration
 
 ## Verification Gate
-
-Evidence before claims. Run the command, read the output, THEN claim the result.
-
-### Gate Function
-
-```
-BEFORE claiming any status:
-1. IDENTIFY — What command proves this claim?
-2. RUN     — Execute the FULL command (fresh, complete)
-3. READ    — Full output, check exit code, count failures
-4. VERIFY  — Does output confirm the claim?
-   - If NO: State actual status with evidence
-   - If YES: State claim WITH evidence
-5. CLAIM   — Only now make the claim
-```
-
-### Evidence Requirements
-
-| Claim | Requires | Not Sufficient |
-|-------|----------|----------------|
-| Tests pass | Test output: 0 failures | Previous run, "should pass" |
-| Build succeeds | Build: exit 0 | Linter passing |
-| Bug fixed | Original symptom gone in test | Code changed, assumed fixed |
-| Requirements met | Line-by-line checklist verified | Tests passing alone |
-
-### Red Flags — STOP
-
-- Using "should", "probably", "seems to"
-- Expressing satisfaction before verification
-- About to commit/push/PR without verification
-- Trusting agent success reports without independent check
-- Relying on partial verification
-- ANY wording implying success without having run verification
+Evidence before claims. Never claim success without fresh command output confirming it.
+Full methodology: load skill `workflow/verification-before-completion`.
 
 ## Behavioral Defaults
 - Before creative/feature work: explore intent + requirements before implementation
 - For design decisions: propose 2-3 approaches, lead with recommendation
-- **Skill lookup**: Before implementation tasks involving a specific framework, language pattern, or architecture decision — check `.claude/skills/` for relevant patterns before relying on training knowledge.
+- **Skill lookup**: Before implementation tasks involving a specific framework, language pattern, or architecture decision — check `.claude/skills/` and `.claude/references/` for relevant patterns before relying on training knowledge.
 
 ## Context Preservation
 - On compaction: preserve current task, file paths being edited, test results, and key decisions. Discard exploration output and intermediate reasoning.
@@ -81,6 +50,14 @@ When spawned as a teammate, follow these rules (teammates read this file on star
 | No file ownership declared | List exact files each agent may edit |
 | Broadcasting status updates | DM the lead; only broadcast blocking issues |
 | Skipping verification | Always run tests/build before marking complete |
+
+---
+
+## Knowledge Base Structure
+- **skills/**: Always-loaded cross-cutting workflows (code review, debugging, TDD, etc.)
+- **references/**: Domain knowledge loaded on-demand by agents and commands
+- **agents/**: Specialist roles that read from references/
+- **commands/**: Entry points that gather context then invoke agents/skills
 
 ---
 

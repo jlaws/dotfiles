@@ -70,7 +70,8 @@
       "Bash(pwd)",
       "Bash(env)",
       "Bash(date)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(ls *)"
     ],
     "deny": [
       "Bash(sudo *)",

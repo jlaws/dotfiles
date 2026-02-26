@@ -1,5 +1,5 @@
 ---
-description: "Data engineering consultation — launches data-engineer subagent"
+description: "Data engineering consultation — launches data-engineer subagent. Use when building data pipelines, optimizing queries, or designing data platforms."
 ---
 
 Before invoking the subagent, gather diagnostic context:

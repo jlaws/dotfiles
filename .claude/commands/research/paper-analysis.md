@@ -1,5 +1,5 @@
 ---
-description: "Analyze an ML/AI research paper: structured summary, critical evaluation, and reviewer-style assessment using the three-pass method."
+description: "Analyze an ML/AI research paper: structured summary, critical evaluation, and reviewer-style assessment using the three-pass method. Use when reviewing an academic paper, arxiv preprint, or conference submission."
 ---
 
 Before invoking the skill, perform resource discovery:
@@ -18,4 +18,4 @@ Before invoking the skill, perform resource discovery:
 
 Pass all discovered resources when invoking the skill so they can populate the Resources & Links section.
 
-Invoke the research:paper-analysis-methodology skill and use it to analyze: $ARGUMENTS
+Read references/research/paper-analysis-methodology.md and apply its methodology to analyze: $ARGUMENTS
