@@ -3,6 +3,9 @@ name: code-review-patterns
 description: Code review practices — giving feedback, receiving feedback, and pre-submission diff review. Use when reviewing PRs, responding to review feedback, or running a self-review. Do NOT use for general code smell detection outside PR context (use code-quality).
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
+skills:
+  - workflow/verification-before-completion
+  - testing/language-testing-patterns
 ---
 
 # Code Review Patterns

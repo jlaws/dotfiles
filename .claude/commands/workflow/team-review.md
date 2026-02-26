@@ -1,5 +1,5 @@
 ---
-description: "Multi-agent team code review — parallel specialist reviewers for security, quality, testing, and language-specific analysis."
+description: "Multi-agent team code review — parallel specialist reviewers for security, quality, testing, and language-specific analysis. Use for thorough multi-perspective review of a feature branch."
 ---
 
 Before invoking the skill, perform pre-flight checks:
@@ -19,10 +19,10 @@ Then orchestrate the review team:
    - File ownership: **shared-read-only for all reviewers** (no edits)
    - The full diff and changed files list as context
 4. **Spawn specialist reviewers** (Explore type, read-only), assign tasks via TaskUpdate:
-   - **security-reviewer**: Loads security:security-analysis perspective. Reviews for STRIDE threats, vulnerability patterns, secrets, injection vectors.
+   - **security-reviewer**: Read references/security/security-analysis.md for methodology. Reviews for STRIDE threats, vulnerability patterns, secrets, injection vectors.
    - **quality-reviewer**: Loads workflow:code-quality + workflow:code-review-patterns perspectives. Reviews for code smells, edge cases, error handling, naming, DRY.
    - **test-reviewer**: Loads testing:language-testing-patterns perspective. Identifies coverage gaps, missing edge case tests, test quality issues.
-   - **language-reviewer**: Loads the detected languages:*-patterns skill. Reviews for language-specific gotchas and idiom violations.
+   - **language-reviewer**: Read references/languages/{detected}-patterns.md for the detected language. Reviews for language-specific gotchas and idiom violations.
 5. **Collect findings** from all reviewers via TaskList, deduplicate, and merge into a severity-ranked report.
 6. **Shut down team** after all findings are collected.
 

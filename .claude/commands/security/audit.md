@@ -1,5 +1,5 @@
 ---
-description: "Security threat model and vulnerability scan — STRIDE analysis, SAST patterns, and compliance mapping."
+description: "Security threat model and vulnerability scan — STRIDE analysis, SAST patterns, and compliance mapping. Use when reviewing code for vulnerabilities, conducting threat modeling, or mapping compliance controls."
 ---
 
 Before invoking the skill, perform reconnaissance:
@@ -9,4 +9,4 @@ Before invoking the skill, perform reconnaissance:
 3. **Check existing security tooling** config (.semgrep.yml, .snyk, .trivyignore, .eslintrc security plugins).
 4. **Get file tree overview** of the target scope (if $ARGUMENTS specifies a component/directory, scope to that; otherwise scope to the full project).
 
-Invoke the security:security-analysis skill and use it to analyze: $ARGUMENTS
+Read references/security/security-analysis.md and apply its methodology to analyze: $ARGUMENTS

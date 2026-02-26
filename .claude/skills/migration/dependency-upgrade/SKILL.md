@@ -1,6 +1,9 @@
 ---
 name: dependency-upgrade
 description: "Dependency upgrade strategy and risk assessment. Use when upgrading major dependencies, resolving conflicts, or planning migration paths. Do NOT use for security vulnerability scanning (use dependency-auditing)."
+skills:
+  - testing/test-driven-development
+  - workflow/verification-before-completion
 ---
 
 # Dependency Upgrade

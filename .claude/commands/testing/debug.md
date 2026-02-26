@@ -1,5 +1,5 @@
 ---
-description: "Systematic bug investigation — root cause analysis, not random fixes."
+description: "Systematic bug investigation — root cause analysis, not random fixes. Use when a test fails, a bug appears, or behavior is unexpected."
 ---
 
 Before invoking the skill, gather diagnostic context:

@@ -1,5 +1,5 @@
 ---
-description: "Multi-agent system design suite — parallel specialist agents produce a complete set of architecture documents."
+description: "Multi-agent system design suite — parallel specialist agents produce a complete set of architecture documents. Use when designing a new system or documenting an existing architecture."
 ---
 
 Parse arguments: `$ARGUMENTS` must contain `<directory_path>` followed by `<description>`.
@@ -11,17 +11,17 @@ Parse arguments: `$ARGUMENTS` must contain `<directory_path>` followed by `<desc
 1. **Parse arguments**: extract `directory_path` and `description` from `$ARGUMENTS`.
 2. **Create directory** if it doesn't exist (`mkdir -p`).
 3. **Check for existing docs**: read any `.md` files already in the directory — this is the current system state for iterative updates.
-4. **Detect keywords** in description for conditional skill loading:
-   - SaaS / multi-tenant → `architecture:microservices-patterns` (see references/saas-multi-tenancy.md)
+4. **Detect keywords** in description for conditional reference loading:
+   - SaaS / multi-tenant → .claude/references/architecture/microservices-patterns.md (see references/saas-multi-tenancy.md)
    - search → `data:search-infrastructure`
    - streaming / events → `data:streaming-data-processing`
-   - gRPC / protobuf → `architecture:distributed-communication-patterns`
-   - real-time → `architecture:real-time-systems`
-   - compliance / HIPAA / GDPR / PCI → `security:compliance-and-data-privacy`
-   - ML / AI / model → `architecture:ml-system-design`
+   - gRPC / protobuf → .claude/references/architecture/distributed-communication-patterns.md
+   - real-time → .claude/references/architecture/real-time-systems.md
+   - compliance / HIPAA / GDPR / PCI → .claude/references/security/compliance-and-data-privacy.md
+   - ML / AI / model → .claude/references/architecture/ml-system-design.md
    - GPU → `cloud:gpu-compute-management`
-   - accessibility → `frontend:accessibility-testing`
-   - frontend / UI → `frontend:design-system-patterns`
+   - accessibility → .claude/references/frontend/accessibility-testing.md
+   - frontend / UI → .claude/references/frontend/design-system-patterns.md
 
 ## Phase 1: Draft (parallel)
 
@@ -31,32 +31,36 @@ Parse arguments: `$ARGUMENTS` must contain `<directory_path>` followed by `<desc
 
 ### Agent 1: architecture-analyst
 **Owns**: `overview.md`, `architecture.md`, `technology-choices.md`
-**Always load skills**: architecture:architecture-decision-records, architecture:microservices-patterns
-**Conditional skills**: (none — multi-tenancy patterns are in microservices-patterns/references/saas-multi-tenancy.md)
+**Always read references**: .claude/references/architecture/architecture-decision-records.md, .claude/references/architecture/microservices-patterns.md
+**Conditional references**: (none — multi-tenancy patterns are in microservices-patterns/references/saas-multi-tenancy.md)
 **Focus**: System goals/constraints/stakeholders/NFRs in overview.md. Component architecture with mermaid diagrams and ADRs in architecture.md. Tech stack decisions with comparison tables in technology-choices.md.
 
 ### Agent 2: data-and-api-designer
 **Owns**: `data.md`, `api.md`
-**Always load skills**: architecture:api-design-principles, data:postgresql-table-design, data:nosql-data-modeling, architecture:caching-strategies, architecture:distributed-communication-patterns
-**Conditional skills**: data:search-infrastructure (if search), data:streaming-data-processing (if streaming/events), architecture:real-time-systems (if real-time)
+**Always read references**: .claude/references/architecture/api-design-principles.md, .claude/references/architecture/caching-strategies.md, .claude/references/architecture/distributed-communication-patterns.md
+**Always load skills**: data:postgresql-table-design, data:nosql-data-modeling
+**Conditional references**: .claude/references/architecture/real-time-systems.md (if real-time)
+**Conditional skills**: data:search-infrastructure (if search), data:streaming-data-processing (if streaming/events)
 **Focus**: Database selection, schema design, data flow, caching layers in data.md. API surface (REST/GraphQL/gRPC), inter-service contracts, async messaging in api.md.
 
 ### Agent 3: infra-planner
 **Owns**: `infrastructure.md`, `scalability.md`
-**Always load skills**: cloud:serverless-patterns, devops:kubernetes-configuration, devops:pipeline-design, devops:observability, cloud:cost-optimization, architecture:background-job-processing
-**Conditional skills**: architecture:ml-system-design (if ML/AI), cloud:gpu-compute-management (if GPU)
+**Always read references**: .claude/references/devops/kubernetes-configuration.md, .claude/references/devops/pipeline-design.md, .claude/references/devops/observability.md, .claude/references/architecture/background-job-processing.md
+**Always load skills**: cloud:serverless-patterns, cloud:cost-optimization
+**Conditional references**: .claude/references/architecture/ml-system-design.md (if ML/AI)
+**Conditional skills**: cloud:gpu-compute-management (if GPU)
 **Focus**: Deployment topology, compute strategy, CI/CD, monitoring/SLOs in infrastructure.md. Scaling strategy, capacity planning, performance budget in scalability.md.
 
 ### Agent 4: security-reviewer
 **Owns**: `security.md`
-**Always load skills**: security:security-analysis, security:auth-implementation-patterns, architecture:error-handling-patterns
-**Conditional skills**: security:compliance-and-data-privacy (if compliance/HIPAA/GDPR/PCI)
+**Always read references**: .claude/references/security/security-analysis.md, .claude/references/security/auth-implementation-patterns.md, .claude/references/architecture/error-handling-patterns.md
+**Conditional references**: .claude/references/security/compliance-and-data-privacy.md (if compliance/HIPAA/GDPR/PCI)
 **Focus**: STRIDE threat model, auth/authz strategy, resilience patterns (circuit breaker, retry, graceful degradation), compliance considerations.
 
 ### Agent 5: ux-and-features-analyst
 **Owns**: `features.md`, `user-experience.md`
-**Always load skills**: (none by default)
-**Conditional skills**: frontend:accessibility-testing (if accessibility), frontend:design-system-patterns (if frontend/UI)
+**Always read references**: (none by default)
+**Conditional references**: .claude/references/frontend/accessibility-testing.md (if accessibility), .claude/references/frontend/design-system-patterns.md (if frontend/UI)
 **Focus**: Feature breakdown with MoSCoW prioritization, use cases in features.md. User journeys, interaction flows, UX considerations in user-experience.md.
 
 **For iterative updates**: Include existing file contents in each agent's task context. Instruct agents to read existing content first, then apply changes while preserving structure and prior decisions. Do NOT rewrite from scratch — update, extend, or revise.

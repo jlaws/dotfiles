@@ -1,5 +1,5 @@
 ---
-description: "ML/AI consultation — launches ml-engineer subagent"
+description: "ML/AI consultation — launches ml-engineer subagent. Use when working with model training, inference pipelines, LLM applications, or ML deployment."
 ---
 
 Before invoking the subagent, gather diagnostic context:

@@ -1,5 +1,5 @@
 ---
-description: "Cloud architecture consultation — launches cloud-architect subagent"
+description: "Cloud architecture consultation — launches cloud-architect subagent. Use when designing cloud infrastructure, optimizing costs, or planning deployments."
 ---
 
 Before invoking the subagent, gather diagnostic context:
