@@ -1,7 +1,8 @@
 ---
 name: test-writer
-description: Writes tests following TDD discipline
+description: Writes tests following TDD discipline. Use when implementing features, fixing bugs, or when test coverage is needed.
 tools: Read, Grep, Glob, Bash, Edit, Write
+memory: user
 skills:
   - testing/test-driven-development
   - testing/language-testing-patterns

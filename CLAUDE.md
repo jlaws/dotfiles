@@ -27,9 +27,11 @@ dotfiles/
 ├── ghosty_config.txt  # Ghostty terminal configuration reference
 ├── setup.sh           # Main installation script
 └── .claude/           # Claude Code knowledge base
-    ├── CLAUDE.md      # Global standards + skills index (synced to ~/.claude/)
-    ├── commands/      # 8 invocable commands (all are thin wrappers to skills)
-    └── skills/        # 124 contextual skill workflows
+    ├── CLAUDE.md      # Global standards (synced to ~/.claude/)
+    ├── agents/        # 13 specialist agents
+    ├── commands/      # 19 commands across 8 categories
+    ├── references/    # 167 domain knowledge files
+    └── skills/        # 16 contextual skill workflows
 ```
 
 ## Key Files

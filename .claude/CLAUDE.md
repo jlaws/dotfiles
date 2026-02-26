@@ -1,6 +1,6 @@
 # Claude Code Configuration
 
-## Verification Gate
+## #1 Rule: Verify Before Claiming
 Evidence before claims. Never claim success without fresh command output confirming it.
 Full methodology: load skill `workflow/verification-before-completion`.
 
@@ -20,36 +20,8 @@ Full methodology: load skill `workflow/verification-before-completion`.
 - Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
 
 ## Team Conventions
-When spawned as a teammate, follow these rules (teammates read this file on startup):
-- **Task discipline**: claim via TaskUpdate (set owner), mark completed when done, check TaskList for next work
-- **File ownership**: only edit files declared in your task — never touch files outside your assignment
-- **Communication**: DM the lead via SendMessage; never broadcast unless truly critical (blocking issue affecting all agents)
-- **Quality**: verify your work (run tests, read output) before marking a task complete
-- **Shutdown**: respond to `shutdown_request` promptly — approve unless you have in-flight uncommitted work
-- **Context**: include file paths and line numbers when referencing code in messages
-
-### Subagents vs Teams
-
-| Use | When |
-|-----|------|
-| **Task tool (subagent)** | Independent, self-contained work: research, exploration, single-file edits, running tests |
-| **TeamCreate (full team)** | Coordinated multi-file work requiring shared task list, communication, and file ownership |
-
-**Default to subagents** unless tasks have cross-file dependencies or require coordination.
-
-### File Conflict Prevention
-- Declare file ownership in task descriptions — one agent per file
-- If you need to edit an unowned file, DM the lead first
-- Never edit files another agent is working on
-
-### Common Prompt Mistakes
-
-| Mistake | Fix |
-|---------|-----|
-| Vague task description | Include specific files, acceptance criteria, and constraints |
-| No file ownership declared | List exact files each agent may edit |
-| Broadcasting status updates | DM the lead; only broadcast blocking issues |
-| Skipping verification | Always run tests/build before marking complete |
+When spawned as a teammate: load and follow `workflow/multi-agent-development` skill.
+Key rules: claim tasks via TaskUpdate, only edit declared files, DM the lead (never broadcast), verify before marking complete.
 
 ---
 
