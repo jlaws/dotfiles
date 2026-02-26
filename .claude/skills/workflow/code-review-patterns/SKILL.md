@@ -1,6 +1,6 @@
 ---
 name: code-review-patterns
-description: Code review practices — giving feedback, receiving feedback, and pre-submission diff review. Use when reviewing PRs, responding to review feedback, running a self-review before requesting review, or establishing review standards.
+description: Code review practices — giving feedback, receiving feedback, and pre-submission diff review. Use when reviewing PRs, responding to review feedback, or running a self-review. Do NOT use for general code smell detection outside PR context (use code-quality).
 ---
 
 # Code Review Patterns

@@ -1,6 +1,6 @@
 ---
 name: real-time-systems
-description: Build real-time features with WebSockets, SSE, pub/sub, and CRDTs
+description: Build real-time features with WebSockets, SSE, pub/sub, and CRDTs. Use when adding live updates, building chat systems, implementing collaborative editing, or choosing between WebSocket and SSE.
 ---
 
 # Real-Time Systems

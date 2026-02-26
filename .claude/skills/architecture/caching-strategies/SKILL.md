@@ -1,6 +1,6 @@
 ---
 name: caching-strategies
-description: Implement multi-layer caching with Redis, application caches, and CDN for optimal performance
+description: Implement multi-layer caching with Redis, application caches, and CDN. Use when adding caching layers, debugging cache invalidation, or choosing between caching strategies.
 ---
 
 # Caching Strategies

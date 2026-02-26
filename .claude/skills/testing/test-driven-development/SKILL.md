@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: Test-first development discipline. Use when implementing features, fixing bugs, or refactoring — enforces writing tests before implementation code. Covers red-green-refactor cycle, test isolation patterns, and TDD workflow for any language.
+description: Test-first development discipline. Use when implementing features, fixing bugs, or refactoring — enforces writing tests before implementation code. Covers red-green-refactor cycle, test isolation, and TDD workflow. Do NOT use for investigating existing bugs or failures (use debugging-methodology) or pre-commit verification (use verification-before-completion).
 ---
 
 # Test-Driven Development (TDD)

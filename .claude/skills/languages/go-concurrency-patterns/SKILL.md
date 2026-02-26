@@ -1,6 +1,6 @@
 ---
 name: go-concurrency-patterns
-description: Go concurrency decisions and non-obvious patterns. Use when building concurrent Go applications or debugging race conditions.
+description: Go concurrency decisions and non-obvious patterns. Use when building concurrent Go applications or debugging race conditions. Do NOT use for distributed system communication patterns (use distributed-communication-patterns).
 ---
 
 # Go Concurrency Patterns

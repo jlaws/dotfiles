@@ -1,6 +1,6 @@
 ---
 name: cli-tool-development
-description: Build polished CLI tools with Typer, Rich TUI components, and Python packaging
+description: Build polished CLI tools with Typer, Rich TUI components, and Python packaging. Use when creating command-line interfaces, adding TUI elements, or packaging Python CLI applications.
 ---
 
 # CLI Tool Development

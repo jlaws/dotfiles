@@ -1,6 +1,6 @@
 ---
 name: paper-to-code-implementation
-description: Systematic methodology for translating research papers into working code implementations. Use when implementing algorithms from papers, reproducing results, or building on published research.
+description: Systematic methodology for translating research papers into working code implementations. Use when implementing algorithms from papers, reproducing results, or building on published research. Do NOT use for analyzing or summarizing papers (use paper-analysis-methodology).
 ---
 
 # Paper to Code Implementation

@@ -1,6 +1,6 @@
 ---
 name: python-patterns
-description: "Use when creating Python projects, choosing concurrency models, async/await patterns, optimizing performance, or managing dependencies with uv."
+description: "Use when creating Python projects, choosing concurrency models, async/await patterns, optimizing performance, or managing dependencies with uv. Do NOT use for Pydantic model design (use pydantic-and-data-validation) or FastAPI application architecture (use fastapi-templates)."
 ---
 
 # Python Patterns

@@ -1,6 +1,6 @@
 ---
 name: auth-implementation-patterns
-description: Authentication and authorization patterns including JWT, OAuth2, session management, and RBAC. Use when implementing auth systems, securing APIs, or debugging security issues.
+description: Authentication and authorization patterns including JWT, OAuth2, session management, and RBAC. Use when implementing auth systems, securing APIs, or debugging auth issues. Do NOT use for broad threat modeling or SAST scanning (use security-analysis).
 ---
 
 # Authentication & Authorization Implementation Patterns
