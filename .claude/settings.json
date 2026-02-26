@@ -119,6 +119,18 @@
       "allowUnixSockets": []
     }
   },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'SKILL-LOOKUP DISCIPLINE: Before any implementation action, check .claude/skills/ and .claude/references/ for applicable workflows. Load workflow/skill-lookup-discipline for full rules. Process skills (design-first, debugging, verification) before implementation skills (code-quality, TDD).'"
+          }
+        ]
+      }
+    ]
+  },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "ENABLE_TOOL_SEARCH": "true"

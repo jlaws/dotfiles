@@ -74,12 +74,12 @@ Use when executing a plan task-by-task. Fresh subagent per task prevents context
 
 #### Per-Task Flow
 
-1. **Dispatch implementer** with full task text + scene-setting context
+1. **Dispatch implementer** with full task text + scene-setting context (see `references/implementer-prompt.md` for template)
 2. **Answer questions** if implementer asks (don't ignore)
 3. **Implementer delivers:** implementation + tests + commit + self-review report
-4. **Dispatch spec reviewer** — verify code matches spec (do NOT trust implementer's report; read actual code)
+4. **Dispatch spec reviewer** — verify code matches spec (see `references/spec-reviewer-prompt.md` for template; do NOT trust implementer's report; read actual code)
 5. **If spec issues:** implementer fixes, re-review. Repeat until pass.
-6. **Dispatch code quality reviewer** — only after spec compliance passes
+6. **Dispatch code quality reviewer** — only after spec compliance passes (see `references/code-quality-reviewer-prompt.md` for template)
 7. **If quality issues:** implementer fixes, re-review. Repeat until pass.
 8. **Mark task complete**, move to next
 

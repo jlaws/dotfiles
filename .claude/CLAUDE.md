@@ -7,7 +7,7 @@ Full methodology: load skill `workflow/verification-before-completion`.
 ## Behavioral Defaults
 - Before creative/feature work: explore intent + requirements before implementation
 - For design decisions: propose 2-3 approaches, lead with recommendation
-- **Skill lookup**: Before implementation tasks involving a specific framework, language pattern, or architecture decision — check `.claude/skills/` and `.claude/references/` for relevant patterns before relying on training knowledge.
+- **Skill lookup**: Before ANY implementation action, check `.claude/skills/` and `.claude/references/` for applicable workflows. Full methodology: load skill `workflow/skill-lookup-discipline`. Process skills first (design-first, debugging), then implementation skills (code-quality, TDD).
 
 ## Context Preservation
 - On compaction: preserve current task, file paths being edited, test results, and key decisions. Discard exploration output and intermediate reasoning.
