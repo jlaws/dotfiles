@@ -1,4 +1,5 @@
 ---
+name: devops
 description: "DevOps consultation — CI/CD, containers, IaC, and observability. Use when configuring Docker, Kubernetes, Terraform, GitHub Actions, or monitoring."
 ---
 

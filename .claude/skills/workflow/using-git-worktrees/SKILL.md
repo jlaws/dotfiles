@@ -2,6 +2,7 @@
 name: using-git-worktrees
 description: "Git worktree creation for isolated feature work with smart directory selection and safety verification. Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification. Do NOT use for general git workflow (check Git Workflow section in CLAUDE.md)."
 compatibility: claude-code
+allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Using Git Worktrees
@@ -77,6 +78,12 @@ cd "$path"
 | Neither exists | Check CLAUDE.md, then ask user |
 | Directory not ignored | Add to .gitignore + commit |
 | Tests fail in baseline | Report failures + ask |
+
+## Examples
+
+**Trigger:** "Start isolated feature work without stashing current changes"
+**Action:** Create a new git worktree with a feature branch, set up the environment
+**Result:** Two independent working directories — original branch untouched, new feature branch ready
 
 ## Integration
 

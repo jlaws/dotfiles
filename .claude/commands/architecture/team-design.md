@@ -1,4 +1,5 @@
 ---
+name: team-design
 description: "Multi-agent system design suite — parallel specialist agents produce a complete set of architecture documents. Use when designing a new system or documenting an existing architecture."
 ---
 

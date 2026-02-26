@@ -86,7 +86,7 @@ See references/async-patterns.md for async decision table, gather/TaskGroup, sem
 
 ## Profiling & Performance
 
-See references/performance.md for profiling tools, tracemalloc, caching decisions, __slots__, and batch I/O patterns.
+See references/python-performance.md for profiling tools, tracemalloc, caching decisions, __slots__, and batch I/O patterns.
 
 ## Packaging
 

@@ -1,4 +1,5 @@
 ---
+name: docs
 description: "Documentation consultation — technical writing, API docs, and changelogs. Use when writing docs, generating OpenAPI specs, or automating changelogs."
 ---
 

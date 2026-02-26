@@ -1,4 +1,5 @@
 ---
+name: diff-review
 description: "Deep multi-perspective diff review — code quality, security, testing gaps, and language-specific gotchas. Use when reviewing a diff or PR before merge."
 ---
 

@@ -54,7 +54,7 @@ When spawned as a teammate, follow these rules (teammates read this file on star
 ---
 
 ## Knowledge Base Structure
-- **skills/**: Always-loaded cross-cutting workflows (code review, debugging, TDD, etc.)
+- **skills/**: Cross-cutting workflows loaded on demand (code review, debugging, TDD, etc.)
 - **references/**: Domain knowledge loaded on-demand by agents and commands
 - **agents/**: Specialist roles that read from references/
 - **commands/**: Entry points that gather context then invoke agents/skills

@@ -2,6 +2,7 @@
 name: multi-agent-development
 description: "Multi-agent coordination patterns for subagents and agent teams with task sizing, file ownership, and communication protocols. Use when coordinating multiple agents — subagents for simple parallel/sequential tasks, or agent teams for complex multi-perspective review, research, and implementation. Do NOT use for general Claude Code workflow optimization (use code-agent-meta-patterns)."
 compatibility: claude-code
+allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Multi-Agent Development
