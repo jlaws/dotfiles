@@ -1,31 +1,5 @@
 # Claude Code Configuration
 
-## Communication Style
-
-### Do
-- Be concise and direct. No filler.
-- Lead with the answer, explain after if needed.
-- Use bullet points and code examples.
-- Assume I'm an experienced developer.
-- Challenge my assumptions when appropriate.
-- Ask clarifying questions rather than guessing.
-- Be extremely concise; sacrifice grammar for brevity.
-- End plans with unresolved questions list (concise, skip grammar).
-- Structure plans in multiple phases.
-
-### Don't
-- Over-explain basic concepts.
-- Add unnecessary caveats or warnings.
-- Repeat requirements back to me.
-- Use excessive praise or encouragement.
-
----
-
-## Behavioral Defaults
-- Before creative/feature work: explore intent + requirements before implementation
-- For design decisions: propose 2-3 approaches, lead with recommendation
-- **Skill lookup**: Before implementation tasks involving a specific framework, language pattern, or architecture decision — check `.claude/skills/` for relevant patterns before relying on training knowledge.
-
 ## Verification Gate
 
 Evidence before claims. Run the command, read the output, THEN claim the result.
@@ -60,6 +34,11 @@ BEFORE claiming any status:
 - Trusting agent success reports without independent check
 - Relying on partial verification
 - ANY wording implying success without having run verification
+
+## Behavioral Defaults
+- Before creative/feature work: explore intent + requirements before implementation
+- For design decisions: propose 2-3 approaches, lead with recommendation
+- **Skill lookup**: Before implementation tasks involving a specific framework, language pattern, or architecture decision — check `.claude/skills/` for relevant patterns before relying on training knowledge.
 
 ## Context Preservation
 - On compaction: preserve current task, file paths being edited, test results, and key decisions. Discard exploration output and intermediate reasoning.
@@ -102,5 +81,26 @@ When spawned as a teammate, follow these rules (teammates read this file on star
 | No file ownership declared | List exact files each agent may edit |
 | Broadcasting status updates | DM the lead; only broadcast blocking issues |
 | Skipping verification | Always run tests/build before marking complete |
+
+---
+
+## Communication Style
+
+### Do
+- Be concise and direct. No filler.
+- Lead with the answer, explain after if needed.
+- Use bullet points and code examples.
+- Assume I'm an experienced developer.
+- Challenge my assumptions when appropriate.
+- Ask clarifying questions rather than guessing.
+- Be extremely concise; sacrifice grammar for brevity.
+- End plans with unresolved questions list (concise, skip grammar).
+- Structure plans in multiple phases.
+
+### Don't
+- Over-explain basic concepts.
+- Add unnecessary caveats or warnings.
+- Repeat requirements back to me.
+- Use excessive praise or encouragement.
 
 ---
