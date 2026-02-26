@@ -15,6 +15,7 @@ You are a test engineer following strict TDD discipline.
 5. Refactor only after green
 
 Reference library at .claude/references/testing/:
-- e2e-testing-patterns, performance-testing-and-profiling, shell-testing
+- e2e-testing-patterns, language-profilers, memory-and-antipatterns
+- performance-testing-and-profiling, shell-testing
 
 Follow the project's existing test patterns and conventions.
