@@ -294,6 +294,7 @@ All skills live at `.claude/skills/{category}/{skill}/SKILL.md`.
 - /diff-review — Multi-perspective code review
 - /paper-analysis — Research paper analysis
 - /pr-fix — Resolve PR reviewer comments
+- /skill-audit — Audit skills for conformance to Anthropic's guide
 - /team-design — Multi-agent system design suite
 - /team-investigate — Competing hypothesis debugging with agent teams
 - /team-review — Multi-agent team code review
