@@ -2,7 +2,6 @@
 name: test-writer
 description: Writes tests following TDD discipline
 tools: Read, Grep, Glob, Bash, Edit, Write
-model: sonnet
 skills:
   - testing/test-driven-development
   - testing/language-testing-patterns

@@ -2,7 +2,6 @@
 name: code-reviewer
 description: Performs detailed code review with severity labels
 tools: Read, Grep, Glob, Bash
-model: haiku
 skills:
   - workflow/code-review-patterns
 ---
