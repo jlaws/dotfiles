@@ -2,6 +2,7 @@
 name: refactoring-and-debt
 description: "Systematic code refactoring and technical debt analysis with safe operations and test-verify-commit cadence. Use when systematically refactoring code or analyzing/remediating technical debt. Covers safe refactoring operations, test-verify-commit cadence, and debt inventory. Do NOT use for general code quality checks (use code-quality) or pre-commit verification (use verification-before-completion)."
 compatibility: claude-code
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Refactoring & Technical Debt

@@ -1,6 +1,6 @@
 ---
 name: session-handoff
-description: "Create structured HANDOFF.md documents preserving decisions, file paths, test results, and next steps between sessions. Use when ending a work session, switching context, hitting context limits, or preparing for session resumption. Do NOT use for general documentation (use technical-writing-for-devtools)."
+description: "Create structured HANDOFF.md documents preserving decisions, file paths, test results, and next steps between sessions. Use when saving session progress, creating handoff notes, preparing context for next session, ending a work session, switching context, or hitting context limits. Do NOT use for general documentation (use technical-writing-for-devtools). Do NOT use for multi-agent task handoff (use multi-agent-development)."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Write
 ---

@@ -2,6 +2,7 @@
 name: code-agent-meta-patterns
 description: "Code agent workflow optimization including CLAUDE.md design, hooks configuration, and multi-agent orchestration. Use when optimizing Claude Code workflows, designing CLAUDE.md files, configuring hooks, or orchestrating multi-agent patterns. Do NOT use for skill creation or editing workflow (use writing-skills)."
 compatibility: claude-code
+allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
 # Claude Code Meta-Patterns
@@ -159,46 +160,9 @@ If no arguments provided, review all staged/unstaged changes.
 
 ## Hook Patterns
 
-### Pre-Commit Hook
+See `references/workflow/hook-patterns.md` for full examples (PreToolUse, PostToolUse JSON configs).
 
-Validate before committing:
-
-```json
-// .claude/settings.json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash(git commit)",
-        "hook": "lint-staged && npm test"
-      }
-    ]
-  }
-}
-```
-
-### Post-Tool Validation
-
-Check results after tool execution:
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hook": "eslint --fix ${file} && prettier --write ${file}"
-      }
-    ]
-  }
-}
-```
-
-### Hook Design Principles
-- Hooks should be fast (<5s); slow hooks degrade the workflow
-- Fail hooks loudly with clear error messages
-- Use matchers to scope hooks narrowly (don't lint on every Bash call)
-- Test hooks manually before relying on them
+**Key principles:** hooks should be fast (<5s), fail loudly, use narrow matchers, test manually first.
 
 ## Context Management
 
@@ -260,42 +224,9 @@ Use the Task tool to perform these searches in parallel:
 
 ## Permission Management
 
-### Settings Hierarchy
+See `references/workflow/permission-management.md` for full settings hierarchy and JSON examples.
 
-```
-/Library/.../managed-settings.json   # Enterprise (highest priority)
-~/.claude/settings.json              # User global
-project/.claude/settings.json        # Project
-project/.claude/settings.local.json  # Local (gitignored)
-```
-
-### Common Permission Patterns
-
-```json
-// .claude/settings.json (project)
-{
-  "permissions": {
-    "allow": [
-      "Bash(npm run *)",
-      "Bash(git *)",
-      "Read",
-      "Write(src/**)",
-      "Edit(src/**)"
-    ],
-    "deny": [
-      "Bash(rm -rf *)",
-      "Write(.env*)",
-      "Bash(git push --force*)"
-    ]
-  }
-}
-```
-
-### Permission Rules
-- Default to minimal permissions, expand as needed
-- Deny rules override allow rules
-- Use glob patterns for path-based permissions
-- `settings.local.json` for personal overrides (gitignored)
+**Key rules:** minimal permissions by default, deny overrides allow, use glob patterns, `settings.local.json` for personal overrides.
 
 ## Gotchas
 

@@ -2,6 +2,7 @@
 name: writing-skills
 description: "Skill creation and editing workflow for Claude Code skills with validation and deployment verification. Use when creating new skills, editing existing skills, or verifying skills work before deployment. Do NOT use for CLAUDE.md design, hooks, or general Claude Code workflow (use code-agent-meta-patterns)."
 compatibility: claude-code
+allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
 # Writing Skills
@@ -170,6 +171,20 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 
 ## Anthropic Best Practices
 
+### Skill Categories (from Anthropic's Guide)
+
+| Category | Description | Examples |
+|----------|-------------|---------|
+| 1. Document & Asset Creation | Generate files from templates/specs | Commit messages, PR descriptions, config files |
+| 2. Workflow Automation | Multi-step processes with tool use | Code review, deployment, refactoring |
+| 3. MCP Enhancement | Extend Claude with external tool integrations | API wrappers, database queries, service connectors |
+
+### Success Criteria Methodology
+1. Define what "good output" looks like before writing the skill
+2. Create 3+ concrete evaluation scenarios with expected outcomes
+3. Test against scenarios, measure pass rate
+4. Iterate until pass rate meets threshold (aim for >80%)
+
 ### Core Principles
 - **Concise is key**: Only add what Claude doesn't already know. Challenge each piece: "Does Claude need this?"
 - **Degrees of freedom**: High (text instructions) for multiple valid approaches; Medium (pseudocode) for preferred patterns; Low (exact scripts) for fragile operations
@@ -186,6 +201,14 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 3. Establish baseline performance
 4. Write minimal instructions to pass evaluations
 5. Iterate: evaluate, compare baseline, refine
+
+### Quick Checklist (from Anthropic's Reference A)
+- [ ] Frontmatter: `name`, `description` (with trigger phrases), `allowed-tools`
+- [ ] Description starts with "Use when..." and includes negative triggers
+- [ ] Body is concise (under 500 words for most skills)
+- [ ] At least one code example or concrete output
+- [ ] No redundant information Claude already knows
+- [ ] Cross-references use relative paths, not `@` links
 
 ## Skill Creation Checklist
 

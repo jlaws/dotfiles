@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: "Code quality principles, smell detection, anti-patterns, style conventions, and refactoring decisions. Use when writing, reviewing, or refactoring code. Covers quality principles, smell detection, anti-patterns, style conventions, and refactoring decisions. Do NOT use for PR review workflow or giving/receiving feedback (use code-review-patterns)."
+description: "Code quality principles, smell detection, anti-patterns, style conventions, and refactoring decisions. Use when checking code quality, reviewing code smells, assessing code health, writing clean code, or applying style conventions. Do NOT use for PR review workflow or giving/receiving feedback (use code-review-patterns). Do NOT use for active code review workflows (use code-review-patterns)."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob
 ---
