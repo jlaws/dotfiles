@@ -29,7 +29,7 @@ dotfiles/
 └── .claude/           # Claude Code knowledge base
     ├── CLAUDE.md      # Global standards (synced to ~/.claude/)
     ├── agents/        # 13 specialist agents
-    ├── commands/      # 19 commands across 8 categories
+    ├── commands/      # 20 commands across 13 categories
     ├── references/    # 167 domain knowledge files
     └── skills/        # 16 contextual skill workflows
 ```
