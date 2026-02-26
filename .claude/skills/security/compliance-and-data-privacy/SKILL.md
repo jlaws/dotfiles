@@ -1,6 +1,6 @@
 ---
 name: compliance-and-data-privacy
-description: "Use when implementing GDPR, PCI-DSS, SOC2, or HIPAA compliance, handling personal/payment data, building consent systems, or conducting compliance reviews."
+description: "GDPR, PCI-DSS, SOC2, and HIPAA compliance implementation including consent systems and data handling. Use when implementing GDPR, PCI-DSS, SOC2, or HIPAA compliance, handling personal/payment data, building consent systems, or conducting compliance reviews. Do NOT use for application-level threat modeling (use security-analysis)."
 ---
 
 # Compliance & Data Privacy

@@ -1,6 +1,6 @@
 ---
 name: gitops-workflow
-description: GitOps workflow patterns with ArgoCD and Flux for declarative Kubernetes deployments. Use when implementing GitOps, automating deployments, or setting up progressive delivery.
+description: GitOps workflow patterns with ArgoCD and Flux for declarative Kubernetes deployments. Use when implementing GitOps, automating deployments, or setting up progressive delivery. Do NOT use for CI/CD pipeline design (use pipeline-design) or Kubernetes manifest authoring (use kubernetes-configuration).
 ---
 
 # GitOps Workflow

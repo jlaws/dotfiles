@@ -1,6 +1,6 @@
 ---
 name: kubernetes-configuration
-description: Kubernetes manifest generation, resource configuration, security policies, and validation. Use when generating K8s YAML, creating Helm charts, securing clusters, implementing NetworkPolicy/RBAC, enforcing pod security standards, or validating configs across environments.
+description: Kubernetes manifest generation, resource configuration, security policies, and validation. Use when generating K8s YAML, creating Helm charts, securing clusters, implementing NetworkPolicy/RBAC, enforcing pod security standards, or validating configs across environments. Do NOT use for container image building (use docker-patterns) or cloud provisioning (use terraform-module-library).
 ---
 
 # Kubernetes Configuration

@@ -1,6 +1,6 @@
 ---
 name: code-migration
-description: "Use when migrating codebases between frameworks, languages, versions, or platforms. Provides migration assessment patterns, planning templates, framework-specific migration examples, testing strategies, rollback procedures, and automation approaches."
+description: "Codebase migration between frameworks, languages, versions, or platforms with assessment, planning, and rollback patterns. Use when migrating codebases between frameworks, languages, versions, or platforms. Provides migration assessment patterns, planning templates, framework-specific migration examples, testing strategies, rollback procedures, and automation approaches. Do NOT use for dependency version upgrades (use dependency-upgrade)."
 ---
 
 # Code Migration

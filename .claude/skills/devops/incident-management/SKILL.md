@@ -1,6 +1,6 @@
 ---
 name: incident-management
-description: Use when building runbooks, responding to incidents, handling on-call handoffs, or writing postmortems.
+description: Incident response procedures including runbook creation, on-call handoffs, and postmortem writing. Use when building runbooks, responding to incidents, handling on-call handoffs, or writing postmortems. Do NOT use for bug investigation (use debugging-methodology) or alerting setup (use observability).
 ---
 
 # Incident Management

@@ -1,6 +1,6 @@
 ---
 name: docker-patterns
-description: Dockerfile optimization and container patterns. Use when writing or optimizing Dockerfiles, setting up multi-stage builds, configuring compose for dev environments, or hardening container security. Covers base image selection, layer caching, ML-specific images, and production best practices.
+description: Dockerfile optimization and container patterns. Use when writing or optimizing Dockerfiles, setting up multi-stage builds, configuring compose for dev environments, or hardening container security. Covers base image selection, layer caching, ML-specific images, and production best practices. Do NOT use for Kubernetes orchestration (use kubernetes-configuration) or Terraform provisioning (use terraform-module-library).
 ---
 
 # Docker Patterns

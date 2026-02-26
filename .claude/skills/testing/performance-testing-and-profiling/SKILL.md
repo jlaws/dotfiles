@@ -1,6 +1,6 @@
 ---
 name: performance-testing-and-profiling
-description: "Use when load testing APIs, profiling CPU/memory/latency, benchmarking code, or detecting performance regressions. Covers Locust/k6 load scenarios, flame graphs, language-specific profilers, and CI regression detection."
+description: "Load testing, CPU/memory/latency profiling, benchmarking, and performance regression detection. Use when load testing APIs, profiling CPU/memory/latency, benchmarking code, or detecting performance regressions. Covers Locust/k6 load scenarios, flame graphs, language-specific profilers, and CI regression detection. Do NOT use for observability infrastructure setup (use observability)."
 ---
 
 # Performance Testing and Profiling

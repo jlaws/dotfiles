@@ -1,6 +1,6 @@
 ---
 name: swift-patterns
-description: Use when creating Swift projects (iOS, macOS, CLI, frameworks), making memory management decisions, or working with Swift concurrency
+description: "Swift project patterns for iOS, macOS, CLI, and frameworks covering memory management and Swift concurrency. Use when creating Swift projects (iOS, macOS, CLI, frameworks), making memory management decisions, or working with Swift concurrency. Do NOT use for React Native mobile development (use react-native-architecture)."
 ---
 
 # Swift Patterns

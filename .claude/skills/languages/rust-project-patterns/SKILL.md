@@ -1,6 +1,6 @@
 ---
 name: rust-project-patterns
-description: Rust project scaffolding, async patterns, and tooling opinions. Use when creating Rust projects, choosing between project types, or working with async Rust.
+description: "Rust project scaffolding, async patterns, and tooling opinions. Use when creating Rust projects, choosing between project types, or working with async Rust. Do NOT use for distributed systems design (use microservices-patterns)."
 ---
 
 # Rust Project Patterns

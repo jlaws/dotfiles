@@ -1,6 +1,7 @@
 ---
 name: claude-code-meta-patterns
-description: "Use when optimizing Claude Code workflows, designing CLAUDE.md files, configuring hooks, or orchestrating multi-agent patterns. Do NOT use for skill creation or editing workflow (use writing-skills)."
+description: "Claude Code workflow optimization including CLAUDE.md design, hooks configuration, and multi-agent orchestration. Use when optimizing Claude Code workflows, designing CLAUDE.md files, configuring hooks, or orchestrating multi-agent patterns. Do NOT use for skill creation or editing workflow (use writing-skills)."
+compatibility: claude-code
 ---
 
 # Claude Code Meta-Patterns

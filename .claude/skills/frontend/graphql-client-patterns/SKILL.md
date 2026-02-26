@@ -1,6 +1,6 @@
 ---
 name: graphql-client-patterns
-description: "Use when integrating GraphQL APIs in frontend apps. Covers client selection, code generation, cache normalization, optimistic updates, and subscriptions."
+description: "GraphQL client integration for frontend apps covering client selection, codegen, cache normalization, and subscriptions. Use when integrating GraphQL APIs in frontend apps. Covers client selection, code generation, cache normalization, optimistic updates, and subscriptions. Do NOT use for GraphQL API/schema design (use api-design-principles)."
 ---
 
 # GraphQL Client Patterns

@@ -1,6 +1,6 @@
 ---
 name: statistical-analysis
-description: Hypothesis testing, power analysis, ablation design, and multiple comparison corrections for ML experiment evaluation. Use when designing experiments, running statistical tests, or validating ML results.
+description: "Hypothesis testing, power analysis, ablation design, and multiple comparison corrections for ML experiment evaluation. Use when designing experiments, running statistical tests, or validating ML results. Do NOT use for source reliability or claim confidence assessment (use confidence-scoring)."
 ---
 
 # Statistical Analysis for ML Experiments

@@ -1,6 +1,6 @@
 ---
 name: feature-flags-and-ab-testing
-description: Feature flag systems, gradual rollout strategies, A/B test design, and statistical significance for product experiments. Use when implementing feature flags, designing A/B tests, or setting up gradual rollouts.
+description: "Feature flag systems, gradual rollout strategies, A/B test design, and statistical significance for product experiments. Use when implementing feature flags, designing A/B tests, or setting up gradual rollouts. Do NOT use for statistical test methodology (use statistical-analysis)."
 ---
 
 # Feature Flags and A/B Testing

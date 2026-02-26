@@ -1,6 +1,6 @@
 ---
 name: pr-comment-resolution
-description: Resolve all PR reviewer comments — fetch, categorize, implement fixes, reply inline, verify, and push. Use when a PR has reviewer feedback that needs to be addressed.
+description: "Resolve all PR reviewer comments — fetch, categorize, implement fixes, reply inline, verify, and push. Use when a PR has reviewer feedback that needs to be addressed. Do NOT use for issue triage or investigation (use github-issue-resolution) or review methodology (use code-review-patterns)."
 ---
 
 # PR Comment Resolution

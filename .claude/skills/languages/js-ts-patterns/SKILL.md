@@ -1,6 +1,6 @@
 ---
 name: js-ts-patterns
-description: Use when creating JS/TS projects, choosing frameworks, or building advanced type patterns. Covers tooling opinions, type decisions, and non-obvious gotchas. Do NOT use for React/Next.js-specific patterns (use the frontend skills) or Node.js backend architecture (use nodejs-backend-patterns).
+description: "JavaScript/TypeScript project scaffolding, advanced type patterns, and tooling opinions. Use when creating JS/TS projects, choosing frameworks, or building advanced type patterns. Covers tooling opinions, type decisions, and non-obvious gotchas. Do NOT use for React/Next.js-specific patterns (use the frontend skills) or Node.js backend architecture (use nodejs-backend-patterns)."
 ---
 
 # JS/TS Patterns

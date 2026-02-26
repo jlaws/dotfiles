@@ -1,6 +1,6 @@
 ---
 name: shell-testing
-description: Use when testing shell scripts with Bats or linting with ShellCheck. Covers mocking strategies, assertion patterns, ShellCheck configuration opinions, and CI integration.
+description: "Shell script testing with Bats and linting with ShellCheck including mocking, assertions, and CI integration. Use when testing shell scripts with Bats or linting with ShellCheck. Covers mocking strategies, assertion patterns, ShellCheck configuration opinions, and CI integration. Do NOT use for writing production shell scripts (use bash-defensive-patterns)."
 ---
 
 # Shell Testing

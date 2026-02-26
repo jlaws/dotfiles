@@ -1,6 +1,6 @@
 ---
 name: cuda-gpu-programming
-description: Custom CUDA kernels, Triton GPU programming, nsight profiling, memory optimization, and kernel fusion patterns. Use when writing GPU kernels, profiling CUDA code, or optimizing GPU memory and compute.
+description: "Custom CUDA kernels, Triton GPU programming, nsight profiling, memory optimization, and kernel fusion patterns. Use when writing GPU kernels, profiling CUDA code, or optimizing GPU memory and compute. Do NOT use for ML system architecture (use ml-system-design)."
 ---
 
 # CUDA and GPU Programming

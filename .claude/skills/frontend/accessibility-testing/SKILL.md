@@ -1,6 +1,6 @@
 ---
 name: accessibility-testing
-description: "Audit and test web accessibility with automated scanning, manual screen reader testing, and WCAG 2.2 remediation. Use when auditing accessibility, fixing WCAG violations, testing with screen readers, or implementing accessible components."
+description: "Audit and test web accessibility with automated scanning, manual screen reader testing, and WCAG 2.2 remediation. Use when auditing accessibility, fixing WCAG violations, testing with screen readers, or implementing accessible components. Do NOT use for E2E browser test automation (use e2e-testing-patterns)."
 ---
 
 # Accessibility Testing

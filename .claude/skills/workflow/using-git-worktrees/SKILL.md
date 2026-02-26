@@ -1,6 +1,7 @@
 ---
 name: using-git-worktrees
-description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification
+description: "Git worktree creation for isolated feature work with smart directory selection and safety verification. Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification. Do NOT use for general git workflow (check Git Workflow section in CLAUDE.md)."
+compatibility: claude-code
 ---
 
 # Using Git Worktrees

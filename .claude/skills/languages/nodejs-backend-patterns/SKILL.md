@@ -1,6 +1,6 @@
 ---
 name: nodejs-backend-patterns
-description: Node.js backend architecture opinions and non-obvious patterns. Use when building Node.js APIs or microservices.
+description: "Node.js backend architecture opinions and non-obvious patterns. Use when building Node.js APIs or microservices. Do NOT use for frontend JS/TS or type system patterns (use js-ts-patterns)."
 ---
 
 # Node.js Backend Patterns

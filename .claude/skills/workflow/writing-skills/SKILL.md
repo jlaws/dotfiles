@@ -1,6 +1,7 @@
 ---
 name: writing-skills
-description: Use when creating new skills, editing existing skills, or verifying skills work before deployment. Do NOT use for CLAUDE.md design, hooks, or general Claude Code workflow (use claude-code-meta-patterns).
+description: "Skill creation and editing workflow for Claude Code skills with validation and deployment verification. Use when creating new skills, editing existing skills, or verifying skills work before deployment. Do NOT use for CLAUDE.md design, hooks, or general Claude Code workflow (use claude-code-meta-patterns)."
+compatibility: claude-code
 ---
 
 # Writing Skills

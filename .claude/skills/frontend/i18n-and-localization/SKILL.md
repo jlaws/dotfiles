@@ -1,6 +1,6 @@
 ---
 name: i18n-and-localization
-description: "Use when implementing internationalization and localization. Covers i18n library selection, message extraction workflows, pluralization, RTL support, locale-aware formatting, and translation management."
+description: "Internationalization and localization implementation including library selection, message extraction, pluralization, and RTL support. Use when implementing internationalization and localization. Covers i18n library selection, message extraction workflows, pluralization, RTL support, locale-aware formatting, and translation management. Do NOT use for responsive layout or typography (use responsive-web-design)."
 ---
 
 # Internationalization & Localization

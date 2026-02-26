@@ -1,6 +1,7 @@
 ---
 name: multi-agent-development
-description: Use when coordinating multiple agents — subagents for simple parallel/sequential tasks, or agent teams for complex multi-perspective review, research, and implementation.
+description: "Multi-agent coordination patterns for subagents and agent teams with task sizing, file ownership, and communication protocols. Use when coordinating multiple agents — subagents for simple parallel/sequential tasks, or agent teams for complex multi-perspective review, research, and implementation. Do NOT use for general Claude Code workflow optimization (use claude-code-meta-patterns)."
+compatibility: claude-code
 ---
 
 # Multi-Agent Development

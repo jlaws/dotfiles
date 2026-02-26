@@ -1,6 +1,7 @@
 ---
 name: bash-defensive-patterns
-description: Defensive Bash patterns for production scripts. Use when writing robust shell scripts, CI/CD pipelines, or system utilities.
+description: "Defensive Bash patterns for production scripts. Use when writing robust shell scripts, CI/CD pipelines, or system utilities. Do NOT use for shell script testing (use shell-testing)."
+compatibility: claude-code
 ---
 
 # Bash Defensive Patterns

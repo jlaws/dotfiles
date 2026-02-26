@@ -1,6 +1,6 @@
 ---
 name: background-job-processing
-description: Design reliable background job systems with retry strategies, idempotency, and scheduling. Use when building task queues, implementing job retries, or designing scheduled processing pipelines.
+description: Design reliable background job systems with retry strategies, idempotency, and scheduling. Use when building task queues, implementing job retries, or designing scheduled processing pipelines. Do NOT use for message queue or event-driven architecture design (use distributed-communication-patterns).
 ---
 
 # Background Job Processing
