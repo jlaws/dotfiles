@@ -1,6 +1,6 @@
 ---
 name: ml-system-design
-description: "Use when designing end-to-end ML systems, choosing batch vs streaming inference, preventing training/serving skew, building data flywheels, or planning ML infrastructure scaling. Do NOT use for ML model code implementation (invoke the ml-engineer agent via /ml)."
+description: "End-to-end ML system design covering batch vs streaming inference, training/serving skew prevention, and scaling. Use when designing end-to-end ML systems, choosing batch vs streaming inference, preventing training/serving skew, building data flywheels, or planning ML infrastructure scaling. Do NOT use for ML model code implementation (invoke the ml-engineer agent via /ml)."
 ---
 
 # ML System Design

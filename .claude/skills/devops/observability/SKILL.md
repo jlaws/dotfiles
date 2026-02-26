@@ -1,6 +1,6 @@
 ---
 name: observability
-description: Use when implementing metrics, tracing, SLOs, alerting, or dashboards. Covers Prometheus/Grafana/OTel stack design, SLI/SLO frameworks, error budgets, burn-rate alerting, and distributed tracing strategy.
+description: Metrics, tracing, SLOs, alerting, and dashboard implementation with Prometheus/Grafana/OTel. Use when implementing metrics, tracing, SLOs, alerting, or dashboards. Covers Prometheus/Grafana/OTel stack design, SLI/SLO frameworks, error budgets, burn-rate alerting, and distributed tracing strategy. Do NOT use for incident response procedures (use incident-management) or performance load testing (use performance-testing-and-profiling).
 ---
 
 # Observability

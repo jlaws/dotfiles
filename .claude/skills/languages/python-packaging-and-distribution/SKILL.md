@@ -1,6 +1,6 @@
 ---
 name: python-packaging-and-distribution
-description: "Use when configuring pyproject.toml, choosing build backends, publishing to PyPI, creating conda recipes, or managing package versions."
+description: "Python package configuration with pyproject.toml, build backends, PyPI publishing, conda recipes, and version management. Use when configuring pyproject.toml, choosing build backends, publishing to PyPI, creating conda recipes, or managing package versions. Do NOT use for general Python project patterns (use python-patterns)."
 ---
 
 # Python Packaging and Distribution

@@ -1,6 +1,6 @@
 ---
 name: security-analysis
-description: "Use when conducting threat modeling (STRIDE), building attack trees, running SAST scans, writing custom Semgrep rules, or mapping controls to compliance frameworks. Do NOT use for implementing auth systems (use auth-implementation-patterns) or supply chain auditing (use dependency-auditing)."
+description: "Threat modeling (STRIDE), attack trees, SAST scanning, custom Semgrep rules, and compliance framework mapping. Use when conducting threat modeling (STRIDE), building attack trees, running SAST scans, writing custom Semgrep rules, or mapping controls to compliance frameworks. Do NOT use for implementing auth systems (use auth-implementation-patterns) or supply chain auditing (use dependency-auditing)."
 ---
 
 # Security Analysis

@@ -1,6 +1,6 @@
 ---
 name: notification-systems
-description: Build multi-channel notification systems with email, push, in-app, and webhook delivery. Use when designing notification infrastructure, implementing delivery channels, or building preference management.
+description: Build multi-channel notification systems with email, push, in-app, and webhook delivery. Use when designing notification infrastructure, implementing delivery channels, or building preference management. Do NOT use for WebSocket/SSE real-time streaming (use real-time-systems).
 ---
 
 # Notification Systems

@@ -1,6 +1,6 @@
 ---
 name: form-patterns
-description: "Use when building forms in React or Next.js. Covers React Hook Form with Zod validation, multi-step wizards, server actions, file uploads, and accessible form UX."
+description: "Form implementation in React and Next.js with React Hook Form, Zod validation, multi-step wizards, and server actions. Use when building forms in React or Next.js. Covers React Hook Form with Zod validation, multi-step wizards, server actions, file uploads, and accessible form UX. Do NOT use for general React state management (use react-state-management)."
 ---
 
 # Form Patterns

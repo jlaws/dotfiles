@@ -1,6 +1,6 @@
 ---
 name: design-system-patterns
-description: "Use when building component libraries, choosing headless UI primitives, designing component APIs, or implementing theming and design tokens."
+description: "Component library architecture with headless UI primitives, component APIs, theming, and design tokens. Use when building component libraries, choosing headless UI primitives, designing component APIs, or implementing theming and design tokens. Do NOT use for Tailwind-specific utility patterns (use tailwind-design-system)."
 ---
 
 # Design System Patterns

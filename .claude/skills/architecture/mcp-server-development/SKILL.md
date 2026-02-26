@@ -1,6 +1,7 @@
 ---
 name: mcp-server-development
-description: "Use when building MCP servers or clients, designing tool/resource/prompt schemas, choosing transport patterns, or integrating with Claude Code and other MCP hosts."
+description: "Build MCP servers and clients with tool/resource/prompt schemas and transport patterns. Use when building MCP servers or clients, designing tool/resource/prompt schemas, choosing transport patterns, or integrating with Claude Code and other MCP hosts. Do NOT use for general API design (use api-design-principles)."
+compatibility: claude-code
 ---
 
 # MCP Server Development

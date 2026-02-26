@@ -1,6 +1,6 @@
 ---
 name: secrets-management
-description: Secure secrets management for CI/CD pipelines using Vault, AWS Secrets Manager, or native platform solutions. Use when handling credentials, rotating secrets, or securing CI/CD environments.
+description: "Secure secrets management for CI/CD pipelines using Vault, AWS Secrets Manager, or native platform solutions. Use when handling credentials, rotating secrets, or securing CI/CD environments. Do NOT use for auth system implementation (use auth-implementation-patterns) or dependency vulnerability scanning (use dependency-auditing)."
 ---
 
 # Secrets Management

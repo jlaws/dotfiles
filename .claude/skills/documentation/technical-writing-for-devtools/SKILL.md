@@ -1,6 +1,6 @@
 ---
 name: technical-writing-for-devtools
-description: "Use when writing API docs, SDK quickstarts, developer tutorials, changelogs, README files, or establishing documentation style guides for developer tools."
+description: "Developer documentation authoring for API docs, SDK quickstarts, tutorials, changelogs, and README files. Use when writing API docs, SDK quickstarts, developer tutorials, changelogs, README files, or establishing documentation style guides for developer tools. Do NOT use for OpenAPI spec generation (use openapi-spec-generation) or architecture decision records (use architecture-decision-records)."
 ---
 
 # Technical Writing for Developer Tools

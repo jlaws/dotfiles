@@ -1,6 +1,6 @@
 ---
 name: responsive-web-design
-description: "Use when implementing responsive layouts, fluid typography, responsive images, or choosing between container queries and media queries."
+description: "Responsive layouts, fluid typography, responsive images, container queries, and media queries. Use when implementing responsive layouts, fluid typography, responsive images, or choosing between container queries and media queries. Do NOT use for design token or component library architecture (use design-system-patterns)."
 ---
 
 # Responsive Web Design

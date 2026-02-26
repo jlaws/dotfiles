@@ -1,6 +1,6 @@
 ---
 name: e2e-testing-patterns
-description: E2E test design patterns for reliable, fast test suites. Use when implementing E2E tests, debugging flaky tests, or establishing testing standards.
+description: "E2E test design patterns for reliable, fast test suites. Use when implementing E2E tests, debugging flaky tests, or establishing testing standards. Do NOT use for unit/integration test patterns (use language-testing-patterns) or shell script testing (use shell-testing)."
 ---
 
 # E2E Testing Patterns

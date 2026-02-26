@@ -1,6 +1,6 @@
 ---
 name: caching-strategies
-description: Implement multi-layer caching with Redis, application caches, and CDN. Use when adding caching layers, debugging cache invalidation, or choosing between caching strategies.
+description: Implement multi-layer caching with Redis, application caches, and CDN. Use when adding caching layers, debugging cache invalidation, or choosing between caching strategies. Do NOT use for CDN or edge caching in frontend (use responsive-web-design) or database query optimization (use performance-testing-and-profiling).
 ---
 
 # Caching Strategies

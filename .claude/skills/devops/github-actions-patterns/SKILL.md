@@ -1,6 +1,6 @@
 ---
 name: github-actions-patterns
-description: "Use when building GitHub Actions workflows, setting up CI/CD on GitHub, or optimizing existing Actions pipelines. Covers reusable workflows, composite actions, matrix strategies, and caching. Do NOT use for platform-agnostic CI/CD strategy or deployment patterns (use pipeline-design)."
+description: "GitHub Actions CI/CD workflow patterns including reusable workflows, composite actions, matrix strategies, and caching. Use when building GitHub Actions workflows, setting up CI/CD on GitHub, or optimizing existing Actions pipelines. Do NOT use for platform-agnostic CI/CD strategy or deployment patterns (use pipeline-design)."
 ---
 
 # GitHub Actions Patterns

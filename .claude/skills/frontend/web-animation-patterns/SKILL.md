@@ -1,6 +1,6 @@
 ---
 name: web-animation-patterns
-description: "Use when adding animations, transitions, or motion to web UIs. Covers library selection, CSS animations, Framer Motion, View Transitions API, FLIP technique, and reduced-motion accessibility."
+description: "Web animation and motion implementation with CSS animations, Framer Motion, View Transitions API, and FLIP technique. Use when adding animations, transitions, or motion to web UIs. Covers library selection, CSS animations, Framer Motion, View Transitions API, FLIP technique, and reduced-motion accessibility. Do NOT use for design system component architecture (use design-system-patterns)."
 ---
 
 # Web Animation Patterns

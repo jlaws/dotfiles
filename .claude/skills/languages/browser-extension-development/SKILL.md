@@ -1,6 +1,6 @@
 ---
 name: browser-extension-development
-description: "Use when building browser extensions, working with Manifest V3, content scripts, service workers, or cross-browser WebExtension APIs. Covers messaging, storage, permissions, and popup/options pages."
+description: "Browser extension development with Manifest V3, content scripts, service workers, and cross-browser WebExtension APIs. Use when building browser extensions, working with Manifest V3, content scripts, service workers, or cross-browser WebExtension APIs. Covers messaging, storage, permissions, and popup/options pages. Do NOT use for general JS/TS patterns (use js-ts-patterns)."
 ---
 
 # Browser Extension Development

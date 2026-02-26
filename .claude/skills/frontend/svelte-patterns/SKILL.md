@@ -1,6 +1,6 @@
 ---
 name: svelte-patterns
-description: "Use when building Svelte 5 or SvelteKit applications. Covers runes, SvelteKit routing and SSR, component patterns, stores, transitions, and migration from Svelte 4."
+description: "Svelte 5 and SvelteKit application patterns including runes, SSR, routing, stores, and migration from Svelte 4. Use when building Svelte 5 or SvelteKit applications. Covers runes, SvelteKit routing and SSR, component patterns, stores, transitions, and migration from Svelte 4. Do NOT use for React/Next.js patterns (use nextjs-app-router-patterns or react-state-management)."
 ---
 
 # Svelte Patterns

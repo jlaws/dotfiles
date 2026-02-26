@@ -1,10 +1,11 @@
 ---
 name: distributed-communication-patterns
 description: >
+  Design distributed component communication with synchronous RPCs, async messaging, event sourcing, CQRS, and saga orchestration.
   Use when designing how distributed components communicate: synchronous RPCs (gRPC/protobuf),
   asynchronous messaging (Kafka, RabbitMQ, SQS, Celery), event sourcing, CQRS projections,
   or saga/workflow orchestration. Covers technology selection, schema design, reliability
-  patterns, and consistency models.
+  patterns, and consistency models. Do NOT use for microservice boundary decomposition (use microservices-patterns).
 ---
 
 # Distributed Communication Patterns
