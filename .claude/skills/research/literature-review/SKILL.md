@@ -1,6 +1,7 @@
 ---
 name: literature-review
 description: Systematic literature review methodology. Use when conducting a literature survey, building a related-work section, or mapping a research landscape. Do NOT use for single-paper deep analysis (use paper-analysis-methodology).
+allowed-tools: Read, Grep, Glob, WebFetch, WebSearch
 ---
 
 # Literature Review for ML Research

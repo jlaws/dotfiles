@@ -1,6 +1,7 @@
 ---
 name: confidence-scoring
 description: "Assess research quality with systematic confidence scoring, source validation, and uncertainty quantification. Use when evaluating source reliability, quantifying claim confidence, or building evidence-based assessments. Do NOT use for hypothesis testing or statistical significance (use statistical-analysis)."
+allowed-tools: Read, Grep, Glob
 ---
 
 # Research Confidence Scoring
