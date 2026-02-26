@@ -34,6 +34,7 @@ High risk = dedicated spike, staging validation, phased rollout.
 - Check peer dependency compatibility (React 18 needs react-dom 18, testing-library 13+, etc.)
 - Search GitHub issues for the upgrade path -- others have hit the gotchas already
 - Run existing test suite as baseline
+- Review supply chain risk — see `references/security-audit-and-supply-chain.md`
 
 ### Phase 2: Execution
 - Create feature branch from main
@@ -77,6 +78,15 @@ High risk = dedicated spike, staging validation, phased rollout.
 - `--legacy-peer-deps` is a bandaid, not a fix. Understand why it's needed.
 - `overrides` (npm) / `resolutions` (yarn) / `pnpm.overrides` for forcing versions
 - Document overrides with comments explaining why they exist
+
+```json
+// package.json — force a transitive dependency version
+{
+  "overrides": {
+    "nth-check": ">=2.0.1"  // CVE-2021-3803 in css-select < 4.2.0
+  }
+}
+```
 
 ### Codemods
 - Check if the library provides official codemods (React, Next.js, ESLint do)

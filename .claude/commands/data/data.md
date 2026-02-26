@@ -1,6 +1,7 @@
 ---
 name: data
 description: "Data engineering consultation — launches data-engineer subagent. Use when building data pipelines, optimizing queries, or designing data platforms."
+argument-hint: "<question-or-task>"
 ---
 
 Before invoking the subagent, gather diagnostic context:

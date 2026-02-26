@@ -208,7 +208,8 @@ team:
     - name: arch-debt-analyst
       type: Explore
       focus: "Boundary violations, dependency analysis, pattern drift"
-      skills: ["workflow:refactoring-and-debt", "architecture:architecture-decision-records"]
+      skills: ["workflow:refactoring-and-debt"]
+      references: [".claude/references/architecture/architecture-decision-records.md"]
     - name: test-debt-analyst
       type: Explore
       focus: "Coverage gaps, flaky tests, missing integration tests"
@@ -216,7 +217,8 @@ team:
     - name: infra-debt-analyst
       type: Explore
       focus: "Deployment gaps, monitoring holes, dependency health"
-      skills: ["workflow:refactoring-and-debt", "devops:observability"]
+      skills: ["workflow:refactoring-and-debt"]
+      references: [".claude/references/devops/observability.md"]
   file_ownership: "shared-read-only"
   lead_mode: "hands-on"
 ```

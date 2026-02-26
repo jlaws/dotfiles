@@ -1,6 +1,7 @@
 ---
 name: lang
 description: "Language patterns consultation — idioms, tooling, and project scaffolding. Use when setting up a project, choosing patterns, or working in Python, JS/TS, Go, Rust, Swift, or other languages."
+argument-hint: "<question-or-task>"
 ---
 
 Before invoking the subagent, gather diagnostic context:

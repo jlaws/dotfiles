@@ -82,6 +82,8 @@ description: Use when executing implementation plans with independent tasks in t
 Use ONLY for: non-obvious decisions, process loops, "when to use A vs B".
 Never for: reference material, code examples, linear instructions.
 
+Conventions and rendering: see `graphviz-conventions.dot` and `render-graphs.js` in this skill directory.
+
 ## The Iron Law (Same as TDD)
 
 ```
@@ -99,6 +101,8 @@ Applies to new skills AND edits. Write skill before testing? Delete it. Start ov
 **REFACTOR:** Agent found new rationalization? Add explicit counter. Re-test until bulletproof.
 
 ## Testing Skills With Subagents
+
+For detailed testing methodology, see `references/CLAUDE_MD_TESTING.md`.
 
 Run scenarios without skill (RED), write skill addressing failures (GREEN), close loopholes (REFACTOR).
 

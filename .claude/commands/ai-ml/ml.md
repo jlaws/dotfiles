@@ -1,6 +1,7 @@
 ---
 name: ml
 description: "ML/AI consultation — launches ml-engineer subagent. Use when working with model training, inference pipelines, LLM applications, or ML deployment."
+argument-hint: "<question-or-task>"
 ---
 
 Before invoking the subagent, gather diagnostic context:

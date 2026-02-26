@@ -1,6 +1,7 @@
 ---
 name: docs
 description: "Documentation consultation — technical writing, API docs, and changelogs. Use when writing docs, generating OpenAPI specs, or automating changelogs."
+argument-hint: "<question-or-task>"
 ---
 
 Before invoking the subagent, gather diagnostic context:

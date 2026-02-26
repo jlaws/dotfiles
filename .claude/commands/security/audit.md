@@ -1,6 +1,7 @@
 ---
 name: audit
 description: "Security threat model and vulnerability scan — STRIDE analysis, SAST patterns, and compliance mapping. Use when reviewing code for vulnerabilities, conducting threat modeling, or mapping compliance controls."
+argument-hint: "<target-path-or-scope>"
 ---
 
 Before invoking the skill, perform reconnaissance:

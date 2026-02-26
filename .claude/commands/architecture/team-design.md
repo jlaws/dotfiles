@@ -1,6 +1,7 @@
 ---
 name: team-design
 description: "Multi-agent system design suite — parallel specialist agents produce a complete set of architecture documents. Use when designing a new system or documenting an existing architecture."
+argument-hint: "<directory-path> <system-description>"
 ---
 
 Parse arguments: `$ARGUMENTS` must contain `<directory_path>` followed by `<description>`.
@@ -14,13 +15,13 @@ Parse arguments: `$ARGUMENTS` must contain `<directory_path>` followed by `<desc
 3. **Check for existing docs**: read any `.md` files already in the directory — this is the current system state for iterative updates.
 4. **Detect keywords** in description for conditional reference loading:
    - SaaS / multi-tenant → .claude/references/architecture/microservices-patterns.md (see references/saas-multi-tenancy.md)
-   - search → `data:search-infrastructure`
-   - streaming / events → `data:streaming-data-processing`
+   - search → .claude/references/data/search-infrastructure.md
+   - streaming / events → .claude/references/data/streaming-data-processing.md
    - gRPC / protobuf → .claude/references/architecture/distributed-communication-patterns.md
    - real-time → .claude/references/architecture/real-time-systems.md
    - compliance / HIPAA / GDPR / PCI → .claude/references/security/compliance-and-data-privacy.md
    - ML / AI / model → .claude/references/architecture/ml-system-design.md
-   - GPU → `cloud:gpu-compute-management`
+   - GPU → .claude/references/cloud/gpu-compute-management.md
    - accessibility → .claude/references/frontend/accessibility-testing.md
    - frontend / UI → .claude/references/frontend/design-system-patterns.md
 
@@ -39,17 +40,15 @@ Parse arguments: `$ARGUMENTS` must contain `<directory_path>` followed by `<desc
 ### Agent 2: data-and-api-designer
 **Owns**: `data.md`, `api.md`
 **Always read references**: .claude/references/architecture/api-design-principles.md, .claude/references/architecture/caching-strategies.md, .claude/references/architecture/distributed-communication-patterns.md
-**Always load skills**: data:postgresql-table-design, data:nosql-data-modeling
-**Conditional references**: .claude/references/architecture/real-time-systems.md (if real-time)
-**Conditional skills**: data:search-infrastructure (if search), data:streaming-data-processing (if streaming/events)
+**Always read references**: .claude/references/data/postgresql-table-design.md, .claude/references/data/nosql-data-modeling.md
+**Conditional references**: .claude/references/architecture/real-time-systems.md (if real-time), .claude/references/data/search-infrastructure.md (if search), .claude/references/data/streaming-data-processing.md (if streaming/events)
 **Focus**: Database selection, schema design, data flow, caching layers in data.md. API surface (REST/GraphQL/gRPC), inter-service contracts, async messaging in api.md.
 
 ### Agent 3: infra-planner
 **Owns**: `infrastructure.md`, `scalability.md`
 **Always read references**: .claude/references/devops/kubernetes-configuration.md, .claude/references/devops/pipeline-design.md, .claude/references/devops/observability.md, .claude/references/architecture/background-job-processing.md
-**Always load skills**: cloud:serverless-patterns, cloud:cost-optimization
-**Conditional references**: .claude/references/architecture/ml-system-design.md (if ML/AI)
-**Conditional skills**: cloud:gpu-compute-management (if GPU)
+**Always read references**: .claude/references/cloud/serverless-patterns.md, .claude/references/cloud/cost-optimization.md
+**Conditional references**: .claude/references/architecture/ml-system-design.md (if ML/AI), .claude/references/cloud/gpu-compute-management.md (if GPU)
 **Focus**: Deployment topology, compute strategy, CI/CD, monitoring/SLOs in infrastructure.md. Scaling strategy, capacity planning, performance budget in scalability.md.
 
 ### Agent 4: security-reviewer

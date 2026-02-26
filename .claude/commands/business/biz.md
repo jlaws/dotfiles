@@ -1,6 +1,7 @@
 ---
 name: biz
 description: "Business strategy consultation — launches business-analyst subagent. Use when defining KPIs, planning MVPs, designing payment flows, or team processes."
+argument-hint: "<question-or-task>"
 ---
 
 Before invoking the subagent, gather diagnostic context:

@@ -108,6 +108,17 @@ See each language skill for detailed naming and practice rules.
 - **Extract function** when a block needs a comment to explain intent
 - **Typed errors** over generic catch-all
 
+```typescript
+// Early return pattern — flatten nested conditionals
+function processOrder(order: Order): Result {
+  if (!order.items.length) return Result.empty();
+  if (!order.payment)      return Result.error('No payment');
+  if (order.total <= 0)    return Result.error('Invalid total');
+
+  return Result.ok(checkout(order));
+}
+```
+
 ## Performance (Profile First)
 
 **React/Next.js**: `React.memo`, `useMemo`, code splitting, virtual scrolling

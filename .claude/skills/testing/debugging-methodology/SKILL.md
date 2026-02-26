@@ -111,6 +111,10 @@ git bisect good   # or bad, repeat until found
 git bisect reset
 ```
 
+### Condition-Based Waiting & Test Pollution
+
+See `condition-based-waiting-example.ts` for async wait patterns and `find-polluter.sh` for isolating test pollution.
+
 ### Differential Debugging
 
 | Aspect | Working | Broken |
@@ -123,9 +127,11 @@ git bisect reset
 
 ## Patterns by Issue Type
 
-- **Intermittent**: Add logging with timing, look for race conditions, stress test
+- **Intermittent**: Add logging with timing, look for race conditions, stress test — see `references/condition-based-waiting.md`
 - **Performance**: Profile first, common culprits: N+1, unnecessary re-renders, sync I/O
 - **Production**: Gather evidence (Sentry/logs/metrics), reproduce locally, test fixes in staging
+- **Defense in depth**: Layered validation and error boundaries — see `references/defense-in-depth.md`
+- **Root cause tracing**: Systematic upstream tracing — see `references/root-cause-tracing.md`
 
 ## Red Flags -- STOP and Return to Phase 1
 

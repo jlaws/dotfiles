@@ -1,6 +1,7 @@
 ---
 name: team-review
 description: "Multi-agent team code review — parallel specialist reviewers for security, quality, testing, and language-specific analysis. Use for thorough multi-perspective review of a feature branch."
+argument-hint: "<branch-or-diff-scope>"
 ---
 
 Before invoking the skill, perform pre-flight checks:

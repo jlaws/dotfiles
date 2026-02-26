@@ -1,6 +1,7 @@
 ---
 name: paper-analysis
 description: "Analyze an ML/AI research paper: structured summary, critical evaluation, and reviewer-style assessment using the three-pass method. Use when reviewing an academic paper, arxiv preprint, or conference submission."
+argument-hint: "<paper-url-or-path>"
 ---
 
 Before invoking the skill, perform resource discovery:
