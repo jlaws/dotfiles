@@ -2,6 +2,7 @@
 name: language-testing-patterns
 description: "Language-specific test patterns, fixtures, and mocking strategies for Python and JS/TS. Use when designing test suites, choosing fixtures/mocking strategies, or implementing language-specific test patterns for Python and JS/TS. Do NOT use for E2E browser testing (use e2e-testing-patterns) or shell script testing (use shell-testing)."
 compatibility: claude-code
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Language Testing Patterns

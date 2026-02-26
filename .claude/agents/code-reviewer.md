@@ -1,7 +1,8 @@
 ---
 name: code-reviewer
-description: Performs detailed code review with severity labels
+description: Performs detailed code review with severity labels. Use proactively after writing or modifying code.
 tools: Read, Grep, Glob, Bash
+memory: user
 skills:
   - workflow/code-review-patterns
 ---

@@ -27,6 +27,15 @@
       "Bash(git clone *)",
       "Bash(git rm *)",
       "Bash(git mv *)",
+      "Bash(git reset *)",
+      "Bash(git clean *)",
+      "Bash(git push *)",
+      "Bash(gh *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(sed *)",
+      "Bash(awk *)",
       "Bash(npm test *)",
       "Bash(npx *)",
       "Bash(npm list *)",
@@ -79,8 +88,6 @@
       "Read(~/.aws/**)"
     ],
     "ask": [
-      "Bash(git push *)",
-      "Bash(gh *)",
       "Bash(npm install *)",
       "Bash(npm ci *)",
       "Bash(pip install *)",
@@ -95,14 +102,7 @@
       "Bash(go *)",
       "Bash(swift *)",
       "Bash(rm *)",
-      "Bash(git reset *)",
-      "Bash(git clean *)",
-      "Bash(curl *)",
-      "Bash(cat *)",
-      "Bash(head *)",
-      "Bash(tail *)",
-      "Bash(sed *)",
-      "Bash(awk *)"
+      "Bash(curl *)"
     ]
   },
   "attribution": {
