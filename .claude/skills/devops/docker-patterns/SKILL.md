@@ -1,9 +1,17 @@
 ---
 name: docker-patterns
-description: Dockerfile optimization, multi-stage builds, ML-specific images, compose for dev environments, and security hardening.
+description: Dockerfile optimization and container patterns. Use when writing or optimizing Dockerfiles, setting up multi-stage builds, configuring compose for dev environments, or hardening container security. Covers base image selection, layer caching, ML-specific images, and production best practices.
 ---
 
 # Docker Patterns
+
+## Critical Rules
+
+- **Never** run containers as root -- add `USER` directive with a non-root user in every Dockerfile
+- **Never** pass secrets via `ARG` or `ENV` in Dockerfiles -- they persist in image layers; mount at runtime
+- **Always** use `COPY` instead of `ADD` -- `ADD` auto-extracts tarballs and fetches URLs, creating attack surface
+- **Always** pin base image versions and dependency versions -- unpinned tags drift and break builds silently
+- **Always** scan images with `trivy` or equivalent before pushing to a registry
 
 ## Base Image Selection
 

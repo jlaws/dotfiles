@@ -1,6 +1,6 @@
 ---
 name: eval-and-benchmarking
-description: LLM and ML model evaluation with lm-evaluation-harness, HELM, and custom benchmarks. Covers metric selection, contamination detection, statistical significance, and leaderboard methodology.
+description: LLM and ML model evaluation with lm-evaluation-harness, HELM, and custom benchmarks. Covers metric selection, contamination detection, statistical significance, leaderboard methodology, and model interpretability.
 ---
 
 # Eval and Benchmarking
@@ -225,6 +225,20 @@ def test_memorization(model, tokenizer, canary_prefix, full_canary):
     generated = tokenizer.decode(output[0], skip_special_tokens=True)
     return full_canary in generated
 ```
+
+## Model Interpretability
+
+| Goal | Method | Best For |
+|------|--------|----------|
+| Feature importance (tabular) | SHAP (TreeSHAP) | Tree models, global + local explanations |
+| Feature importance (neural) | Integrated Gradients, DeepSHAP | Neural networks, pixel/token attribution |
+| Local instance explanation | LIME | Any black-box model, human-readable rules |
+| Attention analysis | Attention rollout, gradient-weighted attention | Transformers, qualitative debugging |
+| Internal representation probing | Probing classifiers | Understanding what layers encode |
+| Multi-method comparison | Captum library | Cross-validating attribution methods |
+| Regulatory/compliance | SHAP + LIME (multiple methods) | Auditable explanations, stakeholder trust |
+
+For detailed interpretability patterns, see `references/model-interpretability.md`.
 
 ## Gotchas and Anti-Patterns
 

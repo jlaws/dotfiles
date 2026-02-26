@@ -1,6 +1,6 @@
 ---
 name: architecture-decision-records
-description: Write and maintain Architecture Decision Records (ADRs) following best practices for technical decision documentation. Use when documenting significant technical decisions, reviewing past architectural choices, or establishing decision processes.
+description: Write and maintain Architecture Decision Records (ADRs) following best practices for technical decision documentation. Includes architecture pattern catalog (Clean Architecture, Hexagonal, DDD) as reference material. Use when documenting significant technical decisions, reviewing past architectural choices, or establishing decision processes.
 ---
 
 # Architecture Decision Records
@@ -172,3 +172,7 @@ adr link 2 "Complements" 1 "Is complemented by"
 - **Don't change accepted ADRs** - write new ones to supersede
 - **Don't hide failures** - rejected decisions are valuable
 - **Don't be vague** - specific decisions, specific consequences
+
+## Architecture Patterns Reference
+
+Catalog of proven backend architecture patterns (Clean Architecture, Hexagonal Architecture, Domain-Driven Design) with implementation examples and pitfalls. For architecture pattern catalog, see `references/architecture-patterns.md`.

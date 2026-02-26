@@ -300,31 +300,31 @@ All skills live at `.claude/skills/{category}/{skill}/SKILL.md`.
 - /team-review — Multi-agent team code review
 
 ### architecture
-api-client-sdk-design | api-design-principles | architecture-decision-records | architecture-patterns | background-job-processing | caching-strategies | error-handling-patterns | event-sourcing-patterns | grpc-and-protobuf | mcp-server-development | message-queue-patterns | microservices-patterns | ml-system-design | notification-systems | real-time-systems | saas-multi-tenancy
+api-design-principles | architecture-decision-records | background-job-processing | caching-strategies | distributed-communication-patterns | error-handling-patterns | mcp-server-development | microservices-patterns | ml-system-design | notification-systems | real-time-systems
 
 ### ai-ml
-agentic-systems-design | ai-safety-and-alignment | causal-inference-ml | continual-and-online-learning | dataset-management | demo-and-prototype-building | diffusion-model-patterns | distributed-training-at-scale | edge-and-mobile-ml | embedding-and-representation-learning | eval-and-benchmarking | federated-learning | graph-neural-networks | jax-patterns | llm-application-patterns | llm-fine-tuning | llm-pretraining | llmops-production-monitoring | ml-experiment-lifecycle | ml-model-deployment | model-compression | model-interpretability | multimodal-ml | neural-architecture-search | privacy-preserving-ml | probabilistic-programming | pytorch-ml-training | rag-and-vector-search | reinforcement-learning-patterns | structured-output-patterns | synthetic-data-generation | time-series-ml | tokenizer-design | transformer-architecture-design
+agentic-systems-design | ai-safety-and-alignment | causal-inference-ml | continual-and-online-learning | dataset-management | demo-and-prototype-building | eval-and-benchmarking | federated-learning | generative-model-architectures | graph-neural-networks | jax-patterns | llm-application-patterns | llm-training-pipeline | llmops-production-monitoring | ml-experiment-lifecycle | ml-model-deployment | model-compression | multimodal-ml | pytorch-distributed-training | rag-and-vector-search | reinforcement-learning-patterns | time-series-ml | tokenizer-design
 
 ### data
-airflow-dag-patterns | data-lake-architecture | data-quality-frameworks | database-migration | dbt-transformation-patterns | eda-and-visualization | feature-store-design | jupyter-notebook-patterns | ml-pipeline-orchestration | nosql-data-modeling | notebook-to-production | postgresql-table-design | search-infrastructure | spark-optimization | sql-optimization-patterns | streaming-data-processing | web-scraping-and-data-collection
+airflow-dag-patterns | analytics-and-transformations | data-platform-architecture | database-migration | eda-and-visualization | jupyter-notebook-patterns | ml-pipeline-orchestration | nosql-data-modeling | postgresql-table-design | search-infrastructure | spark-optimization | streaming-data-processing | web-scraping-and-data-collection
 
 ### devops
-docker-patterns | github-actions-patterns | gitops-workflow | incident-management | k8s-manifest-generator | k8s-security-policies | monorepo-tools | observability | pipeline-design | terraform-module-library
+docker-patterns | github-actions-patterns | gitops-workflow | incident-management | kubernetes-configuration | observability | pipeline-design | terraform-module-library
 
 ### languages
-async-python-patterns | bash-defensive-patterns | browser-extension-development | cli-tool-development | cuda-gpu-programming | fastapi-templates | go-concurrency-patterns | js-ts-patterns | nodejs-backend-patterns | pydantic-and-data-validation | python-packaging-and-distribution | python-patterns | rust-project-patterns | swift-patterns
+bash-defensive-patterns | browser-extension-development | cli-tool-development | cuda-gpu-programming | fastapi-templates | go-concurrency-patterns | js-ts-patterns | nodejs-backend-patterns | pydantic-and-data-validation | python-packaging-and-distribution | python-patterns | rust-project-patterns | swift-patterns
 
 ### frontend
 accessibility-testing | design-system-patterns | form-patterns | graphql-client-patterns | i18n-and-localization | nextjs-app-router-patterns | react-native-architecture | react-state-management | responsive-web-design | svelte-patterns | tailwind-design-system | web-animation-patterns
 
 ### testing
-debugging-methodology | e2e-testing-patterns | language-testing-patterns | load-testing-and-perf | performance-profiling | shell-testing | test-driven-development
+debugging-methodology | e2e-testing-patterns | language-testing-patterns | performance-testing-and-profiling | shell-testing | test-driven-development
 
 ### security
 auth-implementation-patterns | compliance-and-data-privacy | dependency-auditing | secrets-management | security-analysis
 
 ### workflow
-claude-code-meta-patterns | code-quality | code-review-excellence | diff-review | feature-flags-and-ab-testing | github-issue-resolution | multi-agent-development | pr-comment-resolution | refactoring-patterns | technical-debt-remediation | using-git-worktrees | verification-before-completion | writing-skills
+claude-code-meta-patterns | code-quality | code-review-patterns | feature-flags-and-ab-testing | github-issue-resolution | multi-agent-development | pr-comment-resolution | refactoring-and-debt | using-git-worktrees | verification-before-completion | writing-skills
 
 ### research
 confidence-scoring | latex-paper-writing | literature-review | paper-analysis-methodology | paper-to-code-implementation | statistical-analysis

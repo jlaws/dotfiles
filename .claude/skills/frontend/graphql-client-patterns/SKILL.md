@@ -44,5 +44,4 @@ Same `cache.modify` pattern as optimistic updates. Use `onData` callback to merg
 
 ## Cross-References
 
-- **architecture:api-design-principles** -- GraphQL schema design and API conventions
-- **architecture:api-client-sdk-design** -- Client abstraction layers and retry/error handling
+- **architecture:api-design-principles** -- API design, SDK architecture, retry/error handling

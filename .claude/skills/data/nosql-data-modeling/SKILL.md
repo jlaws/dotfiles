@@ -62,173 +62,9 @@ Design decisions:
 | Document size | Fits in 16MB | Would exceed limit |
 | Data duplication OK? | Yes | No (single source of truth) |
 
-### Schema Design Patterns
-
-```python
-from pymongo import MongoClient
-from datetime import datetime
-
-db = MongoClient()["ecommerce"]
-
-# Pattern 1: Embedded (1:few, always read together)
-order = {
-    "_id": "ord_abc123",
-    "user_id": "usr_456",
-    "user_name": "Alice",          # Denormalized from users collection
-    "created_at": datetime.utcnow(),
-    "status": "shipped",
-    "items": [                     # Embedded -- always fetched with order
-        {"sku": "WIDGET-1", "name": "Blue Widget", "qty": 2, "price": 9.99},
-        {"sku": "GADGET-3", "name": "Red Gadget", "qty": 1, "price": 24.99},
-    ],
-    "total": 44.97,
-}
-db.orders.insert_one(order)
-
-# Pattern 2: Reference (1:many, unbounded growth)
-# Blog post with comments -- comments can grow to thousands
-post = {
-    "_id": "post_789",
-    "title": "NoSQL Modeling",
-    "body": "...",
-    "comment_count": 0,  # Cached count to avoid counting query
-}
-
-comment = {
-    "_id": "cmt_001",
-    "post_id": "post_789",    # Reference to parent
-    "author": "Bob",
-    "text": "Great post!",
-    "created_at": datetime.utcnow(),
-}
-
-# Pattern 3: Bucket pattern (time-series, IoT)
-# Instead of one doc per measurement, bucket by hour
-sensor_bucket = {
-    "_id": "sensor_1_2024010112",  # sensor_id + YYYYMMDDHH
-    "sensor_id": "sensor_1",
-    "start": datetime(2024, 1, 1, 12, 0),
-    "count": 60,
-    "measurements": [
-        {"ts": datetime(2024, 1, 1, 12, 0, 0), "temp": 22.1, "humidity": 45},
-        {"ts": datetime(2024, 1, 1, 12, 1, 0), "temp": 22.3, "humidity": 44},
-        # ... up to 60 per hour
-    ],
-    "avg_temp": 22.2,  # Pre-computed aggregates
-    "max_temp": 23.1,
-}
-```
-
-### MongoDB Indexes
-
-```python
-# Compound index for user orders by date (covers patterns 2 and 3)
-db.orders.create_index([("user_id", 1), ("created_at", -1)])
-
-# Text index for search
-db.posts.create_index([("title", "text"), ("body", "text")])
-
-# TTL index for auto-expiring documents
-db.sessions.create_index("expires_at", expireAfterSeconds=0)
-
-# Partial index (only index active orders -- saves space)
-db.orders.create_index(
-    [("user_id", 1), ("created_at", -1)],
-    partialFilterExpression={"status": {"$ne": "cancelled"}},
-)
-```
+For schema design code and index strategies, see [references/mongodb-schema-examples.md](references/mongodb-schema-examples.md).
 
 ## DynamoDB Patterns
-
-### Single-Table Design
-
-```python
-import boto3
-from datetime import datetime
-
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table("app-data")
-
-# All entities in ONE table with overloaded PK/SK
-
-# User entity
-table.put_item(Item={
-    "PK": "USER#usr_456",
-    "SK": "PROFILE",
-    "name": "Alice",
-    "email": "alice@example.com",
-    "created_at": "2024-01-01T00:00:00Z",
-    "entity_type": "User",
-})
-
-# Order entity (under user partition)
-table.put_item(Item={
-    "PK": "USER#usr_456",
-    "SK": "ORDER#2024-01-15#ord_abc123",  # Date prefix for range queries
-    "order_id": "ord_abc123",
-    "status": "shipped",
-    "total": "44.97",
-    "entity_type": "Order",
-})
-
-# Order items (under order partition for direct lookup)
-table.put_item(Item={
-    "PK": "ORDER#ord_abc123",
-    "SK": "ITEM#WIDGET-1",
-    "sku": "WIDGET-1",
-    "name": "Blue Widget",
-    "qty": 2,
-    "price": "9.99",
-    "entity_type": "OrderItem",
-})
-
-# Query: Get user profile
-resp = table.get_item(Key={"PK": "USER#usr_456", "SK": "PROFILE"})
-
-# Query: Get all orders for user (sorted by date)
-resp = table.query(
-    KeyConditionExpression="PK = :pk AND begins_with(SK, :sk)",
-    ExpressionAttributeValues={":pk": "USER#usr_456", ":sk": "ORDER#"},
-    ScanIndexForward=False,  # Newest first
-)
-
-# Query: Get orders in date range
-resp = table.query(
-    KeyConditionExpression="PK = :pk AND SK BETWEEN :start AND :end",
-    ExpressionAttributeValues={
-        ":pk": "USER#usr_456",
-        ":start": "ORDER#2024-01-01",
-        ":end": "ORDER#2024-01-31",
-    },
-)
-```
-
-### GSI Overloading
-
-```python
-# GSI1: Inverted index (access order by order_id directly)
-# Main table: PK=USER#id, SK=ORDER#date#id
-# GSI1:       PK=ORDER#id, SK=USER#id
-table.put_item(Item={
-    "PK": "USER#usr_456",
-    "SK": "ORDER#2024-01-15#ord_abc123",
-    "GSI1PK": "ORDER#ord_abc123",     # GSI partition key
-    "GSI1SK": "USER#usr_456",          # GSI sort key
-    "order_id": "ord_abc123",
-    "status": "shipped",
-    "entity_type": "Order",
-})
-
-# Query GSI: Get order by order_id
-resp = table.query(
-    IndexName="GSI1",
-    KeyConditionExpression="GSI1PK = :pk",
-    ExpressionAttributeValues={":pk": "ORDER#ord_abc123"},
-)
-
-# GSI2: Status index (get all orders by status)
-# GSI2PK = STATUS#shipped, GSI2SK = date
-```
 
 ### Partition Key Selection
 
@@ -238,6 +74,8 @@ resp = table.query(
 | Time-series | `SENSOR#{id}#YYYY-MM-DD` | Prevent hot partition; shard by day |
 | High-write | `ITEM#{id}#SHARD#{0-9}` | Write sharding for hot keys |
 | Global config | `CONFIG#GLOBAL` | Single item, cache it |
+
+For single-table design examples and GSI overloading patterns, see [references/single-table-patterns.md](references/single-table-patterns.md).
 
 ## Redis Data Structures
 
@@ -250,43 +88,7 @@ resp = table.query(
 | Sorted Set | Ranked data, range queries | Leaderboards, rate limiting |
 | Stream | Event log, pub/sub with history | Activity feed, event sourcing |
 
-```python
-import redis
-
-r = redis.Redis(decode_responses=True)
-
-# Hash: user profile (better than serialized JSON -- update fields individually)
-r.hset("user:456", mapping={"name": "Alice", "email": "alice@example.com", "login_count": "0"})
-r.hincrby("user:456", "login_count", 1)
-profile = r.hgetall("user:456")
-
-# Sorted set: leaderboard
-r.zadd("leaderboard:weekly", {"alice": 2500, "bob": 1800, "carol": 3200})
-top_10 = r.zrevrange("leaderboard:weekly", 0, 9, withscores=True)
-alice_rank = r.zrevrank("leaderboard:weekly", "alice")  # 0-indexed
-
-# Sorted set: rate limiting (sliding window)
-import time
-
-def is_rate_limited(user_id: str, limit: int = 100, window_s: int = 60) -> bool:
-    key = f"rate:{user_id}"
-    now = time.time()
-    pipe = r.pipeline()
-    pipe.zremrangebyscore(key, 0, now - window_s)  # Remove old entries
-    pipe.zadd(key, {f"{now}": now})                  # Add current request
-    pipe.zcard(key)                                   # Count in window
-    pipe.expire(key, window_s)                        # TTL cleanup
-    _, _, count, _ = pipe.execute()
-    return count > limit
-
-# Stream: event log
-r.xadd("events:orders", {"type": "created", "order_id": "ord_123", "user_id": "usr_456"})
-# Read latest events
-events = r.xrevrange("events:orders", count=10)
-
-# Cache with TTL
-r.setex("cache:product:789", 300, '{"name": "Widget", "price": 9.99}')  # 5min TTL
-```
+For Redis code examples (hashes, sorted sets, rate limiting, streams), see [references/redis-patterns.md](references/redis-patterns.md).
 
 ## Consistency Patterns
 
@@ -335,10 +137,10 @@ collection_eventual = db.get_collection(
    - If you sometimes JOIN: reference with user_id
 
 3. Handle relationships
-   - 1:1 → embed
-   - 1:few (bounded) → embed array
-   - 1:many (unbounded) → reference (separate collection/item)
-   - many:many → reference array on one side, or adjacency list
+   - 1:1 -> embed
+   - 1:few (bounded) -> embed array
+   - 1:many (unbounded) -> reference (separate collection/item)
+   - many:many -> reference array on one side, or adjacency list
 
 4. Replace transactions
    - Single-document operations are atomic in MongoDB
@@ -352,56 +154,7 @@ collection_eventual = db.get_collection(
    - Remove SQL writes last
 ```
 
-### Relational to MongoDB Example
-
-```sql
--- Relational
-SELECT o.id, o.total, u.name, u.email,
-       oi.sku, oi.qty, oi.price
-FROM orders o
-JOIN users u ON o.user_id = u.id
-JOIN order_items oi ON oi.order_id = o.id
-WHERE o.user_id = 456
-ORDER BY o.created_at DESC;
-```
-
-```python
-# MongoDB: single query, no joins needed
-orders = db.orders.find(
-    {"user_id": "usr_456"},
-    sort=[("created_at", -1)],
-)
-# Each order already contains:
-#   user_name (denormalized)
-#   items[] (embedded)
-```
-
-### Relational to DynamoDB Example
-
-```sql
--- Relational: 3 tables, 2 joins
-SELECT * FROM orders WHERE user_id = 456 AND created_at > '2024-01-01';
-SELECT * FROM order_items WHERE order_id = 'abc123';
-```
-
-```python
-# DynamoDB: 2 queries, no joins
-# Query 1: user's orders in date range
-orders = table.query(
-    KeyConditionExpression="PK = :pk AND SK BETWEEN :start AND :end",
-    ExpressionAttributeValues={
-        ":pk": "USER#usr_456",
-        ":start": "ORDER#2024-01-01",
-        ":end": "ORDER#2024-12-31",
-    },
-)
-
-# Query 2: order items (if not embedded)
-items = table.query(
-    KeyConditionExpression="PK = :pk AND begins_with(SK, :sk)",
-    ExpressionAttributeValues={":pk": "ORDER#ord_abc123", ":sk": "ITEM#"},
-)
-```
+For side-by-side SQL-to-NoSQL query comparisons, see [references/migration-examples.md](references/migration-examples.md).
 
 ## Gotchas
 

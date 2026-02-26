@@ -1,11 +1,24 @@
 ---
 name: federated-learning
-description: Train models across distributed clients with privacy-preserving federated algorithms
+description: "Federated learning and privacy-preserving ML: distributed training, differential privacy, secure aggregation, PII detection, model unlearning, and GDPR/CCPA/HIPAA compliance"
 ---
 
-# Federated Learning
+# Federated Learning & Privacy-Preserving ML
 
-## Decision Table
+## Privacy Technique Selection
+
+| Technique | Protects Against | Overhead | Use When |
+|-----------|-----------------|----------|----------|
+| **Differential Privacy (DP-SGD)** | Membership inference, model inversion | 10-30% accuracy loss | Training on sensitive data |
+| **PII Detection/Redaction** | Data leakage in text | Minimal (preprocessing) | Any text pipeline with personal data |
+| **Federated Learning** | Raw data exposure | Communication cost | Data cannot leave client devices |
+| **Secure Aggregation** | Server seeing individual updates | Crypto overhead | FL with untrusted server |
+| **Model Unlearning** | Right to erasure compliance | Retraining cost | GDPR Art. 17 requests |
+| **K-Anonymity / L-Diversity** | Re-identification in tabular data | Data utility loss | Publishing/sharing datasets |
+
+**Decision rule**: Start with PII detection (cheap, always useful). Add DP-SGD for provable guarantees. Use FL when data cannot be centralized. Combine for defense in depth.
+
+## Federated Strategy Selection
 
 | Strategy | Privacy | Scale | Non-IID Tolerance | Best For |
 |----------|---------|-------|-------------------|----------|
@@ -93,7 +106,6 @@ class FedProxClient(FedClient):
             for x, y in self.train_loader:
                 optimizer.zero_grad()
                 loss = nn.CrossEntropyLoss()(self.model(x), y)
-                # Proximal term: (mu/2) * ||w - w_global||^2
                 for name, param in self.model.named_parameters():
                     loss += (self.mu / 2) * ((param - global_params[name]) ** 2).sum()
                 loss.backward()
@@ -114,7 +126,6 @@ class DPFedAvgClient(FedClient):
         self.noise_multiplier = noise_multiplier
 
     def clip_and_noise(self, batch_size: int):
-        """Clip gradients, then add calibrated Gaussian noise."""
         total_norm = torch.sqrt(sum(
             p.grad.norm(2) ** 2 for p in self.model.parameters() if p.grad is not None))
         clip_coef = min(1.0, self.max_grad_norm / (total_norm + 1e-6))
@@ -123,20 +134,45 @@ class DPFedAvgClient(FedClient):
                 p.grad.mul_(clip_coef)
                 p.grad.add_(torch.randn_like(p.grad) * (
                     self.noise_multiplier * self.max_grad_norm / batch_size))
+```
 
-    def train(self, global_state: Dict) -> Tuple[Dict, int]:
-        self.model.load_state_dict(global_state)
-        self.model.train()
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr)
-        num_samples = 0
-        for _ in range(self.local_epochs):
-            for x, y in self.train_loader:
-                optimizer.zero_grad()
-                nn.CrossEntropyLoss()(self.model(x), y).backward()
-                self.clip_and_noise(len(x))
-                optimizer.step()
-                num_samples += len(x)
-        return self.model.state_dict(), num_samples // self.local_epochs
+### Privacy Budget Intuition
+- epsilon < 1: Strong privacy, significant accuracy cost
+- epsilon 1-10: Moderate privacy, reasonable utility
+- epsilon > 10: Weak privacy, may not provide meaningful protection
+- epsilon is cumulative across training; more epochs = more privacy spent
+
+### Privacy Budget Tracking
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class PrivacyBudget:
+    """Track cumulative privacy spend across queries/training runs."""
+    total_epsilon: float
+    total_delta: float
+    spent_epsilon: float = 0.0
+    spent_delta: float = 0.0
+    history: list[dict] = field(default_factory=list)
+
+    @property
+    def remaining_epsilon(self) -> float:
+        return self.total_epsilon - self.spent_epsilon
+
+    def can_spend(self, epsilon: float, delta: float) -> bool:
+        return (self.spent_epsilon + epsilon <= self.total_epsilon
+                and self.spent_delta + delta <= self.total_delta)
+
+    def spend(self, epsilon: float, delta: float, description: str = ""):
+        if not self.can_spend(epsilon, delta):
+            raise PrivacyBudgetExhausted(
+                f"Cannot spend eps={epsilon}, delta={delta}. "
+                f"Remaining: eps={self.remaining_epsilon:.2f}")
+        self.spent_epsilon += epsilon
+        self.spent_delta += delta
+        self.history.append({"epsilon": epsilon, "delta": delta,
+                             "description": description})
 ```
 
 ## Communication Efficiency
@@ -148,7 +184,7 @@ class TopKCompressor:
     """Keep only top-k% of gradient values; accumulate residuals."""
     def __init__(self, compress_ratio=0.01):
         self.compress_ratio = compress_ratio
-        self.residuals = {}  # error feedback per parameter
+        self.residuals = {}
 
     def compress(self, model: nn.Module) -> Dict:
         compressed = {}
@@ -157,7 +193,7 @@ class TopKCompressor:
                 continue
             grad = param.grad.data
             if name in self.residuals:
-                grad = grad + self.residuals[name]  # error feedback
+                grad = grad + self.residuals[name]
             flat = grad.view(-1)
             k = max(1, int(len(flat) * self.compress_ratio))
             _, indices = torch.topk(flat.abs(), k)
@@ -169,30 +205,12 @@ class TopKCompressor:
         return compressed
 ```
 
-### Quantized Communication
-
-```python
-def quantize_updates(state_dict, num_bits=8):
-    """Uniform quantization of model deltas to reduce bandwidth."""
-    q = {}
-    for key, tensor in state_dict.items():
-        t_min, t_max = tensor.min(), tensor.max()
-        scale = (t_max - t_min) / (2 ** num_bits - 1)
-        q[key] = {"data": ((tensor - t_min) / (scale + 1e-8)).round().byte(),
-                  "min": t_min, "scale": scale}
-    return q
-
-def dequantize_updates(q):
-    return {k: v["data"].float() * v["scale"] + v["min"] for k, v in q.items()}
-```
-
 ## Secure Aggregation Sketch
 
 ```python
 class SecureAggregator:
     """Masking-based secure aggregation (conceptual)."""
     def generate_masks(self, client_ids: list, param_shape):
-        """Each client pair shares a seed; masks cancel on sum."""
         masks = {cid: torch.zeros(param_shape) for cid in client_ids}
         for i, c1 in enumerate(client_ids):
             for c2 in client_ids[i + 1:]:
@@ -202,49 +220,37 @@ class SecureAggregator:
         return masks
 ```
 
-## Flower Framework Pattern
+**Production options**: TensorFlow Federated (built-in SecAgg), PySyft (MPC support), Flower (pluggable aggregation).
 
-```python
-import flwr as fl
+## Compliance Mapping
 
-class FlowerClient(fl.client.NumPyClient):
-    def __init__(self, model, train_loader, val_loader, lr=0.01):
-        self.model, self.train_loader, self.val_loader, self.lr = (
-            model, train_loader, val_loader, lr)
-
-    def get_parameters(self, config):
-        return [v.cpu().numpy() for v in self.model.state_dict().values()]
-
-    def set_parameters(self, params):
-        sd = dict(zip(self.model.state_dict().keys(), [torch.tensor(v) for v in params]))
-        self.model.load_state_dict(sd)
-
-    def fit(self, parameters, config):
-        self.set_parameters(parameters)
-        opt = torch.optim.SGD(self.model.parameters(), lr=self.lr)
-        self.model.train()
-        for x, y in self.train_loader:
-            opt.zero_grad(); nn.CrossEntropyLoss()(self.model(x), y).backward(); opt.step()
-        return self.get_parameters(config), len(self.train_loader.dataset), {}
-
-    def evaluate(self, parameters, config):
-        self.set_parameters(parameters)
-        self.model.eval()
-        correct, total = 0, 0
-        with torch.no_grad():
-            for x, y in self.val_loader:
-                correct += (self.model(x).argmax(1) == y).sum().item()
-                total += len(y)
-        return float(1 - correct / total), total, {"accuracy": correct / total}
-```
+| Requirement | GDPR | CCPA | HIPAA | Technique |
+|------------|------|------|-------|-----------|
+| Right to erasure | Art. 17 | Sec. 1798.105 | -- | Model unlearning |
+| Data minimization | Art. 5(1)(c) | -- | Min. Necessary | PII redaction, DP |
+| Purpose limitation | Art. 5(1)(b) | -- | -- | Access controls, audit logs |
+| Automated decisions | Art. 22 | -- | -- | Explainability, human review |
+| De-identification | Recital 26 | Sec. 1798.140(o) | Safe Harbor | K-anonymity, DP |
+| Breach notification | Art. 33 | Sec. 1798.150 | Breach Rule | Encryption, access logs |
 
 ## Gotchas
 
 - **Non-IID data kills convergence**: FedAvg diverges with skewed labels; use FedProx, Scaffold, or data sharing
-- **Stale clients**: Slow clients block synchronous rounds; set timeouts, tolerate partial participation
 - **Privacy budget exhaustion**: Each round consumes epsilon; track cumulative budget with RDP (use Opacus)
+- **DP-SGD and BatchNorm**: Opacus does not support BatchNorm (tracks per-sample stats). Replace with GroupNorm/LayerNorm; use `ModuleValidator.fix(model)`
+- **Epsilon composition**: Multiple queries/runs compound epsilon. Use Renyi DP for tighter bounds
 - **Weight divergence**: Too many local epochs causes drift; reduce epochs or increase mu in FedProx
 - **Communication bottleneck**: Model size x clients x rounds; compress aggressively for cross-device
 - **Secure aggregation dropout**: Dropped clients break mask cancellation; need threshold secret sharing
 - **Model poisoning**: Malicious clients send adversarial updates; use robust aggregation (trimmed mean, Krum)
-- **Evaluation is tricky**: Global accuracy hides per-client performance; always report per-client metrics
+- **PII detection false negatives**: Presidio catches common patterns but misses context-dependent PII; layer regex + NER + LLM detection
+- **Model inversion attacks**: Attackers reconstruct training data from outputs; DP-SGD protects; limit API output to class labels
+- **Compliance is not just technical**: Also need data processing agreements, DPIAs, consent management, audit trails
+
+## References
+
+Extended code examples in `references/privacy-techniques.md`:
+- DP-SGD with Opacus (full setup + parameters)
+- PII detection with Presidio (basic + custom recognizers + pipeline integration)
+- Model unlearning (exact + SISA)
+- Flower framework pattern

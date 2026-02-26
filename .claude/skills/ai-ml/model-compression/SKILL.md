@@ -1,43 +1,59 @@
 ---
 name: model-compression
-description: Pruning, knowledge distillation, quantization-aware training, and edge deployment patterns for reducing model size and latency.
+description: "Model compression and edge/mobile deployment. Use when reducing model size, cutting inference latency, deploying to edge/mobile/browser, or selecting export formats and runtimes. Covers pruning, distillation, quantization (PTQ/QAT), ONNX, CoreML, TensorRT, TFLite, and browser inference."
 ---
 
-# Model Compression
-
-## When to Use
-
-Compress models when deploying to resource-constrained environments (mobile, edge, embedded), reducing serving costs, or meeting latency SLAs that the full model cannot hit.
+# Model Compression & Edge Deployment
 
 ## Technique Selection
 
-### Decision Table: Compression Technique by Constraint
+### Compression by Constraint
 
-| Primary Constraint | Technique | Typical Compression | Accuracy Drop | Implementation Effort |
-|-------------------|-----------|-------------------|---------------|----------------------|
+| Primary Constraint | Technique | Typical Compression | Accuracy Drop | Effort |
+|-------------------|-----------|-------------------|---------------|--------|
 | Memory (model size) | Quantization (PTQ INT8) | 2-4x | 0.1-1% | Low |
 | Memory (extreme) | Quantization (INT4/GPTQ) | 4-8x | 1-5% | Medium |
 | Latency (structured) | Structured pruning | 1.5-3x speedup | 1-5% | Medium |
 | Latency + memory | Distillation | 2-10x smaller | 1-10% | High |
-| Latency (hardware-specific) | QAT + target runtime | 2-4x speedup | 0.5-2% | High |
+| Latency (HW-specific) | QAT + target runtime | 2-4x speedup | 0.5-2% | High |
 | All constraints (extreme) | Pruning + distillation + quantization | 10-50x | 3-15% | Very High |
 
-### Decision Table: When to Use Each Pruning Approach
+### Pruning Approach
 
-| Scenario | Pruning Type | Granularity | Speedup Without Sparse Hardware |
-|----------|-------------|-------------|-------------------------------|
+| Scenario | Type | Granularity | Speedup Without Sparse HW |
+|----------|------|-------------|--------------------------|
 | General size reduction | Unstructured | Weight-level | None (need sparse kernels) |
 | Actual inference speedup | Structured | Channel/head/layer | Yes |
 | Transformer attention heads | Structured | Head-level | Yes |
 | Conv-heavy vision models | Structured | Filter-level | Yes |
 | NLP with hardware support | Semi-structured (2:4) | Block pattern | Yes (Ampere+ GPUs) |
 
+### Quantization Tradeoffs
+
+| Method | Accuracy Drop | Size Reduction | Speed Gain | Effort |
+|--------|--------------|----------------|------------|--------|
+| FP16 | < 0.1% | 2x | 1.5-2x (GPU) | Trivial |
+| Dynamic INT8 | 0.5-1% | 2-4x | 1.5-3x (CPU) | Low |
+| Static INT8 (PTQ) | 1-2% | 3-4x | 2-4x | Medium |
+| QAT INT8 | < 0.5% | 3-4x | 2-4x | High |
+| INT4 (GPTQ/AWQ) | 1-3% | 4-8x | 2-4x | Medium |
+
+## Export Format Selection
+
+| Format | Target | Strengths |
+|--------|--------|-----------|
+| **ONNX** | Cross-platform, server, edge | Universal interchange, wide runtime support |
+| **CoreML** | iOS, macOS, Apple Silicon | Neural Engine acceleration, on-device privacy |
+| **TensorRT** | NVIDIA GPUs | Fastest GPU inference, kernel fusion |
+| **TFLite** | Android, microcontrollers | Small runtime, NNAPI/GPU delegate |
+| **ONNX Runtime Web** | Browser (WASM/WebGPU) | Client-side inference, no server |
+| **ExecuTorch** | iOS, Android | PyTorch-native mobile, replaces TorchScript |
+
+**Decision rule**: ONNX for cross-platform. CoreML for Apple. TensorRT for max NVIDIA throughput. TFLite for Android/MCUs. ExecuTorch to stay in PyTorch ecosystem for mobile.
+
 ## Structured Pruning
 
-### Channel Pruning by L1 Norm
-
 ```python
-import torch
 import torch.nn as nn
 import torch.nn.utils.prune as prune
 
@@ -46,184 +62,116 @@ def prune_conv_channels(model, amount=0.3):
     for name, module in model.named_modules():
         if isinstance(module, nn.Conv2d):
             prune.ln_structured(module, name="weight", amount=amount, n=1, dim=0)
-            prune.remove(module, "weight")  # Make pruning permanent
-    return model
-
-def prune_transformer_heads(model, heads_to_prune):
-    """Prune attention heads from a transformer.
-
-    Args:
-        heads_to_prune: dict of {layer_idx: [head_indices]}
-            e.g., {0: [0, 3], 2: [1, 5, 7]}
-    """
-    for layer_idx, heads in heads_to_prune.items():
-        layer = model.encoder.layer[layer_idx]
-        attention = layer.attention.self
-
-        num_heads = attention.num_attention_heads
-        head_size = attention.attention_head_size
-
-        # Build index of heads to keep
-        keep_heads = sorted(set(range(num_heads)) - set(heads))
-        keep_indices = torch.cat([
-            torch.arange(h * head_size, (h + 1) * head_size) for h in keep_heads
-        ])
-
-        # Slice query, key, value projections
-        for proj in [attention.query, attention.key, attention.value]:
-            proj.weight = nn.Parameter(proj.weight.index_select(0, keep_indices))
-            proj.bias = nn.Parameter(proj.bias.index_select(0, keep_indices))
-
-        # Update output projection
-        attention.output.dense.weight = nn.Parameter(
-            attention.output.dense.weight.index_select(1, keep_indices)
-        )
-        attention.num_attention_heads = len(keep_heads)
-        attention.all_head_size = len(keep_heads) * head_size
-
+            prune.remove(module, "weight")
     return model
 ```
 
-## Knowledge Distillation
+See `references/pruning-and-distillation.md` for transformer head pruning and knowledge distillation.
 
-### Training Loop
+## Quantization
+
+### Post-Training Quantization (PTQ)
 
 ```python
-import torch.nn.functional as F
+from torch.ao.quantization import get_default_qconfig, prepare, convert
 
-def distillation_loss(student_logits, teacher_logits, labels, temperature=4.0, alpha=0.5):
-    """Combined hard-label and soft-label distillation loss."""
-    hard_loss = F.cross_entropy(student_logits, labels)
-    soft_loss = F.kl_div(
-        F.log_softmax(student_logits / temperature, dim=-1),
-        F.softmax(teacher_logits / temperature, dim=-1),
-        reduction="batchmean",
-    ) * (temperature ** 2)
-    return alpha * soft_loss + (1 - alpha) * hard_loss
+model.eval()
+model.qconfig = get_default_qconfig("x86")  # or "qnnpack" for ARM
+prepared = prepare(model)
 
-def train_distillation(teacher, student, train_loader, optimizer, epochs=10, device="cuda"):
-    """Standard distillation training loop."""
-    teacher.eval().to(device)
-    student.train().to(device)
+with torch.no_grad():
+    for batch in calibration_loader:
+        prepared(batch)
 
-    for epoch in range(epochs):
-        total_loss = 0
-        for batch in train_loader:
-            inputs = batch["input_ids"].to(device)
-            attention_mask = batch["attention_mask"].to(device)
-            labels = batch["labels"].to(device)
-
-            with torch.no_grad():
-                teacher_out = teacher(inputs, attention_mask=attention_mask)
-
-            student_out = student(inputs, attention_mask=attention_mask)
-
-            loss = distillation_loss(
-                student_logits=student_out.logits,
-                teacher_logits=teacher_out.logits,
-                labels=labels,
-                temperature=4.0,
-                alpha=0.7,
-            )
-
-            optimizer.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(student.parameters(), 1.0)
-            optimizer.step()
-            total_loss += loss.item()
-
-        print(f"Epoch {epoch+1}/{epochs} - Loss: {total_loss / len(train_loader):.4f}")
+quantized_model = convert(prepared)
 ```
 
-## Quantization-Aware Training (QAT)
-
-### PyTorch QAT Pipeline
+### ONNX Runtime PTQ
 
 ```python
-import torch.quantization as quant
+from onnxruntime.quantization import quantize_dynamic, QuantType
 
-def setup_qat(model, backend="x86"):
-    """Prepare model for quantization-aware training."""
-    model.train()
-    model.qconfig = quant.get_default_qat_qconfig(backend)
-
-    # Fuse common patterns before QAT
-    fuse_modules = []
-    for name, module in model.named_modules():
-        if isinstance(module, nn.Sequential):
-            children = list(module.named_children())
-            for i in range(len(children) - 1):
-                n1, m1 = children[i]
-                n2, m2 = children[i + 1]
-                if isinstance(m1, nn.Conv2d) and isinstance(m2, nn.BatchNorm2d):
-                    fuse_modules.append([f"{name}.{n1}", f"{name}.{n2}"])
-
-    if fuse_modules:
-        torch.quantization.fuse_modules(model, fuse_modules, inplace=True)
-
-    quant.prepare_qat(model, inplace=True)
-    return model
-
-def convert_and_export(model, sample_input, output_path="model_quantized.pt"):
-    """Convert QAT model to quantized and export."""
-    model.eval()
-    quantized = quant.convert(model.cpu(), inplace=False)
-    traced = torch.jit.trace(quantized, sample_input.cpu())
-    traced.save(output_path)
-    return quantized
+quantize_dynamic("model.onnx", "model_int8.onnx", weight_type=QuantType.QInt8)
 ```
 
-## ONNX Export for Edge
+See `references/edge-deployment.md` for static ONNX quantization with calibration reader.
+
+### Quantization-Aware Training (QAT)
+
+```python
+from torch.ao.quantization import get_default_qat_qconfig, prepare_qat, convert
+
+model.train()
+model.qconfig = get_default_qat_qconfig("x86")
+prepared = prepare_qat(model)
+
+# Fine-tune with fake quantization nodes
+for epoch in range(3):
+    for batch, targets in train_loader:
+        output = prepared(batch)
+        loss = criterion(output, targets)
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+
+prepared.eval()
+quantized = convert(prepared)
+```
+
+## ONNX Export
 
 ```python
 import torch
+
+model.eval()
+dummy_input = torch.randn(1, 3, 224, 224)
+
+torch.onnx.export(
+    model, dummy_input, "model.onnx",
+    input_names=["image"], output_names=["logits"],
+    dynamic_axes={"image": {0: "batch"}, "logits": {0: "batch"}},
+    opset_version=17,
+)
+
+# Validate
 import onnx
-from onnxruntime.quantization import quantize_dynamic, QuantType
-
-def export_to_onnx(model, sample_input, path="model.onnx", opset=17):
-    """Export PyTorch model to ONNX format."""
-    model.eval()
-    torch.onnx.export(
-        model,
-        sample_input,
-        path,
-        opset_version=opset,
-        input_names=["input"],
-        output_names=["output"],
-        dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}},
-    )
-    # Validate
-    onnx_model = onnx.load(path)
-    onnx.checker.check_model(onnx_model)
-    return path
-
-def quantize_onnx_dynamic(input_path, output_path="model_quant.onnx"):
-    """Apply dynamic INT8 quantization to ONNX model."""
-    quantize_dynamic(
-        input_path,
-        output_path,
-        weight_type=QuantType.QInt8,
-    )
-    return output_path
+onnx.checker.check_model(onnx.load("model.onnx"))
 ```
 
-## Gotchas and Anti-Patterns
+## Model Size Analysis
 
-### Accuracy Recovery After Pruning
-Pruning then fine-tuning often recovers accuracy, but only if you fine-tune long enough. Rule of thumb: fine-tune for 20-30% of original training budget. Pruning >50% of parameters without iterative pruning+retraining cycles causes permanent accuracy loss.
+```python
+def model_size_mb(model):
+    param_size = sum(p.numel() * p.element_size() for p in model.parameters())
+    buffer_size = sum(b.numel() * b.element_size() for b in model.buffers())
+    total = (param_size + buffer_size) / (1024 ** 2)
+    print(f"Parameters: {sum(p.numel() for p in model.parameters()) / 1e6:.1f}M")
+    print(f"Size: {total:.1f} MB")
+    return total
+```
 
-### Teacher-Student Capacity Gap
-If the student is too small relative to the teacher, distillation underperforms training from scratch. A 12-layer teacher distilling to a 2-layer student loses too much. **Mitigation**: use progressive distillation (12 -> 6 -> 3) or intermediate layer matching (hint-based distillation).
+## Gotchas
 
-### Calibration Data Selection
-Post-training quantization (PTQ) quality depends heavily on calibration data. Using 100 random samples from training set is usually sufficient, but the samples must be representative of inference distribution. Skewed calibration data causes activation range miscalibration, leading to outsized accuracy drops on underrepresented inputs.
+### Compression
+- **Pruning recovery**: Fine-tune for 20-30% of original training budget. Pruning >50% without iterative prune+retrain cycles causes permanent accuracy loss.
+- **Distillation capacity gap**: If student is too small relative to teacher, distillation underperforms training from scratch. Use progressive distillation (12->6->3) or intermediate layer matching.
+- **Calibration data**: PTQ quality depends on representative calibration data. 100 samples is usually sufficient, but must match inference distribution.
+- **Structured vs unstructured**: Unstructured pruning shows great sparsity numbers but zero speedup on standard hardware. Only structured pruning gives wall-clock speedup.
+- **Layer sensitivity**: First/last layers in vision models, embedding layers in transformers -- more sensitive to compression. Profile per-layer sensitivity before uniform compression.
 
-### Hardware-Specific Quantization Pitfalls
-INT8 on ARM (via XNNPACK) behaves differently from INT8 on x86 (via FBGEMM). Always profile on the target device. Symmetric vs. asymmetric quantization, per-tensor vs. per-channel -- these choices are hardware-dependent. ONNX Runtime, TensorRT, and Core ML each have different operator support for quantized ops.
+### Quantization
+- **Hardware-specific**: INT8 on ARM (XNNPACK) differs from x86 (FBGEMM). Symmetric vs asymmetric, per-tensor vs per-channel -- hardware-dependent. Always profile on target device.
+- **Sensitive layers**: Attention and first/last conv layers quantize poorly. Use mixed-precision: keep sensitive layers FP16, quantize rest to INT8.
 
-### Structured vs. Unstructured Pruning Mismatch
-Unstructured pruning (zeroing individual weights) shows great sparsity numbers but provides zero speedup on standard hardware without sparse kernel support. Only structured pruning (removing entire channels/heads/layers) gives wall-clock speedup on commodity GPUs and CPUs.
+### Export & Deployment
+- **ONNX dynamic axes**: Always specify `dynamic_axes` for batch dimension, otherwise model has fixed batch size.
+- **ONNX opset**: Use 17+ for modern ops. Lower opsets lack newer attention patterns and grouped convolutions.
+- **CoreML vs simulator**: Neural Engine not available in simulator. Always test on real hardware.
+- **TensorRT portability**: Engines are GPU-specific (A100 engine won't run on T4). Ship ONNX + build script, not the engine file.
+- **Mobile memory**: iOS hard-kills apps exceeding ~1.5 GB RAM. Profile peak memory during inference, not just model size.
+- **Browser models**: Compress aggressively (INT8 + gzip). Consider chunked progressive loading. Cache with IndexedDB.
 
-### Layer Sensitivity
-Not all layers tolerate equal compression. First and last layers in vision models, embedding layers in transformers -- these are typically more sensitive. Profile per-layer sensitivity before applying uniform compression ratios. A 10-minute sensitivity scan saves days of failed experiments.
+## References
 
+- `references/pruning-and-distillation.md` -- Transformer head pruning, knowledge distillation training loop
+- `references/edge-deployment.md` -- CoreML, TensorRT, browser ML, benchmarking, ONNX static quantization

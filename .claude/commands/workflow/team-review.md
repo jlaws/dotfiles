@@ -20,10 +20,10 @@ Then orchestrate the review team:
    - The full diff and changed files list as context
 4. **Spawn specialist reviewers** (Explore type, read-only), assign tasks via TaskUpdate:
    - **security-reviewer**: Loads security:security-analysis perspective. Reviews for STRIDE threats, vulnerability patterns, secrets, injection vectors.
-   - **quality-reviewer**: Loads workflow:code-quality + workflow:code-review-excellence perspectives. Reviews for code smells, edge cases, error handling, naming, DRY.
+   - **quality-reviewer**: Loads workflow:code-quality + workflow:code-review-patterns perspectives. Reviews for code smells, edge cases, error handling, naming, DRY.
    - **test-reviewer**: Loads testing:language-testing-patterns perspective. Identifies coverage gaps, missing edge case tests, test quality issues.
    - **language-reviewer**: Loads the detected languages:*-patterns skill. Reviews for language-specific gotchas and idiom violations.
 5. **Collect findings** from all reviewers via TaskList, deduplicate, and merge into a severity-ranked report.
 6. **Shut down team** after all findings are collected.
 
-Invoke the workflow:diff-review skill output format for the final report structure: $ARGUMENTS
+Invoke the workflow:code-review-patterns skill output format for the final report structure: $ARGUMENTS

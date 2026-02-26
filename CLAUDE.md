@@ -29,7 +29,7 @@ dotfiles/
 └── .claude/           # Claude Code knowledge base
     ├── CLAUDE.md      # Global standards + skills index (synced to ~/.claude/)
     ├── commands/      # 8 invocable commands (all are thin wrappers to skills)
-    └── skills/        # 142 contextual skill workflows
+    └── skills/        # 124 contextual skill workflows
 ```
 
 ## Key Files

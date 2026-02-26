@@ -5,6 +5,13 @@ description: Build reusable Terraform modules for AWS, Azure, and GCP infrastruc
 
 # Terraform Module Library
 
+## Critical Rules
+
+- **Always** run `terraform plan` and review the diff before `terraform apply` -- unreviewed applies destroy infrastructure
+- **Never** store state files locally or in Git -- use remote backends (S3, GCS) with locking enabled
+- **Always** pin provider and module versions to exact versions -- unpinned upgrades break infrastructure silently
+- **Never** hardcode secrets in `.tf` files -- use variables with `sensitive = true` and inject from a secret store
+
 ## Module Structure
 
 ```

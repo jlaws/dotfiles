@@ -50,7 +50,7 @@ Read every changed file in full to understand the surrounding context, not just 
 
 ## Step 3 — Categorize Comments
 
-Cross-reference `workflow:code-review-excellence` severity labels when classifying.
+Cross-reference `workflow:code-review-patterns` severity labels when classifying.
 
 ```
 For each comment/review:
@@ -164,6 +164,6 @@ Do not auto-file issues for deferred items. List them for the user to decide.
 
 ## Cross-References
 
-- `workflow:code-review-excellence` — Severity labels, comment response patterns
+- `workflow:code-review-patterns` — Severity labels, comment response patterns
 - `workflow:verification-before-completion` — Verification gate before any completion claims
 - `languages:*-patterns` — Auto-detected language-specific implementation guidance

@@ -5,6 +5,14 @@ description: "Use when auditing supply chain security. Covers dependency scannin
 
 # Dependency Auditing
 
+## Critical Rules
+
+- **Always** commit lock files to Git -- without them, CI resolves different versions than local
+- **Never** automerge production dependency updates without passing tests and human review
+- **Always** pin CI/CD actions to SHA digests, not tags -- tags can be force-pushed by compromised maintainers
+- **Always** fix critical CVEs (CVSS 9.0+) within 24 hours; high (7.0+) within 7 days
+- **Never** run `npm install` in CI -- use `npm ci` (installs from lock file exactly)
+
 ## The Principle
 
 ```

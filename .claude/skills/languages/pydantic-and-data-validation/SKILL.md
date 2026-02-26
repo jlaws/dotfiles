@@ -251,5 +251,5 @@ class UserProfile(CamelModel):
 ## Cross-References
 
 - **languages:fastapi-templates** -- FastAPI request/response models, dependency injection with Pydantic
-- **languages:async-python-patterns** -- async validators, concurrent validation pipelines
-- **ai-ml:structured-output-patterns** -- LLM structured extraction with Pydantic models
+- **languages:python-patterns** -- async validators, concurrent validation pipelines
+- **ai-ml:llm-application-patterns#structured-output** -- LLM structured extraction with Pydantic models

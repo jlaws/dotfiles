@@ -1,6 +1,6 @@
 ---
 name: microservices-patterns
-description: Design microservices architectures with service boundaries, event-driven communication, and resilience patterns. Use when building distributed systems, decomposing monoliths, or implementing microservices.
+description: Design microservices architectures with service boundaries, event-driven communication, resilience patterns, and multi-tenancy. Use when building distributed systems, decomposing monoliths, or implementing microservices.
 ---
 
 # Microservices Patterns
@@ -189,3 +189,16 @@ class ServiceClient:
 - **Synchronous Everything**: Tight coupling, poor resilience
 - **No Compensation Logic**: Can't undo failed transactions
 - **Premature Microservices**: Starting with microservices before understanding the domain
+
+## Multi-Tenancy
+
+| Model | Isolation | Cost | Best For |
+|-------|-----------|------|----------|
+| **Shared DB, row-level** | Low | Lowest | Early-stage SaaS, <1000 tenants |
+| **Schema-per-tenant** | Medium | Low-Medium | Mid-market, moderate compliance |
+| **DB-per-tenant** | High | Medium-High | Enterprise, regulated industries |
+| **Infra-per-tenant** | Complete | Highest | Healthcare, finance, gov contracts |
+
+**Default:** Start shared DB + row-level isolation. Migrate up when compliance or noisy-neighbor issues demand it.
+
+For detailed multi-tenancy patterns, see [references/saas-multi-tenancy.md](references/saas-multi-tenancy.md).

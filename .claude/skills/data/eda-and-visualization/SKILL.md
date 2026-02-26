@@ -1,6 +1,6 @@
 ---
 name: eda-and-visualization
-description: Exploratory data analysis workflows, visualization library patterns, statistical plots, and ML evaluation visuals.
+description: Exploratory data analysis workflows and visualization patterns. Use when building data visualizations, creating statistical plots, or generating ML evaluation visuals. Covers library selection (matplotlib, seaborn, plotly, altair), plot type decision tables, and publication-ready styling.
 ---
 
 # EDA and Visualization

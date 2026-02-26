@@ -1,6 +1,6 @@
 ---
 name: dataset-management
-description: Dataset versioning with DVC, HF Datasets processing patterns, data curation workflows, quality checks, and annotation pipeline design with Label Studio and Argilla.
+description: Dataset versioning with DVC, HF Datasets processing patterns, data curation workflows, quality checks, annotation pipeline design with Label Studio and Argilla, and synthetic data generation strategies.
 ---
 
 # Dataset Management
@@ -216,6 +216,21 @@ project = ls.start_project(title="Sentiment v2", label_config=LABEL_CONFIG)
 tasks = [{"data": {"text": example["text"]}} for example in unlabeled_data]
 project.import_tasks(tasks)
 ```
+
+## Synthetic Data
+
+### When to Use Synthetic Data
+
+| Situation | Use Synthetic? | Strategy |
+|-----------|---------------|----------|
+| Real data < 1K examples | Yes | Self-Instruct or Evol-Instruct to bootstrap |
+| Privacy/licensing blocks real data | Yes | Generate from schema/specs, no real PII |
+| Need hard/edge-case examples | Yes | Targeted generation for underrepresented cases |
+| Distilling larger model to smaller | Yes | Teacher rationale generation |
+| Real data abundant and clean | No | Synthetic adds noise, not signal |
+| High-stakes domain (medical, legal) | Carefully | Must validate against domain experts |
+
+For detailed synthetic data patterns (Self-Instruct, Evol-Instruct, quality filtering, back-translation, diversity sampling), see `references/synthetic-data-generation.md`.
 
 ## Gotchas and Anti-Patterns
 

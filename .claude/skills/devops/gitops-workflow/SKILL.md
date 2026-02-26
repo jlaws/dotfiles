@@ -5,6 +5,13 @@ description: GitOps workflow patterns with ArgoCD and Flux for declarative Kuber
 
 # GitOps Workflow
 
+## Critical Rules
+
+- **Never** commit plaintext secrets to the GitOps repo -- use Sealed Secrets, SOPS, or External Secrets Operator
+- **Always** enable `selfHeal: true` in production -- manual `kubectl` edits create drift that causes outages
+- **Always** set `allowEmpty: false` on sync policies -- prevents accidental deletion of all resources
+- **Never** deploy to production without sync windows or approval gates -- unrestricted auto-sync is a foot-gun
+
 ## ArgoCD vs Flux
 
 | Factor | ArgoCD | Flux |

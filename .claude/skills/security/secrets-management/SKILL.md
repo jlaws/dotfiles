@@ -5,6 +5,14 @@ description: Secure secrets management for CI/CD pipelines using Vault, AWS Secr
 
 # Secrets Management
 
+## Critical Rules
+
+- **Never** commit plaintext secrets to Git -- use pre-commit scanning (TruffleHog, gitleaks) to enforce
+- **Never** log secrets or include them in error messages -- mask in CI with `::add-mask::`
+- **Always** rotate secrets on a schedule and immediately after any suspected compromise
+- **Never** pass secrets via build args (`ARG`) -- they persist in image layers; use runtime env or mounted secrets
+- **Always** encrypt secrets at rest and use dedicated secret stores (Vault, AWS SM), not env files in production
+
 ## HashiCorp Vault
 
 ```bash

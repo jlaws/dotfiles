@@ -1,6 +1,6 @@
 ---
 name: python-patterns
-description: Use when creating Python projects, choosing concurrency models, optimizing performance, or managing dependencies with uv.
+description: "Use when creating Python projects, choosing concurrency models, async/await patterns, optimizing performance, or managing dependencies with uv."
 ---
 
 # Python Patterns
@@ -148,18 +148,19 @@ members = ["packages/*"]
 | CPU-bound + shared state | `multiprocessing` + `Manager` | Avoid; redesign to message-passing if possible |
 | Mixed I/O + CPU | `asyncio` + `run_in_executor` | Async for I/O, thread/process pool for CPU |
 
-## Async Gotchas
+## Async Patterns
 
-### Blocking the loop kills performance
-```python
-# WRONG - blocks event loop, all coroutines stall
-async def bad():
-    time.sleep(1)
+When to reach for async -- and when not to:
 
-# RIGHT - offload blocking work
-async def good():
-    await asyncio.get_event_loop().run_in_executor(None, time.sleep, 1)
-```
+| Workload | Async? | Why |
+|----------|--------|-----|
+| HTTP API calls (many concurrent) | **Yes** | IO-bound, high concurrency wins |
+| Database queries (connection pool) | **Yes** | IO-bound, pool management natural |
+| File IO (many files) | **Maybe** | OS-level async varies; aiofiles helps |
+| CPU-heavy computation | **No** | GIL blocks; use multiprocessing |
+| ML model inference (GPU) | **Hybrid** | Offload to thread/process, await result |
+| WebSocket server | **Yes** | Long-lived connections, perfect fit |
+| CLI scripts | **Usually no** | Overhead not worth it for sequential tasks |
 
 ### gather vs TaskGroup
 - `asyncio.gather(*tasks, return_exceptions=True)` -- fan-out, collect all results
@@ -169,30 +170,55 @@ async def good():
 ### Semaphore for rate limiting
 ```python
 sem = asyncio.Semaphore(10)
-async def rate_limited_fetch(url: str) -> bytes:
+async def bounded_fetch(client: httpx.AsyncClient, url: str) -> dict:
     async with sem:
-        async with aiohttp.ClientSession() as s:
-            async with s.get(url) as r:
-                return await r.read()
+        resp = await client.get(url)
+        return resp.json()
 ```
 
-### Cancellation must be handled
+### Timeouts (3.11+)
 ```python
-async def cancelable_task():
+async def fetch_with_timeout(url: str, timeout_s: float = 5.0) -> dict:
     try:
-        while True:
-            await asyncio.sleep(1)
-    except asyncio.CancelledError:
-        # cleanup here
-        raise  # re-raise to propagate
+        async with asyncio.timeout(timeout_s):
+            async with httpx.AsyncClient() as client:
+                return (await client.get(url)).json()
+    except TimeoutError:
+        return {"error": f"Timeout after {timeout_s}s"}
 ```
 
-### Connection pool sizing
+### Cheat Sheet
 ```python
-connector = aiohttp.TCPConnector(limit=100, limit_per_host=10)
-async with aiohttp.ClientSession(connector=connector) as session:
-    ...
+# Offload sync IO to thread
+result = await asyncio.to_thread(sync_function, arg1, arg2)
+
+# Offload CPU to process pool
+result = await loop.run_in_executor(process_pool, cpu_function, arg)
+
+# Fire and forget (use sparingly)
+task = asyncio.create_task(background_work())
+task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+
+# Wait for first completed
+done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+for t in pending: t.cancel()
+
+# Async queue (producer/consumer)
+queue: asyncio.Queue[dict] = asyncio.Queue(maxsize=100)
 ```
+
+### Async Gotchas
+- **Blocking the loop**: `time.sleep()`, `requests.get()`, or any sync IO in async freezes all tasks; use `asyncio.to_thread()` or async libs
+- **GIL and CPU work**: async does NOT bypass GIL; use `ProcessPoolExecutor` for CPU
+- **Forgetting `await`**: `result = async_func()` returns a coroutine, not the result
+- **Exception swallowing in `gather`**: `return_exceptions=True` silently returns exceptions as values; check `isinstance(result, Exception)`
+- **Async generators not closed**: break from `async for` early? use `async with aclosing(gen)` from `contextlib`
+- **Event loop already running**: `asyncio.run()` inside running loop (e.g., Jupyter) fails; use `nest_asyncio` or `await` directly
+- **Shared mutable state**: no GIL protection between `await` points; use `asyncio.Lock` if tasks mutate shared state
+- **Cancellation**: always catch `CancelledError`, clean up, then re-raise
+- **Mixing sync/async ORMs**: SQLAlchemy async requires `AsyncSession`; can't use sync session without `run_in_executor`
+
+> **Deep dive**: async context managers, generators, ML serving, batched inference, testing -- see `references/async-deep-dive.md`
 
 ## Profiling Strategy
 

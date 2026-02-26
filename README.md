@@ -148,8 +148,8 @@ cd ~/Workspace/dotfiles
 
 The `.claude/` directory contains an extensive knowledge base:
 
-- **7 commands** (thin wrappers to skills): audit, debug, diff-review, paper-analysis, pr-fix, team-investigate, team-review
-- **142 skills** across 16 categories: ai-ml, architecture, business, cloud, data, devops, documentation, frontend, languages, migration, research, security, testing, workflow
+- **9 commands** (thin wrappers to skills): audit, debug, diff-review, paper-analysis, pr-fix, skill-audit, team-design, team-investigate, team-review
+- **124 skills** across 16 categories: ai-ml, architecture, business, cloud, data, devops, documentation, frontend, languages, migration, research, security, testing, workflow
 
 #### Recommended Plugins
 

@@ -1,26 +1,72 @@
 ---
 name: rag-and-vector-search
-description: Use when building RAG systems, implementing semantic/hybrid search, selecting vector databases, tuning retrieval quality, or choosing chunking and embedding strategies.
+description: "Use when building RAG systems, implementing semantic/hybrid search, selecting vector databases, tuning retrieval quality, choosing chunking strategies, selecting or fine-tuning embedding models, or evaluating representation quality."
 ---
 
 # RAG and Vector Search
 
 ## Embedding Model Selection
 
-| Model | Dims | Best For |
-|-------|------|----------|
-| text-embedding-3-large | 3072 | Highest accuracy (OpenAI); supports Matryoshka dim reduction |
-| text-embedding-3-small | 1536 | Cost-effective default (OpenAI) |
-| voyage-3 | 1024 | Code, legal, finance domains (best retrieval quality) |
-| gte-Qwen2-7B-instruct | 3584 | Best open-source; instruction-tuned |
-| bge-large-en-v1.5 | 1024 | Strong open-source English, smaller footprint |
-| all-MiniLM-L6-v2 | 384 | Fast/lightweight, prototyping |
-| multilingual-e5-large | 1024 | Multi-language (requires query/passage prefixes) |
+| Model | Dims | Params | Best For |
+|-------|------|--------|----------|
+| text-embedding-3-large | 3072 | -- | Highest quality API (OpenAI); Matryoshka dim reduction |
+| text-embedding-3-small | 1536 | -- | Cost-effective default (OpenAI) |
+| voyage-3 | 1024 | -- | Code, legal, finance (API) |
+| gte-Qwen2-7B-instruct | 3584 | 7B | Best open-source overall (MTEB leader) |
+| e5-mistral-7b-instruct | 4096 | 7B | Instruction-tuned, long context |
+| bge-large-en-v1.5 | 1024 | 335M | Strong English, efficient |
+| nomic-embed-text-v1.5 | 768 | 137M | Matryoshka, open weights, good quality/size |
+| all-MiniLM-L6-v2 | 384 | 22M | Fast prototyping, lightweight |
+| multilingual-e5-large | 1024 | 560M | 100+ languages (requires query/passage prefixes) |
+
+**Decision rule**: API embeddings (text-embedding-3-large, voyage-3) for simplicity. Open-source when you need fine-tuning, data privacy, or cost control at scale. For sub-100ms latency, use MiniLM or distilled models.
 
 ### Matryoshka Embeddings
 Models like text-embedding-3-large support dimension reduction: truncate vectors to 256/512/1024 dims with minimal quality loss. Reduces storage 3-12x. Test recall at target dimension before committing.
 
 **Never mix embedding models** in the same index -- vectors from different models are incompatible.
+
+## Bi-Encoder vs Cross-Encoder
+
+| Aspect | Bi-Encoder | Cross-Encoder |
+|--------|-----------|---------------|
+| Speed | Fast (encode once, compare many) | Slow (re-encode each pair) |
+| Accuracy | Good | Better (10-15% higher on STS) |
+| Use case | Retrieval (first stage) | Reranking (second stage) |
+| Scaling | O(n) encode + O(1) compare | O(n) per query |
+
+Always use bi-encoder for retrieval, cross-encoder for reranking. See `references/embedding-fine-tuning.md` for the two-stage pipeline code.
+
+## Embedding Fine-Tuning
+
+### When to Fine-Tune
+- Base model retrieval < 70% NDCG@10 on your domain
+- Domain-specific vocabulary (legal, medical, code)
+- Custom similarity definition (e.g., "similar" means same author, not same topic)
+
+### Contrastive Loss Selection
+
+| Loss | Requires | When |
+|------|----------|------|
+| InfoNCE / MultipleNegativesRankingLoss | Positive pairs + in-batch negatives | Default choice |
+| Triplet loss | (anchor, positive, negative) | Explicit hard negatives available |
+| Cosine similarity loss | Pairs + graded similarity (0-1) | Graded relevance labels |
+| GISTEmbed | Guided in-batch negatives | Teacher model can filter false negatives |
+
+### Key Levers
+- **Hard negatives**: Single biggest quality lever. Mine with BM25 or cross-encoder. Easy negatives teach nothing after epoch 1.
+- **Batch size**: Larger = more in-batch negatives = better signal. Use 64-256; gradient accumulation or GradCache for limited VRAM.
+- **TSDAE pre-training**: Unsupervised domain adaptation when you have domain text but no labeled pairs. Fine-tune with labeled pairs after.
+- **Evaluation**: Use MTEB (STS + retrieval tasks). Always compare against base model. Fine-tuning for retrieval can hurt STS and vice versa.
+
+### Gotchas
+- **Query/doc prefixes**: E5 and BGE models require `"query: "` / `"passage: "` prefixes. Missing = 5-15% retrieval drop. Check model card.
+- **Normalization**: Always normalize before cosine similarity. `encode(..., normalize_embeddings=True)` or `F.normalize(embeddings, p=2, dim=1)`.
+- **Catastrophic forgetting**: Low learning rate (2e-5), few epochs (1-3), evaluate on general benchmarks alongside domain benchmarks.
+- **Index rebuild**: After fine-tuning, re-encode entire corpus and rebuild index. Old embeddings are incompatible.
+- **Dims vs quality**: 768-dim BGE often outperforms 3072-dim models on specific domains after fine-tuning. Evaluate on your data.
+
+Code examples for all patterns: `references/embedding-fine-tuning.md`
 
 ## Chunking Decisions
 
@@ -141,5 +187,4 @@ Example: 1M vectors, 1536 dims, FP32, M=16 = ~6.1 GB vectors + ~128 MB index ove
 ## Cross-References
 
 - **ai-ml:llm-application-patterns** -- prompt engineering, agent patterns, production deployment
-- **ai-ml:structured-output-patterns** -- extracting structured data from retrieved documents
-- **ai-ml:embedding-and-representation-learning** -- embedding models, fine-tuning for retrieval
+- **ai-ml:llm-application-patterns#structured-output** -- extracting structured data from retrieved documents

@@ -1,6 +1,6 @@
 ---
 name: pipeline-design
-description: Use when designing CI/CD pipelines, selecting deployment strategies, or architecting continuous delivery workflows. Covers platform decisions (GitHub Actions vs GitLab CI), build pipeline structure, deployment strategies (rolling/canary/blue-green), approval gates, and DORA metrics.
+description: Use when designing CI/CD pipelines, selecting deployment strategies, or architecting continuous delivery workflows. Covers platform decisions (GitHub Actions vs GitLab CI), build pipeline structure, deployment strategies (rolling/canary/blue-green), approval gates, DORA metrics, and monorepo build tooling.
 ---
 
 # Pipeline Design
@@ -120,6 +120,19 @@ deploy:
 - **Both**: Coverage reports need explicit format → `cobertura` for GitLab MR display, `lcov` for Codecov
 - **Both**: Unbounded artifacts/cache destroy pipeline speed → set expiration policies
 - **Kubernetes**: Prefer GitOps (ArgoCD/Flux) over direct kubectl from CI for production
+
+## Monorepo Tooling
+
+| Factor | Turborepo | Nx | Bazel |
+|--------|-----------|-----|-------|
+| **Best for** | JS/TS, simple needs | JS/TS with architecture enforcement | Polyglot, large-scale |
+| **Learning curve** | Low | Medium | High |
+| **Remote cache** | Vercel built-in | Nx Cloud / S3 | gRPC remote execution |
+| **Architecture rules** | None | Module boundaries | Visibility rules |
+
+**Quick pick**: Turborepo for <50 packages, Nx when you need guardrails, Bazel for polyglot at scale (>100 packages / >500 engineers).
+
+For detailed monorepo patterns, see [references/monorepo-tools.md](references/monorepo-tools.md).
 
 ## Cross-References
 

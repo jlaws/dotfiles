@@ -12,13 +12,13 @@ Parse arguments: `$ARGUMENTS` must contain `<directory_path>` followed by `<desc
 2. **Create directory** if it doesn't exist (`mkdir -p`).
 3. **Check for existing docs**: read any `.md` files already in the directory — this is the current system state for iterative updates.
 4. **Detect keywords** in description for conditional skill loading:
-   - SaaS / multi-tenant → `architecture:saas-multi-tenancy`
+   - SaaS / multi-tenant → `architecture:microservices-patterns` (see references/saas-multi-tenancy.md)
    - search → `data:search-infrastructure`
    - streaming / events → `data:streaming-data-processing`
-   - gRPC / protobuf → `architecture:grpc-and-protobuf`
+   - gRPC / protobuf → `architecture:distributed-communication-patterns`
    - real-time → `architecture:real-time-systems`
    - compliance / HIPAA / GDPR / PCI → `security:compliance-and-data-privacy`
-   - ML / AI / model → `ai-ml:ml-system-design`
+   - ML / AI / model → `architecture:ml-system-design`
    - GPU → `cloud:gpu-compute-management`
    - accessibility → `frontend:accessibility-testing`
    - frontend / UI → `frontend:design-system-patterns`
@@ -31,20 +31,20 @@ Parse arguments: `$ARGUMENTS` must contain `<directory_path>` followed by `<desc
 
 ### Agent 1: architecture-analyst
 **Owns**: `overview.md`, `architecture.md`, `technology-choices.md`
-**Always load skills**: architecture:architecture-patterns, architecture:microservices-patterns, architecture:architecture-decision-records
-**Conditional skills**: architecture:saas-multi-tenancy (if SaaS/multi-tenant)
+**Always load skills**: architecture:architecture-decision-records, architecture:microservices-patterns
+**Conditional skills**: (none — multi-tenancy patterns are in microservices-patterns/references/saas-multi-tenancy.md)
 **Focus**: System goals/constraints/stakeholders/NFRs in overview.md. Component architecture with mermaid diagrams and ADRs in architecture.md. Tech stack decisions with comparison tables in technology-choices.md.
 
 ### Agent 2: data-and-api-designer
 **Owns**: `data.md`, `api.md`
-**Always load skills**: architecture:api-design-principles, data:postgresql-table-design, data:nosql-data-modeling, architecture:caching-strategies, architecture:event-sourcing-patterns, architecture:message-queue-patterns
-**Conditional skills**: data:search-infrastructure (if search), data:streaming-data-processing (if streaming/events), architecture:grpc-and-protobuf (if gRPC), architecture:real-time-systems (if real-time)
+**Always load skills**: architecture:api-design-principles, data:postgresql-table-design, data:nosql-data-modeling, architecture:caching-strategies, architecture:distributed-communication-patterns
+**Conditional skills**: data:search-infrastructure (if search), data:streaming-data-processing (if streaming/events), architecture:real-time-systems (if real-time)
 **Focus**: Database selection, schema design, data flow, caching layers in data.md. API surface (REST/GraphQL/gRPC), inter-service contracts, async messaging in api.md.
 
 ### Agent 3: infra-planner
 **Owns**: `infrastructure.md`, `scalability.md`
-**Always load skills**: cloud:serverless-patterns, devops:k8s-manifest-generator, devops:pipeline-design, devops:observability, cloud:cost-optimization, architecture:background-job-processing
-**Conditional skills**: ai-ml:ml-system-design (if ML/AI), cloud:gpu-compute-management (if GPU)
+**Always load skills**: cloud:serverless-patterns, devops:kubernetes-configuration, devops:pipeline-design, devops:observability, cloud:cost-optimization, architecture:background-job-processing
+**Conditional skills**: architecture:ml-system-design (if ML/AI), cloud:gpu-compute-management (if GPU)
 **Focus**: Deployment topology, compute strategy, CI/CD, monitoring/SLOs in infrastructure.md. Scaling strategy, capacity planning, performance budget in scalability.md.
 
 ### Agent 4: security-reviewer

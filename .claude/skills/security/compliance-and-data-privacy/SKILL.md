@@ -5,6 +5,14 @@ description: "Use when implementing GDPR, PCI-DSS, SOC2, or HIPAA compliance, ha
 
 # Compliance & Data Privacy
 
+## Critical Rules
+
+- **Never** store full track data, CVV/CVC, or PINs -- PCI-DSS violation with severe penalties
+- **Always** notify supervisory authority within 72 hours of a data breach (GDPR requirement)
+- **Always** have BAAs in place with third-party processors *before* sharing PHI (HIPAA requirement -- cannot be retroactive)
+- **Never** treat pseudonymized data as anonymous -- pseudonymized data is still in GDPR scope
+- **Always** document the legal basis for each processing activity -- "we need it" is not a valid legitimate interest
+
 ## Framework Decision Matrix
 
 | Framework | Triggers | Scope |

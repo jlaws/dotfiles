@@ -5,6 +5,14 @@ description: Execute database migrations across ORMs and platforms with zero-dow
 
 # Database Migration
 
+## Critical Rules
+
+- **Always** backup the database before running migrations in production
+- **Always** wrap multi-step migrations in transactions -- partial failures corrupt data
+- **Never** rename or drop columns directly -- use the expand-migrate-contract (3-step) pattern for zero-downtime changes
+- **Always** test migrations against a production-sized dataset in staging before applying to production
+- **Always** write a `down` migration -- untested rollbacks are not rollbacks
+
 ## ORM Migrations
 
 ### Sequelize

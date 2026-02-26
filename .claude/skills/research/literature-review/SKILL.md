@@ -1,6 +1,6 @@
 ---
 name: literature-review
-description: Systematic search methodology, taxonomy construction, citation graph exploration, and related work synthesis for ML research.
+description: Systematic literature review methodology. Use when conducting a literature survey, building a related-work section, or mapping a research landscape. Covers search strategy by phase, taxonomy construction, citation graph exploration, and synthesis techniques.
 ---
 
 # Literature Review for ML Research

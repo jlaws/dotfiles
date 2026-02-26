@@ -118,5 +118,5 @@ async def client(db_session):
 ## Cross-References
 
 - **languages:pydantic-and-data-validation** -- model design, validators, serialization patterns
-- **languages:async-python-patterns** -- asyncio patterns, structured concurrency, event loop debugging
+- **languages:python-patterns** -- asyncio patterns, structured concurrency, event loop debugging
 - **architecture:api-design-principles** -- REST/GraphQL design, pagination, error handling conventions
