@@ -24,8 +24,7 @@
 ## Behavioral Defaults
 - Before creative/feature work: explore intent + requirements before implementation
 - For design decisions: propose 2-3 approaches, lead with recommendation
-- **Skill lookup**: Before implementation tasks involving a specific framework, language pattern, or architecture decision — scan the Skills Index below, then `Read` the matching `SKILL.md` for concrete patterns and examples. Do this before relying on training knowledge.
-- Inlined rules below are always-active; skills supplement with code examples, extended catalogs, and domain-specific depth
+- **Skill lookup**: Before implementation tasks involving a specific framework, language pattern, or architecture decision — check `.claude/skills/` for relevant patterns before relying on training knowledge.
 
 ## Verification Gate
 
@@ -95,6 +94,7 @@ BEFORE claiming any status:
 **Code**: Premature abstraction (wait for 2+) · God objects (split by responsibility) · Magic values (named constants) · Swallowed exceptions · Commented-out code (delete it, git has history)
 
 **Process**: Large PRs · Skipping tests · Vague commits · TODOs without context/ticket
+- Test co-located with source when possible
 
 ### Style Defaults
 
@@ -110,130 +110,8 @@ BEFORE claiming any status:
 
 **Import order** (blank line separated): 1. Standard library → 2. Third-party → 3. Local modules
 
-## Error Handling
-
-### Pattern Selection
-
-1. Can the caller reasonably recover? → Result type or checked exception
-2. Is this a programming bug? → Panic/crash (fail fast)
-3. Is this crossing a system boundary? → Error codes with metadata
-4. Is this just "no value"? → Option type, not null
-
-### Universal Rules
-
-- **Fail fast, fail loud** — validate at boundaries immediately; don't propagate bad data into business logic
-- **Handle at the right level** — catch where you can meaningfully act (retry, fallback, user message); don't catch just to log and re-throw
-- **Preserve context** — wrap errors: `"failed to create user: <original>"` with chaining (`from e`, `%w`, `cause`)
-- **Don't swallow errors** — `except Exception: pass` is never acceptable; handle meaningfully or propagate
-- **Log appropriately** — Error: unexpected failures; Warning: expected failures handled; don't log every caught exception
-
-## Shell Script Safety
-
-### Mandatory Preamble
-
-```bash
-#!/bin/bash
-set -Eeuo pipefail
-trap 'echo "Error on line $LINENO" >&2' ERR
-trap 'rm -rf -- "$TMPDIR"' EXIT
-```
-
-`-E` ERR trap inherited · `-e` exit on error · `-u` exit on undefined var · `-o pipefail` pipe fails if any cmd fails
-
-### Variable Safety
-
-- Always quote variables: `"$var"`
-- Required var with message: `: "${REQUIRED_VAR:?not set}"`
-- Default value: `: "${OPTIONAL:=default}"`
-- Safe test (prevents `-u` trigger): `[[ -z "${VAR:-}" ]]`
-
-### Key Gotchas
-
-- `[[ ]]` not `[ ]` — safer, supports `&&`/`||`/regex
-- `command -v` not `which` — POSIX-compliant
-- `printf` not `echo` — predictable across systems
-- Separate `local` from command substitution: `local val; val=$(cmd)`
-- Idempotent design — scripts safe to rerun (`mkdir -p`, check before create)
-- \>100 lines → rewrite in Python/Go
-
-## TDD Discipline
-
-### The Iron Law
-
-```
-NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
-```
-
-Write code before the test? Delete it. Start over. No exceptions without human partner's permission.
-
-### Red-Green-Refactor
-
-1. **RED** — Write one minimal failing test showing desired behavior
-2. **Verify RED** — Run test, confirm it fails for the right reason (feature missing, not typo). **MANDATORY.**
-3. **GREEN** — Write simplest code to pass. Nothing more.
-4. **Verify GREEN** — Run test, confirm pass + no regressions. **MANDATORY.**
-5. **REFACTOR** — Clean up (after green only). Keep tests green. Don't add behavior.
-
-### Red Flags — Start Over
-
-- Code before test · Test passes immediately · Rationalizing "just this once"
-- "I'll write tests after" · "Keep as reference" · "Already spent X hours"
-
-### Exceptions (ask human partner)
-
-Throwaway prototypes · Generated code · Configuration files
-
-## Refactoring Discipline
-
-### The Rule
-
-```
-TEST → REFACTOR → VERIFY → COMMIT
-Never skip a step. Never combine refactoring with behavior changes.
-```
-
-### The Cadence
-
-1. Ensure tests pass (green baseline)
-2. Make ONE structural change
-3. Run tests (must still pass — if not, revert immediately)
-4. Commit (small atomic commit describing the refactoring)
-5. Repeat
-
-### When NOT to Refactor
-
-| Situation | Why Not |
-|-----------|---------|
-| No tests covering the code | Can't verify behavior preservation. Write tests first. |
-| Under deadline pressure | Ship first, refactor next sprint. |
-| Code being deleted soon | Don't polish what you're throwing away. |
-| "While I'm in here..." scope creep | File a ticket, do it separately. (Exception: small boy-scout improvements.) |
-| Single implementation | Don't create abstractions for one concrete case. Wait for the second. |
-
-## Code Review
-
-### Feedback Severity Labels
-
-```
-[blocking]    Must fix before merge
-[important]   Should fix, discuss if disagree
-[nit]         Nice to have, not blocking
-[suggestion]  Alternative approach to consider
-[learning]    Educational, no action needed
-```
-
-### Feedback Techniques
-
-- **Ask questions** instead of stating problems: "What happens if `items` is empty?"
-- **Suggest, don't command**: "Would it make sense to extract this? It appears in 3 places."
-- **Be specific and actionable**: "Race condition when concurrent access — consider a mutex here."
-
-### Review Process (time-boxed)
-
-1. **Context** (2-3 min) — Read PR description, check size (<400 lines), CI status
-2. **High-level** (5-10 min) — Solution fit, consistency, test coverage
-3. **Line-by-line** (10-20 min) — Logic, security, performance, maintainability
-4. **Summary** (2-3 min) — Key concerns, what worked well, clear verdict
+## Context Preservation
+- On compaction: preserve current task, file paths being edited, test results, and key decisions. Discard exploration output and intermediate reasoning.
 
 ## Git Workflow
 - Commit messages: freeform imperative mood, <72 char subject, no period
@@ -241,12 +119,6 @@ Never skip a step. Never combine refactoring with behavior changes.
 - Always verify changes with `git diff` before committing
 - Never force push to main/master
 - Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
-
-## Code Defaults
-- Explicit over implicit; fail fast over silent errors
-- No TODO without issue/ticket reference
-- Composition over inheritance
-- Test co-located with source when possible
 
 ## Team Conventions
 When spawned as a teammate, follow these rules (teammates read this file on startup):
@@ -281,62 +153,3 @@ When spawned as a teammate, follow these rules (teammates read this file on star
 | Skipping verification | Always run tests/build before marking complete |
 
 ---
-
-## Skills Index
-
-Consult for code examples, extended catalogs, and domain-specific depth beyond the inlined rules above.
-
-All skills live at `.claude/skills/{category}/{skill}/SKILL.md`.
-
-### /commands (user-initiated)
-- /audit — Security threat model and vulnerability scan
-- /debug — Systematic bug investigation
-- /diff-review — Multi-perspective code review
-- /paper-analysis — Research paper analysis
-- /pr-fix — Resolve PR reviewer comments
-- /skill-audit — Audit skills for conformance to Anthropic's guide
-- /team-design — Multi-agent system design suite
-- /team-investigate — Competing hypothesis debugging with agent teams
-- /team-review — Multi-agent team code review
-
-### architecture
-api-design-principles | architecture-decision-records | background-job-processing | caching-strategies | distributed-communication-patterns | error-handling-patterns | mcp-server-development | microservices-patterns | ml-system-design | notification-systems | real-time-systems
-
-### ai-ml
-agentic-systems-design | ai-safety-and-alignment | causal-inference-ml | continual-and-online-learning | dataset-management | demo-and-prototype-building | eval-and-benchmarking | federated-learning | generative-model-architectures | graph-neural-networks | jax-patterns | llm-application-patterns | llm-training-pipeline | llmops-production-monitoring | ml-experiment-lifecycle | ml-model-deployment | model-compression | multimodal-ml | pytorch-distributed-training | rag-and-vector-search | reinforcement-learning-patterns | time-series-ml | tokenizer-design
-
-### data
-airflow-dag-patterns | analytics-and-transformations | data-platform-architecture | database-migration | eda-and-visualization | jupyter-notebook-patterns | ml-pipeline-orchestration | nosql-data-modeling | postgresql-table-design | search-infrastructure | spark-optimization | streaming-data-processing | web-scraping-and-data-collection
-
-### devops
-docker-patterns | github-actions-patterns | gitops-workflow | incident-management | kubernetes-configuration | observability | pipeline-design | terraform-module-library
-
-### languages
-bash-defensive-patterns | browser-extension-development | cli-tool-development | cuda-gpu-programming | fastapi-templates | go-concurrency-patterns | js-ts-patterns | nodejs-backend-patterns | pydantic-and-data-validation | python-packaging-and-distribution | python-patterns | rust-project-patterns | swift-patterns
-
-### frontend
-accessibility-testing | design-system-patterns | form-patterns | graphql-client-patterns | i18n-and-localization | nextjs-app-router-patterns | react-native-architecture | react-state-management | responsive-web-design | svelte-patterns | tailwind-design-system | web-animation-patterns
-
-### testing
-debugging-methodology | e2e-testing-patterns | language-testing-patterns | performance-testing-and-profiling | shell-testing | test-driven-development
-
-### security
-auth-implementation-patterns | compliance-and-data-privacy | dependency-auditing | secrets-management | security-analysis
-
-### workflow
-claude-code-meta-patterns | code-quality | code-review-patterns | feature-flags-and-ab-testing | github-issue-resolution | multi-agent-development | pr-comment-resolution | refactoring-and-debt | using-git-worktrees | verification-before-completion | writing-skills
-
-### research
-confidence-scoring | latex-paper-writing | literature-review | paper-analysis-methodology | paper-to-code-implementation | statistical-analysis
-
-### business
-analytics-instrumentation | hiring-and-interviews | kpi-dashboard-design | mvp-development-patterns | payment-systems | team-onboarding
-
-### cloud
-cost-optimization | file-storage-patterns | gpu-compute-management | multi-cloud-architecture | serverless-patterns
-
-### documentation
-changelog-automation | openapi-spec-generation | technical-writing-for-devtools
-
-### migration
-code-migration | dependency-upgrade

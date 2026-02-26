@@ -105,16 +105,18 @@ sync_dotfiles() {
 sync_claude() {
 	print_section "Syncing Claude Code Configuration"
 
-	print_step "Removing previous Claude agents, commands, and skills..."
-	rm -rf ~/.claude/agents ~/.claude/commands ~/.claude/skills
+	print_step "Removing previous Claude agents, commands, skills, and references..."
+	rm -rf ~/.claude/agents ~/.claude/commands ~/.claude/skills ~/.claude/references
 
-	mkdir -p ~/.claude/commands ~/.claude/skills
+	mkdir -p ~/.claude/commands ~/.claude/skills ~/.claude/agents ~/.claude/references
 
 	print_step "Syncing Claude configuration to ~/.claude/..."
 	rsync -avh --no-perms .claude/CLAUDE.md ~/.claude/CLAUDE.md
 	rsync -avh --no-perms .claude/settings.json ~/.claude/settings.json
+	rsync -avh --no-perms .claude/agents/ ~/.claude/agents/
 	rsync -avh --no-perms .claude/commands/ ~/.claude/commands/
 	rsync -avh --no-perms .claude/skills/ ~/.claude/skills/
+	rsync -avh --no-perms .claude/references/ ~/.claude/references/
 }
 
 # =============================================================================
