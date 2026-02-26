@@ -106,3 +106,8 @@ twine check dist/*
 twine upload --repository testpypi dist/*  # test first
 twine upload dist/*
 ```
+
+## References
+
+- .claude/references/ai-ml/jax-patterns.md — JAX-specific Python patterns
+- .claude/references/data/spark-optimization.md — PySpark optimization patterns

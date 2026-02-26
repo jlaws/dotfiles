@@ -141,3 +141,7 @@ Access, Rectification, Erasure, Restrict Processing, Portability, Object
 - HIPAA BAAs must be in place BEFORE sharing PHI, not retroactively
 - Anonymized data is outside GDPR scope, but pseudonymized data is NOT -- know the difference
 - Log retention itself creates compliance obligations; don't log PII unless required
+
+## References
+
+- .claude/references/business/payment-systems.md — PCI-DSS compliant payment implementation

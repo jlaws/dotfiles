@@ -202,3 +202,8 @@ class ServiceClient:
 **Default:** Start shared DB + row-level isolation. Migrate up when compliance or noisy-neighbor issues demand it.
 
 For detailed multi-tenancy patterns, see [references/saas-multi-tenancy.md](references/saas-multi-tenancy.md).
+
+## References
+
+- .claude/references/cloud/multi-cloud-architecture.md — multi-cloud deployment strategies
+- .claude/references/data/streaming-data-processing.md — event streaming for microservices

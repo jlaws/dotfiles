@@ -99,3 +99,7 @@ Virtually re-implement the paper mentally. Challenge everything.
 ## Output Template
 
 See references/output-template.md for the complete paper analysis markdown template and process guidelines.
+
+## References
+
+- .claude/references/ai-ml/eval-and-benchmarking.md — ML evaluation methodology and benchmarks
