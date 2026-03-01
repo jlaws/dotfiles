@@ -171,6 +171,10 @@ install_homebrew_packages() {
 	brew install autojump
 	brew install mermaid-cli      # Mermaid diagram CLI renderer
 
+	print_step "Installing Rust toolchain..."
+	brew install rustup           # Rust toolchain installer
+	brew install mold             # Fast linker
+
 	print_step "Installing language servers..."
 	brew install node             # Required for TypeScript LSP
 	brew install pyright          # Python LSP
