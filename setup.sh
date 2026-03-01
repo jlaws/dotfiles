@@ -16,6 +16,7 @@
 #   -b    Install Homebrew packages
 #   -m    Configure macOS system preferences
 #   -r    Restart affected applications
+#   -p <dir> Target a project folder for Claude sync (requires -c)
 #   -f    Skip confirmation prompt (run all if no other flags)
 #   -h    Show this help message
 # =============================================================================
@@ -103,20 +104,23 @@ sync_dotfiles() {
 # =============================================================================
 
 sync_claude() {
+	local target="${1:-$HOME}"
+
 	print_section "Syncing Claude Code Configuration"
+	print_step "Target: ${target}/.claude/"
 
 	print_step "Removing previous Claude agents, commands, skills, and references..."
-	rm -rf ~/.claude/agents ~/.claude/commands ~/.claude/skills ~/.claude/references
+	rm -rf "${target}/.claude/agents" "${target}/.claude/commands" "${target}/.claude/skills" "${target}/.claude/references"
 
-	mkdir -p ~/.claude/commands ~/.claude/skills ~/.claude/agents ~/.claude/references
+	mkdir -p "${target}/.claude/commands" "${target}/.claude/skills" "${target}/.claude/agents" "${target}/.claude/references"
 
-	print_step "Syncing Claude configuration to ~/.claude/..."
-	rsync -avh --no-perms .claude/CLAUDE.md ~/.claude/CLAUDE.md
-	rsync -avh --no-perms .claude/settings.json ~/.claude/settings.json
-	rsync -avh --no-perms .claude/agents/ ~/.claude/agents/
-	rsync -avh --no-perms .claude/commands/ ~/.claude/commands/
-	rsync -avh --no-perms .claude/skills/ ~/.claude/skills/
-	rsync -avh --no-perms .claude/references/ ~/.claude/references/
+	print_step "Syncing Claude configuration to ${target}/.claude/..."
+	rsync -avh --no-perms .claude/CLAUDE.md "${target}/.claude/CLAUDE.md"
+	rsync -avh --no-perms .claude/settings.json "${target}/.claude/settings.json"
+	rsync -avh --no-perms .claude/agents/ "${target}/.claude/agents/"
+	rsync -avh --no-perms .claude/commands/ "${target}/.claude/commands/"
+	rsync -avh --no-perms .claude/skills/ "${target}/.claude/skills/"
+	rsync -avh --no-perms .claude/references/ "${target}/.claude/references/"
 }
 
 # =============================================================================
@@ -708,7 +712,7 @@ restart_apps() {
 
 run_all() {
 	sync_dotfiles
-	sync_claude
+	sync_claude "$1"
 	install_homebrew_packages
 	configure_macos
 	restart_apps
@@ -729,13 +733,20 @@ usage() {
 	echo "  -b    Install Homebrew packages"
 	echo "  -m    Configure macOS system preferences"
 	echo "  -r    Restart affected applications"
+	echo "  -p <path>  Target a project folder for Claude sync (requires -c)"
 	echo "  -f    Skip confirmation prompt (run all if no other flags)"
 	echo "  -h    Show this help message"
+	echo ""
+	echo "Long options:"
+	echo "  --project <path>  Same as -p"
+	echo "  --force           Same as -f"
+	echo "  --help            Same as -h"
 	echo ""
 	echo "Examples:"
 	echo "  ./setup.sh -cb       # Sync Claude config + install Homebrew packages"
 	echo "  ./setup.sh -f        # Run all steps without prompts"
 	echo "  ./setup.sh -fcb      # Claude + Homebrew without prompts"
+	echo "  ./setup.sh -cp ~/Workspace/myproject # Sync Claude config to project"
 }
 
 main() {
@@ -747,10 +758,18 @@ main() {
 	local do_dotfiles=0 do_claude=0 do_brew=0 do_macos=0 do_restart=0
 	local force=0
 	local has_selection=0
+	local claude_target=""
+	local need_path=0
 
 	# Parse arguments
-	for arg in "$@"; do
-		case "$arg" in
+	while [[ $# -gt 0 ]]; do
+		if [[ $need_path -eq 1 ]]; then
+			claude_target="$1"
+			need_path=0
+			shift
+			continue
+		fi
+		case "$1" in
 			--force)
 				force=1
 				;;
@@ -758,11 +777,17 @@ main() {
 				usage
 				exit 0
 				;;
+			--project)
+				need_path=1
+				;;
+			--project=*)
+				claude_target="${1#--project=}"
+				;;
 			-*)
 				# Parse combined single-letter flags (e.g., -cb, -fcb)
 				local i
-				for (( i=1; i<${#arg}; i++ )); do
-					case "${arg:$i:1}" in
+				for (( i=1; i<${#1}; i++ )); do
+					case "${1:$i:1}" in
 						d) do_dotfiles=1; has_selection=1 ;;
 						c) do_claude=1; has_selection=1 ;;
 						b) do_brew=1; has_selection=1 ;;
@@ -770,8 +795,9 @@ main() {
 						r) do_restart=1; has_selection=1 ;;
 						f) force=1 ;;
 						h) usage; exit 0 ;;
+						p) need_path=1 ;;
 						*)
-							echo "Unknown flag: -${arg:$i:1}"
+							echo "Unknown flag: -${1:$i:1}"
 							usage
 							exit 1
 							;;
@@ -779,26 +805,49 @@ main() {
 				done
 				;;
 			*)
-				echo "Unknown command: $arg"
+				echo "Unknown command: $1"
 				usage
 				exit 1
 				;;
 		esac
+		shift
 	done
 
-	# Run pre-flight checks before any step execution
-	preflight_checks
+	# Validate -p/--project argument
+	if [[ $need_path -eq 1 ]]; then
+		echo "Error: -p/--project requires a path argument"
+		usage
+		exit 1
+	fi
+	if [[ -n "$claude_target" && $do_claude -eq 0 ]]; then
+		echo "Error: -p/--project requires -c"
+		usage
+		exit 1
+	fi
+	if [[ -n "$claude_target" && ! -d "$claude_target" ]]; then
+		echo "Error: Project directory does not exist: $claude_target"
+		exit 1
+	fi
+
+	# Run pre-flight checks only when steps need sudo (brew, macos, restart, or run-all)
+	local needs_sudo=0
+	if [[ $has_selection -eq 0 || $do_brew -eq 1 || $do_macos -eq 1 || $do_restart -eq 1 ]]; then
+		needs_sudo=1
+	fi
+	if [[ $needs_sudo -eq 1 ]]; then
+		preflight_checks
+	fi
 
 	# No specific steps selected: run all
 	if [[ $has_selection -eq 0 ]]; then
 		if [[ $force -eq 1 ]]; then
-			run_all
+			run_all "$claude_target"
 			return
 		fi
 		read -q "REPLY?This will overwrite files and change system settings. Continue? (y/n) "
 		echo ""
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
-			run_all
+			run_all "$claude_target"
 		else
 			echo "Aborted."
 			exit 1
@@ -808,7 +857,7 @@ main() {
 
 	# Execute selected steps in logical order
 	if [[ $do_dotfiles -eq 1 ]]; then sync_dotfiles; fi
-	if [[ $do_claude -eq 1 ]];   then sync_claude; fi
+	if [[ $do_claude -eq 1 ]];   then sync_claude "$claude_target"; fi
 	if [[ $do_brew -eq 1 ]];     then install_homebrew_packages; fi
 	if [[ $do_macos -eq 1 ]];    then configure_macos; fi
 	if [[ $do_restart -eq 1 ]];  then restart_apps; fi
