@@ -22,11 +22,20 @@ Every plan MUST start with:
 ```markdown
 # [Feature Name] Implementation Plan
 
-**Goal:** [One sentence describing what this builds]
+**Purpose:** [Behavioral statement — what changes for the user/system]
+
+BAD: "Implement caching layer"
+GOOD: "After this change, repeated API calls for the same resource return cached results within 5ms instead of hitting the database"
 
 **Architecture:** [2-3 sentences about approach]
 
 **Tech Stack:** [Key technologies/libraries]
+
+**Codebase Orientation:**
+- Entry point: `path/to/main.ext`
+- Key modules: `path/to/relevant/` — [what it does]
+- Test runner: `command` (run from `directory/`)
+- Config: `path/to/config` — [relevant settings]
 
 ---
 ```
@@ -43,10 +52,42 @@ Each step is one action (2-5 minutes):
 
 If a step takes more than 5 minutes, split it further.
 
+## Milestone Grouping
+
+*Optional — recommended for plans with 6+ tasks.*
+
+Group related tasks into milestones. Each milestone is a narrative arc: goal → work → result → proof.
+
+```markdown
+## Milestone 1: Database Foundation
+
+**Goal:** Schema and migrations run cleanly on a fresh database
+**Acceptance test:** `./bin/rails db:reset && ./bin/rails db:migrate:status` shows all migrations "up"
+
+### Task 1: Create schema file ...
+### Task 2: Write migration ...
+### Task 3: Verify migration ...
+```
+
+**Prototyping milestones** — use when the plan has a decision gate:
+```markdown
+## Milestone 2: Evaluate Cache Strategy (prototype)
+
+**Goal:** Determine whether Redis or in-memory LRU meets the <5ms requirement
+**Decision gate:** After Task 5, measure p99 latency. If >5ms with LRU, switch to Redis for Milestone 3.
+```
+
+After a prototyping milestone, the executor pauses and reports findings before continuing.
+
 ## Task Structure
 
 ````markdown
 ### Task N: [Component Name]
+
+**Behavioral check:** [Observable outcome when this task is done]
+
+BAD: "Database layer is implemented"
+GOOD: "`./bin/rails runner 'puts User.create!(name: \"test\").id'` prints an integer"
 
 **Files:**
 - Create: `exact/path/to/file.ext`
@@ -94,6 +135,8 @@ git commit -m "feat: add specific feature"
 - **TDD integration** — each task = failing test → verify fail → implement → verify pass → commit
 - **Self-contained tasks** — each task can be understood and executed independently
 - **Frequent commits** — one commit per task or logical unit
+- **Idempotent steps** — every step safely re-runnable. `CREATE TABLE IF NOT EXISTS`, not `CREATE TABLE`. `mkdir -p`, not `mkdir`. If a step fails midway, re-running it from the top must not corrupt state.
+- **Resolve all ambiguities** — no "choose appropriate X" or "use a suitable library". Every decision is made in the plan. If you can't decide, flag it as a decision gate in a prototyping milestone.
 
 ## Execution Handoff
 
@@ -123,3 +166,8 @@ Which approach?
 | "Modify the config" | Exact config changes with file path and line numbers |
 | Tasks that take 30+ min | Split into 2-5 minute steps |
 | Assuming reader knows the codebase | Explain where things are and why |
+| "Choose an appropriate cache strategy" | "Use `lru-cache` with TTL=300s, max=1000 entries" |
+| "Task complete when module works" | Behavioral check with exact command + expected output |
+| `CREATE TABLE users (...)` | `CREATE TABLE IF NOT EXISTS users (...)` |
+| "Implement the `Widget` abstraction" | Specify exact methods, signatures, return types |
+| "Set up the ORM" | Name the library, version, and config file path |
