@@ -109,14 +109,20 @@ sync_claude() {
 	print_section "Syncing Claude Code Configuration"
 	print_step "Target: ${target}/.claude/"
 
-	print_step "Removing previous Claude agents, commands, skills, and references..."
-	rm -rf "${target}/.claude/agents" "${target}/.claude/commands" "${target}/.claude/skills" "${target}/.claude/references"
-
 	mkdir -p "${target}/.claude/commands" "${target}/.claude/skills" "${target}/.claude/agents" "${target}/.claude/references"
 
 	print_step "Syncing Claude configuration to ${target}/.claude/..."
 	rsync -avh --no-perms .claude/CLAUDE.md "${target}/.claude/CLAUDE.md"
-	rsync -avh --no-perms .claude/settings.json "${target}/.claude/settings.json"
+
+	# Only write settings.json if it doesn't already exist
+	if [[ ! -f "${target}/.claude/settings.json" ]]; then
+		print_step "Creating ${target}/.claude/settings.json..."
+		rsync -avh --no-perms .claude/settings.json "${target}/.claude/settings.json"
+	else
+		print_step "Skipping settings.json (already exists)"
+	fi
+
+	print_step "Syncing Claude agents, commands, skills, and references..."
 	rsync -avh --no-perms .claude/agents/ "${target}/.claude/agents/"
 	rsync -avh --no-perms .claude/commands/ "${target}/.claude/commands/"
 	rsync -avh --no-perms .claude/skills/ "${target}/.claude/skills/"
