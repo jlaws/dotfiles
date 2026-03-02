@@ -11,6 +11,16 @@ Full methodology: load skill `workflow/verification-before-completion`.
 
 ## Context Preservation
 - On compaction: preserve current task, file paths being edited, test results, and key decisions. Discard exploration output and intermediate reasoning.
+- Store intermediate results in filesystem (HANDOFF.md, scratch files) rather than relying on conversation memory for long-running work.
+- When approaching context limits: summarize completed work into a handoff file BEFORE context degrades.
+- For multi-step investigations: write findings to files progressively; don't accumulate everything in conversation.
+
+## Context Efficiency
+- Critical info at **beginning or end** of prompts/files — middle content gets lower attention weight.
+- Prefer tables and code over prose (higher information density per token).
+- Search first (Glob/Grep), then Read only confirmed-relevant files — avoid speculative bulk reads.
+- When processing web/external content: strip boilerplate, nav, ads; convert HTML to Markdown.
+- Link to detailed docs; never inline >50 lines into CLAUDE.md or skills.
 
 ## Git Workflow
 - Commit messages: freeform imperative mood, <72 char subject, no period

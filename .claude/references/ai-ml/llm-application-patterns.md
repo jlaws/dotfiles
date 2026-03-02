@@ -131,6 +131,26 @@ def agent_loop(question: str, max_steps: int = 5) -> str:
 
 Pattern: check token count -> if over limit, keep system prompt + last K turns -> if still over, summarize old turns and prepend as context.
 
+### Token Reduction Techniques
+
+| Technique | How | Savings |
+|-----------|-----|---------|
+| Two-phase retrieval | Search/filter first, fetch only relevant items | 50-80% fewer input tokens |
+| Filter parameters | Request only needed fields from APIs (`fields=id,name`) | 30-60% per response |
+| Summary responses | Ask model to summarize rather than echo source material | 40-70% output tokens |
+| Data cleaning (HTML→MD) | Strip tags, nav, ads before injecting into context | 2-3x reduction |
+| Deterministic serialization | `json.dumps(data, sort_keys=True)` for cache-friendly output | Enables response caching |
+
+### Stable Prefix / KV Cache
+
+LLM providers cache the key-value computations for identical prompt prefixes. When your system prompt is identical across requests, subsequent requests skip recomputing those tokens.
+
+**Rules:**
+- Keep system instructions identical across sessions (no timestamps, counters, per-request IDs)
+- Place dynamic content (user query, conversation history) at the END, not the beginning
+- Reorder tool definitions consistently (alphabetical or by frequency)
+- Prompt template changes invalidate the entire cache — version prompts deliberately
+
 ## RAG Integration
 
 ### Chunking Strategy
@@ -190,6 +210,9 @@ Information in the middle of long contexts is retrieved less reliably. Put criti
 - Storing entire conversation history without windowing (context overflow + cost explosion)
 - Generic tool descriptions (confuses agent tool selection)
 - No fallback for LLM failures (always handle rate limits and timeouts)
+- Embedding per-request timestamps in system prompts (invalidates KV cache prefix)
+- Returning full documents when summaries suffice (output token waste)
+- Skipping data cleaning on fetched content (HTML inflates tokens 2-3x)
 
 ## Structured Output
 
@@ -285,3 +308,4 @@ For retry strategies and provider fallback patterns, see [references/retry-and-f
 - **ai-ml:rag-and-vector-search** -- retrieval-augmented generation, chunking, embedding strategies
 - **ai-ml:agentic-systems-design** -- tool use, multi-agent orchestration, planning loops
 - **languages:pydantic-and-data-validation** -- Pydantic v2 models for extraction schemas
+- **workflow:context-efficiency** -- token reduction, KV cache, U-shaped attention for Claude Code workflows

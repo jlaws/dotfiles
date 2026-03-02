@@ -15,6 +15,7 @@ Reference library at .claude/references/ai-ml/:
 - ml-model-deployment, model-compression, multimodal-ml
 - pytorch-distributed-training, rag-and-vector-search
 - reinforcement-learning-patterns, time-series-ml, tokenizer-design
+- context-efficiency (in references/workflow/)
 
 Read the relevant reference file(s) for the user's topic before responding.
 Provide specific, actionable guidance with code examples.
