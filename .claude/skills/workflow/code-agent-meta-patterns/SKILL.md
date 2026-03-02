@@ -174,6 +174,9 @@ See `references/workflow/hook-patterns.md` for full examples (PreToolUse, PostTo
 | Scope CLAUDE.md | Always | Only include what affects daily coding |
 | Prune stale instructions | Monthly | Remove anything that hasn't been relevant |
 | Use directory-level CLAUDE.md | Large monorepos | Put module-specific rules in module dirs |
+| Search then read | Always | Glob/Grep first, Read only confirmed-relevant files |
+| Clean external content | WebFetch, logs | Strip HTML boilerplate, nav, ads before reasoning |
+| U-shaped placement | CLAUDE.md, skills | Critical content at beginning/end, reference in middle |
 
 ### When to Use Subagents (Task Tool)
 
@@ -189,6 +192,9 @@ See `references/workflow/hook-patterns.md` for full examples (PreToolUse, PostTo
 - Skills: 150-300 lines typical
 - If a skill needs >350 lines, it's trying to do too much
 - Prefer tables and code over prose (higher information density)
+- Avoid volatile content in CLAUDE.md (timestamps, changing metrics) — breaks KV cache prefix
+- Design subagent tasks for single-turn completion to prevent context accumulation
+- See `references/workflow/context-efficiency` for full patterns
 
 ## Multi-Agent Orchestration
 
