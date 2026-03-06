@@ -14,3 +14,9 @@ Thumbs.db
 .Trashes
 
 .claude/settings.local.json
+
+# Python
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.venv/

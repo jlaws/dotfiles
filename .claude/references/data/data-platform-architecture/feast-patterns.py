@@ -63,16 +63,20 @@ user_features = BatchFeatureView(
 # --- Point-in-Time Retrieval ---
 store = FeatureStore(repo_path="feature_repo/")
 
-entity_df = pd.DataFrame({
-    "user_id": [42, 99, 42, 17],
-    "event_timestamp": pd.to_datetime([
-        "2024-03-15 10:00:00",
-        "2024-03-15 14:00:00",
-        "2024-03-10 08:00:00",  # same user, earlier time = different features
-        "2024-03-12 12:00:00",
-    ]),
-    "label": [1, 0, 1, 0],
-})
+entity_df = pd.DataFrame(
+    {
+        "user_id": [42, 99, 42, 17],
+        "event_timestamp": pd.to_datetime(
+            [
+                "2024-03-15 10:00:00",
+                "2024-03-15 14:00:00",
+                "2024-03-10 08:00:00",  # same user, earlier time = different features
+                "2024-03-12 12:00:00",
+            ]
+        ),
+        "label": [1, 0, 1, 0],
+    }
+)
 
 # Feast handles point-in-time join automatically
 training_df = store.get_historical_features(
@@ -103,12 +107,14 @@ features = store.get_online_features(
 # --- Push-Based Streaming Features ---
 store.push(
     push_source_name="user_realtime_stats",
-    df=pd.DataFrame({
-        "user_id": [42],
-        "session_duration_sec": [340],
-        "pages_viewed": [12],
-        "event_timestamp": [datetime.utcnow()],
-    }),
+    df=pd.DataFrame(
+        {
+            "user_id": [42],
+            "session_duration_sec": [340],
+            "pages_viewed": [12],
+            "event_timestamp": [datetime.utcnow()],
+        }
+    ),
     to=PushMode.ONLINE,  # or ONLINE_AND_OFFLINE
 )
 

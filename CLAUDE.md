@@ -14,6 +14,12 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 ./setup.sh --force   # Non-interactive: skips all confirmation prompts
 ```
 
+### Linting
+```bash
+make check    # ruff check + mypy (via .venv)
+make fix      # auto-fix + format
+```
+
 ### What setup.sh does:
 1. **Syncs dotfiles** to `~` via rsync (excludes .git, setup.sh, README)
 2. **Installs Homebrew packages**: coreutils, findutils, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump, mermaid-cli, node, pyright, rust-analyzer
@@ -26,6 +32,8 @@ dotfiles/
 ├── Root dotfiles (.zshrc, .extra, .gitconfig, .vimrc, .editorconfig, etc.)
 ├── ghosty_config.txt  # Ghostty terminal configuration reference
 ├── setup.sh           # Main installation script
+├── pyproject.toml     # ruff config, project metadata
+├── Makefile           # lint, format, fix targets
 └── .claude/           # Claude Code knowledge base
     ├── CLAUDE.md      # Global standards (synced to ~/.claude/)
     ├── agents/        # 13 specialist agents
