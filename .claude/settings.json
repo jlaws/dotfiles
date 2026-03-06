@@ -87,23 +87,6 @@
       "Read(./secrets/**)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)"
-    ],
-    "ask": [
-      "Bash(npm install *)",
-      "Bash(npm ci *)",
-      "Bash(pip install *)",
-      "Bash(pip3 *)",
-      "Bash(brew *)",
-      "Bash(node *)",
-      "Bash(python *)",
-      "Bash(python3 *)",
-      "Bash(npm run *)",
-      "Bash(make *)",
-      "Bash(cargo *)",
-      "Bash(go *)",
-      "Bash(swift *)",
-      "Bash(rm *)",
-      "Bash(curl *)"
     ]
   },
   "attribution": {
