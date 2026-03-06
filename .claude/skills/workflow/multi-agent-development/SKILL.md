@@ -61,6 +61,21 @@ Each agent gets:
 3. Run full test suite
 4. Integrate all changes
 
+#### Worktree Isolation
+
+Implementation subagents MUST use `isolation: "worktree"` so they work on an isolated copy of the repo:
+
+```
+Agent(prompt="...", isolation="worktree", subagent_type="general-purpose")
+```
+
+Rules:
+- **Always set `isolation: "worktree"`** for any subagent that edits files
+- Subagents must **NEVER** clean up, delete, or remove their worktree — the parent handles merge and cleanup
+- Subagents must **NEVER** invoke the `finishing-branch` skill — return changes on-branch and let the parent decide integration
+- After the subagent completes, the parent receives the worktree path and branch name in the result
+- Parent merges changes from the returned branch, then cleans up the worktree
+
 #### When NOT to Parallelize
 
 - **Related failures** — fixing one might fix others; investigate together first
@@ -275,6 +290,8 @@ Example: a hook that runs tests before allowing task completion, rejecting if te
 - Broadcast when a DM would suffice (wastes all agents' context)
 - Create teams for work a single subagent could handle (unnecessary overhead)
 - Forget to shut down teammates after work completes (resource leak)
+- Spawning implementation subagents without `isolation: "worktree"`
+- Subagent cleaning up its own worktree before parent merges
 
 ## Common Prompt Mistakes
 

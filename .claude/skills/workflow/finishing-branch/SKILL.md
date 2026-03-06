@@ -11,6 +11,16 @@ allowed-tools: Read, Grep, Glob, Bash
 
 ## The Process
 
+### Subagent Guard
+
+**If you are running as a subagent (spawned via Agent tool with `isolation: "worktree"`):**
+STOP. Do NOT proceed with this skill. Instead:
+1. Ensure all changes are committed to your branch
+2. Return a summary of your changes, branch name, and worktree path to the parent
+3. The parent is responsible for merge and cleanup
+
+This skill is for the lead/parent agent or direct user sessions only.
+
 ### Step 1: Verify Tests
 
 Run the project's full test suite before presenting any options.
@@ -132,6 +142,7 @@ Clean up worktree if applicable.
 - Force-pushing without explicit user request
 - Offering fewer or more than 4 options
 - Cleaning up worktree when user chose "keep as-is"
+- Subagent invoking this skill instead of returning changes to parent
 
 ## Integration
 
