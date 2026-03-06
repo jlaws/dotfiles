@@ -1,0 +1,232 @@
+# =============================================================================
+# Ghostty Configuration - Optimized for Software Engineers on macOS
+# =============================================================================
+#
+# Location: ~/Library/Application Support/com.mitchellh.ghostty/config
+#           or ~/.config/ghostty/config
+#
+# Reload config: Cmd+Shift+, (comma)
+# View all options: ghostty +show-config --default --docs
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# FONT CONFIGURATION
+# -----------------------------------------------------------------------------
+# Using the default JetBrains Mono which is excellent for coding.
+# Uncomment and modify if you prefer a different font.
+# Run `ghostty +list-fonts` to see available fonts.
+
+# font-family = JetBrains Mono
+font-size = 14
+
+# Thicken fonts for better readability on macOS Retina displays
+font-thicken = true
+
+# Disable ligatures if you prefer individual characters for code readability
+# Uncomment the following line to disable common ligatures:
+# font-feature = -calt, -liga, -dlig
+
+# Adjust line spacing for better code readability
+adjust-cell-height = 2
+
+# -----------------------------------------------------------------------------
+# THEME & COLORS
+# -----------------------------------------------------------------------------
+# Use system theme (auto-switches between light/dark based on macOS settings)
+# Run `ghostty +list-themes` to see all available themes
+# Example: theme = light:Rose Pine Dawn,dark:Rose Pine
+
+theme = dark:Catppuccin Mocha,light:Catppuccin Latte
+
+# Ensure minimum contrast for readability
+minimum-contrast = 1.1
+
+# -----------------------------------------------------------------------------
+# WINDOW & APPEARANCE
+# -----------------------------------------------------------------------------
+# Transparent titlebar that matches terminal background (most aesthetic on macOS)
+macos-titlebar-style = transparent
+
+# Window theme follows the terminal background color
+window-theme = auto
+
+# Comfortable padding around the terminal content
+window-padding-x = 8
+window-padding-y = 8
+
+# Balance padding for a cleaner look
+window-padding-balance = true
+
+# Default window size (adjust to your preference)
+window-height = 40
+window-width = 140
+
+# Keep window shadow for depth
+macos-window-shadow = true
+
+# Inherit working directory when opening new tabs/windows
+window-inherit-working-directory = true
+
+# Inherit font size when opening new tabs/windows
+window-inherit-font-size = true
+
+# -----------------------------------------------------------------------------
+# CURSOR
+# -----------------------------------------------------------------------------
+# Bar cursor is common for developers (matches most editors)
+cursor-style = bar
+
+# No blinking cursor (matches reduced visual noise in macOS config)
+cursor-style-blink = false
+
+# Enable click-to-move cursor at prompts (requires shell integration)
+cursor-click-to-move = true
+
+# -----------------------------------------------------------------------------
+# MOUSE & SCROLLING
+# -----------------------------------------------------------------------------
+# Hide mouse while typing for less distraction
+mouse-hide-while-typing = true
+
+# Comfortable scroll multiplier
+mouse-scroll-multiplier = 3
+
+# Focus follows mouse in splits (useful for multi-pane workflows)
+focus-follows-mouse = true
+
+# -----------------------------------------------------------------------------
+# CLIPBOARD
+# -----------------------------------------------------------------------------
+# Allow clipboard read/write for OSC 52 (useful for remote sessions)
+clipboard-read = ask
+clipboard-write = allow
+
+# Trim trailing whitespace when copying (cleaner pastes)
+clipboard-trim-trailing-spaces = true
+
+# Confirm pasting potentially unsafe content
+clipboard-paste-protection = true
+
+# Copy on select (Linux-style, optional - set to false if you prefer explicit copy)
+copy-on-select = true
+
+# -----------------------------------------------------------------------------
+# SHELL INTEGRATION
+# -----------------------------------------------------------------------------
+# Auto-detect shell for enhanced features
+shell-integration = detect
+
+# Enable all shell integration features:
+# - cursor: blinking bar at prompt
+# - sudo: preserve terminfo in sudo
+# - title: dynamic window titles
+# - ssh-env: SSH environment variable compatibility
+# - ssh-terminfo: auto-install terminfo on remote hosts
+shell-integration-features = cursor, sudo, title, ssh-env, ssh-terminfo
+
+# -----------------------------------------------------------------------------
+# SCROLLBACK
+# -----------------------------------------------------------------------------
+# Large scrollback buffer (10MB per terminal)
+scrollback-limit = 10000000
+
+# -----------------------------------------------------------------------------
+# KEYBINDINGS
+# -----------------------------------------------------------------------------
+# Note: Ghostty has sensible defaults. These are additional conveniences.
+
+# Quick font size adjustments
+keybind = cmd+plus=increase_font_size:1
+keybind = cmd+minus=decrease_font_size:1
+keybind = cmd+zero=reset_font_size
+
+# Pane/split navigation (vim-style with Cmd)
+keybind = cmd+shift+h=goto_split:left
+keybind = cmd+shift+l=goto_split:right
+keybind = cmd+shift+k=goto_split:top
+keybind = cmd+shift+j=goto_split:bottom
+
+# Create splits
+keybind = cmd+d=new_split:right
+keybind = cmd+shift+d=new_split:down
+
+# Quick clear scrollback
+keybind = cmd+k=clear_screen
+
+# Jump between prompts (requires shell integration)
+keybind = cmd+up=jump_to_prompt:-1
+keybind = cmd+down=jump_to_prompt:1
+
+# Equalize split sizes
+keybind = cmd+shift+equal=equalize_splits
+
+# -----------------------------------------------------------------------------
+# QUICK TERMINAL (Quake-style dropdown)
+# -----------------------------------------------------------------------------
+# Position at top of screen
+quick-terminal-position = top
+
+# Take up 40% of screen height
+quick-terminal-size = 40%
+
+# No animation (matches zero-delay Dock/Finder animations in macOS config)
+quick-terminal-animation-duration = 0
+
+# Auto-hide when focus is lost
+quick-terminal-autohide = true
+
+# Uncomment to enable a global hotkey for quick terminal:
+# keybind = global:cmd+grave_accent=toggle_quick_terminal
+
+# -----------------------------------------------------------------------------
+# PERFORMANCE & BEHAVIOR
+# -----------------------------------------------------------------------------
+# VSync for smoother rendering (disable if you notice input lag)
+window-vsync = true
+
+# No close confirmation (matches disabled warnings in macOS config)
+confirm-close-surface = false
+
+# macOS: Don't quit when last window closes
+quit-after-last-window-closed = false
+
+# Resize in cell increments (feels more natural)
+window-step-resize = true
+
+# Brief resize overlay (matches near-instant NSWindowResizeTime in macOS config)
+resize-overlay = after-first
+resize-overlay-duration = 100ms
+
+# -----------------------------------------------------------------------------
+# LINKS & URL HANDLING
+# -----------------------------------------------------------------------------
+# Enable clickable URLs (Cmd+click to open)
+link-url = true
+
+# -----------------------------------------------------------------------------
+# NOTIFICATIONS
+# -----------------------------------------------------------------------------
+# Subtle bell behavior
+bell-features = attention, title
+
+# Show notifications for clipboard operations and config reload
+app-notifications = clipboard-copy, config-reload
+
+# -----------------------------------------------------------------------------
+# macOS SPECIFIC
+# -----------------------------------------------------------------------------
+# Treat Option as Alt for terminal applications
+# Set to true if you use terminal apps expecting Alt key
+# Set to false if you use Option for special characters (é, ñ, etc.)
+macos-option-as-alt = true
+
+# Show window buttons (traffic lights)
+macos-window-buttons = visible
+
+# Save and restore window state
+window-save-state = always
+
+# Secure input indication when entering passwords
+macos-secure-input-indication = true
+macos-auto-secure-input = true
