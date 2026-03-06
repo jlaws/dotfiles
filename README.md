@@ -55,13 +55,13 @@ cd ~/Workspace/dotfiles
 ### 6. Run the Setup Script
 
 ```zsh
-./setup.sh
+./setup.py
 ```
 
 Or skip confirmation prompts:
 
 ```zsh
-./setup.sh --force
+./setup.py --force
 ```
 
 ## What the Setup Script Does
@@ -114,7 +114,7 @@ Some settings can't be automated and require manual setup:
 | `.gitattributes` | Git file handling attributes |
 | `.wgetrc` | Wget configuration |
 | `ghosty_config.txt` | Ghostty terminal configuration reference |
-| `setup.sh` | Main setup script |
+| `setup.py` | Main setup script |
 
 ## Customization
 
@@ -139,7 +139,7 @@ To pull the latest changes and re-sync:
 
 ```zsh
 cd ~/Workspace/dotfiles
-./setup.sh
+./setup.py
 ```
 
 ### Claude
@@ -157,11 +157,11 @@ The `.claude/` directory contains an extensive knowledge base:
 
 | Plugin | Language | Prerequisite |
 |--------|----------|-------------|
-| `pyright-lsp` | Python | `brew install pyright` (in setup.sh) |
-| `typescript-lsp` | TS/JS | `npm install -g typescript-language-server typescript` (in setup.sh) |
+| `pyright-lsp` | Python | `brew install pyright` (in setup.py) |
+| `typescript-lsp` | TS/JS | `npm install -g typescript-language-server typescript` (in setup.py) |
 | `swift-lsp` | Swift | Xcode (bundled) |
-| `gopls-lsp` | Go | `go install golang.org/x/tools/gopls@latest` (in setup.sh) |
-| `rust-analyzer-lsp` | Rust | `brew install rust-analyzer` (in setup.sh) |
+| `gopls-lsp` | Go | `go install golang.org/x/tools/gopls@latest` (in setup.py) |
+| `rust-analyzer-lsp` | Rust | `brew install rust-analyzer` (in setup.py) |
 
 **Workflow Plugins:**
 
@@ -170,7 +170,7 @@ The `.claude/` directory contains an extensive knowledge base:
 | `commit-commands` | `/commit`, `/commit-push-pr`, `/clean_gone` |
 | `claude-md-management` | `/revise-claude-md` for CLAUDE.md maintenance |
 
-Install after running `setup.sh` launch claude and run:
+Install after running `setup.py` launch claude and run:
 ```bash
 /plugin install pyright-lsp@claude-plugin-directory
 /plugin install typescript-lsp@claude-plugin-directory

@@ -2,16 +2,25 @@
 from pyiceberg.catalog import load_catalog
 from pyiceberg.schema import Schema
 from pyiceberg.types import (
-    NestedField, StringType, LongType, TimestampType, DoubleType,
+    NestedField,
+    StringType,
+    LongType,
+    TimestampType,
+    DoubleType,
 )
 from pyiceberg.partitioning import PartitionSpec, PartitionField
 from pyiceberg.transforms import DayTransform, BucketTransform
 
-catalog = load_catalog("production", **{
-    "type": "rest", "uri": "http://iceberg-rest:8181",
-    "s3.endpoint": "http://minio:9000",
-    "s3.access-key-id": "admin", "s3.secret-access-key": "password",
-})
+catalog = load_catalog(
+    "production",
+    **{
+        "type": "rest",
+        "uri": "http://iceberg-rest:8181",
+        "s3.endpoint": "http://minio:9000",
+        "s3.access-key-id": "admin",
+        "s3.secret-access-key": "password",
+    },
+)
 
 schema = Schema(
     NestedField(1, "event_id", StringType(), required=True),
@@ -20,11 +29,14 @@ schema = Schema(
     NestedField(4, "timestamp", TimestampType(), required=True),
 )
 # Hidden partitioning: users write timestamp, Iceberg partitions by day
-spec = PartitionSpec(PartitionField(
-    source_id=4, field_id=1000, transform=DayTransform(), name="day"))
+spec = PartitionSpec(
+    PartitionField(source_id=4, field_id=1000, transform=DayTransform(), name="day")
+)
 
 table = catalog.create_table(
-    "analytics.events", schema=schema, partition_spec=spec,
+    "analytics.events",
+    schema=schema,
+    partition_spec=spec,
 )
 
 
@@ -43,7 +55,9 @@ with table.update_schema() as update:
 # Partition evolution: change strategy without rewriting data
 with table.update_spec() as update:
     update.add_field(
-        "user_bucket", BucketTransform(16), source_column_name="user_id",
+        "user_bucket",
+        BucketTransform(16),
+        source_column_name="user_id",
     )
 
 

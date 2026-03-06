@@ -10,14 +10,20 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 
 ### Setup & Installation
 ```bash
-./setup.sh           # Interactive: syncs dotfiles, installs packages, configures macOS
-./setup.sh --force   # Non-interactive: skips all confirmation prompts
+./setup.py           # Interactive: syncs dotfiles, installs packages, configures macOS
+./setup.py --force   # Non-interactive: skips all confirmation prompts
 ```
 
-### What setup.sh does:
-1. **Syncs dotfiles** to `~` via rsync (excludes .git, setup.sh, README)
-2. **Installs Homebrew packages**: coreutils, findutils, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump, mermaid-cli, node, pyright, rust-analyzer
+### What setup.py does:
+1. **Syncs dotfiles** to `~` via rsync (excludes .git, setup.py, README)
+2. **Installs Homebrew packages**: coreutils, findutils, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump, mermaid-cli, uv, node, pyright, rust-analyzer
 3. **Configures macOS**: ~200 `defaults write` commands for Finder, Dock, Safari, security, etc.
+
+### Linting
+```bash
+make check    # ruff check + mypy strict
+make fix      # auto-fix + format
+```
 
 ## Repository Structure
 
@@ -25,7 +31,9 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 dotfiles/
 ├── Root dotfiles (.zshrc, .extra, .gitconfig, .vimrc, .editorconfig, etc.)
 ├── ghosty_config.txt  # Ghostty terminal configuration reference
-├── setup.sh           # Main installation script
+├── setup.py           # Main installation script (Python)
+├── pyproject.toml     # Project config, ruff + mypy
+├── Makefile           # lint, format, typecheck targets
 └── .claude/           # Claude Code knowledge base
     ├── CLAUDE.md      # Global standards (synced to ~/.claude/)
     ├── agents/        # 13 specialist agents
@@ -42,7 +50,8 @@ dotfiles/
 | `.extra` | 60+ aliases, functions, PATH setup (229 lines) |
 | `.gitconfig` | Git aliases (`l`, `s`, `d`, `go`, `dm`, `amend`) |
 | `.vimrc` | Solarized Dark, relative line numbers, centralized backups |
-| `setup.sh` | Main orchestration script (~770 lines) |
+| `setup.py` | Main setup script (Python, ~965 lines) |
+| `pyproject.toml` | ruff + mypy config, project metadata |
 | `ghosty_config.txt` | Ghostty terminal configuration reference |
 
 ## Shell Aliases (from .extra)
@@ -58,5 +67,6 @@ dotfiles/
 
 - Shell configs use `#` comments, keep aliases short and documented
 - `.extra` is the primary customization point (not `.zshrc`)
-- macOS `defaults write` commands in setup.sh follow pattern: domain, key, type, value
+- macOS `defaults write` commands in setup.py use data-driven `Default` NamedTuples
+- Python code linted with `ruff` and type-checked with `mypy --strict`
 - Claude knowledge base files are markdown with YAML frontmatter

@@ -1,0 +1,35 @@
+[project]
+name = "dotfiles-setup"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+[project.scripts]
+setup = "setup:main"
+
+[dependency-groups]
+dev = ["ruff", "mypy"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "D", "PIE", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+".claude/references/**/*.py" = [
+    "F401", "F811", "F821", "E402", "D", "N", "I", "PIE", "RUF",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+
+[[tool.mypy.overrides]]
+module = ["claude.references.*"]
+ignore_errors = true
+ignore_missing_imports = true
