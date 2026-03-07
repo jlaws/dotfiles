@@ -1,6 +1,6 @@
 ---
 name: lang
-description: "Language patterns consultation — idioms, tooling, and project scaffolding. Use when setting up a project, choosing patterns, or working in Python, JS/TS, Go, Rust, Swift, or other languages."
+description: "Language patterns consultation — idioms, tooling, and project scaffolding. Use when setting up a project, choosing patterns, or working in Python, JS/TS, Go, Rust, Swift, or other languages. Do NOT use for framework-specific help (use /frontend or domain specialist instead)."
 argument-hint: "<question-or-task>"
 ---
 

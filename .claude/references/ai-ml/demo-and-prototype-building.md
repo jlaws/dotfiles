@@ -1,6 +1,6 @@
 # Demo and Prototype Building
 
-## When to Use This Skill
+## When to Use
 
 Use when building interactive demos for ML models, investor presentations, user testing prototypes, or internal tools. Covers framework selection, deployment, and common pitfalls.
 

@@ -1,8 +1,8 @@
 # MVP Development Patterns
 
-## When to Use This Skill
+## When to Use
 
-Use when building a first product version, deciding build vs buy, cutting scope to ship faster, or managing technical debt in early-stage codebases. Applies from idea validation through first paying customers.
+Reference for building a first product version, deciding build vs buy, cutting scope to ship faster, or managing technical debt in early-stage codebases. Applies from idea validation through first paying customers.
 
 ## Build vs Buy vs Open-Source
 

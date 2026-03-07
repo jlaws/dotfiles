@@ -1,6 +1,6 @@
 ---
 name: ml
-description: "ML/AI consultation — launches ml-engineer subagent. Use when working with model training, inference pipelines, LLM applications, or ML deployment."
+description: "ML/AI consultation — launches ml-engineer subagent. Use when working with model training, inference pipelines, LLM applications, or ML deployment. Do NOT use for quick library questions (ask directly instead)."
 argument-hint: "<question-or-task>"
 ---
 

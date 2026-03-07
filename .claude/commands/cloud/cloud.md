@@ -1,6 +1,6 @@
 ---
 name: cloud
-description: "Cloud architecture consultation — launches cloud-architect subagent. Use when designing cloud infrastructure, optimizing costs, or planning deployments."
+description: "Cloud architecture consultation — launches cloud-architect subagent. Use when designing cloud infrastructure, optimizing costs, or planning deployments. Do NOT use for container/Kubernetes questions (use /devops instead)."
 argument-hint: "<question-or-task>"
 ---
 

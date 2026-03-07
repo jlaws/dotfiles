@@ -1,6 +1,6 @@
 ---
 name: write-plan
-description: "Create a structured implementation plan with bite-sized tasks, exact file paths, and TDD integration. Use when you have requirements and need a detailed plan before coding."
+description: "Create a structured implementation plan with bite-sized tasks, exact file paths, and TDD integration. Use when you have requirements and need a detailed plan before coding. Do NOT use for changing existing plans (edit the file directly)."
 argument-hint: "<spec, design doc path, or feature description>"
 ---
 

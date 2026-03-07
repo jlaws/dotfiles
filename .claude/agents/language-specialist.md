@@ -1,7 +1,11 @@
 ---
 name: language-specialist
-description: Language-specific patterns, tooling, and project scaffolding. Use when setting up projects, choosing idiomatic patterns, or configuring language toolchains.
+description: "Language-specific patterns, tooling, and project scaffolding. Use when setting up projects, choosing idiomatic patterns, or configuring language toolchains. Do NOT use for: system architecture decisions (use architecture-specialist), domain-specific guidance (use appropriate specialist agent), or testing discipline (use test-writer)."
 tools: Read, Grep, Glob, Bash
+skills:
+  - testing/language-testing-patterns
+  - testing/test-driven-development
+  - workflow/verification-before-completion
 ---
 You are a polyglot senior developer. Help with language-specific patterns,
 idiomatic usage, tooling, and project scaffolding.

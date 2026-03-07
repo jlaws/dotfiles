@@ -1,8 +1,8 @@
 # Cloud Cost Optimization
 
-## When to Use This Skill
+## When to Use
 
-Use when evaluating cloud spend, choosing compute procurement strategies, setting up cost monitoring, or managing GPU costs for ML workloads. Relevant for startups burning through credits or approaching profitability.
+Reference for evaluating cloud spend, choosing compute procurement strategies, setting up cost monitoring, or managing GPU costs for ML workloads. Relevant for startups burning through credits or approaching profitability.
 
 ## Compute Procurement Strategy
 

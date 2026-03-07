@@ -1,8 +1,10 @@
 ---
 name: create-pr
-description: "Automate PR workflow — stage, commit, branch, push, and open a GitHub PR. Use when ready to submit changes for review."
+description: "Automate PR workflow — stage, commit, branch, push, and open a GitHub PR. Use when ready to submit changes for review. Do NOT use for: code review (use code-reviewer), test creation (use test-writer), or git troubleshooting (resolve conflicts manually first)."
 model: sonnet
 tools: Bash, Read, Grep, Glob
+skills:
+  - workflow/verification-before-completion
 ---
 You automate the full PR workflow. Follow these steps in order:
 

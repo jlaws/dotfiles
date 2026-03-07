@@ -1,6 +1,6 @@
 ---
 name: research
-description: "Research consultation — literature review, statistical analysis, and paper writing. Use when conducting research, reviewing literature, or writing academic papers."
+description: "Research consultation — literature review, statistical analysis, and paper writing. Use when conducting research, reviewing literature, or writing academic papers. Do NOT use for simple factual questions (web search instead)."
 argument-hint: "<question-or-task>"
 ---
 

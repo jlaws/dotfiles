@@ -1,6 +1,6 @@
 ---
 name: execute-plan
-description: "Execute an implementation plan in batches with review checkpoints. Use when you have a written plan to work through task-by-task."
+description: "Execute an implementation plan in batches with review checkpoints. Use when you have a written plan to work through task-by-task. Do NOT use without a plan first (use /write-plan instead)."
 argument-hint: "<plan file path>"
 ---
 

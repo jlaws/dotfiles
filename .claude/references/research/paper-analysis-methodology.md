@@ -4,7 +4,7 @@ Analyze ML/AI research papers using S. Keshav's three-pass reading method. Produ
 
 ## Overview
 
-This skill provides a systematic framework for reading and analyzing research papers. Use this skill when you need to:
+Reference for a systematic framework for reading and analyzing research papers. Use when you need to:
 
 - Analyze a research paper thoroughly
 - Extract implementation-relevant details

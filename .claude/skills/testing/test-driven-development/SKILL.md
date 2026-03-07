@@ -24,7 +24,7 @@ Write the test first. Watch it fail. Write minimal code to pass.
 - Behavior changes
 
 **Exceptions (ask your human partner):**
-- Throwaway prototypes
+- Throwaway prototypes (but delete and TDD it properly after the spike)
 - Generated code
 - Configuration files
 

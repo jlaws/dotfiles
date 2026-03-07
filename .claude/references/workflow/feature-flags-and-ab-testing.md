@@ -1,8 +1,8 @@
 # Feature Flags and A/B Testing
 
-## When to Use This Skill
+## When to Use
 
-Use when implementing feature toggles, gradual rollouts, or controlled experiments. Applies to provider selection, flag lifecycle management, and experiment design with statistical rigor.
+Reference for implementing feature toggles, gradual rollouts, or controlled experiments. Covers provider selection, flag lifecycle management, and experiment design with statistical rigor.
 
 ## Provider Selection
 
