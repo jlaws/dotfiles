@@ -35,11 +35,11 @@ dotfiles/
 ├── pyproject.toml     # ruff config, project metadata
 ├── Makefile           # lint, format, fix targets
 └── .claude/           # Claude Code knowledge base
-    ├── CLAUDE.md      # Global standards (synced to ~/.claude/)
-    ├── agents/        # 13 specialist agents
-    ├── commands/      # 20 commands across 13 categories
-    ├── references/    # 167 domain knowledge files
-    └── skills/        # 16 contextual skill workflows
+    ├── CLAUDE.md      # Global standards (source; setup.sh pushes to ~/)
+    ├── agents/        # 14 specialist agents
+    ├── commands/      # 26 commands across 13 categories
+    ├── references/    # 174 domain knowledge files
+    └── skills/        # 22 contextual skill workflows
 ```
 
 ## Key Files
@@ -47,10 +47,10 @@ dotfiles/
 | File | Purpose |
 |------|---------|
 | `.zshrc` | Loads Oh My Zsh, sources `.extra` |
-| `.extra` | 60+ aliases, functions, PATH setup (229 lines) |
+| `.extra` | 60+ aliases, functions, PATH setup (234 lines) |
 | `.gitconfig` | Git aliases (`l`, `s`, `d`, `go`, `dm`, `amend`) |
 | `.vimrc` | Solarized Dark, relative line numbers, centralized backups |
-| `setup.sh` | Main orchestration script (~770 lines) |
+| `setup.sh` | Main orchestration script (~876 lines) |
 | `ghosty_config.txt` | Ghostty terminal configuration reference |
 
 ## Shell Aliases (from .extra)
@@ -68,3 +68,4 @@ dotfiles/
 - `.extra` is the primary customization point (not `.zshrc`)
 - macOS `defaults write` commands in setup.sh follow pattern: domain, key, type, value
 - Claude knowledge base files are markdown with YAML frontmatter
+- Update KB counts in this file's structure section when adding/removing agents, commands, skills, or references
