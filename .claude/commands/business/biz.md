@@ -1,6 +1,6 @@
 ---
 name: biz
-description: "Business strategy consultation — launches business-analyst subagent. Use when defining KPIs, planning MVPs, designing payment flows, or team processes."
+description: "Business strategy consultation — launches business-analyst subagent. Use when defining KPIs, planning MVPs, designing payment flows, or team processes. Do NOT use for technical architecture decisions (use /arch instead)."
 argument-hint: "<question-or-task>"
 ---
 

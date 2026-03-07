@@ -4,7 +4,7 @@ Analyze research papers and implement their core algorithms, architectures, or m
 
 ## Overview
 
-This skill provides a structured approach for turning research papers into implementations. Use this skill when you need to:
+Reference for a structured approach for turning research papers into implementations. Use when you need to:
 
 - Implement a paper's core algorithm or architecture
 - Reproduce published results

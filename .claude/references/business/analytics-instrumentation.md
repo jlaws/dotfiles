@@ -1,8 +1,8 @@
 # Analytics Instrumentation
 
-## When to Use This Skill
+## When to Use
 
-Use when designing event tracking systems, integrating analytics providers, building funnels, or establishing event taxonomy standards. Applies to greenfield instrumentation and fixing messy existing tracking.
+Reference for designing event tracking systems, integrating analytics providers, building funnels, or establishing event taxonomy standards. Applies to greenfield instrumentation and fixing messy existing tracking.
 
 ## Analytics Provider Selection
 

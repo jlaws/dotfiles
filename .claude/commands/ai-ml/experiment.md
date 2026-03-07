@@ -1,6 +1,6 @@
 ---
 name: experiment
-description: "Create and run a timestamped experiment script with self-contained folder. Use when running ML experiments, parameter sweeps, or evaluation studies."
+description: "Create and run a timestamped experiment script with self-contained folder. Use when running ML experiments, parameter sweeps, or evaluation studies. Do NOT use for data exploration (use Jupyter directly)."
 argument-hint: <experiment-description>
 ---
 

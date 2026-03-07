@@ -1,6 +1,6 @@
 ---
 name: devops
-description: "DevOps consultation — CI/CD, containers, IaC, and observability. Use when configuring Docker, Kubernetes, Terraform, GitHub Actions, or monitoring."
+description: "DevOps consultation — CI/CD, containers, IaC, and observability. Use when configuring Docker, Kubernetes, Terraform, GitHub Actions, or monitoring. Do NOT use for cloud provider selection (use /cloud instead)."
 argument-hint: "<question-or-task>"
 ---
 

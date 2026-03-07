@@ -78,6 +78,19 @@ Explore context → Ask questions (one at a time) → Propose 2-3 approaches
 - **Incremental validation** — present design, get approval before moving on
 - **Be flexible** — go back and clarify when something doesn't make sense
 
+## Design Size Scale
+
+Scale the process to the task's complexity:
+
+| Task Size | Questions | Approaches | Design Document |
+|-----------|-----------|------------|-----------------|
+| Tiny (utility function, config) | 1-2 quick questions | 1-2 sentences each | Skip — inline approval is fine |
+| Small (single component, endpoint) | 2-3 questions | 2-3 brief approaches | Optional — user's choice |
+| Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes — save to docs/plans/ |
+| Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes — save and commit before proceeding |
+
+The process is the same regardless of size — the depth scales, not the steps. Even tiny tasks get clarifying questions.
+
 ## Red Flags
 
 - Writing code before design approval
@@ -85,3 +98,4 @@ Explore context → Ask questions (one at a time) → Propose 2-3 approaches
 - Presenting only one approach
 - Over-designing before asking clarifying questions
 - Assuming requirements instead of asking
+- Jumping to implementation details before understanding the "what" and "why"

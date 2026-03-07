@@ -1,6 +1,6 @@
 ---
 name: paper-analysis
-description: "Analyze an ML/AI research paper: structured summary, critical evaluation, and reviewer-style assessment using the three-pass method. Use when reviewing an academic paper, arxiv preprint, or conference submission."
+description: "Analyze an ML/AI research paper: structured summary, critical evaluation, and reviewer-style assessment using the three-pass method. Use when reviewing an academic paper, arxiv preprint, or conference submission. Do NOT use for quick paper summaries (ask directly instead)."
 argument-hint: "<paper-url-or-path>"
 ---
 

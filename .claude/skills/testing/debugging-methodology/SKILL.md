@@ -23,80 +23,69 @@ Random fixes waste time and create new bugs. Complete Phase 1 before proposing f
 
 **1. Read Error Messages Carefully**
 - Read stack traces completely; note line numbers, file paths, error codes
+- The error message often tells you exactly what's wrong — don't skim
 
 **2. Reproduce Consistently**
 - Can you trigger it reliably? Exact steps? Minimal reproduction?
-- If not reproducible, gather more data -- don't guess
+- If not reproducible, gather more data — don't guess
+- For intermittent issues: add logging with timestamps, stress test, look for race conditions
 
 **3. Check Recent Changes**
-- Git diff, recent commits, new dependencies, config changes
-
-**4. Gather Evidence (Multi-Component Systems)**
 ```bash
-# Trace at each component boundary
-echo "=== Layer 1: Workflow ==="
-echo "IDENTITY: ${IDENTITY:+SET}${IDENTITY:-UNSET}"
-
-echo "=== Layer 2: Build script ==="
-env | grep IDENTITY || echo "IDENTITY not in environment"
+git log --oneline -20                    # Recent commits
+git diff HEAD~5 -- src/                  # Recent code changes
+git log --all --oneline -- <file>        # History of specific file
 ```
 
-**5. Trace Data Flow** -- Where does bad value originate? Keep tracing up until you find the source.
+**4. Gather Evidence at Each Layer**
+
+For multi-component systems, trace at every boundary:
+
+```bash
+# Trace data flow through each layer
+echo "=== Layer: HTTP Request ==="    # What's coming in?
+echo "=== Layer: Middleware ==="      # What transforms it?
+echo "=== Layer: Business Logic ==="  # What processes it?
+echo "=== Layer: Database ==="        # What gets persisted?
+echo "=== Layer: Response ==="        # What goes out?
+```
+
+**5. Trace Data Flow** — Where does the bad value originate? Keep tracing upstream until you find the source.
+
+**6. Ask "Why Does It Work Locally?"**
+
+When bugs appear in production/CI but not locally:
+
+| Factor | Local | Production |
+|--------|-------|------------|
+| Concurrency | Single user, sequential | Many users, concurrent |
+| Data volume | Seed data, small | Real data, large |
+| Configuration | Dev defaults | Production settings (pool sizes, timeouts, caches) |
+| Network | localhost, fast | Real latency, DNS, proxies |
+| Dependencies | Mocked or local | Real services, rate limits |
+| Timing | Debugger pauses, slow | Full speed, race conditions |
+
+Map every environmental difference. The bug lives in one of these gaps.
 
 ### Phase 2: Pattern Analysis
 
 1. Find working examples of similar code
-2. Compare against references -- list every difference
+2. Compare against references — list every difference
 3. Understand dependencies (settings, config, environment)
 
 ### Phase 3: Hypothesis and Testing
 
 1. **Form Single Hypothesis**: "I think X is the root cause because Y"
 2. **Test Minimally**: Smallest possible change, one variable at a time
-3. **Verify**: Worked? -> Phase 4. Didn't? -> NEW hypothesis (don't add more fixes)
+3. **Verify**: Worked? → Phase 4. Didn't? → NEW hypothesis (don't add more fixes)
 
 ### Phase 4: Implementation
 
-1. **Create Failing Test** -- simplest possible reproduction, automated
-2. **Implement Single Fix** -- ONE change at a time
-3. **Verify** -- test passes? No other tests broken?
+1. **Create Failing Test** — simplest possible reproduction, automated
+2. **Implement Single Fix** — ONE change at a time
+3. **Verify** — test passes? No other tests broken?
 
 **If 3+ Fixes Failed**: Question architecture. STOP and discuss fundamentals.
-
----
-
-## Debugging Tools
-
-### JavaScript/TypeScript
-```typescript
-debugger;  // Pause execution
-console.table(arrayOfObjects);
-console.time('op'); /* code */ console.timeEnd('op');
-console.trace();  // Stack trace
-performance.mark('start'); /* code */ performance.mark('end');
-performance.measure('op', 'start', 'end');
-```
-
-### Python
-```python
-breakpoint()  # Python 3.7+
-# Post-mortem
-try: risky_operation()
-except: import pdb; pdb.post_mortem()
-# Profile
-import cProfile; cProfile.run('slow_function()', 'stats')
-```
-
-### Go
-```go
-import "runtime/debug"
-debug.PrintStack()
-// CPU profiling
-import "runtime/pprof"
-f, _ := os.Create("cpu.prof")
-pprof.StartCPUProfile(f)
-defer pprof.StopCPUProfile()
-```
 
 ---
 
@@ -111,29 +100,34 @@ git bisect good   # or bad, repeat until found
 git bisect reset
 ```
 
-### Condition-Based Waiting & Test Pollution
-
-See `condition-based-waiting-example.ts` for async wait patterns and `find-polluter.sh` for isolating test pollution.
-
 ### Differential Debugging
 
 | Aspect | Working | Broken |
 |--------|---------|--------|
 | Environment | Dev | Prod |
-| Node version | 18.16.0 | 18.15.0 |
+| Runtime version | 18.16.0 | 18.15.0 |
 | Data | Empty DB | 1M records |
+| Config | Default pool=5 | Custom pool=20 |
+
+### Condition-Based Waiting & Test Pollution
+
+See `references/condition-based-waiting.md` for async wait patterns and `references/root-cause-tracing.md` for systematic upstream tracing.
 
 ---
 
 ## Patterns by Issue Type
 
-- **Intermittent**: Add logging with timing, look for race conditions, stress test — see `references/condition-based-waiting.md`
-- **Performance**: Profile first, common culprits: N+1, unnecessary re-renders, sync I/O
-- **Production**: Gather evidence (Sentry/logs/metrics), reproduce locally, test fixes in staging
-- **Defense in depth**: Layered validation and error boundaries — see `references/defense-in-depth.md`
-- **Root cause tracing**: Systematic upstream tracing — see `references/root-cause-tracing.md`
+| Issue Type | Investigation Approach |
+|-----------|----------------------|
+| **Intermittent** | Add logging with timing, look for race conditions, stress test under load |
+| **Performance** | Profile first — common culprits: N+1 queries, unnecessary re-renders, sync I/O in async paths |
+| **Production-only** | Gather evidence (Sentry/logs/metrics), map local vs prod differences, reproduce under equivalent conditions |
+| **Connection/resource exhaustion** | Monitor pool metrics, check for leaks in error paths, look for N+1 patterns, check if `finally`/`defer` cleanup runs |
+| **Data-dependent** | Identify which data triggers it, find the minimum failing dataset, check for encoding/null/edge cases |
 
-## Red Flags -- STOP and Return to Phase 1
+For language-specific debugging tools (breakpoints, profilers, stack traces), see the corresponding language reference files.
+
+## Red Flags — STOP and Return to Phase 1
 
 - "Quick fix for now, investigate later"
 - "Just try changing X and see"
@@ -145,7 +139,8 @@ See `condition-based-waiting-example.ts` for async wait patterns and `find-pollu
 | "Issue is simple" | Simple issues have root causes too |
 | "Emergency, no time" | Systematic is FASTER than thrashing |
 | "Multiple fixes saves time" | Can't isolate what worked |
-| "I see the problem" | Seeing symptoms != understanding root cause |
+| "I see the problem" | Seeing symptoms ≠ understanding root cause |
+| "Just increase the pool size" | Treating symptoms hides the leak |
 
 ## Quick Debugging Checklist
 
@@ -156,4 +151,6 @@ See `condition-based-waiting-example.ts` for async wait patterns and `find-pollu
 - [ ] Async timing / race conditions
 - [ ] Scope issues / type mismatches
 - [ ] Missing dependencies / env vars
-- [ ] Cache issues
+- [ ] Cache / stale state
+- [ ] Error path cleanup (connections, file handles, locks)
+- [ ] Environment differences (local vs CI vs prod)

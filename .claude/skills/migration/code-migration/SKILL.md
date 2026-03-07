@@ -1,6 +1,6 @@
 ---
 name: code-migration
-description: "Codebase migration between frameworks, languages, versions, or platforms with assessment, planning, and rollback patterns. Use when migrating codebases between frameworks, languages, versions, or platforms. Provides migration assessment patterns, planning templates, framework-specific migration examples, testing strategies, rollback procedures, and automation approaches. Do NOT use for dependency version upgrades (use dependency-upgrade)."
+description: "Codebase migration between frameworks, languages, versions, or platforms with assessment, planning, and rollback patterns. Use when migrating codebases between frameworks, languages, versions, or platforms. Provides migration assessment patterns, planning templates, strategy selection, testing strategies, rollback procedures, and automation approaches. Do NOT use for dependency version upgrades (use dependency-upgrade)."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
@@ -10,174 +10,202 @@ skills:
 
 # Code Migration
 
-## Migration Assessment
+## The Iron Rule
 
-### Complexity Factors
-
-| Factor | Considerations |
-|--------|---------------|
-| Size | File count, LOC, component count |
-| Architectural | Coupling, layer separation, pattern usage |
-| Dependency | Third-party libs, version constraints, compatibility |
-| Business Logic | Complexity of rules, domain knowledge needed |
-| Data | Schema migrations, data transformations, integrity |
-
-### Risk Patterns to Scan
-
-```python
-risk_patterns = {
-    'global_state': { 'pattern': r'(global|window)\.\w+\s*=', 'severity': 'high' },
-    'direct_dom': { 'pattern': r'document\.(getElementById|querySelector)', 'severity': 'medium' },
-    'async_patterns': { 'pattern': r'(callback|setTimeout|setInterval)', 'severity': 'medium' },
-    'deprecated_apis': { 'pattern': r'(componentWillMount|componentWillReceiveProps)', 'severity': 'high' }
-}
+```
+ASSESS BEFORE PLANNING. PLAN BEFORE CODING. TEST BEFORE CUTTING OVER.
 ```
 
-## Migration Planning
+Never start migrating code without completing the assessment phase. Skipping assessment leads to mid-migration surprises that blow timelines.
 
-**Simple Migration (complexity < 3)**:
+## Phase 1: Migration Assessment
+
+### Step 1 — Quantify Scope
+
+```bash
+# Gather hard numbers before estimating anything
+find src/ -type f | wc -l                          # Total files
+cloc src/ --quiet                                  # LOC by language
+grep -r "import\|require" src/ | wc -l             # Dependency touchpoints
+find src/ -name "*.test.*" -o -name "*_test.*" | wc -l  # Test coverage proxy
+```
+
+### Step 2 — Score Complexity (1–5 per factor)
+
+| Factor | 1 (Low) | 3 (Medium) | 5 (High) |
+|--------|---------|------------|----------|
+| **Size** | <20 files, <2k LOC | 20-100 files, 2-20k LOC | >100 files, >20k LOC |
+| **Coupling** | Loose modules, clear interfaces | Some shared state, moderate coupling | Tight coupling, global state, circular deps |
+| **Dependencies** | Few third-party libs, all have equivalents | Some libs need replacement or adaptation | Core libs have no equivalent, custom forks |
+| **Business Logic** | Simple CRUD, straightforward rules | Moderate domain logic, some edge cases | Complex rules, financial calcs, compliance |
+| **Data** | Schema unchanged or trivial mapping | Schema changes needed, data transformable | Schema redesign, lossy transformations, large volumes |
+
+**Total score**: Sum ÷ 5 → complexity rating. <2 = simple, 2–3.5 = moderate, >3.5 = complex.
+
+### Step 3 — Identify Risk Patterns
+
+Scan the codebase for patterns that cause migration failures:
+
+| Risk Pattern | What to Look For | Why It's Dangerous |
+|-------------|------------------|--------------------|
+| Global/shared state | `global`, `window.*=`, singletons | Hidden dependencies between modules |
+| Dynamic dispatch | `eval`, `getattr`, monkey-patching | Can't statically trace call graph |
+| Platform-specific code | OS calls, browser APIs, native modules | May not have equivalents on target |
+| Implicit behavior | Convention-based routing, magic methods | Easy to miss during migration |
+| Serialized data | Pickle, Marshal, binary formats | Format may not survive version change |
+
+### Step 4 — Produce Assessment Document
+
+```markdown
+## Migration Assessment: [Source] → [Target]
+
+**Complexity Score**: X.X / 5.0
+**Estimated Effort**: [range] person-weeks
+**Risk Level**: Low / Medium / High
+
+### Scope
+- Files affected: N
+- LOC to migrate: N
+- Dependencies to replace: N (list them)
+- Test coverage: X% (measured, not guessed)
+
+### Critical Risks
+1. [Risk] — Impact: [what breaks] — Mitigation: [strategy]
+
+### Dependencies Without Direct Equivalents
+| Source Dependency | Purpose | Target Replacement | Effort |
+|---|---|---|---|
+
+### Unresolved Questions
+- [List every ambiguity — do NOT proceed with assumptions]
+```
+
+**If ANY unresolved questions exist: present the assessment and ask before proceeding to Phase 2.**
+
+## Phase 2: Strategy Selection
+
+Pick ONE strategy. Do not combine them.
+
+| Strategy | When to Use | Trade-off |
+|----------|-------------|-----------|
+| **Strangler Fig** | Large codebase, can run old+new side by side | Slower but lowest risk — migrate piece by piece behind a facade |
+| **Branch by Abstraction** | Shared codebase, can't run two versions | Introduce abstraction layer, swap implementations underneath |
+| **Big Bang** | Small codebase (<20 files) or forced by breaking changes | Fast but high risk — everything migrates at once |
+| **Parallel Run** | Data pipelines, APIs where correctness is critical | Run both, compare outputs, cut over when equivalent |
+
+### Strangler Fig Implementation Pattern
+
+```
+1. Identify a boundary (API endpoint, page, module)
+2. Build new version behind the boundary
+3. Route traffic/calls to new version
+4. Verify equivalence (tests, monitoring, shadow traffic)
+5. Remove old version
+6. Repeat for next boundary
+```
+
+## Phase 3: Migration Plan
+
+### Simple Migration (complexity < 2.5)
 
 | Phase | Duration | Tasks |
 |-------|----------|-------|
-| Preparation | 1 week | Setup project, install deps, configure build, setup testing |
-| Core Migration | 2-3 weeks | Migrate utilities, port components, update models, migrate logic |
-| Testing | 1 week | Unit, integration, performance testing, bug fixes |
+| Preparation | 1 week | Setup project, install deps, configure build, write comparison tests |
+| Core Migration | 2-3 weeks | Migrate module by module, run tests after each |
+| Validation | 1 week | Full test suite, performance comparison, edge cases |
 
-**Complex Migration (complexity >= 3)**:
+### Complex Migration (complexity ≥ 2.5)
 
 | Phase | Duration | Tasks |
 |-------|----------|-------|
-| Foundation | 2 weeks | Architecture design, PoC, tool selection, team training |
-| Infrastructure | 3 weeks | Build pipeline, dev environment, core abstractions |
-| Incremental | 6-8 weeks | Feature modules, adapters/bridges, dual runtime |
-| Cutover | 2 weeks | Complete remaining, remove legacy, optimize, final testing |
+| Foundation | 2 weeks | Architecture design, PoC for riskiest component, tool selection |
+| Infrastructure | 2-3 weeks | Build pipeline, abstraction layers, dual runtime support |
+| Incremental | 6-12 weeks | Module-by-module migration with comparison tests after each |
+| Cutover | 2 weeks | Remove legacy code, optimize, final validation, rollback drill |
 
-## Framework Migration: React to Vue
+### Migration Order
 
-```javascript
-// JSX to Template conversions
-template = template.replace(/className=/g, 'class=');
-template = template.replace(/onClick={/g, '@click="');
-template = template.replace(/{(\w+) && (.+?)}/g, '<template v-if="$1">$2</template>');
-template = template.replace(/{(\w+)\.map\(.*?\)}/g, '<template v-for="...">...</template>');
+Migrate in dependency order — leaves first, roots last:
 
-// Lifecycle mapping
-lifecycleMapping = {
-    'componentDidMount': 'mounted',
-    'componentDidUpdate': 'updated',
-    'componentWillUnmount': 'beforeDestroy',
-    'getDerivedStateFromProps': 'computed'
-};
+```
+1. Utilities / helpers (no internal dependencies)
+2. Data models / types
+3. Business logic modules
+4. Integration layers (APIs, database, external services)
+5. UI / presentation layer
+6. Configuration and build system
 ```
 
-## Framework Migration: Python 2 to 3
+## Phase 4: Testing Strategy
 
-```python
-# Key transformations
-'.iteritems()' -> '.items()'
-'.iterkeys()' -> '.keys()'
-'xrange' -> 'range'
-'.has_key(' -> ' in '
-'print statement' -> 'print()'
-'print >> file,' -> 'print(..., file=file)'
+### Comparison Tests (Write These FIRST)
+
+Before migrating any module, write tests that capture current behavior:
+
+```
+1. Identify public API of the module (functions, endpoints, events)
+2. Write tests against the OLD code that assert current behavior
+3. Run tests — they must pass on old code
+4. Migrate the module
+5. Run the SAME tests against new code — they must still pass
 ```
 
-## Framework Migration: REST to GraphQL
+This catches behavioral regressions that unit tests miss.
 
-```javascript
-// Map REST endpoints to GraphQL
-// GET /resources -> Query { resources }
-// POST /resources -> Mutation { createResource }
-// PUT /resources/:id -> Mutation { updateResource }
-// DELETE /resources/:id -> Mutation { deleteResource }
-```
+### Test Categories
 
-## Database: SQL to NoSQL
+| Category | What It Catches | When to Run |
+|----------|----------------|-------------|
+| Comparison tests | Behavioral regression | After each module migration |
+| Unit tests | Logic errors in new code | During development |
+| Integration tests | Cross-module compatibility | After each migration phase |
+| Performance tests | Latency/throughput regression | Before and after cutover |
+| Data validation | Data integrity issues | During and after data migration |
 
-```python
-# Design decisions for document structure
-for rel in relationships:
-    if rel['type'] == 'one-to-one' or should_embed(rel):
-        # Embed related data in document
-        structure['embedded'].append(rel)
-    else:
-        # Store reference (foreign key equivalent)
-        structure['references'].append(rel)
+## Phase 5: Rollback
 
-# Batch migration pattern
-async def migrate_table(table, mapping):
-    async for batch in read_in_batches(table, batch_size=1000):
-        documents = [transform_row_to_document(row, mapping) for row in batch]
-        await nosql[mapping['collection']].insert_many(documents)
-```
-
-## Rollback Triggers
+### Rollback Triggers — Decide These BEFORE Migrating
 
 | Condition | Threshold | Detection |
 |-----------|-----------|-----------|
-| Critical functionality broken | Any P0 feature | Automated monitoring |
-| Performance degradation | >50% response time increase | APM metrics |
-| Data corruption | Any integrity issues | Data validation checks |
-| High error rate | >5% error rate increase | Error tracking |
+| Critical functionality broken | Any P0 feature fails | Automated smoke tests |
+| Performance degradation | >50% latency increase at p95 | APM dashboard |
+| Data corruption | Any integrity check failure | Validation job |
+| Error rate spike | >5% increase over baseline | Error tracking |
 
-### Rollback by Strategy
+### Rollback Procedures by Strategy
 
-- **Blue-Green**: Switch load balancer back to blue environment
-- **Canary**: Shift traffic back to stable version
-- **Feature Flag**: Toggle flag off, monitor recovery
+| Strategy | Rollback Method | Time to Rollback |
+|----------|----------------|------------------|
+| Strangler Fig | Route traffic back to old module | Seconds (config change) |
+| Branch by Abstraction | Swap implementation back | Minutes (deploy) |
+| Big Bang | Deploy previous version | Minutes (CI/CD rollback) |
+| Feature Flag | Toggle flag off | Seconds |
 
-## Key Deliverables Checklist
+## Deliverables Checklist
 
-- [ ] Migration analysis of source codebase
-- [ ] Risk assessment with mitigation strategies
+- [ ] Migration assessment with complexity score
+- [ ] Strategy selection with rationale
 - [ ] Phased migration plan with timeline
-- [ ] Automated migration scripts
-- [ ] Comparison tests and validation
-- [ ] Rollback procedures
-- [ ] Progress tracking and monitoring
+- [ ] Comparison tests for each module (written before migration)
+- [ ] Rollback triggers and procedures defined
+- [ ] Progress tracking per module
 
 ## Agent Team Mode
 
-For large codebases (>50 files affected) or multi-module migrations where independent subsystems can be migrated in parallel.
+For large codebases (>50 files affected), parallelize by assigning independent modules to separate agents.
 
-### Team Configuration
+**Team shape**: 1 lead + N module-migrators + 1 reviewer.
+**File ownership**: Each migrator owns their module exclusively — no cross-module edits.
+**Workflow**: Lead runs assessment → creates plan → assigns modules → reviewer validates each completed module → lead handles integration.
 
 ```yaml
 team:
-  recommended_size: 3-5
   agent_roles:
     - name: module-migrator-N
-      type: general-purpose
-      focus: "Migrate assigned module/subsystem independently"
-      skills_loaded: ["migration:code-migration"]
+      focus: "Migrate assigned module independently"
     - name: migration-reviewer
-      type: Explore
-      focus: "Validate each migration against comparison tests and compatibility"
-      skills_loaded: ["migration:code-migration", "testing:language-testing-patterns"]
+      focus: "Validate migrations against comparison tests"
   file_ownership: "by-module"
   lead_mode: "delegate"
 ```
-
-### Team Workflow
-
-1. Lead runs Migration Assessment phase — complexity analysis, dependency graph, risk patterns
-2. Lead creates phased plan, assigns independent modules to module-migrator teammates
-3. Each module-migrator owns their file set exclusively — no cross-module edits
-4. migration-reviewer validates each completed module (tests pass, API compatibility, no regressions)
-5. Lead handles integration phase — cross-module wiring, full test suite, rollback preparation
-
-### File Ownership Example
-
-```
-module-migrator-1:
-  files: src/auth/**
-  constraint: Do NOT modify files outside this path
-
-module-migrator-2:
-  files: src/payments/**
-  constraint: Do NOT modify files outside this path
-```
-
-### Single-Agent Fallback
-
-Without team mode, execute all phases sequentially (default behavior). Team mode is an optional enhancement.
