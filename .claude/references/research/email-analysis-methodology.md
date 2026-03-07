@@ -37,31 +37,47 @@ Process AI research newsletter emails into structured, actionable summaries with
 # Newsletter Analysis: {newsletter-name} — {date}
 
 ## Summary
-{2-3 sentence overview of the newsletter's key themes}
+{1-2 sentence high-level overview}
+
+## Topic Overview
+
+### {Topic 1 Name}
+{2-3 sentences: what this topic covers, why it matters, which links below relate to it}
+
+### {Topic 2 Name}
+{2-3 sentences: what this topic covers, why it matters, which links below relate to it}
+
+{...repeat for each major theme in the newsletter}
 
 ## Research Papers
 
-| Paper | Authors | PDF | Key Contribution |
-|-------|---------|-----|-----------------|
-| [Title](url) | First Author et al. | [downloaded](backlog/filename.pdf) or failed | One-sentence practitioner-focused summary |
+| Paper | Authors | URL | PDF | Key Contribution |
+|-------|---------|-----|-----|-----------------|
+| Title | First Author et al. | https://arxiv.org/abs/... | [downloaded](backlog/filename.pdf) or failed | One-sentence practitioner-focused summary |
 
 ## Open Source Repositories
 
-| Repository | Stars | Language | Description |
-|-----------|-------|----------|-------------|
-| [name](url) | N | Lang | One-sentence description |
+| Repository | URL | Stars | Language | Description |
+|-----------|-----|-------|----------|-------------|
+| name | https://github.com/... | N | Lang | One-sentence description |
 
 ## Products & Tools
 
-| Name | Link | Description |
-|------|------|-------------|
-| Name | [link](url) | One-sentence description |
+| Name | URL | Description |
+|------|-----|-------------|
+| Name | https://example.com/... | One-sentence description |
 
 ## Blog Posts & Articles
 
-| Title | Source | Summary |
-|-------|--------|---------|
-| [Title](url) | Blog/Org name | One-sentence summary |
+| Title | URL | Source | Summary |
+|-------|-----|--------|---------|
+| Title | https://example.com/... | Blog/Org name | One-sentence summary |
+
+## New Links
+- https://example.com/link1
+- https://example.com/link2
+- https://example.com/resolved-redirect-url
+{all unique URLs from this analysis, one per line — includes both original and resolved/redirect URLs discovered during fetching; these are appended to the seen-links file}
 
 ## Stats
 - Total links processed: N
@@ -72,8 +88,10 @@ Process AI research newsletter emails into structured, actionable summaries with
 
 ## Guidelines
 
+- **Every item must include its source URL** — no entry should lack a clickable link
 - **Omit empty sections** — if no repos found, skip that section entirely
 - **Practitioner-focused** — descriptions should answer "why should I care?"
 - **De-duplicate** — same URL appearing in multiple newsletter sections counts once
 - **Download failures** — note in the PDF column (e.g., "failed: 403"), don't retry
+- **Redirect tracking** — when fetching URLs (PDFs, repo metadata), record any redirect/resolved URLs. Check each against seen-links; if already seen, skip entirely. Both original and final resolved URLs count as "seen" and appear in the New Links section
 - **Ambiguous categorization** — prefer the more specific category (paper > blog)
