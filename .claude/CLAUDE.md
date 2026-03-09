@@ -29,6 +29,10 @@ Full methodology: load skill `workflow/verification-before-completion`.
 - Never force push to main/master
 - Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
 
+## Bash Commands
+
+Never chain commands with `&&`, `||`, or `;`. Run each command as a separate Bash tool call to avoid compound-command permission prompts.
+
 ## Worktree Rules
 
 **Always load** skill `workflow/multi-agent-development` when spawning subagents with worktree isolation.
