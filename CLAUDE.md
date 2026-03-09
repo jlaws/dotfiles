@@ -37,7 +37,7 @@ dotfiles/
 └── .claude/           # Claude Code knowledge base
     ├── CLAUDE.md      # Global standards (source; setup.sh pushes to ~/)
     ├── agents/        # 14 specialist agents
-    ├── commands/      # 26 commands across 13 categories
+    ├── commands/      # 28 commands across 13 categories
     ├── references/    # 174 domain knowledge files
     └── skills/        # 22 contextual skill workflows
 ```
