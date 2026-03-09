@@ -21,6 +21,19 @@ STOP. Do NOT proceed with this skill. Instead:
 
 This skill is for the lead/parent agent or direct user sessions only.
 
+### Multi-Branch Integration
+
+When the parent has multiple worktree branches to integrate (e.g., after parallel subagent work):
+
+1. Create integration branch: `git checkout -b integrate/<description> main`
+2. Sequentially merge each branch:
+   ```bash
+   git merge <agent-branch> --no-edit
+   ```
+3. Run full test suite on merged result
+4. Clean up worktrees: `git worktree remove <path>` for each
+5. Proceed to Step 1 below on the integration branch
+
 ### Step 1: Verify Tests
 
 Run the project's full test suite before presenting any options.

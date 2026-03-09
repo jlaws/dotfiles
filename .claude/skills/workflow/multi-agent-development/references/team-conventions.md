@@ -45,13 +45,17 @@ Lead enforces boundaries during task creation. If a task needs files owned by an
 Subagents and teammates that edit code MUST run in worktree isolation. The lifecycle is:
 
 1. **Parent creates** — sets `isolation: "worktree"` when spawning
-2. **Agent works** — commits to the worktree branch, does NOT merge or clean up
+2. **Agent works** — commits to the worktree branch, then squashes before returning:
+   ```bash
+   git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary>"
+   ```
 3. **Parent receives** — worktree path + branch name in agent result
-4. **Parent merges** — integrates branch into main working tree
-5. **Parent cleans up** — removes worktree after successful merge
+4. **Parent merges** — integrates using `git merge <agent-branch> --no-edit` (or `git cherry-pick <commit>` for single commits)
+5. **Parent cleans up** — `git worktree remove <path>` after successful merge
 
 Agents must NEVER:
 - Delete their own worktree
 - Merge their branch into main/master
 - Run the `finishing-branch` skill
 - Call `git worktree remove`
+- Copy files to the parent worktree via `cp`, `rsync`, or any file-copy mechanism
