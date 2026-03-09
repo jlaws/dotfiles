@@ -37,9 +37,9 @@ Each agent must:
 - Make the specified changes to its assigned files only
 - Run lint/format on changed files
 - Commit changes to its isolated branch
-- Squash all commits before returning:
+- Stage and commit ALL changes, then squash before returning:
   ```bash
-  git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<batch N: summary>"
+  git add -A && git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<batch N: summary>"
   ```
 - NOT clean up its worktree (parent handles merge)
 - NOT invoke finishing-branch skill

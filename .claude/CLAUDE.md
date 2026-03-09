@@ -29,6 +29,20 @@ Full methodology: load skill `workflow/verification-before-completion`.
 - Never force push to main/master
 - Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
 
+## Worktree Rules
+
+**Always load** skill `workflow/multi-agent-development` when spawning subagents with worktree isolation.
+
+When running in a worktree (`isolation: "worktree"`):
+- **Commit ALL changes** before returning — uncommitted work is invisible to `git merge`
+- **Squash into one commit**:
+  ```bash
+  git add -A && git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary>"
+  ```
+- **NEVER** copy files out (`cp`, `rsync`, file-copy) — parent uses `git merge` to integrate
+- **NEVER** clean up your own worktree — parent handles merge + `git worktree remove`
+- **NEVER** invoke `finishing-branch` skill — return changes on-branch to parent
+
 ## Team Conventions
 When spawned as a teammate: load and follow `workflow/multi-agent-development` skill.
 Key rules: claim tasks via TaskUpdate, only edit declared files, DM the lead (never broadcast), verify before marking complete.
