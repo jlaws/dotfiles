@@ -57,9 +57,16 @@ Each agent gets:
 #### Integration After Parallel Work
 
 1. Read each agent's summary
-2. Verify fixes don't conflict
-3. Run full test suite
-4. Integrate all changes
+2. Create an integration branch: `git checkout -b integrate/<description> main`
+3. Sequentially merge each subagent's branch:
+   ```bash
+   git merge <agent-branch> --no-edit
+   ```
+4. Resolve conflicts between merges if any arise
+5. Run full test suite on merged result
+6. Clean up worktrees: `git worktree remove <path>` for each
+
+> **WARNING:** NEVER copy files between worktrees via `cp`, `rsync`, or any file-copy mechanism. Always use `git merge`.
 
 #### Worktree Isolation
 
@@ -73,8 +80,13 @@ Rules:
 - **Always set `isolation: "worktree"`** for any subagent that edits files
 - Subagents must **NEVER** clean up, delete, or remove their worktree — the parent handles merge and cleanup
 - Subagents must **NEVER** invoke the `finishing-branch` skill — return changes on-branch and let the parent decide integration
+- Subagents must **NEVER** copy files via `cp`, `rsync`, or any file-copy mechanism
+- Subagents must **squash all commits** before returning so the parent gets one clean commit per agent:
+  ```bash
+  git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary>"
+  ```
 - After the subagent completes, the parent receives the worktree path and branch name in the result
-- Parent merges changes from the returned branch, then cleans up the worktree
+- Parent merges changes from the returned branch using `git merge`, then cleans up the worktree
 
 #### When NOT to Parallelize
 
@@ -292,6 +304,8 @@ Example: a hook that runs tests before allowing task completion, rejecting if te
 - Forget to shut down teammates after work completes (resource leak)
 - Spawning implementation subagents without `isolation: "worktree"`
 - Subagent cleaning up its own worktree before parent merges
+- Copying files between worktrees instead of using git merge
+- Subagent returning without squashing commits
 
 ## Common Prompt Mistakes
 

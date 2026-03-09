@@ -37,6 +37,10 @@ Each agent must:
 - Make the specified changes to its assigned files only
 - Run lint/format on changed files
 - Commit changes to its isolated branch
+- Squash all commits before returning:
+  ```bash
+  git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<batch N: summary>"
+  ```
 - NOT clean up its worktree (parent handles merge)
 - NOT invoke finishing-branch skill
 
@@ -44,10 +48,16 @@ Pre-flight: verify each worktree is fully isolated before dispatching.
 
 ### Phase 3: Integration
 After all agents complete:
-1. Create a single PR branch from main
-2. Sequentially merge each agent's branch, resolving conflicts
+1. Create integration branch: `git checkout -b refactor/<description> main`
+2. Sequentially merge each agent's branch:
+   ```bash
+   git merge <agent-branch> --no-edit
+   ```
 3. Run full lint validation on the merged result
 4. Run tests if applicable
+5. Clean up worktrees: `git worktree remove <path>` for each
+
+> **WARNING:** NEVER use `cp`/`rsync` to copy files between worktrees. Always use `git merge`.
 
 ### Phase 4: PR
 Use `workflow/create-pr` skill to open the PR with a summary of all changes.
