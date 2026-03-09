@@ -33,6 +33,9 @@ export HSTR_CONFIG=hicolor
 [ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
 [ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
 
+# Lean (elan)
+[ -f "$HOME/.elan/env" ] && source "$HOME/.elan/env"
+
 # ====
 # Claude
 # ====

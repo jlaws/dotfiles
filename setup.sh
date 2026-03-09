@@ -189,6 +189,9 @@ install_homebrew_packages() {
 	go install golang.org/x/tools/gopls@latest
 	# Swift LSP: bundled with Xcode — no install needed
 
+	print_step "Installing Lean toolchain (elan)..."
+	curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+
 	print_step "Installing Claude Code..."
 	curl -fsSL https://claude.ai/install.sh | bash
 
