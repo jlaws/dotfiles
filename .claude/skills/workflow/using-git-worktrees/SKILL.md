@@ -68,6 +68,20 @@ cd "$path"
 # "Worktree ready at <path>, tests passing (N tests, 0 failures)"
 ```
 
+## Completing Work in a Worktree
+
+Before returning or signaling completion:
+
+1. **Stage and commit** all changes (nothing untracked or modified)
+2. **Squash** into a single commit:
+   ```bash
+   git add -A && git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary of changes>"
+   ```
+3. **Report** your branch name and worktree path to the parent/caller
+4. Do NOT remove the worktree, merge to main, or invoke `finishing-branch`
+
+> The parent agent is responsible for `git merge` and `git worktree remove`.
+
 ## Quick Reference
 
 | Situation | Action |

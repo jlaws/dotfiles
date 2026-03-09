@@ -81,9 +81,9 @@ Rules:
 - Subagents must **NEVER** clean up, delete, or remove their worktree — the parent handles merge and cleanup
 - Subagents must **NEVER** invoke the `finishing-branch` skill — return changes on-branch and let the parent decide integration
 - Subagents must **NEVER** copy files via `cp`, `rsync`, or any file-copy mechanism
-- Subagents must **squash all commits** before returning so the parent gets one clean commit per agent:
+- Subagents must **commit ALL changes then squash** before returning (nothing left untracked/modified):
   ```bash
-  git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary>"
+  git add -A && git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary>"
   ```
 - After the subagent completes, the parent receives the worktree path and branch name in the result
 - Parent merges changes from the returned branch using `git merge`, then cleans up the worktree
