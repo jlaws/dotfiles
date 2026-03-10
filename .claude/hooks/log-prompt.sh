@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 # Read JSON from stdin, extract prompt, append with timestamp
 INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')

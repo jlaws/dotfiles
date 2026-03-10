@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 INPUT=$(cat)
 ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false')
 # Don't fire on the follow-up stop (prevents infinite loop)
