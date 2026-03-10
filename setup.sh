@@ -114,13 +114,7 @@ sync_claude() {
 	print_step "Syncing Claude configuration to ${target}/.claude/..."
 	rsync -avh --no-perms .claude/CLAUDE.md "${target}/.claude/CLAUDE.md"
 
-	# Only write settings.json if it doesn't already exist
-	if [[ ! -f "${target}/.claude/settings.json" ]]; then
-		print_step "Creating ${target}/.claude/settings.json..."
-		rsync -avh --no-perms .claude/settings.json "${target}/.claude/settings.json"
-	else
-		print_step "Skipping settings.json (already exists)"
-	fi
+	rsync -avh --no-perms .claude/settings.json "${target}/.claude/settings.json"
 
 	print_step "Syncing Claude agents, commands, hooks, skills, and references..."
 	rsync -avh --no-perms .claude/agents/ "${target}/.claude/agents/"
