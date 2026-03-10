@@ -34,7 +34,7 @@ You automate the full PR workflow. Follow these steps in order:
 - Create PR with explicit title and body (never use `--fill`):
   - Title: the commit message or a summary of changes
   - Body: bullet-point summary of what changed, derived from `git log --oneline main..<branch>`
-  - Run `gh pr create --title "<title>" --body "<body>"`
+  - Run `gh pr create --draft --title "<title>" --body "<body>"`
 
 ## 5. Output
 - Display the PR URL returned by `gh pr create`
