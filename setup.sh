@@ -109,7 +109,7 @@ sync_claude() {
 	print_section "Syncing Claude Code Configuration"
 	print_step "Target: ${target}/.claude/"
 
-	mkdir -p "${target}/.claude/commands" "${target}/.claude/skills" "${target}/.claude/agents" "${target}/.claude/references"
+	mkdir -p "${target}/.claude/commands" "${target}/.claude/skills" "${target}/.claude/agents" "${target}/.claude/references" "${target}/.claude/hooks"
 
 	print_step "Syncing Claude configuration to ${target}/.claude/..."
 	rsync -avh --no-perms .claude/CLAUDE.md "${target}/.claude/CLAUDE.md"
@@ -122,9 +122,10 @@ sync_claude() {
 		print_step "Skipping settings.json (already exists)"
 	fi
 
-	print_step "Syncing Claude agents, commands, skills, and references..."
+	print_step "Syncing Claude agents, commands, hooks, skills, and references..."
 	rsync -avh --no-perms .claude/agents/ "${target}/.claude/agents/"
 	rsync -avh --no-perms .claude/commands/ "${target}/.claude/commands/"
+	rsync -avh --no-perms .claude/hooks/ "${target}/.claude/hooks/"
 	rsync -avh --no-perms .claude/skills/ "${target}/.claude/skills/"
 	rsync -avh --no-perms .claude/references/ "${target}/.claude/references/"
 }
