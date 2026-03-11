@@ -62,7 +62,7 @@ Group related tasks into milestones. Each milestone is a narrative arc: goal →
 ## Milestone 1: Database Foundation
 
 **Goal:** Schema and migrations run cleanly on a fresh database
-**Acceptance test:** `./bin/rails db:reset && ./bin/rails db:migrate:status` shows all migrations "up"
+**Acceptance test:** Run `./bin/rails db:reset` then `./bin/rails db:migrate:status` — shows all migrations "up"
 
 ### Task 1: Create schema file ...
 ### Task 2: Write migration ...

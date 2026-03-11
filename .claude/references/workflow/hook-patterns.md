@@ -2,6 +2,8 @@
 
 Reference for Claude Code hook configuration patterns. Hooks run shell commands at specific lifecycle points, enabling automated validation, formatting, and guardrails.
 
+> **Note:** Hook `"hook"` values are shell commands executed outside the Bash tool — they run as regular shell scripts. The "no compound commands" rule applies to Bash tool calls only, not to hook shell commands. However, prefer simple, focused hook commands where possible.
+
 ## Hook Lifecycle Points
 
 | Hook | Fires When | Common Use |

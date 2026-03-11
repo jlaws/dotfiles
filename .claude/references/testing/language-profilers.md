@@ -103,7 +103,8 @@ console.table(bench.table());
 ```bash
 pip install memory_profiler
 python -m memory_profiler script.py     # Line-by-line
-mprof run script.py && mprof plot       # Over time
+mprof run script.py
+mprof plot                               # Plot over time
 ```
 
 ### tracemalloc for Leak Detection

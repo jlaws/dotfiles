@@ -59,7 +59,7 @@ STOP. Do not proceed to Step 2. Fix tests first.
 ### Step 2: Determine Base Branch
 
 ```bash
-git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+git merge-base HEAD main
 ```
 
 Confirm with user: "This branch split from `main` — is that correct?"

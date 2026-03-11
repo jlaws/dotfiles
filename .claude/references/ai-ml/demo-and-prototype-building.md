@@ -145,7 +145,10 @@ huggingface-cli login
 huggingface-cli repo create my-demo --type space --space-sdk gradio
 git clone https://huggingface.co/spaces/my-username/my-demo
 cp app.py requirements.txt my-demo/
-cd my-demo && git add . && git commit -m "Initial demo" && git push
+cd my-demo
+git add .
+git commit -m "Initial demo"
+git push
 ```
 
 ## Custom CSS Theming

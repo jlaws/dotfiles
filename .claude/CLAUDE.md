@@ -31,7 +31,13 @@ Full methodology: load skill `workflow/verification-before-completion`.
 
 ## Bash Commands
 
-Never chain commands with `&&`, `||`, or `;`. Run each command as a separate Bash tool call to avoid compound-command permission prompts.
+**NEVER chain commands** in Bash tool calls. Each command = one Bash tool call.
+
+Prohibited operators: `&&`, `||`, `;`, `|` (piping to another command that could be its own call).
+
+`$(...)` command substitution within a single command is fine (e.g., `git reset --soft $(git merge-base HEAD main)`).
+
+This rule applies to Bash tool calls only — not to Dockerfile `RUN` layers, CI/CD `run:` blocks, or executable shell scripts (hooks, etc.).
 
 ## Worktree Rules
 
@@ -39,9 +45,15 @@ Never chain commands with `&&`, `||`, or `;`. Run each command as a separate Bas
 
 When running in a worktree (`isolation: "worktree"`):
 - **Commit ALL changes** before returning — uncommitted work is invisible to `git merge`
-- **Squash into one commit**:
+- **Squash into one commit** (three separate Bash tool calls):
   ```bash
-  git add -A && git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary>"
+  git add -A
+  ```
+  ```bash
+  git reset --soft $(git merge-base HEAD main)
+  ```
+  ```bash
+  git commit -m "<summary>"
   ```
 - **NEVER** copy files out (`cp`, `rsync`, file-copy) — parent uses `git merge` to integrate
 - **NEVER** clean up your own worktree — parent handles merge + `git worktree remove`

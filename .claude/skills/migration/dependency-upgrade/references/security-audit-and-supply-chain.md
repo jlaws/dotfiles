@@ -241,8 +241,11 @@ npm install {package}@{target}
 {generated from changelog analysis}
 
 ## Step 3: Test & Verify
-npm run lint && npm test && npm run type-check
+npm run lint
+npm test
+npm run type-check
 
 ## Rollback Plan
-git checkout package.json package-lock.json && npm install
+git checkout package.json package-lock.json
+npm install
 ```

@@ -39,7 +39,13 @@ Each agent must:
 - Commit changes to its isolated branch
 - Stage and commit ALL changes, then squash before returning:
   ```bash
-  git add -A && git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<batch N: summary>"
+  git add -A
+  ```
+  ```bash
+  git reset --soft $(git merge-base HEAD main)
+  ```
+  ```bash
+  git commit -m "<batch N: summary>"
   ```
 - NOT clean up its worktree (parent handles merge)
 - NOT invoke finishing-branch skill

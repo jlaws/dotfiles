@@ -73,9 +73,15 @@ cd "$path"
 Before returning or signaling completion:
 
 1. **Stage and commit** all changes (nothing untracked or modified)
-2. **Squash** into a single commit:
+2. **Squash** into a single commit (three separate Bash tool calls):
    ```bash
-   git add -A && git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary of changes>"
+   git add -A
+   ```
+   ```bash
+   git reset --soft $(git merge-base HEAD main)
+   ```
+   ```bash
+   git commit -m "<summary of changes>"
    ```
 3. **Report** your branch name and worktree path to the parent/caller
 4. Do NOT remove the worktree, merge to main, or invoke `finishing-branch`

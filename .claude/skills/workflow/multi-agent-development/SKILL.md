@@ -83,7 +83,13 @@ Rules:
 - Subagents must **NEVER** copy files via `cp`, `rsync`, or any file-copy mechanism
 - Subagents must **commit ALL changes then squash** before returning (nothing left untracked/modified):
   ```bash
-  git add -A && git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary>"
+  git add -A
+  ```
+  ```bash
+  git reset --soft $(git merge-base HEAD main)
+  ```
+  ```bash
+  git commit -m "<summary>"
   ```
 - After the subagent completes, the parent receives the worktree path and branch name in the result
 - Parent merges changes from the returned branch using `git merge`, then cleans up the worktree

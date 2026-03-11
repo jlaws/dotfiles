@@ -47,7 +47,13 @@ Subagents and teammates that edit code MUST run in worktree isolation. The lifec
 1. **Parent creates** — sets `isolation: "worktree"` when spawning
 2. **Agent works** — stages ALL changes, commits to the worktree branch, then squashes before returning:
    ```bash
-   git add -A && git reset --soft $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD master) && git commit -m "<summary>"
+   git add -A
+   ```
+   ```bash
+   git reset --soft $(git merge-base HEAD main)
+   ```
+   ```bash
+   git commit -m "<summary>"
    ```
 3. **Parent receives** — worktree path + branch name in agent result
 4. **Parent merges** — integrates using `git merge <agent-branch> --no-edit` (or `git cherry-pick <commit>` for single commits)

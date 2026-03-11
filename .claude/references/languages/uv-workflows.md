@@ -6,7 +6,8 @@ Fast Python package and environment manager. Replaces pip, poetry, and pipenv in
 
 ```bash
 # New project
-uv init my-project && cd my-project
+uv init my-project
+cd my-project
 uv python pin 3.12
 
 # Add dependencies (updates pyproject.toml + uv.lock in one step)
