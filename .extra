@@ -36,11 +36,11 @@ export HSTR_CONFIG=hicolor
 # Lean (elan)
 [ -f "$HOME/.elan/env" ] && source "$HOME/.elan/env"
 
-# ====
 # Claude
-# ====
-
 alias dclaude="docker sandbox run claude ./"
+
+# Python
+alias ve="source ./.venv/bin/activate"
 
 # =============================================================================
 # Git Configuration
