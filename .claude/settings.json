@@ -93,7 +93,6 @@
     "commit": "",
     "pr": ""
   },
-  "model": "opus",
   "sandbox": {
     "enabled": false,
     "autoAllowBashIfSandboxed": true,
