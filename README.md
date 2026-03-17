@@ -1,4 +1,4 @@
-# Joe's dotfiles
+# Dotfiles
 
 Dotfiles and macOS setup for a streamlined development environment.
 
