@@ -38,6 +38,7 @@ export HSTR_CONFIG=hicolor
 
 # Claude
 alias dclaude="docker sandbox run claude ./"
+alias vclaude="source ./.venv/bin/activate && claude"
 
 # Python
 alias ve="source ./.venv/bin/activate"
@@ -103,7 +104,7 @@ alias ga='git commit --amend --no-edit'
 alias gm='git checkout main'
 alias gcf='git checkout --'
 alias gr='git checkout main && git pull && git branch --merged | grep -v "\*\|main\|master" | xargs -n 1 git branch -d'
-alias gs='git checkout main && git pull && git checkout joe && git rebase main'
+alias gs='git checkout main && git pull'
 alias grmb='git branch | grep -v "main\|master" | xargs git branch -D'
 alias gitclean='git clean -ffxd'
 
