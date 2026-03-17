@@ -180,3 +180,4 @@ Install after running `setup.sh` launch claude and run:
 /plugin install commit-commands@claude-plugin-directory
 /plugin install claude-md-management@claude-plugin-directory
 ```
+
