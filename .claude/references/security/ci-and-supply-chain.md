@@ -59,6 +59,50 @@ yarn install --frozen-lockfile
 pip install --require-hashes -r requirements.txt
 ```
 
+## Container & Secrets Scanning
+
+### Trivy Container Image Scanning
+
+```yaml
+# GitHub Actions: scan container images for vulnerabilities
+- name: Build image
+  run: docker build -t myapp:${{ github.sha }} .
+
+- name: Trivy image scan
+  uses: aquasecurity/trivy-action@0.28.0
+  with:
+    image-ref: myapp:${{ github.sha }}
+    format: table
+    exit-code: 1          # Fail on findings
+    severity: CRITICAL,HIGH
+    ignore-unfixed: true  # Skip vulns with no patch available
+```
+
+### Gitleaks Secrets Detection
+
+```yaml
+# Pre-commit hook (.pre-commit-config.yaml)
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+# GitHub Actions CI
+- name: Gitleaks secrets scan
+  uses: gitleaks/gitleaks-action@v2
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### Combined SAST Pipeline Ordering
+
+```
+PR opened → lint → test → Semgrep (code) → Trivy (containers) → Gitleaks (secrets) → dependency audit → SBOM → build → deploy
+```
+
+Run static analysis in this order: code patterns first (cheapest, fastest), then container images (slower build required), then secrets (catches anything that slipped through), then dependency/supply-chain checks.
+
 ## Pinning vs Floating Versions
 
 | Strategy | Syntax | Pros | Cons |
