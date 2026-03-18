@@ -1,6 +1,15 @@
 
 # Design System Patterns
 
+## Theme-First Discipline
+
+Strict order for any new UI:
+1. Define design tokens (colors, spacing, typography) in CSS variables
+2. Build primitive components using tokens
+3. Build feature components on primitives
+
+No inline styles, hardcoded colors, or magic pixel values in components.
+
 ## Headless Component Libraries
 
 | Library | Framework | Bundle | Styling | Accessibility |

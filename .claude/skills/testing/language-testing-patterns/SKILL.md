@@ -118,7 +118,15 @@ For detailed language-specific patterns, see the corresponding reference files:
 ## Test Generation Patterns
 
 ### Naming Convention
-`test_{function}_{scenario}_{expected_result}`
+
+Test names describe **behavior**, not implementation:
+
+| Pattern | Example |
+|---|---|
+| `should [behavior] when [condition]` | `should_reject_login_when_password_expired` |
+| `test_{function}_{scenario}_{expected}` | `test_calculate_discount_bulk_order_20pct` |
+
+Avoid: `test_method_name`, `testCase1`, names referencing internal method names.
 
 ### Arrange-Act-Assert Structure
 ```python

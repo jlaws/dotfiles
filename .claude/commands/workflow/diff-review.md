@@ -235,6 +235,53 @@ For large diffs (>500 lines) or when invoked via `/team-review`. See Team Review
 - Verification before completion: See Verification Before Completion section below
 - PR comment resolution: Comment response patterns, inline reply workflow
 - Language-specific patterns: Auto-detected language-specific review lenses
+- Existing code discipline: See Existing Code Discipline section below
+
+### Existing Code Discipline
+
+Rules for working within an existing codebase. Check these during review.
+
+#### Read Before Modifying
+
+- **Read the entire file** before changing any part of it — not just the section you plan to edit
+- Understand the file's structure, conventions, and how your target section relates to the rest
+- Check for file-level comments, configuration blocks, or initialization that affects your change
+
+#### Match Existing Patterns
+
+- **Never introduce a new pattern** alongside an existing one without explicitly flagging the inconsistency
+- If the codebase uses pattern A for X, use pattern A — even if you prefer pattern B
+- If you believe a pattern should change, propose the migration as a separate task
+
+#### Understand Before Deleting
+
+Code may be used in ways not visible through static analysis:
+- Reflection, dynamic dispatch, string-based lookup
+- External consumers (APIs, plugins, downstream repos)
+- Build scripts, code generation, or test infrastructure
+- Feature flags or environment-conditional paths
+
+**If unsure whether code is used: ask, don't delete.**
+
+#### Scope Guard
+
+- If a "small fix" grows mid-implementation — **STOP and ask**
+- Define your change boundary before starting; resist scope creep
+- A fix that touches 3 files should not silently become a fix that touches 12
+
+#### Separate Refactoring from Features
+
+- Different commits minimum, different branches preferred
+- Never mix behavior changes with structural changes — reviewers can't tell what's intentional
+- Refactoring should be verifiable independently (tests still pass, behavior unchanged)
+
+#### Surface Hidden Assumptions
+
+Watch for and document when you encounter:
+- Implicit ordering dependencies (init before use, A before B)
+- Undocumented invariants (field X is always non-null after method Y)
+- Concurrency assumptions (single-threaded, lock held, queue ordering)
+- Environment assumptions (only works on macOS, requires specific env vars)
 
 ### Language-Specific Review Gotchas
 
@@ -512,7 +559,15 @@ For detailed language-specific patterns, see the corresponding reference files:
 ### Test Generation Patterns
 
 #### Naming Convention
-`test_{function}_{scenario}_{expected_result}`
+
+Test names describe **behavior**, not implementation:
+
+| Pattern | Example |
+|---|---|
+| `should [behavior] when [condition]` | `should_reject_login_when_password_expired` |
+| `test_{function}_{scenario}_{expected}` | `test_calculate_discount_bulk_order_20pct` |
+
+Avoid: `test_method_name`, `testCase1`, names referencing internal method names.
 
 #### Arrange-Act-Assert Structure
 ```python

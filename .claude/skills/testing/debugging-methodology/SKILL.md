@@ -17,6 +17,23 @@ NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 
 Random fixes waste time and create new bugs. Complete Phase 1 before proposing fixes.
 
+## The Two-Attempt Rule
+
+After 2 failed fix attempts at the same problem, **STOP**:
+
+| Attempts | Action |
+|----------|--------|
+| 1-2 | Normal Phase 3 (hypothesis + test) |
+| 3 | STOP. Structured analysis before retrying |
+| 3+ no progress | Ask user — root cause unclear or architectural change needed |
+
+**Structured analysis before attempt 3:**
+1. Write down what you tried and what happened
+2. Articulate your assumptions — which one is wrong?
+3. Identify information gaps
+4. Re-read relevant code with fresh eyes
+5. Return to Phase 1 with a new mental model
+
 ## The Four Phases
 
 ### Phase 1: Root Cause Investigation
@@ -85,7 +102,7 @@ Map every environmental difference. The bug lives in one of these gaps.
 2. **Implement Single Fix** — ONE change at a time
 3. **Verify** — test passes? No other tests broken?
 
-**If 3+ Fixes Failed**: Question architecture. STOP and discuss fundamentals.
+**If 3+ Fixes Failed**: See Two-Attempt Rule above. STOP and discuss fundamentals.
 
 ---
 
@@ -141,6 +158,18 @@ For language-specific debugging tools (breakpoints, profilers, stack traces), se
 | "Multiple fixes saves time" | Can't isolate what worked |
 | "I see the problem" | Seeing symptoms ≠ understanding root cause |
 | "Just increase the pool size" | Treating symptoms hides the leak |
+
+## Never Mask Errors
+
+| Masking Pattern | Do Instead |
+|---|---|
+| `catch (e) { /* ignore */ }` | Handle meaningfully or propagate |
+| `if (x != null)` around internal logic | Fix why x is null |
+| `@Disabled` / `skip()` on failing test | Fix the test or file tracked issue |
+| Try-catch wrapping entire function | Catch specific exceptions at boundaries |
+| Defensive null checks hiding broken contracts | Fix the broken contract upstream |
+
+If unfixable now: log it, track it, surface it. Never silence it.
 
 ## Quick Debugging Checklist
 
