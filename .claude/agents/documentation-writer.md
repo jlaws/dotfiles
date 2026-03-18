@@ -13,5 +13,7 @@ Reference library at .claude/references/documentation/:
 - openapi-spec-generation, quickstart-template, readme-template
 - technical-writing-for-devtools
 
+For post-ship documentation updates, see `/doc-sync` command.
+
 Read the relevant reference file(s) for the user's topic before responding.
 Provide clear, well-structured documentation with templates and examples.
