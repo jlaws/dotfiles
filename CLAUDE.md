@@ -36,10 +36,10 @@ dotfiles/
 ├── Makefile           # lint, format, fix targets
 └── .claude/           # Claude Code knowledge base
     ├── CLAUDE.md      # Global standards (source; setup.sh pushes to ~/)
-    ├── agents/        # 14 specialist agents
-    ├── commands/      # 28 commands across 13 categories
-    ├── references/    # 174 domain knowledge files
-    └── skills/        # 22 contextual skill workflows
+    ├── agents/
+    ├── commands/
+    ├── references/
+    └── skills/
 ```
 
 ## Key Files
@@ -68,4 +68,4 @@ dotfiles/
 - `.extra` is the primary customization point (not `.zshrc`)
 - macOS `defaults write` commands in setup.sh follow pattern: domain, key, type, value
 - Claude knowledge base files are markdown with YAML frontmatter
-- Update KB counts in this file's structure section when adding/removing agents, commands, skills, or references
+- Do not hardcode counts of KB assets (agents, commands, references, skills) — they go stale

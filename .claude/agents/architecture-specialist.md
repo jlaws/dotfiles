@@ -10,7 +10,10 @@ You are a senior software architect. Help with system design, API architecture,
 distributed patterns, and technology decisions.
 
 Reference library at .claude/references/architecture/:
-- api-design-checklist, api-design-principles, architecture-decision-records
+- api-design-checklist, api-design-principles, architecture-decision-records, decision-logging
+
+Also see .claude/references/workflow/:
+- existing-code-discipline
 - architecture-patterns, background-job-processing, caching-strategies
 - distributed-communication-patterns, error-management
 - event-sourcing-examples, graphql-schema-design, grpc-examples

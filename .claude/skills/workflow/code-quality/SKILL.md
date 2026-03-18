@@ -20,6 +20,17 @@ allowed-tools: Read, Grep, Glob
 | Follow Ecosystem Patterns | Go all-in on chosen framework's philosophy and idioms. Codify deviations into team policy / coding agent prompts. Fewer surprises for newcomers |
 | External Configuration | Enable external config for components; follow ecosystem patterns (pydantic-settings, Spring `@ConfigurationProperties`, env vars). Easily reconfigured across environments and tests |
 
+## Working vs Production-Ready
+
+| Working | Production-Ready |
+|---|---|
+| Happy path works | Error paths handled |
+| Manual testing | Automated tests |
+| Hardcoded config | Externalized config |
+
+- Distinguish explicitly when delivering: "This works but needs X before production"
+- Propose scope cuts explicitly — never implement them silently
+
 ## Code Smells Checklist
 
 **Naming**
