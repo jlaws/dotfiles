@@ -192,6 +192,26 @@ Can't check all boxes? You skipped TDD. Start over.
 
 Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix and prevents regression. Never fix bugs without a test.
 
+### Regression Test Pattern
+
+Formalized workflow for bug-driven test creation:
+
+1. **Reproduce** — Write a failing test with the exact scenario that triggered the bug
+2. **Name it** — `test_regression_{description}_{scenario}` (e.g., `test_regression_null_user_concurrent_login`)
+3. **Fix** — Minimal code change to make the test pass
+4. **Harden** — Add boundary variants around the fix
+
+| Bug Type | Regression Test Pattern |
+|----------|----------------------|
+| Null/undefined crash | Test with null, empty, and boundary inputs |
+| Off-by-one | Test at boundary, boundary-1, boundary+1 |
+| Race condition | Test concurrent access with shared state |
+| State corruption | Test state transitions in exact failing sequence |
+| Parsing failure | Test with exact malformed input + similar variants |
+| Auth bypass | Test with each role/permission that should be denied |
+
+**Key rule:** The regression test must fail without the fix and pass with it. If you can't demonstrate both states, you're not testing the right thing.
+
 ## Testing Anti-Patterns
 
 When adding mocks or test utilities, read @references/testing-anti-patterns.md to avoid common pitfalls:

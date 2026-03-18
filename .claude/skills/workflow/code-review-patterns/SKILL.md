@@ -243,3 +243,4 @@ For large diffs (>500 lines) or when invoked via `/team-review`. See [references
 - `workflow:verification-before-completion` — Verification gate if implementing fixes
 - `workflow:pr-comment-resolution` — Comment response patterns, inline reply workflow
 - `languages:*-patterns` — Auto-detected language-specific review lenses
+- `references/workflow/review-checklists` — Supplementary checklists: SQL safety, race conditions, LLM trust boundaries, enum matching, design system compliance

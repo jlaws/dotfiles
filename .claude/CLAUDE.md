@@ -9,6 +9,7 @@ Full methodology: load skill `workflow/verification-before-completion`.
 - For design decisions: propose 2-3 approaches, lead with recommendation
 - **Skill lookup**: Before ANY implementation action, check `.claude/skills/` and `.claude/references/` for applicable workflows. Full methodology: load skill `workflow/skill-lookup-discipline`. Process skills first (design-first, debugging), then implementation skills (code-quality, TDD).
 - **Honest opposition**: Push back with reasoning when you disagree — agreeing because it's easier is a failure mode
+- **Completeness**: When CC effort is low relative to human effort, prefer thorough over "good enough" (see `references/workflow/completeness-principle`)
 
 ## Context Preservation
 - On compaction: preserve current task, file paths being edited, test results, and key decisions. Discard exploration output and intermediate reasoning.
