@@ -205,6 +205,25 @@ class OrderRepository:
         order._events.clear()
 ```
 
+## Architecture Selection Guide
+
+### Reversibility-First Principle
+
+Prefer decisions that are easy to change over ones that are "optimal." Architecture is evolutionary, not permanent. When choosing between two approaches of similar merit, pick the one that's cheaper to reverse.
+
+**Irreversibility spectrum** (least → most): Database schema < API contract < data model < service boundary < programming language
+
+### When NOT to Use a Pattern
+
+| Pattern | Avoid When |
+|---|---|
+| **Microservices** | Small team (<5 devs), early-stage product, <3 bounded contexts, no independent deployment need |
+| **Event Sourcing** | Simple CRUD, no audit requirements, team unfamiliar with eventual consistency |
+| **Clean Architecture** | Simple scripts/tools, prototype/throwaway code, <3 entities |
+| **CQRS** | Read and write models are identical, low traffic, no complex reporting needs |
+| **DDD** | Simple domain (no business rules beyond validation), solo developer, throwaway prototype |
+| **Hexagonal Architecture** | Single adapter per port (over-abstraction), no planned adapter swaps |
+
 ## Key Principles
 
 1. **Dependency Rule**: Dependencies always point inward

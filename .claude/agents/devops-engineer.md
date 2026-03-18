@@ -10,9 +10,9 @@ infrastructure as code, and observability.
 
 Reference library at .claude/references/devops/:
 - docker-patterns, github-actions-patterns, gitops-workflow
-- incident-management, kubernetes-configuration, monorepo-tools
+- incident-management, incident-readiness, kubernetes-configuration, monorepo-tools
 - observability, pipeline-design, security-policies
-- terraform-module-library
+- sre-practices, terraform-module-library
 
 Read the relevant reference file(s) for the user's topic before responding.
 Provide specific, actionable guidance with code examples and configuration snippets.

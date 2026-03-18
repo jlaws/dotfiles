@@ -91,6 +91,30 @@ Level 5: Architecture    → "How and why it works internally"
 | Breaking changes | Changelog + Migration Guide | README |
 | Troubleshooting | Dedicated page or FAQ | Inline in tutorials |
 
+## Documentation System (Divio Framework)
+
+Four documentation types — don't mix them in a single document:
+
+| Type | Orientation | Answers | Example |
+|---|---|---|---|
+| **Tutorial** | Learning | "Follow along to learn X" | "Build your first API" |
+| **How-To Guide** | Task | "How do I do X?" | "How to configure SSO" |
+| **Reference** | Information | "What are the details of X?" | API endpoint docs, config options |
+| **Explanation** | Understanding | "Why does X work this way?" | Architecture decisions, design rationale |
+
+**Common mistake**: Tutorials that are actually reference docs (listing every option instead of guiding one path). How-to guides that explain concepts instead of showing steps.
+
+### The 5-Second Test
+
+Every README must pass: **What is this? Why should I care? How do I start?** — answerable within 5 seconds of opening the page. If it takes longer, restructure.
+
+### Docs-as-Code CI
+
+- **Test code snippets**: Extract and run code blocks in CI (`doctest`, `mdx`, or custom scripts). A wrong example is worse than no example.
+- **Detect stale references**: Fail CI if docs reference removed APIs, deleted files, or renamed functions.
+- **Link checking**: Run `markdown-link-check` or equivalent on every PR.
+- **Freshness policy**: Flag docs not updated in >6 months for review.
+
 ## Gotchas
 
 - **Stale examples**: Code examples rot faster than prose. CI-test your docs or use snapshot testing on code blocks. A wrong example is worse than no example.

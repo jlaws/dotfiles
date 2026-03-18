@@ -71,7 +71,15 @@ skills:
 
 ### Common Pitfalls
 
-Perfectionism (blocking for style) | Scope creep ("while you're at it...") | Delayed reviews | Rubber stamping | Bike shedding
+| Anti-Pattern | Problem | Fix |
+|---|---|---|
+| **Perfectionism** | Blocking for style preferences | Use linters; only block for correctness |
+| **Scope creep** | "While you're at it..." | File separate issues for unrelated improvements |
+| **Delayed reviews** | PRs stale for days | Review within 4 business hours |
+| **Rubber stamping** | Approving without reading | Use the phased review process above |
+| **Bike shedding** | Debating trivial choices at length | Time-box; default to author's preference |
+| **Drip-feed comments** | Incomplete feedback across multiple rounds | Give complete feedback in one round; forces thorough upfront analysis |
+| **Gatekeeper framing** | Reviews as compliance gates | Frame as knowledge transfer — every comment should teach something. Mentor, not gatekeeper |
 
 ---
 

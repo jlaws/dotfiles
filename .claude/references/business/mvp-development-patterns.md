@@ -191,6 +191,44 @@ Week 3: Learn + decide
 
 **Rule**: You get 3 innovation tokens. Spend them on your core differentiator, not infrastructure.
 
+## 3-Day Prototype Timeline
+
+For hypothesis validation, not production features. Ship ugly, learn fast.
+
+### Stack Selection for Speed
+
+| Need | Pick | Why |
+|------|------|-----|
+| Web app | Next.js + Vercel | Zero-config deploy, API routes built in |
+| Landing page | Astro or plain HTML | No framework overhead |
+| Backend API | Express/FastAPI + Railway | Deploy in minutes |
+| Database | Supabase or PlanetScale | Managed, free tier, instant setup |
+| Auth | Clerk or Supabase Auth | 15-minute integration |
+| Payments | Stripe Checkout | Hosted payment page, no custom UI |
+
+### Timeline
+
+| Half-Day | Deliverable | Acceptance |
+|----------|-------------|------------|
+| **Day 1 AM** | Problem hypothesis written, stack chosen, repo scaffolded, deploy pipeline working | Can deploy to a URL |
+| **Day 1 PM** | Core happy path implemented (1 workflow, no edge cases) | One user can complete the primary action |
+| **Day 2 AM** | Analytics instrumented, feedback mechanism added | Events firing, feedback collectible |
+| **Day 2 PM** | Edge cases that block testing fixed, 5 test users invited | Real users can try it |
+| **Day 3 AM** | Observe usage data, conduct 3 user interviews | Qualitative + quantitative signal |
+| **Day 3 PM** | Decision: pivot, persevere, or kill | Written decision with evidence |
+
+### Hypothesis-Signal Loop
+
+1. **HYPOTHESIS**: "[User type] has [problem] and will [action] if we [solution]"
+2. **PROTOTYPE**: Build the minimum that tests the hypothesis (not the minimum product)
+3. **SIGNAL**: Define upfront what "success" looks like (e.g., >30% complete the action)
+4. **DECISION**: Signal met → invest more. Signal absent → pivot or kill. Ambiguous → tighter scope, run again.
+
+### Rules
+- No feature flags, no A/B tests, no polish — raw signal only
+- If you can't ship in 3 days, your scope is too big — cut until you can
+- Every prototype gets a written decision at the end, not a "let's keep going"
+
 ## Gotchas and Anti-Patterns
 
 ### Premature Scaling

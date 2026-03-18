@@ -4,10 +4,24 @@
 
 | Severity | Impact | Response Time | Example |
 |----------|--------|---------------|---------|
-| **SEV1** | Complete outage, data loss | 15 min | Production down |
-| **SEV2** | Major degradation | 30 min | Critical feature broken |
+| **SEV1** | Complete outage, data loss | 5 min | Production down |
+| **SEV2** | Major degradation | 15 min | Critical feature broken |
 | **SEV3** | Minor impact | 2 hours | Non-critical bug |
 | **SEV4** | Minimal impact | Next business day | Cosmetic issue |
+
+## Incident Command Roles
+
+| Role | Responsibility | Handoff Trigger |
+|------|----------------|-----------------|
+| **Incident Commander (IC)** | Owns resolution, delegates work, makes decisions | Shift change or 2+ hours in |
+| **Communications Lead** | Status updates to stakeholders every 15 min (SEV1) / 30 min (SEV2) | IC assigns when external impact |
+| **Tech Lead** | Drives technical investigation and fix | IC assigns for complex incidents |
+| **Scribe** | Maintains real-time timeline in incident channel | IC assigns for SEV1/SEV2 |
+
+### IC Decision Authority
+- IC can roll back without approval
+- IC can page anyone in the org
+- IC cannot make permanent architecture changes (post-incident only)
 
 ## Runbook Structure
 
@@ -32,6 +46,16 @@ Every runbook needs: Overview, Detection, Triage, Mitigation, Root Cause, Resolu
 | > 15 min unresolved SEV1 | Engineering Manager |
 | Data breach suspected | Security Team |
 | Customer communication needed | Support Lead |
+
+### Auto-Escalation Triggers
+
+| Condition | Action | Timeline |
+|-----------|--------|----------|
+| Impact doubling (users, error rate) | Escalate severity by 1 | Immediate |
+| No root cause identified | Page senior engineer | After 30 min |
+| No IC response to page | Page backup IC + manager | After 5 min |
+| Customer-facing SEV1 with no status update | Alert Comms Lead | After 10 min |
+| Incident crosses team boundaries | IC pages second team lead | Immediate |
 
 ## On-Call Handoff
 

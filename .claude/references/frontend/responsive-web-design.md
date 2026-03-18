@@ -262,6 +262,25 @@ body {
 />
 ```
 
+## Performance Budget Targets
+
+| Metric | Target | Measurement |
+|---|---|---|
+| **LCP** (Largest Contentful Paint) | <2.5s | Core Web Vital — largest visible element render time |
+| **FID** (First Input Delay) | <100ms | Core Web Vital — time to first interaction response |
+| **INP** (Interaction to Next Paint) | <200ms | Core Web Vital (replaces FID March 2024) |
+| **CLS** (Cumulative Layout Shift) | <0.1 | Core Web Vital — visual stability score |
+| **Lighthouse Performance** | 90+ | Synthetic benchmark floor |
+| **Page load (3G)** | <3s | Mobile constraint — test with Chrome DevTools throttling |
+| **Total page weight** | <500KB initial | First load; lazy-load the rest |
+| **JavaScript bundle** | <150KB gzipped | Main bundle; code-split aggressively |
+
+### Enforcement
+
+- Run Lighthouse CI in pull requests — block merge if score drops below 85
+- Set `performance.budgets` in `next.config.js` or webpack config
+- Track Core Web Vitals in production via `web-vitals` library → analytics pipeline
+
 ## Gotchas
 
 - **Viewport units on mobile**: `100vh` includes browser chrome; use `100dvh` (dynamic viewport height) instead
