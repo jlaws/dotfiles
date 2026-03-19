@@ -100,7 +100,7 @@ If in a worktree, clean it up after merge.
 ```bash
 git push -u origin <feature-branch>
 
-gh pr create --draft --title "<title>" --body "$(cat <<'EOF'
+gh pr create --title "<title>" --body "$(cat <<'EOF'
 ## Summary
 <2-3 bullets of what changed>
 

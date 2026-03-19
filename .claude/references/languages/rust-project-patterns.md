@@ -64,8 +64,11 @@ Source: Rust Style Guide. Only rules linters/formatters cannot enforce.
 
 ```
 src/main.rs, cli.rs, config.rs, error.rs, lib.rs
+src/cli_test.rs, config_test.rs              ← unit tests
 src/commands/mod.rs, init.rs, run.rs
-tests/integration_test.rs
+src/commands/init_test.rs                    ← unit tests
+tests/integration_test.rs                    ← integration tests
+tests/common/mod.rs                          ← shared test helpers
 benches/benchmark.rs
 ```
 
@@ -217,3 +220,19 @@ lint:  ; cargo clippy -- -D warnings
 fmt:   ; cargo fmt --check
 bench: ; cargo bench
 ```
+
+## Testing
+
+### Unit Tests
+- Place in `*_test.rs` files alongside production code (e.g., `src/config_test.rs` for `src/config.rs`)
+- Never use `#[cfg(test)] mod tests` inline in production files
+- Use `#[cfg(test)]` on the test file, import from production module with `use super::*` or explicit imports
+
+### Integration Tests
+- Place in `tests/` directory at project root
+- Each file in `tests/` is compiled as a separate crate — only tests public API
+- No `#[cfg(test)]` needed (Cargo handles this automatically)
+- Shared test helpers go in `tests/common/mod.rs` (NOT `tests/common.rs` — that becomes a test crate)
+
+### Binary Crate Testing
+- Keep `src/main.rs` thin — move logic to `src/lib.rs` so integration tests can exercise it
