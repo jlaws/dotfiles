@@ -21,6 +21,22 @@ Source: Rust Style Guide. Only rules linters/formatters cannot enforce.
 - Single `#[derive(...)]` — don't split into multiple
 - Comments: complete sentences, capital letter, period
 
+### Error Handling
+- **Never use `.unwrap()` or `.expect()` on `Option`/`Result` in production code**
+- Use `?` operator for propagation; return typed errors
+- Use guard statements for early returns:
+  ```rust
+  let Some(val) = expr else { return Err(MyError::Missing) };
+  let Ok(val) = expr else { return Err(MyError::Failed) };
+  ```
+- On failure: log with `tracing`, return a typed error, recover/retry when possible
+
+| Instead of | Use |
+|------------|-----|
+| `.unwrap()` | `let ... else { log + return }`, `.unwrap_or_default()` |
+| `.expect("msg")` | `.context("msg")?` (anyhow) or map to typed error |
+| `panic!` on bad input | Return `Result` with descriptive error variant |
+
 ## Tooling Defaults
 
 | Concern | Use |
@@ -109,8 +125,13 @@ async fn main() {
         .route("/health", get(|| async { "ok" }))
         .layer(CorsLayer::permissive());
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let Ok(listener) = tokio::net::TcpListener::bind("0.0.0.0:3000").await else {
+        tracing::error!("failed to bind to port 3000");
+        return;
+    };
+    if let Err(e) = axum::serve(listener, app).await {
+        tracing::error!(%e, "server error");
+    }
 }
 ```
 
