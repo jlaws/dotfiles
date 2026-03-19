@@ -62,7 +62,6 @@ git commit -m "test(auth): add unit tests for validation (#${ISSUE_NUMBER})"
 
 ```bash
 gh pr create \
-  --draft \
   --title "Fix #${ISSUE_NUMBER}: Clear description of the fix" \
   --body "$(cat <<EOF
 ## Summary
