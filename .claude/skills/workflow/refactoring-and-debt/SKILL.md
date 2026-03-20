@@ -193,35 +193,16 @@ Leave the code a little better than you found it.
 3. Long-term: [6 months]
 ```
 
-## Agent Team Mode
+## Parallel Subagents
 
-For comprehensive debt audits of large codebases.
+For comprehensive debt audits of large codebases, dispatch parallel Explore subagents:
 
-```yaml
-team:
-  recommended_size: 4
-  agent_roles:
-    - name: code-debt-analyst
-      type: Explore
-      focus: "Duplication, complexity, code smell inventory"
-      skills: ["workflow:refactoring-and-debt", "workflow:code-quality"]
-    - name: arch-debt-analyst
-      type: Explore
-      focus: "Boundary violations, dependency analysis, pattern drift"
-      skills: ["workflow:refactoring-and-debt"]
-      references: [".claude/references/architecture/architecture-decision-records.md"]
-    - name: test-debt-analyst
-      type: Explore
-      focus: "Coverage gaps, flaky tests, missing integration tests"
-      skills: ["workflow:refactoring-and-debt", "testing:language-testing-patterns"]
-    - name: infra-debt-analyst
-      type: Explore
-      focus: "Deployment gaps, monitoring holes, dependency health"
-      skills: ["workflow:refactoring-and-debt"]
-      references: [".claude/references/devops/observability.md"]
-  file_ownership: "shared-read-only"
-  lead_mode: "hands-on"
-```
+1. **code-debt-analyst** (Explore) — Duplication, complexity, code smell inventory
+2. **arch-debt-analyst** (Explore) — Boundary violations, dependency analysis, pattern drift
+3. **test-debt-analyst** (Explore) — Coverage gaps, flaky tests, missing integration tests
+4. **infra-debt-analyst** (Explore) — Deployment gaps, monitoring holes, dependency health
+
+After all subagents return, synthesize findings: deduplicate, resolve contradictions, produce unified debt assessment report.
 
 ## Cross-References
 

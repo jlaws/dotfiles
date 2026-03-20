@@ -1,6 +1,6 @@
 ---
 name: arch
-description: "Architecture consultation — API design, distributed patterns, and system design. Use when designing APIs, choosing architecture patterns, or making technology decisions. Do NOT use for documenting an existing architecture (use /team-design instead)."
+description: "Architecture consultation — API design, distributed patterns, and system design. Use when designing APIs, choosing architecture patterns, or making technology decisions."
 argument-hint: "<question-or-task>"
 ---
 

@@ -61,12 +61,6 @@ When running in a worktree (`isolation: "worktree"`):
 - **NEVER** clean up your own worktree — parent handles merge + `git worktree remove`
 - **NEVER** invoke `finishing-branch` skill — return changes on-branch to parent
 
-## Team Conventions
-When spawned as a teammate: load and follow `workflow/multi-agent-development` skill.
-Key rules: claim tasks via TaskUpdate, only edit declared files, DM the lead (never broadcast), verify before marking complete.
-
----
-
 ## Knowledge Base Structure
 - **skills/**: Cross-cutting workflows loaded on demand (code review, debugging, TDD, etc.)
 - **references/**: Domain knowledge loaded on-demand by agents and commands

@@ -191,21 +191,11 @@ This catches behavioral regressions that unit tests miss.
 - [ ] Rollback triggers and procedures defined
 - [ ] Progress tracking per module
 
-## Agent Team Mode
+## Parallel Subagents
 
-For large codebases (>50 files affected), parallelize by assigning independent modules to separate agents.
+For large codebases (>50 files affected), dispatch parallel subagents to migrate independent modules:
 
-**Team shape**: 1 lead + N module-migrators + 1 reviewer.
-**File ownership**: Each migrator owns their module exclusively — no cross-module edits.
-**Workflow**: Lead runs assessment → creates plan → assigns modules → reviewer validates each completed module → lead handles integration.
+1. **module-migrator-N** (general-purpose, `isolation: "worktree"`) — Migrate assigned module independently. Each migrator owns their module exclusively — no cross-module edits.
+2. **migration-reviewer** (Explore) — Validate completed migrations against comparison tests.
 
-```yaml
-team:
-  agent_roles:
-    - name: module-migrator-N
-      focus: "Migrate assigned module independently"
-    - name: migration-reviewer
-      focus: "Validate migrations against comparison tests"
-  file_ownership: "by-module"
-  lead_mode: "delegate"
-```
+**Workflow**: Lead runs assessment, creates plan, dispatches module-migrators in parallel, reviewer validates each completed module, lead handles integration via `git merge`.
