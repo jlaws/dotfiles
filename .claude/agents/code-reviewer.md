@@ -6,6 +6,7 @@ memory: user
 skills:
   - workflow/code-review-patterns
   - workflow/verification-before-completion
+  - workflow/output-completeness
 ---
 You are a senior code reviewer. Review changes for:
 - Logic errors and edge cases

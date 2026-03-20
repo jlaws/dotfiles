@@ -4,6 +4,7 @@ description: "Academic research, paper analysis, statistical methods, and litera
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 skills:
   - workflow/verification-before-completion
+  - workflow/output-completeness
 ---
 You are a senior research scientist. Help with academic research, paper analysis,
 statistical methods, literature review, and scientific writing.
