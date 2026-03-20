@@ -1,6 +1,6 @@
 ---
 name: code-review-patterns
-description: Code review practices — giving feedback, receiving feedback, and pre-submission diff review. Use when reviewing PRs, responding to review feedback, or running a self-review. Do NOT use for general code smell detection outside PR context (use code-quality).
+description: Use when reviewing PRs, responding to review feedback, or running a self-review. Do NOT use for general code smell detection outside PR context (use code-quality).
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 skills:
@@ -241,13 +241,15 @@ After all subagents return, synthesize findings: deduplicate, resolve contradict
 
 ## Cross-References
 
-- `workflow:code-quality` — Code smell detection, anti-pattern identification
-- `security:security-analysis` — STRIDE model, vulnerability pattern matching
-- `security:auth-implementation-patterns` — Auth review checklist
-- `security:secrets-management` — Secrets detection patterns
-- `testing:language-testing-patterns` — Coverage analysis, test quality assessment
-- `testing:test-driven-development` — Test design principles
-- `workflow:verification-before-completion` — Verification gate if implementing fixes
-- `workflow:pr-comment-resolution` — Comment response patterns, inline reply workflow
-- `languages:*-patterns` — Auto-detected language-specific review lenses
-- `references/workflow/review-checklists` — Supplementary checklists: SQL safety, race conditions, LLM trust boundaries, enum matching, design system compliance
+Load these skills if the review scope requires them:
+- `workflow:code-quality` — if detecting code smells or anti-patterns not covered above
+- `security:security-analysis` — if the diff touches auth, crypto, network, or trust boundaries
+- `security:auth-implementation-patterns` — if reviewing auth/authz logic specifically
+- `security:secrets-management` — if the diff contains credentials, tokens, or env var handling
+- `testing:language-testing-patterns` — if assessing test coverage or test quality
+- `testing:test-driven-development` — if evaluating test design or TDD compliance
+- `workflow:verification-before-completion` — if implementing fixes discovered during review
+- `workflow:pr-comment-resolution` — if responding to reviewer feedback on your own PR
+- `languages:*-patterns` — load the language-specific skill matching the primary language in the diff
+
+If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `references/workflow/review-checklists` for domain-specific checklists.

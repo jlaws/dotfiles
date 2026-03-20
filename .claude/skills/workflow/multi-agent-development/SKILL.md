@@ -1,6 +1,6 @@
 ---
 name: multi-agent-development
-description: "Subagent coordination patterns for parallel and sequential task execution with task sizing, file ownership, and worktree isolation. Use when coordinating multiple subagents for parallel/sequential tasks. Do NOT use for general Claude Code workflow optimization (use code-agent-meta-patterns)."
+description: "Use when coordinating multiple subagents for parallel/sequential tasks. Do NOT use for general Claude Code workflow optimization (use code-agent-meta-patterns)."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---

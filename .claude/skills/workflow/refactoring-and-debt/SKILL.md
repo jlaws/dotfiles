@@ -1,6 +1,6 @@
 ---
 name: refactoring-and-debt
-description: "Systematic code refactoring and technical debt analysis with safe operations and test-verify-commit cadence. Use when systematically refactoring code or analyzing/remediating technical debt. Covers safe refactoring operations, test-verify-commit cadence, and debt inventory. Do NOT use for general code quality checks (use code-quality) or pre-commit verification (use verification-before-completion)."
+description: "Use when systematically refactoring code or analyzing/remediating technical debt. Do NOT use for general code quality checks (use code-quality) or pre-commit verification (use verification-before-completion)."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
@@ -91,7 +91,7 @@ Gradually replace a legacy system by routing new functionality to a new implemen
 
 Run old and new code simultaneously, compare outputs, converge when confident. Best for high-risk logic changes where correctness is critical (payments, data pipelines).
 
-> See `references/refactoring-catalog.md` for detailed code examples of each refactoring operation.
+> If you need a concrete code example for a specific refactoring operation (e.g., how to apply Extract Method or Replace Conditional with Polymorphism), read `references/refactoring-catalog.md`.
 
 ## Technical Debt Inventory
 
