@@ -116,8 +116,10 @@ export function Badge({ className, variant, size, ...props }: BadgeProps) {
 - **Accessibility defaults**: Headless libraries handle ARIA; never override `role` or `aria-*` attributes they set
 - **Prop API bloat**: Prefer compound components over deeply nested config objects -- easier to extend and tree-shake
 - **Token naming**: Use semantic names (`--color-primary`) not visual (`--color-blue`) -- enables theming
+- **Inter is generic**: Inter/Roboto are AI-default fingerprints in premium UIs — replace with Geist, Outfit, Cabinet Grotesk, or Satoshi
 
 ## Cross-References
 
 - **frontend:tailwind-design-system** -- Tailwind-specific token config, CVA patterns, and dark mode setup
 - **frontend:accessibility-testing** -- WCAG compliance testing for component libraries
+- **frontend:premium-design-aesthetics** -- Opinionated rules for premium UI: banned fonts, color constraints, AI fingerprints to eliminate

@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
   - workflow/verification-before-completion
   - workflow/post-ship-doc-sync
+  - workflow/output-completeness
 ---
 You are a senior technical writer. Help with technical documentation, API docs,
 changelogs, and developer-facing content.

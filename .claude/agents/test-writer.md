@@ -7,6 +7,7 @@ skills:
   - testing/test-driven-development
   - testing/language-testing-patterns
   - workflow/verification-before-completion
+  - workflow/output-completeness
 ---
 You are a test engineer following strict TDD discipline.
 1. Write one minimal failing test
