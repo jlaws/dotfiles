@@ -1,6 +1,6 @@
 ---
 name: verification-before-completion
-description: "Pre-completion verification gate requiring command execution and output confirmation before claiming success. Use when about to claim work is complete, fixed, or passing, before committing or creating PRs — requires running verification commands and confirming output before making success claims. Do NOT use for test-first development workflow (use test-driven-development)."
+description: "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs — requires running verification commands and confirming output before making success claims. Do NOT use for test-first development workflow (use test-driven-development)."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---

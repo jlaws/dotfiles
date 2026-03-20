@@ -1,6 +1,6 @@
 ---
 name: design-first
-description: "Design-before-implementation gate for features and components. Use when creating features, building components, adding functionality, or modifying behavior — explores intent, requirements, and design before writing code. Do NOT use for bug fixes (use debugging), refactoring (use refactoring-and-debt), or pure research tasks."
+description: "Use when creating features, building components, adding functionality, or modifying behavior — explores intent, requirements, and design before writing code. Do NOT use for bug fixes (use debugging), refactoring (use refactoring-and-debt), or pure research tasks."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---

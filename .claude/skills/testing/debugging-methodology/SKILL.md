@@ -1,6 +1,6 @@
 ---
 name: debugging-methodology
-description: Systematic debugging with root cause analysis, profiling, and evidence-based diagnosis. Use when investigating bugs, test failures, performance issues, or unexpected behavior. Do NOT use for test-first development workflow (use test-driven-development) or load testing and benchmarking (use performance-testing-and-profiling).
+description: Use when investigating bugs, test failures, performance issues, or unexpected behavior. Do NOT use for test-first development workflow (use test-driven-development) or load testing and benchmarking (use performance-testing-and-profiling).
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 skills:
@@ -128,7 +128,9 @@ git bisect reset
 
 ### Condition-Based Waiting & Test Pollution
 
-See `references/condition-based-waiting.md` for async wait patterns and `references/root-cause-tracing.md` for systematic upstream tracing.
+If the failure is intermittent or involves async timing, read `references/condition-based-waiting.md` for wait strategies before writing polling loops or arbitrary sleeps.
+
+If the root cause traces through multiple upstream callers and you cannot isolate it by reading call sites alone, read `references/root-cause-tracing.md` for a systematic tracing procedure.
 
 ---
 

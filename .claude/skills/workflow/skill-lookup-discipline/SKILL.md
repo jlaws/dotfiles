@@ -1,6 +1,6 @@
 ---
 name: skill-lookup-discipline
-description: "Meta-workflow enforcing skill and reference lookup before any implementation action. Use when starting any task — ensures applicable skills are checked before writing code, running commands, or making decisions. Do NOT use as a substitute for reading specific skills."
+description: "Use when starting any task — ensures applicable skills are checked before writing code, running commands, or making decisions. Do NOT use as a substitute for reading specific skills."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob
 ---
