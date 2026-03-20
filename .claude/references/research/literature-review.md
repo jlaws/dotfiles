@@ -236,44 +236,15 @@ papers = search_recent("cat:cs.LG AND ti:efficient AND ti:attention")
 - Stopping search when you have "enough" references without systematic coverage.
 - **Fix**: Define search scope upfront (queries, venues, year range). Track coverage in a spreadsheet. Stop when new queries return only already-seen papers.
 
-## Agent Team Mode
+## Parallel Subagents
 
-For comprehensive literature reviews covering 30+ papers across multiple sources and subfields.
+For comprehensive literature reviews covering 30+ papers across multiple sources and subfields, dispatch parallel Explore subagents:
 
-### Team Configuration
+1. **searcher-arxiv** (Explore) — Search arxiv for preprints, recent submissions, related work
+2. **searcher-scholar** (Explore) — Search Semantic Scholar and Google Scholar for peer-reviewed work
+3. **searcher-venues** (Explore) — Search specific top venues (NeurIPS, ICML, ICLR, ACL) proceedings
+4. **citation-explorer** (Explore) — Forward + backward citation graph exploration from seed papers
 
-```yaml
-team:
-  recommended_size: 4
-  agent_roles:
-    - name: searcher-arxiv
-      type: Explore
-      focus: "Search arxiv for preprints, recent submissions, related work"
-      skills_loaded: ["research:literature-review"]
-    - name: searcher-scholar
-      type: Explore
-      focus: "Search Semantic Scholar and Google Scholar for peer-reviewed work"
-      skills_loaded: ["research:literature-review"]
-    - name: searcher-venues
-      type: Explore
-      focus: "Search specific top venues (NeurIPS, ICML, ICLR, ACL) proceedings"
-      skills_loaded: ["research:literature-review"]
-    - name: citation-explorer
-      type: Explore
-      focus: "Forward + backward citation graph exploration from seed papers"
-      skills_loaded: ["research:literature-review"]
-  file_ownership: "shared-read-only"
-  lead_mode: "hands-on"
-```
+**Workflow**: Lead defines search scope (queries, year range, target venues), dispatches all searchers in parallel, deduplicates results, builds comparison table, constructs taxonomy, identifies research gaps.
 
-### Team Workflow
-
-1. Lead defines search scope (queries, year range, target venues) and distributes query sets
-2. All searchers execute their queries in parallel across different sources
-3. citation-explorer starts from known seed papers, explores citation graph
-4. Lead deduplicates results, builds comparison table, constructs taxonomy
-5. Lead identifies sparse taxonomy cells (research gaps) and writes related work synthesis
-
-### Single-Agent Fallback
-
-Without team mode, execute all phases sequentially (default behavior). Team mode is an optional enhancement.
+Without parallel subagents, execute all phases sequentially (default behavior).

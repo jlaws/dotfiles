@@ -172,47 +172,18 @@ Every security requirement must link back to:
 | GDPR | -- | Art. 25, 32 | Art. 30 | Art. 32 |
 | OWASP ASVS | V2.1-V2.3 | V8.1-V8.3 | -- | V6.1-V6.2 |
 
-### Agent Team Mode
+### Parallel Subagents
 
-For comprehensive threat modeling of complex systems with multiple trust boundaries and compliance requirements.
+For comprehensive threat modeling of complex systems with multiple trust boundaries and compliance requirements, dispatch parallel subagents:
 
-#### Team Configuration
+1. **stride-analyst** (Explore) — STRIDE category analysis per component and trust boundary
+2. **attack-tree-builder** (Explore) — Attack tree construction from STRIDE findings, path prioritization
+3. **sast-scanner** (general-purpose) — SAST rule execution, custom Semgrep rule generation, false positive triage
+4. **compliance-mapper** (Explore) — Map findings to PCI-DSS, HIPAA, GDPR, OWASP ASVS controls
 
-```yaml
-team:
-  recommended_size: 4
-  agent_roles:
-    - name: stride-analyst
-      type: Explore
-      focus: "STRIDE category analysis per component and trust boundary"
-      skills_loaded: ["security:security-analysis"]
-    - name: attack-tree-builder
-      type: Explore
-      focus: "Attack tree construction from STRIDE findings, path prioritization"
-      skills_loaded: ["security:security-analysis"]
-    - name: sast-scanner
-      type: general-purpose
-      focus: "SAST rule execution, custom Semgrep rule generation, false positive triage"
-      skills_loaded: ["security:security-analysis"]
-    - name: compliance-mapper
-      type: Explore
-      focus: "Map findings to PCI-DSS, HIPAA, GDPR, OWASP ASVS controls"
-      skills_loaded: ["security:compliance-and-data-privacy"]
-  file_ownership: "shared-read-only"
-  lead_mode: "hands-on"
-```
+After all subagents return, synthesize into Threat Model Document (system overview, STRIDE table, attack trees, mitigation plan, recommendations).
 
-#### Team Workflow
-
-1. Lead defines system boundaries, assets, and trust boundaries
-2. stride-analyst and attack-tree-builder work in parallel (attack-tree-builder uses STRIDE findings as they arrive)
-3. sast-scanner runs automated scans concurrently
-4. compliance-mapper maps all discovered threats to compliance controls
-5. Lead synthesizes into Threat Model Document (system overview, STRIDE table, attack trees, mitigation plan, recommendations)
-
-#### Single-Agent Fallback
-
-Without team mode, execute all phases sequentially (default behavior). Team mode is an optional enhancement.
+Without parallel subagents, execute all phases sequentially (default behavior).
 
 ### Gotchas
 
