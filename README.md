@@ -52,7 +52,17 @@ git clone https://github.com/jlaws/dotfiles.git ~/Workspace/dotfiles
 cd ~/Workspace/dotfiles
 ```
 
-### 6. Run the Setup Script
+### 6. Update Personal Configuration
+
+Before running the setup script, update `.gitconfig` with your own name and email:
+
+```gitconfig
+[user]
+	name = Your Name
+	email = your-email@example.com
+```
+
+### 7. Run the Setup Script
 
 ```zsh
 ./setup.sh
