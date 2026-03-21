@@ -122,6 +122,31 @@ sync_claude() {
 	rsync -avh --no-perms .claude/hooks/ "${target}/.claude/hooks/"
 	rsync -avh --no-perms .claude/skills/ "${target}/.claude/skills/"
 	rsync -avh --no-perms .claude/references/ "${target}/.claude/references/"
+
+	sync_cursor "$target"
+}
+
+# =============================================================================
+# Cursor Configuration
+# =============================================================================
+
+sync_cursor() {
+	local target="${1:-$HOME}"
+
+	print_section "Syncing Cursor Configuration"
+	print_step "Target: ${target}/.cursor/"
+
+	mkdir -p "${target}/.cursor/hooks" "${target}/.cursor/references" "${target}/.cursor/rules" "${target}/.cursor/skills"
+
+	print_step "Syncing Cursor configuration to ${target}/.cursor/..."
+	rsync -avh --no-perms .cursor/cli-config.json "${target}/.cursor/cli-config.json"
+	rsync -avh --no-perms .cursor/hooks.json "${target}/.cursor/hooks.json"
+
+	print_step "Syncing Cursor hooks, references, rules, and skills..."
+	rsync -avh --no-perms .cursor/hooks/ "${target}/.cursor/hooks/"
+	rsync -avh --no-perms .cursor/references/ "${target}/.cursor/references/"
+	rsync -avh --no-perms .cursor/rules/ "${target}/.cursor/rules/"
+	rsync -avh --no-perms .cursor/skills/ "${target}/.cursor/skills/"
 }
 
 # =============================================================================
