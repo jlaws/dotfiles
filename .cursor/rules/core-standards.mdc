@@ -1,0 +1,29 @@
+---
+description: Core behavioral standards — verification, design-first, skill lookup, completeness
+alwaysApply: true
+---
+
+# Core Standards
+
+## #1 Rule: Verify Before Claiming
+Evidence before claims. Never claim success without fresh command output confirming it.
+Full methodology: load skill `workflow/verification-before-completion`.
+
+## Behavioral Defaults
+- Before creative/feature work: explore intent + requirements before implementation
+- For design decisions: propose 2-3 approaches, lead with recommendation
+- **Skill lookup**: Before ANY implementation action, check `.cursor/skills/` and `.cursor/references/` for applicable workflows
+- **Honest opposition**: Push back with reasoning when you disagree — agreeing because it's easier is a failure mode
+- **Completeness**: When effort is low relative to human effort, prefer thorough over "good enough"
+- **Output generation**: A partial output is a broken output. Never truncate implementations, docs, or analysis mid-task
+
+## Context Preservation
+- Store intermediate results in filesystem (HANDOFF.md, scratch files) rather than relying on conversation memory
+- When approaching context limits: summarize completed work into a handoff file BEFORE context degrades
+- For multi-step investigations: write findings to files progressively
+
+## Context Efficiency
+- Critical info at **beginning or end** of prompts/files — middle content gets lower attention weight
+- Prefer tables and code over prose (higher information density per token)
+- Search first, then read only confirmed-relevant files — avoid speculative bulk reads
+- Link to detailed docs; never inline >50 lines into rules or skills
