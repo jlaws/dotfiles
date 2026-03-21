@@ -8,9 +8,9 @@ Files are merged top-down; higher-priority files override lower ones.
 
 ```
 /Library/.../managed-settings.json   # Enterprise (highest priority, admin-managed)
-~/.cursor/settings.json              # User global
-project/.cursor/settings.json        # Project (committed to repo)
-project/.cursor/settings.local.json  # Local (gitignored, personal overrides)
+~/.claude/settings.json              # User global
+project/.claude/settings.json        # Project (committed to repo)
+project/.claude/settings.local.json  # Local (gitignored, personal overrides)
 ```
 
 **Resolution rule:** deny > allow > default. If the same pattern appears in both allow and deny, deny wins.
@@ -105,7 +105,7 @@ project/.cursor/settings.local.json  # Local (gitignored, personal overrides)
 
 When Claude says "permission denied":
 
-1. Check which settings file has the relevant rule: `cat .cursor/settings.json`
+1. Check which settings file has the relevant rule: `cat .claude/settings.json`
 2. Verify deny doesn't shadow your allow (deny always wins)
 3. Check glob pattern matches the actual file path
 4. Look for enterprise-level overrides in managed settings

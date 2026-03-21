@@ -329,6 +329,6 @@ def monitor_predictions(predictions: list[dict], reference_stats: dict) -> list[
 
 ## References
 
-- .cursor/references/ai-ml/ml-model-deployment.md -- deployment patterns and serving infrastructure
-- .cursor/references/ai-ml/ml-experiment-lifecycle.md -- experiment tracking and model registry
-- .cursor/references/ai-ml/llmops-production-monitoring.md -- production monitoring for ML systems
+- .claude/references/ai-ml/ml-model-deployment.md -- deployment patterns and serving infrastructure
+- .claude/references/ai-ml/ml-experiment-lifecycle.md -- experiment tracking and model registry
+- .claude/references/ai-ml/llmops-production-monitoring.md -- production monitoring for ML systems

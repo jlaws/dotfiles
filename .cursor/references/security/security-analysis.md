@@ -181,4 +181,4 @@ Without parallel subagents, execute all phases sequentially (default behavior).
 
 ## References
 
-- .cursor/references/ai-ml/ai-safety-and-alignment.md — AI-specific security and safety considerations
+- .claude/references/ai-ml/ai-safety-and-alignment.md — AI-specific security and safety considerations

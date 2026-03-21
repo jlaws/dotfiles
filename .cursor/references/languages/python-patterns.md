@@ -104,5 +104,5 @@ twine upload dist/*
 
 ## References
 
-- .cursor/references/ai-ml/jax-patterns.md — JAX-specific Python patterns
-- .cursor/references/data/spark-optimization.md — PySpark optimization patterns
+- .claude/references/ai-ml/jax-patterns.md — JAX-specific Python patterns
+- .claude/references/data/spark-optimization.md — PySpark optimization patterns

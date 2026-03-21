@@ -15,7 +15,7 @@ Reference for Claude Code hook configuration patterns. Hooks run shell commands 
 
 ## Configuration
 
-Hooks live in `.cursor/settings.json` (project) or `~/.cursor/settings.json` (global).
+Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (global).
 
 ```json
 {

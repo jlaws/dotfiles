@@ -200,5 +200,5 @@ For detailed multi-tenancy patterns, see [saas-multi-tenancy.md](saas-multi-tena
 
 ## References
 
-- .cursor/references/cloud/multi-cloud-architecture.md -- multi-cloud deployment strategies
-- .cursor/references/data/streaming-data-processing.md -- event streaming for microservices
+- .claude/references/cloud/multi-cloud-architecture.md -- multi-cloud deployment strategies
+- .claude/references/data/streaming-data-processing.md -- event streaming for microservices

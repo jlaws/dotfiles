@@ -96,4 +96,4 @@ See references/output-template.md for the complete paper analysis markdown templ
 
 ## References
 
-- .cursor/references/ai-ml/eval-and-benchmarking.md — ML evaluation methodology and benchmarks
+- .claude/references/ai-ml/eval-and-benchmarking.md — ML evaluation methodology and benchmarks

@@ -131,7 +131,7 @@ For detailed monorepo patterns, see [references/monorepo-tools.md](references/mo
 
 ## References
 
-- .cursor/references/data/airflow-dag-patterns.md — Airflow DAG design patterns for data pipelines
+- .claude/references/data/airflow-dag-patterns.md — Airflow DAG design patterns for data pipelines
 
 ## Cross-References
 

@@ -227,5 +227,5 @@ Run all three in CI before merge.
 
 ## References
 
-- .cursor/references/cloud/gpu-compute-management.md — GPU scheduling and resource management
-- .cursor/references/cloud/cost-optimization.md — cluster cost optimization strategies
+- .claude/references/cloud/gpu-compute-management.md — GPU scheduling and resource management
+- .claude/references/cloud/cost-optimization.md — cluster cost optimization strategies
