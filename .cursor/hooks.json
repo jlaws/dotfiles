@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "echo 'SKILL-LOOKUP DISCIPLINE: Before any implementation action, check .cursor/skills/ and .cursor/references/ for applicable workflows. Process skills (design-first, debugging, verification) before implementation skills (code-quality, TDD).'"
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": ".cursor/hooks/log-prompt.sh"
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/lessons-learned.sh"
+      }
+    ]
+  }
+}

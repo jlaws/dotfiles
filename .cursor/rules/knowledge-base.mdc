@@ -1,0 +1,19 @@
+---
+description: Knowledge base structure and skill discovery for .cursor/ assets
+alwaysApply: true
+---
+
+# Knowledge Base Structure
+
+- **skills/**: Cross-cutting workflows loaded on demand (code review, debugging, TDD, etc.)
+- **references/**: Domain knowledge loaded on-demand by skills
+- **rules/**: Always-apply project conventions (this file)
+
+## Skill Discovery
+
+Before implementation, check `.cursor/skills/` for applicable workflows:
+1. Process design skills first (design-first, debugging, verification)
+2. Then implementation skills (code-quality, TDD)
+3. Load reference files from `.cursor/references/` as needed
+
+Skills with `disable-model-invocation: true` are slash commands — invoke with `/skill-name`.

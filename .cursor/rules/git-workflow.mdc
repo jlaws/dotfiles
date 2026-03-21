@@ -1,0 +1,12 @@
+---
+description: Git workflow conventions — commit messages, branching, safety rules
+alwaysApply: true
+---
+
+# Git Workflow
+
+- Commit messages: freeform imperative mood, <72 char subject, no period
+- Prefer small, atomic commits
+- Always verify changes with `git diff` before committing
+- Never force push to main/master
+- Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
