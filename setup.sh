@@ -12,8 +12,7 @@
 #
 # Flags:
 #   -d    Sync dotfiles to home directory
-#   -c    Sync Claude Code configuration
-#   -x    Sync Codex configuration
+#   -c    Sync Claude, Cursor, and Codex configuration
 #   -b    Install Homebrew packages
 #   -m    Configure macOS system preferences
 #   -r    Restart affected applications
@@ -125,6 +124,7 @@ sync_claude() {
 	rsync -avh --no-perms .claude/references/ "${target}/.claude/references/"
 
 	sync_cursor "$target"
+	sync_codex "$target"
 }
 
 # =============================================================================
@@ -774,7 +774,6 @@ restart_apps() {
 run_all() {
 	sync_dotfiles
 	sync_claude "$1"
-	sync_codex
 	install_homebrew_packages
 	configure_macos
 	restart_apps
@@ -791,12 +790,11 @@ usage() {
 	echo ""
 	echo "Flags (can be combined, e.g. -cb, -dcbmr):"
 	echo "  -d    Sync dotfiles to home directory"
-	echo "  -c    Sync Claude Code configuration"
-	echo "  -x    Sync Codex configuration"
+	echo "  -c    Sync Claude, Cursor, and Codex configuration"
 	echo "  -b    Install Homebrew packages"
 	echo "  -m    Configure macOS system preferences"
 	echo "  -r    Restart affected applications"
-	echo "  -p <path>  Target a project folder for Claude sync (requires -c)"
+	echo "  -p <path>  Target a project folder for Claude + Codex sync (requires -c)"
 	echo "  -f    Skip confirmation prompt (run all if no other flags)"
 	echo "  -h    Show this help message"
 	echo ""
@@ -807,7 +805,6 @@ usage() {
 	echo ""
 	echo "Examples:"
 	echo "  ./setup.sh -cb       # Sync Claude config + install Homebrew packages"
-	echo "  ./setup.sh -x        # Sync Codex config"
 	echo "  ./setup.sh -f        # Run all steps without prompts"
 	echo "  ./setup.sh -fcb      # Claude + Homebrew without prompts"
 	echo "  ./setup.sh -cp ~/Workspace/myproject # Sync Claude config to project"
@@ -819,7 +816,7 @@ main() {
 	echo "║                           macOS Setup Script                              ║"
 	echo "╚═══════════════════════════════════════════════════════════════════════════╝"
 
-	local do_dotfiles=0 do_claude=0 do_codex=0 do_brew=0 do_macos=0 do_restart=0
+	local do_dotfiles=0 do_claude=0 do_brew=0 do_macos=0 do_restart=0
 	local force=0
 	local has_selection=0
 	local claude_target=""
@@ -854,7 +851,6 @@ main() {
 					case "${1:$i:1}" in
 						d) do_dotfiles=1; has_selection=1 ;;
 						c) do_claude=1; has_selection=1 ;;
-						x) do_codex=1; has_selection=1 ;;
 						b) do_brew=1; has_selection=1 ;;
 						m) do_macos=1; has_selection=1 ;;
 						r) do_restart=1; has_selection=1 ;;
@@ -923,7 +919,6 @@ main() {
 	# Execute selected steps in logical order
 	if [[ $do_dotfiles -eq 1 ]]; then sync_dotfiles; fi
 	if [[ $do_claude -eq 1 ]];   then sync_claude "$claude_target"; fi
-	if [[ $do_codex -eq 1 ]];    then sync_codex; fi
 	if [[ $do_brew -eq 1 ]];     then install_homebrew_packages; fi
 	if [[ $do_macos -eq 1 ]];    then configure_macos; fi
 	if [[ $do_restart -eq 1 ]];  then restart_apps; fi
