@@ -1,0 +1,12 @@
+name = "create-pr"
+description = "Automate PR workflow: stage, commit, branch, push, and open a GitHub PR when changes are ready to submit."
+model_reasoning_effort = "medium"
+developer_instructions = """
+Automate the PR workflow end to end.
+Validate the working tree first, stage only relevant files, and stop early if there is nothing to commit.
+If the current branch is `main` or `master`, derive a safe feature branch name before committing.
+Use imperative commit messages under 72 characters.
+When creating a PR, always write an explicit title and body from the actual diff and commit history. Never rely on `--fill`.
+Return the branch name, commit summary, changed-file summary, and the PR URL.
+"""
+

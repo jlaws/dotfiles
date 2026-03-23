@@ -12,7 +12,7 @@
 #
 # Flags:
 #   -d    Sync dotfiles to home directory
-#   -c    Sync Claude Code configuration
+#   -c    Sync Claude, Cursor, and Codex configuration
 #   -b    Install Homebrew packages
 #   -m    Configure macOS system preferences
 #   -r    Restart affected applications
@@ -124,6 +124,7 @@ sync_claude() {
 	rsync -avh --no-perms .claude/references/ "${target}/.claude/references/"
 
 	sync_cursor "$target"
+	sync_codex "$target"
 }
 
 # =============================================================================
@@ -147,6 +148,33 @@ sync_cursor() {
 	rsync -avh --no-perms .cursor/references/ "${target}/.cursor/references/"
 	rsync -avh --no-perms .cursor/rules/ "${target}/.cursor/rules/"
 	rsync -avh --no-perms .cursor/skills/ "${target}/.cursor/skills/"
+}
+
+# =============================================================================
+# Codex Configuration
+# =============================================================================
+
+sync_codex() {
+	local target="${1:-$HOME}"
+
+	print_section "Syncing Codex Configuration"
+	print_step "Target: ${target}/.codex/ and ${target}/.agents/"
+
+	mkdir -p "${target}/.codex/agents" "${target}/.codex/commands" "${target}/.codex/hooks" "${target}/.codex/references" "${target}/.codex/rules" "${target}/.agents/skills"
+
+	print_step "Syncing Codex global configuration..."
+	rsync -avh --no-perms .codex/AGENTS.md "${target}/.codex/AGENTS.md"
+	rsync -avh --no-perms .codex/config.toml "${target}/.codex/config.toml"
+
+	print_step "Syncing Codex agents, commands, hooks, references, and rules..."
+	rsync -avh --no-perms .codex/agents/ "${target}/.codex/agents/"
+	rsync -avh --no-perms .codex/commands/ "${target}/.codex/commands/"
+	rsync -avh --no-perms .codex/hooks/ "${target}/.codex/hooks/"
+	rsync -avh --no-perms .codex/references/ "${target}/.codex/references/"
+	rsync -avh --no-perms .codex/rules/ "${target}/.codex/rules/"
+
+	print_step "Syncing Codex skills..."
+	rsync -avh --no-perms .agents/skills/ "${target}/.agents/skills/"
 }
 
 # =============================================================================
@@ -762,11 +790,11 @@ usage() {
 	echo ""
 	echo "Flags (can be combined, e.g. -cb, -dcbmr):"
 	echo "  -d    Sync dotfiles to home directory"
-	echo "  -c    Sync Claude Code configuration"
+	echo "  -c    Sync Claude, Cursor, and Codex configuration"
 	echo "  -b    Install Homebrew packages"
 	echo "  -m    Configure macOS system preferences"
 	echo "  -r    Restart affected applications"
-	echo "  -p <path>  Target a project folder for Claude sync (requires -c)"
+	echo "  -p <path>  Target a project folder for Claude + Codex sync (requires -c)"
 	echo "  -f    Skip confirmation prompt (run all if no other flags)"
 	echo "  -h    Show this help message"
 	echo ""
