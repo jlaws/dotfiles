@@ -1,0 +1,61 @@
+# Allow common read-only git inspection without repeated prompts.
+prefix_rule(
+    pattern = ["git", ["status", "diff", "log", "show"]],
+    decision = "allow",
+    justification = "Read-only git inspection is safe and common during code work.",
+    match = [
+        "git status",
+        "git diff",
+        "git log --oneline",
+        "git show HEAD~1",
+    ],
+    not_match = [
+        "git add .",
+        "git commit -m test",
+    ],
+)
+
+# Prompt before remote write operations.
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Pushing to remotes should stay user-approved.",
+    match = [
+        "git push",
+        "git push -u origin feature/test",
+    ],
+    not_match = [
+        "git status",
+    ],
+)
+
+# Prompt before GitHub write operations.
+prefix_rule(
+    pattern = ["gh", "pr", ["create", "merge", "close"]],
+    decision = "prompt",
+    justification = "GitHub PR mutations should stay user-approved.",
+    match = [
+        "gh pr create --title Test --body Body",
+        "gh pr merge 123 --squash",
+    ],
+    not_match = [
+        "gh pr view 123",
+    ],
+)
+
+# Prompt before package-manager installs outside the sandbox.
+prefix_rule(
+    pattern = [["brew", "npm", "pnpm", "yarn", "uv", "pip"], ["install", "add", "sync"]],
+    decision = "prompt",
+    justification = "Dependency installation changes the local environment and should be approved.",
+    match = [
+        "brew install ripgrep",
+        "npm install eslint",
+        "uv sync",
+    ],
+    not_match = [
+        "brew list",
+        "pip show requests",
+    ],
+)
+
