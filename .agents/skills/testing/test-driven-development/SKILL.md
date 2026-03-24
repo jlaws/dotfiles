@@ -1,8 +1,6 @@
 ---
 name: test-driven-development
 description: Use when implementing features, fixing bugs, or refactoring — enforces writing tests before implementation code. Do NOT use for investigating existing bugs or failures (use debugging-methodology) or pre-commit verification (use verification-before-completion).
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Test-Driven Development (TDD)

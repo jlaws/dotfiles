@@ -1,15 +1,13 @@
 ---
 name: writing-skills
-description: "Use when creating new skills, editing existing skills, or verifying skills work before deployment. Do NOT use for AGENTS.md design, hooks, or general Codex workflow (use code-agent-meta-patterns)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash, Write, Edit
+description: "Use when creating new skills, editing existing skills, or verifying skills work before deployment. Do NOT use for CLAUDE.md design, hooks, or general workflow optimization (use code-agent-meta-patterns)."
 ---
 
 # Writing Skills
 
 **Writing skills IS Test-Driven Development applied to process documentation.**
 
-**Personal skills live in Codex skill directories, typically `~/.agents/skills/` for user-level skills.**
+**Personal skills live in `~/.agents/skills/` (shared) and are synced to tool-specific directories by `setup.sh`**
 
 You write test cases (pressure scenarios with subagents), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
 
@@ -19,7 +17,7 @@ You write test cases (pressure scenarios with subagents), watch them fail (basel
 
 **Create when:** Technique wasn't intuitively obvious, reusable across projects, pattern applies broadly, others would benefit.
 
-**Don't create for:** One-off solutions, standard well-documented practices, project-specific conventions (use AGENTS.md), mechanically enforceable constraints (automate instead).
+**Don't create for:** One-off solutions, standard well-documented practices, project-specific conventions (use CLAUDE.md), mechanically enforceable constraints (automate instead).
 
 ## Skill Types
 
@@ -40,9 +38,9 @@ Separate files for: heavy reference (100+ lines), reusable tools. Keep everythin
 
 ## SKILL.md Structure
 
-**Frontmatter:** Only `name` (letters/numbers/hyphens) and `description` (max 1024 chars, third-person, starts with "Use when...")
+**Frontmatter:** Only `name` (letters/numbers/hyphens, max 64 chars) and `description` (max 1024 chars, third-person, starts with "Use when...")
 
-**CRITICAL:** Description = triggering conditions ONLY. Never summarize the skill's workflow in description. Testing showed Claude follows description shortcuts instead of reading skill body.
+**CRITICAL:** Description = triggering conditions ONLY. Never summarize the skill's workflow in description. Testing showed agents follow description shortcuts instead of reading skill body.
 
 ```yaml
 # BAD: Summarizes workflow
@@ -62,10 +60,10 @@ description: Use when executing implementation plans with independent tasks in t
 ## Common Mistakes (what goes wrong + fixes)
 ```
 
-## Claude Search Optimization (CSO)
+## Search Optimization
 
 - Use concrete triggers/symptoms in description, not language-specific symptoms
-- Include keywords Claude would search: error messages, symptoms, tool names
+- Include keywords the agent would search: error messages, symptoms, tool names
 - Name by what you DO: `condition-based-waiting` not `async-test-helpers`
 - Gerunds work well: `creating-skills`, `debugging-with-logs`
 
@@ -75,7 +73,7 @@ description: Use when executing implementation plans with independent tasks in t
 - Other skills: <500 words
 - Move details to `--help`, use cross-references, compress examples
 
-**Cross-References:** Use `**REQUIRED SUB-SKILL:** Use superpowers:skill-name`. Never use `@` links (force-loads, burns context).
+**Cross-References:** Use `**REQUIRED SUB-SKILL:** Use skill-name`. Never use `@` links (force-loads, burns context).
 
 ## Flowchart Usage
 
@@ -173,7 +171,7 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 | Collaborative | Unity + Commitment | Authority, Liking |
 | Reference | Clarity only | All persuasion |
 
-## Skill Best Practices
+## Anthropic Best Practices
 
 ### Skill Categories (from Anthropic's Guide)
 
@@ -181,7 +179,7 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 |----------|-------------|---------|
 | 1. Document & Asset Creation | Generate files from templates/specs | Commit messages, PR descriptions, config files |
 | 2. Workflow Automation | Multi-step processes with tool use | Code review, deployment, refactoring |
-| 3. MCP Enhancement | Extend Claude with external tool integrations | API wrappers, database queries, service connectors |
+| 3. MCP Enhancement | Extend agents with external tool integrations | API wrappers, database queries, service connectors |
 
 ### Success Criteria Methodology
 1. Define what "good output" looks like before writing the skill
@@ -190,7 +188,7 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 4. Iterate until pass rate meets threshold (aim for >80%)
 
 ### Core Principles
-- **Concise is key**: Only add what Claude doesn't already know. Challenge each piece: "Does Claude need this?"
+- **Concise is key**: Only add what the agent doesn't already know. Challenge each piece: "Does the agent need this?"
 - **Degrees of freedom**: High (text instructions) for multiple valid approaches; Medium (pseudocode) for preferred patterns; Low (exact scripts) for fragile operations
 
 ### Anti-Patterns
@@ -200,18 +198,18 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 - Time-sensitive information (use "old patterns" section)
 
 ### Evaluation-Driven Development
-1. Run Claude on tasks without Skill, document failures
+1. Run the agent on tasks without Skill, document failures
 2. Create 3+ evaluation scenarios
 3. Establish baseline performance
 4. Write minimal instructions to pass evaluations
 5. Iterate: evaluate, compare baseline, refine
 
-### Quick Checklist (from Anthropic's Reference A)
-- [ ] Frontmatter: `name`, `description` (with trigger phrases), `allowed-tools`
+### Quick Checklist
+- [ ] Frontmatter: `name`, `description` (with trigger phrases)
 - [ ] Description starts with "Use when..." and includes negative triggers
 - [ ] Body is concise (under 500 words for most skills)
 - [ ] At least one code example or concrete output
-- [ ] No redundant information Claude already knows
+- [ ] No redundant information the agent already knows
 - [ ] Cross-references use relative paths, not `@` links
 
 ## Skill Creation Checklist

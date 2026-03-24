@@ -1,8 +1,6 @@
 ---
 name: session-handoff
 description: "Create structured HANDOFF.md documents preserving decisions, file paths, test results, and next steps between sessions. Use when saving session progress, creating handoff notes, preparing context for next session, ending a work session, switching context, or hitting context limits. Do NOT use for general documentation (use technical-writing-for-devtools). Do NOT use for multi-agent task handoff (use multi-agent-development)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash, Write
 ---
 
 # Session Handoff
@@ -12,7 +10,6 @@ Create a HANDOFF.md that lets the next session (or a different agent) resume wor
 ## When to Create
 
 - Session ending with incomplete work
-- Context window pressure (approaching compaction)
 - Switching to a different task temporarily
 - Handing off to a teammate or different agent
 - Before a planned break in multi-session work

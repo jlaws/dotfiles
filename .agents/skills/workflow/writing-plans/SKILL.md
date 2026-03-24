@@ -1,8 +1,6 @@
 ---
 name: writing-plans
 description: "Structured methodology for writing implementation plans with bite-sized tasks, exact file paths, and TDD integration. Use when you have a spec or requirements for a multi-step task and need to create a detailed plan before writing code. Do NOT use for simple single-file changes or bug fixes."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Writing Plans
@@ -148,7 +146,7 @@ Plan saved to `docs/plans/<filename>.md`. Execution options:
 1. **Execute now** — I'll work through tasks in batches with review checkpoints
    (uses workflow/executing-plans skill)
 
-2. **Execute in new session** — Open new session and run /execute-plan
+2. **Execute in new session** — Open new session and run the plan
    (better for large plans — fresh context per batch)
 
 3. **Manual** — You execute the plan yourself

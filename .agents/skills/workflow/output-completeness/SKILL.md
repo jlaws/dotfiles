@@ -1,8 +1,6 @@
 ---
 name: output-completeness
 description: "Enforce complete output generation — no truncation, no stubs, no skeleton code. Load for large code implementations, multi-part responses, complex refactors, full documentation sections, or any task where truncation risk is high. Distinct from verification-before-completion (which governs claims about work state)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Output Completeness
@@ -88,8 +86,3 @@ Load proactively when:
 - Writing a research analysis or technical report
 - Generating test suites (skeleton tests = broken tests)
 - Any task where "partially done" would block the user
-
-## Cross-References
-
-- **workflow:llm-output-completeness** — root cause research and parameter tuning for truncation
-- **workflow:completeness-principle** — project-level completeness standards

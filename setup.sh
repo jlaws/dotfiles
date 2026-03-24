@@ -12,11 +12,11 @@
 #
 # Flags:
 #   -d    Sync dotfiles to home directory
-#   -c    Sync Claude, Cursor, and Codex configuration
+#   -c    Sync Claude, Cursor, Codex, and shared agent configuration
 #   -b    Install Homebrew packages
 #   -m    Configure macOS system preferences
 #   -r    Restart affected applications
-#   -p <dir> Target a project folder for Claude sync (requires -c)
+#   -p <dir> Target a project folder for agent config sync (requires -c)
 #   -f    Skip confirmation prompt (run all if no other flags)
 #   -h    Show this help message
 # =============================================================================
@@ -91,90 +91,73 @@ sync_dotfiles() {
 	rsync --exclude ".git/" \
 		--exclude ".DS_Store" \
 		--exclude ".claude/" \
+		--exclude ".codex/" \
+		--exclude ".cursor/" \
+		--exclude ".agents/" \
+		--exclude ".venv/" \
 		--exclude "setup.sh" \
 		--exclude "README.md" \
 		--exclude "CLAUDE.md" \
 		--exclude "ghosty_config.txt" \
+		--exclude "pyproject.toml" \
+		--exclude "Makefile" \
 		--exclude "LICENSE" \
 		-avh --no-perms . ~
 }
 
 # =============================================================================
-# Claude Code Configuration
+# Agent Configuration (Claude Code, Cursor, Codex, shared .agents/)
 # =============================================================================
 
-sync_claude() {
+sync_agents() {
 	local target="${1:-$HOME}"
 
+	# --- Shared Agent KB (.agents/) ---
+	print_section "Syncing Shared Agent Knowledge Base"
+	print_step "Target: ${target}/.agents/"
+
+	rsync -avh --no-perms .agents/skills/ "${target}/.agents/skills/"
+	rsync -avh --no-perms .agents/references/ "${target}/.agents/references/"
+
+	# --- Claude Code (.claude/) ---
 	print_section "Syncing Claude Code Configuration"
 	print_step "Target: ${target}/.claude/"
 
-	mkdir -p "${target}/.claude/commands" "${target}/.claude/skills" "${target}/.claude/agents" "${target}/.claude/references" "${target}/.claude/hooks"
-
-	print_step "Syncing Claude configuration to ${target}/.claude/..."
+	print_step "Syncing Claude config, agents, commands, hooks, skills, and references..."
 	rsync -avh --no-perms .claude/CLAUDE.md "${target}/.claude/CLAUDE.md"
-
 	rsync -avh --no-perms .claude/settings.json "${target}/.claude/settings.json"
-
-	print_step "Syncing Claude agents, commands, hooks, skills, and references..."
 	rsync -avh --no-perms .claude/agents/ "${target}/.claude/agents/"
 	rsync -avh --no-perms .claude/commands/ "${target}/.claude/commands/"
 	rsync -avh --no-perms .claude/hooks/ "${target}/.claude/hooks/"
 	rsync -avh --no-perms .claude/skills/ "${target}/.claude/skills/"
 	rsync -avh --no-perms .claude/references/ "${target}/.claude/references/"
 
-	sync_cursor "$target"
-	sync_codex "$target"
-}
-
-# =============================================================================
-# Cursor Configuration
-# =============================================================================
-
-sync_cursor() {
-	local target="${1:-$HOME}"
-
+	# --- Cursor (.cursor/) ---
 	print_section "Syncing Cursor Configuration"
 	print_step "Target: ${target}/.cursor/"
 
-	mkdir -p "${target}/.cursor/hooks" "${target}/.cursor/references" "${target}/.cursor/rules" "${target}/.cursor/skills"
-
-	print_step "Syncing Cursor configuration to ${target}/.cursor/..."
+	print_step "Syncing Cursor config, hooks, and rules..."
 	rsync -avh --no-perms .cursor/cli-config.json "${target}/.cursor/cli-config.json"
 	rsync -avh --no-perms .cursor/hooks.json "${target}/.cursor/hooks.json"
-
-	print_step "Syncing Cursor hooks, references, rules, and skills..."
 	rsync -avh --no-perms .cursor/hooks/ "${target}/.cursor/hooks/"
-	rsync -avh --no-perms .cursor/references/ "${target}/.cursor/references/"
 	rsync -avh --no-perms .cursor/rules/ "${target}/.cursor/rules/"
-	rsync -avh --no-perms .cursor/skills/ "${target}/.cursor/skills/"
-}
 
-# =============================================================================
-# Codex Configuration
-# =============================================================================
+	print_step "Syncing shared skills and references to Cursor..."
+	rsync -avh --no-perms .agents/skills/ "${target}/.cursor/skills/"
+	rsync -avh --no-perms .agents/references/ "${target}/.cursor/references/"
 
-sync_codex() {
-	local target="${1:-$HOME}"
-
+	# --- Codex (.codex/) ---
 	print_section "Syncing Codex Configuration"
-	print_step "Target: ${target}/.codex/ and ${target}/.agents/"
+	print_step "Target: ${target}/.codex/"
 
-	mkdir -p "${target}/.codex/agents" "${target}/.codex/commands" "${target}/.codex/hooks" "${target}/.codex/references" "${target}/.codex/rules" "${target}/.agents/skills"
-
-	print_step "Syncing Codex global configuration..."
+	print_step "Syncing Codex config, agents, prompts, commands, hooks, and rules..."
 	rsync -avh --no-perms .codex/AGENTS.md "${target}/.codex/AGENTS.md"
 	rsync -avh --no-perms .codex/config.toml "${target}/.codex/config.toml"
-
-	print_step "Syncing Codex agents, commands, hooks, references, and rules..."
 	rsync -avh --no-perms .codex/agents/ "${target}/.codex/agents/"
+	rsync -avh --no-perms .codex/prompts/ "${target}/.codex/prompts/"
 	rsync -avh --no-perms .codex/commands/ "${target}/.codex/commands/"
 	rsync -avh --no-perms .codex/hooks/ "${target}/.codex/hooks/"
-	rsync -avh --no-perms .codex/references/ "${target}/.codex/references/"
 	rsync -avh --no-perms .codex/rules/ "${target}/.codex/rules/"
-
-	print_step "Syncing Codex skills..."
-	rsync -avh --no-perms .agents/skills/ "${target}/.agents/skills/"
 }
 
 # =============================================================================
@@ -773,7 +756,7 @@ restart_apps() {
 
 run_all() {
 	sync_dotfiles
-	sync_claude "$1"
+	sync_agents "$1"
 	install_homebrew_packages
 	configure_macos
 	restart_apps
@@ -790,11 +773,11 @@ usage() {
 	echo ""
 	echo "Flags (can be combined, e.g. -cb, -dcbmr):"
 	echo "  -d    Sync dotfiles to home directory"
-	echo "  -c    Sync Claude, Cursor, and Codex configuration"
+	echo "  -c    Sync Claude, Cursor, Codex, and shared agent configuration"
 	echo "  -b    Install Homebrew packages"
 	echo "  -m    Configure macOS system preferences"
 	echo "  -r    Restart affected applications"
-	echo "  -p <path>  Target a project folder for Claude + Codex sync (requires -c)"
+	echo "  -p <path>  Target a project folder for agent config sync (requires -c)"
 	echo "  -f    Skip confirmation prompt (run all if no other flags)"
 	echo "  -h    Show this help message"
 	echo ""
@@ -804,10 +787,10 @@ usage() {
 	echo "  --help            Same as -h"
 	echo ""
 	echo "Examples:"
-	echo "  ./setup.sh -cb       # Sync Claude config + install Homebrew packages"
+	echo "  ./setup.sh -cb       # Sync agent config + install Homebrew packages"
 	echo "  ./setup.sh -f        # Run all steps without prompts"
 	echo "  ./setup.sh -fcb      # Claude + Homebrew without prompts"
-	echo "  ./setup.sh -cp ~/Workspace/myproject # Sync Claude config to project"
+	echo "  ./setup.sh -cp ~/Workspace/myproject # Sync agent config to project"
 }
 
 main() {
@@ -918,7 +901,7 @@ main() {
 
 	# Execute selected steps in logical order
 	if [[ $do_dotfiles -eq 1 ]]; then sync_dotfiles; fi
-	if [[ $do_claude -eq 1 ]];   then sync_claude "$claude_target"; fi
+	if [[ $do_claude -eq 1 ]]; then sync_agents "$claude_target"; fi
 	if [[ $do_brew -eq 1 ]];     then install_homebrew_packages; fi
 	if [[ $do_macos -eq 1 ]];    then configure_macos; fi
 	if [[ $do_restart -eq 1 ]];  then restart_apps; fi

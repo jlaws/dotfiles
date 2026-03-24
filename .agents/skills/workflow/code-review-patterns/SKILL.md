@@ -1,11 +1,6 @@
 ---
 name: code-review-patterns
 description: Use when reviewing PRs, responding to review feedback, or running a self-review. Do NOT use for general code smell detection outside PR context (use code-quality).
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash
-skills:
-  - workflow/verification-before-completion
-  - testing/language-testing-patterns
 ---
 
 # Code Review Patterns
@@ -226,16 +221,16 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ---
 
-## Parallel Subagents
+## Parallel Agents
 
-For large diffs (>500 lines) or when invoked via `/team-review`, dispatch parallel Explore subagents to cover different review perspectives:
+For large diffs (>500 lines) or when invoked via `/team-review`, dispatch parallel search agents to cover different review perspectives:
 
-1. **security-reviewer** (Explore) — STRIDE analysis, vulnerability patterns, secrets detection
-2. **quality-reviewer** (Explore) — Code smells, edge cases, error handling, naming, DRY
-3. **test-reviewer** (Explore) — Coverage gaps, test quality, missing integration tests
-4. **language-reviewer** (Explore) — Language-specific gotchas, idiom violations
+1. **security-reviewer** — STRIDE analysis, vulnerability patterns, secrets detection
+2. **quality-reviewer** — Code smells, edge cases, error handling, naming, DRY
+3. **test-reviewer** — Coverage gaps, test quality, missing integration tests
+4. **language-reviewer** — Language-specific gotchas, idiom violations
 
-After all subagents return, synthesize findings: deduplicate, resolve contradictions, produce unified report.
+After all agents return, synthesize findings: deduplicate, resolve contradictions, produce unified report.
 
 ---
 
@@ -251,5 +246,3 @@ Load these skills if the review scope requires them:
 - `workflow:verification-before-completion` — if implementing fixes discovered during review
 - `workflow:pr-comment-resolution` — if responding to reviewer feedback on your own PR
 - `languages:*-patterns` — load the language-specific skill matching the primary language in the diff
-
-If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `references/workflow/review-checklists` for domain-specific checklists.

@@ -1,8 +1,6 @@
 ---
 name: post-ship-doc-sync
 description: Reusable workflow to discover and fix stale documentation after shipping changes. Use when docs may be out of date after a release, merge, or significant feature work. Do NOT use for writing new documentation from scratch (use documentation-writer agent).
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Post-Ship Documentation Sync
@@ -10,7 +8,7 @@ allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ## Step 1 — Identify Doc Files
 
 Search for documentation files in the project:
-- README*, ARCHITECTURE*, CONTRIBUTING*, AGENTS.md, CHANGELOG*
+- README*, ARCHITECTURE*, CONTRIBUTING*, CLAUDE.md, CHANGELOG*
 - `docs/` directory (all .md files)
 - Any *.md files in project root
 

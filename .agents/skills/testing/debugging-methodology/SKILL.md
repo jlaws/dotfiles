@@ -1,10 +1,6 @@
 ---
 name: debugging-methodology
 description: Use when investigating bugs, test failures, performance issues, or unexpected behavior. Do NOT use for test-first development workflow (use test-driven-development) or load testing and benchmarking (use performance-testing-and-profiling).
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash
-skills:
-  - workflow/verification-before-completion
 ---
 
 # Debugging Methodology

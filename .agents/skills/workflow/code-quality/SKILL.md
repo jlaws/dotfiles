@@ -1,8 +1,6 @@
 ---
 name: code-quality
 description: "Use when checking code quality, reviewing code smells, assessing code health, writing clean code, or applying style conventions. Do NOT use for PR review workflow or giving/receiving feedback (use code-review-patterns)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob
 ---
 
 # Code Quality
