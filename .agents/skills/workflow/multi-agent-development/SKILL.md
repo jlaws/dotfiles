@@ -1,13 +1,11 @@
 ---
 name: multi-agent-development
-description: "Use when coordinating multiple subagents for parallel/sequential tasks. Do NOT use for general Codex workflow optimization (use code-agent-meta-patterns)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash
+description: "Use when coordinating multiple subagents for parallel/sequential tasks. Do NOT use for general workflow optimization (use code-agent-meta-patterns)."
 ---
 
 # Multi-Agent Development
 
-Coordination model: **subagents** (Agent tool children, ephemeral). Parent orchestrates, subagents execute focused tasks and return results.
+Coordination model: **subagents** (ephemeral children). Parent orchestrates, subagents execute focused tasks and return results.
 
 ## Part 1: Subagents
 
@@ -40,14 +38,10 @@ Each agent gets:
 
 #### Worktree Isolation
 
-Implementation subagents MUST use `isolation: "worktree"` so they work on an isolated copy of the repo:
-
-```
-Agent(prompt="...", isolation="worktree", subagent_type="general-purpose")
-```
+Implementation subagents MUST use worktree isolation so they work on an isolated copy of the repo.
 
 Rules:
-- **Always set `isolation: "worktree"`** for any subagent that edits files
+- **Always use worktree isolation** for any subagent that edits files
 - Subagents must **NEVER** clean up, delete, or remove their worktree — the parent handles merge and cleanup
 - Subagents must **NEVER** invoke the `finishing-branch` skill — return changes on-branch and let the parent decide integration
 - Subagents must **NEVER** copy files via `cp`, `rsync`, or any file-copy mechanism
@@ -112,9 +106,9 @@ Chain specialists for cross-cutting issues:
 
 ---
 
-## Parallel Subagents for Multi-Perspective Work
+## Parallel Agents for Multi-Perspective Work
 
-For tasks requiring multiple perspectives (review, research, audit), dispatch parallel Explore subagents — one per perspective. Each subagent focuses on its assigned analysis, returns findings to the parent. Parent synthesizes: deduplicates, resolves contradictions, produces unified report.
+For tasks requiring multiple perspectives (review, research, audit), dispatch parallel search agents — one per perspective. Each agent focuses on its assigned analysis, returns findings to the parent. Parent synthesizes: deduplicates, resolves contradictions, produces unified report.
 
 ---
 
@@ -129,7 +123,7 @@ For tasks requiring multiple perspectives (review, research, audit), dispatch pa
 - Start quality review before spec review passes
 - Fix issues manually instead of dispatching fix agent (context pollution in sequential mode)
 - Move to next task while reviews have open issues
-- Spawning implementation subagents without `isolation: "worktree"`
+- Spawning implementation subagents without worktree isolation
 - Subagent cleaning up its own worktree before parent merges
 - Copying files between worktrees instead of using git merge
 - Subagent returning without squashing commits

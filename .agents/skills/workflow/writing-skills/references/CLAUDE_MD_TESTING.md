@@ -1,4 +1,4 @@
-# Testing AGENTS.md Skills Documentation
+# Testing CLAUDE.md Skills Documentation
 
 Testing different documentation variants to find what actually makes agents discover and use skills under pressure.
 
@@ -64,7 +64,7 @@ B) Just refactor it - you know what you're doing
 ## Documentation Variants to Test
 
 ### NULL (Baseline - no skills doc)
-No mention of skills in AGENTS.md at all.
+No mention of skills in CLAUDE.md at all.
 
 ### Variant A: Soft Suggestion
 ```markdown
@@ -93,12 +93,10 @@ is at `~/.agents/skills/`.
 
 Browse categories: `ls ~/.agents/skills/`
 Search: `grep -r "keyword" ~/.agents/skills/ --include="SKILL.md"`
-
-Instructions: `skills/using-skills`
 </available_skills>
 
 <important_info_about_skills>
-Codex might think it knows how to approach tasks, but the skills
+The agent might think it knows how to approach tasks, but the skills
 library contains battle-tested approaches that prevent common mistakes.
 
 THIS IS EXTREMELY IMPORTANT. BEFORE ANY TASK, CHECK FOR SKILLS!
@@ -128,8 +126,6 @@ Your workflow for every task:
 
 The skills library prevents you from repeating common mistakes.
 Not checking before you start is choosing to repeat those mistakes.
-
-Start here: `skills/using-skills`
 ```
 
 ## Testing Protocol

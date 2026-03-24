@@ -1,8 +1,6 @@
 ---
 name: design-first
 description: "Use when creating features, building components, adding functionality, or modifying behavior — explores intent, requirements, and design before writing code. Do NOT use for bug fixes (use debugging), refactoring (use refactoring-and-debt), or pure research tasks."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Design-First

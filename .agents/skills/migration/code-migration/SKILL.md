@@ -1,11 +1,6 @@
 ---
 name: code-migration
 description: "Codebase migration between frameworks, languages, versions, or platforms with assessment, planning, and rollback patterns. Use when migrating codebases between frameworks, languages, versions, or platforms. Provides migration assessment patterns, planning templates, strategy selection, testing strategies, rollback procedures, and automation approaches. Do NOT use for dependency version upgrades (use dependency-upgrade)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
-skills:
-  - testing/test-driven-development
-  - workflow/verification-before-completion
 ---
 
 # Code Migration
@@ -191,11 +186,11 @@ This catches behavioral regressions that unit tests miss.
 - [ ] Rollback triggers and procedures defined
 - [ ] Progress tracking per module
 
-## Parallel Subagents
+## Parallel Agents
 
-For large codebases (>50 files affected), dispatch parallel subagents to migrate independent modules:
+For large codebases (>50 files affected), dispatch parallel agents to migrate independent modules:
 
-1. **module-migrator-N** (general-purpose, `isolation: "worktree"`) — Migrate assigned module independently. Each migrator owns their module exclusively — no cross-module edits.
-2. **migration-reviewer** (Explore) — Validate completed migrations against comparison tests.
+1. **module-migrator-N** (general-purpose, worktree isolation) — Migrate assigned module independently. Each migrator owns their module exclusively — no cross-module edits.
+2. **migration-reviewer** (search) — Validate completed migrations against comparison tests.
 
 **Workflow**: Lead runs assessment, creates plan, dispatches module-migrators in parallel, reviewer validates each completed module, lead handles integration via `git merge`.

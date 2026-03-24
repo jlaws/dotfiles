@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-Personal macOS dotfiles and development environment configuration. Combines traditional Unix dotfile management with an extensive Claude Code knowledge base (commands, skills).
+Personal macOS dotfiles and development environment configuration. Combines traditional Unix dotfile management with a shared agent knowledge base (`.agents/`) and tool-specific configs for Claude Code, Cursor, and Codex.
 
 ## Commands
 
@@ -34,12 +34,18 @@ dotfiles/
 ├── setup.sh           # Main installation script
 ├── pyproject.toml     # ruff config, project metadata
 ├── Makefile           # lint, format, fix targets
-└── .claude/           # Claude Code knowledge base
-    ├── CLAUDE.md      # Global standards (source; setup.sh pushes to ~/)
-    ├── agents/
-    ├── commands/
-    ├── references/
-    └── skills/
+├── .agents/           # Shared agent KB (agentskills.io spec)
+│   ├── skills/        # agent-*, cmd-*, workflow/*, testing/*, migration/*
+│   └── references/    # Domain knowledge by category
+├── .claude/           # Claude Code (self-contained)
+│   ├── CLAUDE.md, settings.json
+│   ├── agents/, commands/, hooks/, skills/, references/
+├── .codex/            # Codex config + proprietary agents/commands
+│   ├── AGENTS.md, config.toml
+│   ├── agents/, commands/, hooks/, rules/
+└── .cursor/           # Cursor config only
+    ├── cli-config.json, hooks.json
+    ├── hooks/, rules/
 ```
 
 ## Key Files
@@ -67,5 +73,5 @@ dotfiles/
 - Shell configs use `#` comments, keep aliases short and documented
 - `.extra` is the primary customization point (not `.zshrc`)
 - macOS `defaults write` commands in setup.sh follow pattern: domain, key, type, value
-- Claude knowledge base files are markdown with YAML frontmatter
+- Agent skills follow the [agentskills.io](https://agentskills.io/specification) spec (SKILL.md with YAML frontmatter)
 - Do not hardcode counts of KB assets (agents, commands, references, skills) — they go stale

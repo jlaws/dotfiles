@@ -1,8 +1,6 @@
 ---
 name: verification-before-completion
 description: "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs — requires running verification commands and confirming output before making success claims. Do NOT use for test-first development workflow (use test-driven-development)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Verification Before Completion

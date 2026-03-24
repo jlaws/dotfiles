@@ -1,8 +1,6 @@
 ---
 name: refactoring-and-debt
 description: "Use when systematically refactoring code or analyzing/remediating technical debt. Do NOT use for general code quality checks (use code-quality) or pre-commit verification (use verification-before-completion)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Refactoring & Technical Debt
@@ -193,16 +191,16 @@ Leave the code a little better than you found it.
 3. Long-term: [6 months]
 ```
 
-## Parallel Subagents
+## Parallel Agents
 
-For comprehensive debt audits of large codebases, dispatch parallel Explore subagents:
+For comprehensive debt audits of large codebases, dispatch parallel search agents:
 
-1. **code-debt-analyst** (Explore) — Duplication, complexity, code smell inventory
-2. **arch-debt-analyst** (Explore) — Boundary violations, dependency analysis, pattern drift
-3. **test-debt-analyst** (Explore) — Coverage gaps, flaky tests, missing integration tests
-4. **infra-debt-analyst** (Explore) — Deployment gaps, monitoring holes, dependency health
+1. **code-debt-analyst** — Duplication, complexity, code smell inventory
+2. **arch-debt-analyst** — Boundary violations, dependency analysis, pattern drift
+3. **test-debt-analyst** — Coverage gaps, flaky tests, missing integration tests
+4. **infra-debt-analyst** — Deployment gaps, monitoring holes, dependency health
 
-After all subagents return, synthesize findings: deduplicate, resolve contradictions, produce unified debt assessment report.
+After all agents return, synthesize findings: deduplicate, resolve contradictions, produce unified debt assessment report.
 
 ## Cross-References
 

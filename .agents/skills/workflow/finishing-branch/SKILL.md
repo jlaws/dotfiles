@@ -1,8 +1,6 @@
 ---
 name: finishing-branch
 description: "Structured 4-step process for completing a development branch — verify tests, determine base, present integration options, execute with cleanup. Use when implementation is complete and you need to decide how to integrate the work. Do NOT use mid-implementation or before tests pass."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Finishing a Development Branch
@@ -13,7 +11,7 @@ allowed-tools: Read, Grep, Glob, Bash
 
 ### Subagent Guard
 
-**If you are running as a subagent (spawned via Agent tool with `isolation: "worktree"`):**
+**If you are running as a subagent:**
 STOP. Do NOT proceed with this skill. Instead:
 1. Ensure all changes are committed to your branch
 2. Return a summary of your changes, branch name, and worktree path to the parent

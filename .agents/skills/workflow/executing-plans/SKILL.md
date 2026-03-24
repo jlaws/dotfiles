@@ -1,8 +1,6 @@
 ---
 name: executing-plans
 description: "Structured methodology for executing implementation plans in batches with review checkpoints. Use when you have a written plan to execute task-by-task with verification gates between batches. Do NOT use for ad-hoc implementation without a plan (use design-first then writing-plans first)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Executing Plans

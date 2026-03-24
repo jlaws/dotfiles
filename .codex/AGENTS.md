@@ -11,8 +11,8 @@
 ## Knowledge Base
 
 - Global Codex config lives under `~/.codex/`.
-- User skills live under `~/.agents/skills/`.
-- This setup keeps reusable prompt libraries in `~/.codex/commands/` and long-form references in `~/.codex/references/`.
+- User skills live under `~/.agents/skills/` and domain references under `~/.agents/references/`.
+- Codex slash prompts live in `~/.codex/prompts/`, legacy command source files live in `~/.codex/commands/`, and agent definitions live in `~/.codex/agents/`.
 - Before implementation, check whether an applicable skill already exists.
 
 ## Execution Defaults

@@ -1,8 +1,6 @@
 ---
 name: using-git-worktrees
-description: "Git worktree creation for isolated feature work with smart directory selection and safety verification. Use when starting feature work that needs isolation, working on parallel branches, working on multiple features simultaneously, or before executing implementation plans. Do NOT use for general git workflow (check Git Workflow section in AGENTS.md)."
-compatibility: codex
-allowed-tools: Read, Grep, Glob, Bash
+description: "Git worktree creation for isolated feature work with smart directory selection and safety verification. Use when starting feature work that needs isolation, working on parallel branches, working on multiple features simultaneously, or before executing implementation plans. Do NOT use for general git workflow (check Git Workflow section in CLAUDE.md)."
 ---
 
 # Using Git Worktrees
@@ -18,9 +16,9 @@ ls -d worktrees 2>/dev/null      # Alternative
 ```
 If both exist, `.worktrees` wins.
 
-### 2. Check AGENTS.md
+### 2. Check Project Config
 ```bash
-grep -i "worktree.*director" AGENTS.md 2>/dev/null
+grep -i "worktree.*director" CLAUDE.md 2>/dev/null
 ```
 If preference specified, use it.
 
@@ -28,7 +26,7 @@ If preference specified, use it.
 ```
 No worktree directory found. Where should I create worktrees?
 1. .worktrees/ (project-local, hidden)
-2. ~/.config/superpowers/worktrees/<project-name>/ (global)
+2. ~/.config/worktrees/<project-name>/ (global)
 ```
 
 ## Safety Verification
@@ -41,7 +39,7 @@ git check-ignore -q .worktrees 2>/dev/null
 
 **If NOT ignored:** Add to .gitignore, commit, then proceed.
 
-**For global directory (~/.config/superpowers/worktrees):** No verification needed.
+**For global directory (~/.config/worktrees):** No verification needed.
 
 ## Creation Steps
 
@@ -73,7 +71,7 @@ cd "$path"
 Before returning or signaling completion:
 
 1. **Stage and commit** all changes (nothing untracked or modified)
-2. **Squash** into a single commit (three separate Bash tool calls):
+2. **Squash** into a single commit (three separate terminal calls):
    ```bash
    git add -A
    ```
@@ -95,7 +93,7 @@ Before returning or signaling completion:
 | `.worktrees/` exists | Use it (verify ignored) |
 | `worktrees/` exists | Use it (verify ignored) |
 | Both exist | Use `.worktrees/` |
-| Neither exists | Check AGENTS.md, then ask user |
+| Neither exists | Check project config, then ask user |
 | Directory not ignored | Add to .gitignore + commit |
 | Tests fail in baseline | Report failures + ask |
 
@@ -108,4 +106,4 @@ Before returning or signaling completion:
 ## Integration
 
 - **Called by:** brainstorming (after design approved), any skill needing isolation
-- **Pairs with:** finishing-a-development-branch (cleanup after), executing-plans / subagent-driven-development (work happens here)
+- **Pairs with:** finishing-a-development-branch (cleanup after), executing-plans / multi-agent-development (work happens here)
