@@ -153,13 +153,12 @@ sync_agents() {
 	print_section "Syncing Codex Configuration"
 	print_step "Target: ${target}/.codex/"
 
-	mkdir -p "${target}/.codex/agents" "${target}/.codex/prompts" "${target}/.codex/commands" "${target}/.codex/hooks" "${target}/.codex/rules"
+	mkdir -p "${target}/.codex/agents" "${target}/.codex/prompts" "${target}/.codex/hooks" "${target}/.codex/rules"
 	print_step "Syncing Codex config, agents, prompts, commands, hooks, and rules..."
 	rsync -avh --no-perms .codex/AGENTS.md "${target}/.codex/AGENTS.md"
 	rsync -avh --no-perms .codex/config.toml "${target}/.codex/config.toml"
 	rsync -avh --no-perms .codex/agents/ "${target}/.codex/agents/"
 	rsync -avh --no-perms .codex/prompts/ "${target}/.codex/prompts/"
-	rsync -avh --no-perms .codex/commands/ "${target}/.codex/commands/"
 	rsync -avh --no-perms .codex/hooks/ "${target}/.codex/hooks/"
 	rsync -avh --no-perms .codex/rules/ "${target}/.codex/rules/"
 }
