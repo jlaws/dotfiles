@@ -116,6 +116,7 @@ sync_agents() {
 	print_section "Syncing Shared Agent Knowledge Base"
 	print_step "Target: ${target}/.agents/"
 
+	mkdir -p "${target}/.agents/skills" "${target}/.agents/references"
 	rsync -avh --no-perms .agents/skills/ "${target}/.agents/skills/"
 	rsync -avh --no-perms .agents/references/ "${target}/.agents/references/"
 
@@ -123,6 +124,7 @@ sync_agents() {
 	print_section "Syncing Claude Code Configuration"
 	print_step "Target: ${target}/.claude/"
 
+	mkdir -p "${target}/.claude/agents" "${target}/.claude/commands" "${target}/.claude/hooks" "${target}/.claude/skills" "${target}/.claude/references"
 	print_step "Syncing Claude config, agents, commands, hooks, skills, and references..."
 	rsync -avh --no-perms .claude/CLAUDE.md "${target}/.claude/CLAUDE.md"
 	rsync -avh --no-perms .claude/settings.json "${target}/.claude/settings.json"
@@ -136,6 +138,7 @@ sync_agents() {
 	print_section "Syncing Cursor Configuration"
 	print_step "Target: ${target}/.cursor/"
 
+	mkdir -p "${target}/.cursor/hooks" "${target}/.cursor/rules" "${target}/.cursor/skills" "${target}/.cursor/references"
 	print_step "Syncing Cursor config, hooks, and rules..."
 	rsync -avh --no-perms .cursor/cli-config.json "${target}/.cursor/cli-config.json"
 	rsync -avh --no-perms .cursor/hooks.json "${target}/.cursor/hooks.json"
@@ -150,6 +153,7 @@ sync_agents() {
 	print_section "Syncing Codex Configuration"
 	print_step "Target: ${target}/.codex/"
 
+	mkdir -p "${target}/.codex/agents" "${target}/.codex/prompts" "${target}/.codex/commands" "${target}/.codex/hooks" "${target}/.codex/rules"
 	print_step "Syncing Codex config, agents, prompts, commands, hooks, and rules..."
 	rsync -avh --no-perms .codex/AGENTS.md "${target}/.codex/AGENTS.md"
 	rsync -avh --no-perms .codex/config.toml "${target}/.codex/config.toml"
