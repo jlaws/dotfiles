@@ -12,33 +12,78 @@ Parse the user's input: it must contain `<directory_path>` followed by `<descrip
 
 **Do NOT use subagents or parallel agents. Process all design perspectives linearly.**
 
----
+## Design Process
 
-## Multi-Perspective Analysis
+### Phase 1: Discovery
+1. Read the target directory structure and key files
+2. Identify existing architecture patterns, APIs, data models
+3. Check for existing design docs, ADRs, or README architecture sections
 
-Process each design perspective sequentially, then synthesize findings.
+### Phase 2: Multi-Perspective Analysis
+Analyze the system from each perspective sequentially:
 
-### Per-Perspective Flow
+**2.1 Component Architecture**
+- System boundaries and component responsibilities
+- Dependencies and interaction patterns (who calls whom, sync vs async)
+- Data flow between components
+- Identify god classes, circular dependencies, unclear ownership
+- Map the dependency graph — are layers clean or tangled?
 
-For each analysis perspective:
-- **Specific scope** — one subsystem, one domain
-- **Clear goal** — e.g., "analyze security boundaries" not "review the system"
-- **Constraints** — "focus on data flow, not implementation details"
-- **Expected output** — summary of findings and recommendations
+**2.2 API Design**
+- Public interfaces and contracts
+- Versioning strategy and backwards compatibility approach
+- Error handling patterns and error taxonomy
+- Input validation and sanitization boundaries
+- Pagination, rate limiting, idempotency for external APIs
+- Are APIs designed for the consumer or the implementation?
 
-1. Conduct analysis with full context
-2. Answer questions if clarification is needed
-3. **Deliverable:** analysis + recommendations + summary report
-4. **Review** — verify analysis matches requirements
-5. **If issues:** revise and re-review. Repeat until pass.
-6. **Mark perspective complete**, move to next
+**2.3 Data Architecture**
+- Data models and relationships (ER diagram or description)
+- Storage strategy and access patterns (read-heavy? write-heavy? mixed?)
+- Migration and evolution approach
+- Data consistency model (strong, eventual, causal)
+- Data lifecycle — creation, transformation, archival, deletion
+- Sensitive data identification and handling
 
-### Phase 3: Synthesis
+**2.4 Security & Operations**
+- Authentication/authorization model and trust boundaries
+- Deployment topology (single region? multi? edge?)
+- Observability: metrics, logging, tracing, alerting
+- Failure modes and recovery strategy
+- Capacity planning and scaling approach
+- Incident response — what can be rolled back, what can't
+
+### Phase 3: Cross-Cutting Analysis
+
+Analyze concerns that span multiple perspectives:
+
+**3.1 Domain Pipeline Analysis**
+For cross-cutting issues, trace the full path:
+- **Performance**: Request path → DB queries → response. Where are the bottlenecks?
+- **Security**: User input → validation → processing → storage. Where are the trust boundaries?
+- **Error propagation**: Failure point → error handling → user feedback. Are errors meaningful?
+
+**3.2 Integration Points**
+- External service dependencies and failure modes
+- Message queues, event buses, or async communication patterns
+- Shared state and coordination mechanisms
+
+### Phase 4: Synthesis
+
 Combine findings into a unified architecture document:
 - System overview diagram (describe in text/mermaid)
 - Component catalog with responsibilities
 - Key design decisions and trade-offs
 - Risks and open questions
+- Implementation priority order (what to build first and why)
+
+### Phase 5: Implementation Planning
+
+Produce an actionable implementation plan:
+1. **Task breakdown** — ordered list of implementation tasks with dependencies
+2. **Risk-first ordering** — tackle the hardest/riskiest parts first
+3. **Vertical slices** — each task should produce something testable end-to-end
+4. **Test strategy** — what tests are needed at each level (unit, integration, e2e)
 
 ---
 
@@ -76,3 +121,38 @@ For each significant design decision:
 - Design requires coordination between components for basic operations
 - No clear error handling strategy
 - Design optimizes for hypothetical future requirements over current needs
+- Can't explain a component's purpose in one sentence
+- "It depends" is the answer to most questions about the design
+
+---
+
+## Self-Review Before Presenting
+
+Review your work with fresh eyes before presenting to the user:
+
+**Completeness:**
+- Did I analyze every perspective thoroughly?
+- Did I miss any requirements or constraints?
+- Are there edge cases or failure modes I didn't consider?
+
+**Quality:**
+- Is the design document clear and actionable?
+- Are diagrams/descriptions precise enough to implement from?
+- Did I follow existing codebase patterns where appropriate?
+
+**Discipline:**
+- Did I avoid overbuilding (YAGNI)?
+- Is the design the simplest thing that could work?
+- Did I only design what was requested?
+
+Fix any issues found during self-review before presenting.
+
+## Report Format
+
+When done, present:
+- What you analyzed (scope, files read, patterns identified)
+- The architecture document (Phase 4 synthesis)
+- Key design decisions and why
+- Implementation plan (Phase 5)
+- Open questions requiring user input
+- Risks and concerns
