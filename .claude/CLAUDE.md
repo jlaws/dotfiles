@@ -44,7 +44,25 @@ This rule applies to Bash tool calls only — not to Dockerfile `RUN` layers, CI
 
 ## Execution Model
 
-**Do NOT use subagents, agent teams, or worktree isolation.** Process all work linearly in a single context. Multi-agent patterns are unreliable and must not be used.
+**Do NOT use subagents, agent teams, or parallel agents.** Process all work linearly in a single context. Multi-agent patterns are unreliable and must not be used.
+
+## Worktree Rules
+
+When working in a git worktree:
+- **Commit ALL changes** before returning — uncommitted work is invisible to `git merge`
+- **Squash into one commit** (three separate Bash tool calls):
+  ```bash
+  git add -A
+  ```
+  ```bash
+  git reset --soft $(git merge-base HEAD main)
+  ```
+  ```bash
+  git commit -m "<summary>"
+  ```
+- **NEVER** copy files out (`cp`, `rsync`, file-copy) — use `git merge` to integrate
+- **NEVER** clean up your own worktree — the caller handles merge + `git worktree remove`
+- **NEVER** invoke `finishing-branch` skill — return changes on-branch to the caller
 
 ## Knowledge Base Structure
 - **skills/**: Cross-cutting workflows loaded on demand (code review, debugging, TDD, etc.)
