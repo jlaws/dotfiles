@@ -233,6 +233,15 @@ For thorough coverage, analyze the diff sequentially from each perspective:
 3. Deduplicate findings across perspectives, resolve contradictions
 4. Produce Step 5 structured report + Step 6 decision gate
 
+#### Skills per Perspective
+
+| Perspective | Skills/References to Load |
+|---|---|
+| Security | `security:security-analysis`, `security:auth-implementation-patterns` |
+| Code Quality | `workflow:code-quality`, `workflow:code-review-patterns` |
+| Testing | `testing:language-testing-patterns`, `testing:test-driven-development` |
+| Language-Specific | Auto-detected `languages:*-patterns` based on file extensions |
+
 ---
 
 ### Cross-References

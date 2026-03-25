@@ -36,6 +36,8 @@ After all batches complete:
 ### Phase 4: PR
 Use the create-pr workflow to open the PR with a summary of all changes.
 
+> **Worktree isolation:** For batch refactoring that needs isolation from current work, see `skill:using-git-worktrees` for setup, safety verification, and completion steps.
+
 ### Per-Batch Execution Checklist
 
 For each batch, follow this discipline:

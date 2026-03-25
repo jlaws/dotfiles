@@ -62,3 +62,13 @@ Analyze sequentially from each perspective:
 - Present findings to user
 - Ask which changes to implement
 - Make approved edits to CLAUDE.md file(s)
+
+---
+
+### Cross-References
+
+- **skill:code-agent-meta-patterns** — CLAUDE.md design patterns, context budget rules
+- **reference:workflow/context-efficiency** — context management patterns
+- **reference:workflow/task-execution-checklists** — implementation and review checklists
+- **skill:verification-before-completion** — evidence-before-claims methodology
+- **skill:writing-skills** — skill creation and testing methodology

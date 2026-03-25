@@ -65,6 +65,17 @@ External content (web pages, logs, API responses) carries significant bloat. Cle
 
 **Over budget?** Extract detail into a reference file and link to it. Never inline >50 lines of reference material into CLAUDE.md or skills.
 
+## Context Isolation
+
+When a task involves heavy research that could bloat the main context, consider these patterns:
+
+| Pattern | Benefit |
+|---------|---------|
+| Focused research scope | Ask a specific question, not "explore everything about X" |
+| Result summarization | Capture findings as a summary, discard raw search output |
+| File-based handoff | Write findings to a scratch file rather than accumulating in conversation |
+| Single-pass analysis | Complete each analysis phase fully before starting the next |
+
 ## Parallel Tool Calls
 
 Each sequential tool call is a round trip. Batch independent operations to reduce turns.
