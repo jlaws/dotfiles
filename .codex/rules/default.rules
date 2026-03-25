@@ -1,6 +1,10 @@
-# Allow common read-only git inspection without repeated prompts.
+# =============================================================================
+# Git — all operations allowed (matches Claude Code: Bash(git <subcmd> *))
+# =============================================================================
+
 prefix_rule(
-    pattern = ["git", ["status", "diff", "log", "show"]],
+    pattern = ["git", ["status", "diff", "log", "show", "branch", "blame",
+                        "ls-files", "rev-parse", "remote", "tag", "worktree"]],
     decision = "allow",
     justification = "Read-only git inspection is safe and common during code work.",
     match = [
@@ -8,42 +12,206 @@ prefix_rule(
         "git diff",
         "git log --oneline",
         "git show HEAD~1",
+        "git branch -a",
+        "git blame src/main.py",
+        "git ls-files",
+        "git rev-parse HEAD",
+        "git remote -v",
+        "git tag -l",
+        "git worktree list",
     ],
-    not_match = [
-        "git add .",
-        "git commit -m test",
-    ],
+    not_match = [],
 )
 
-# Prompt before remote write operations.
+prefix_rule(
+    pattern = ["git", ["add", "commit", "stash", "fetch", "pull", "checkout",
+                        "switch", "merge", "rebase", "cherry-pick", "restore",
+                        "clone", "rm", "mv", "reset", "clean"]],
+    decision = "allow",
+    justification = "Local git write operations allowed to match Claude Code permissions.",
+    match = [
+        "git add -A",
+        "git commit -m 'fix typo'",
+        "git stash pop",
+        "git fetch origin",
+        "git pull --rebase",
+        "git checkout -b feature/test",
+        "git switch main",
+        "git merge feature/test",
+        "git rebase main",
+        "git cherry-pick abc123",
+        "git restore --staged file.txt",
+        "git clone https://github.com/user/repo",
+        "git rm old-file.txt",
+        "git mv old.txt new.txt",
+        "git reset --soft HEAD~1",
+        "git clean -fd",
+    ],
+    not_match = [],
+)
+
 prefix_rule(
     pattern = ["git", "push"],
-    decision = "prompt",
-    justification = "Pushing to remotes should stay user-approved.",
+    decision = "allow",
+    justification = "Git push allowed to match Claude Code permissions.",
     match = [
         "git push",
         "git push -u origin feature/test",
     ],
-    not_match = [
-        "git status",
-    ],
+    not_match = [],
 )
 
-# Prompt before GitHub write operations.
+# =============================================================================
+# GitHub CLI — all operations allowed (matches Claude Code: Bash(gh *))
+# =============================================================================
+
 prefix_rule(
-    pattern = ["gh", "pr", ["create", "merge", "close"]],
-    decision = "prompt",
-    justification = "GitHub PR mutations should stay user-approved.",
+    pattern = ["gh"],
+    decision = "allow",
+    justification = "All GitHub CLI operations allowed to match Claude Code permissions.",
     match = [
         "gh pr create --title Test --body Body",
         "gh pr merge 123 --squash",
+        "gh pr view 123",
+        "gh issue list",
+        "gh api repos/owner/repo/pulls",
+    ],
+    not_match = [],
+)
+
+# =============================================================================
+# File utilities (matches Claude Code: cat, head, tail, sed, awk, etc.)
+# =============================================================================
+
+prefix_rule(
+    pattern = [["cat", "head", "tail", "sed", "awk", "grep", "ls",
+                 "wc", "diff", "sort", "uniq", "tr", "xargs",
+                 "jq", "file", "stat", "realpath", "dirname", "basename"]],
+    decision = "allow",
+    justification = "Read/transform utilities are safe for code inspection.",
+    match = [
+        "cat README.md",
+        "head -20 src/main.py",
+        "tail -f app.log",
+        "sed 's/foo/bar/g' file.txt",
+        "awk '{print $1}' data.csv",
+        "grep -r TODO src/",
+        "ls -la",
+        "wc -l src/*.py",
+        "diff file1.txt file2.txt",
+        "sort names.txt",
+        "uniq -c sorted.txt",
+        "tr '[:upper:]' '[:lower:]'",
+        "jq '.data' response.json",
+        "file binary.dat",
+        "stat README.md",
+        "realpath ../config",
+        "dirname /path/to/file",
+        "basename /path/to/file.txt",
+    ],
+    not_match = [],
+)
+
+prefix_rule(
+    pattern = [["mkdir", "touch", "cp", "mv", "chmod", "open",
+                 "echo", "printf", "tee"]],
+    decision = "allow",
+    justification = "File manipulation utilities allowed to match Claude Code permissions.",
+    match = [
+        "mkdir -p src/new-dir",
+        "touch newfile.txt",
+        "cp src/a.txt src/b.txt",
+        "mv old.txt new.txt",
+        "chmod +x script.sh",
+        "open .",
+        "echo 'hello'",
+        "printf '%s\n' hello",
+        "tee output.log",
+    ],
+    not_match = [],
+)
+
+# =============================================================================
+# Node.js / JS tooling (matches Claude Code: npm test, npx, eslint, etc.)
+# =============================================================================
+
+prefix_rule(
+    pattern = ["npm", ["test", "list", "outdated", "audit", "info"]],
+    decision = "allow",
+    justification = "Read-only npm commands allowed to match Claude Code permissions.",
+    match = [
+        "npm test",
+        "npm list",
+        "npm outdated",
+        "npm audit",
+        "npm info express",
     ],
     not_match = [
-        "gh pr view 123",
+        "npm install express",
     ],
 )
 
-# Prompt before package-manager installs outside the sandbox.
+prefix_rule(
+    pattern = ["npx"],
+    decision = "allow",
+    justification = "npx execution allowed to match Claude Code permissions.",
+    match = [
+        "npx prettier --check .",
+        "npx tsc --noEmit",
+    ],
+    not_match = [],
+)
+
+prefix_rule(
+    pattern = [["eslint", "prettier", "tsc"]],
+    decision = "allow",
+    justification = "JS/TS lint and type-check tools allowed.",
+    match = [
+        "eslint src/",
+        "prettier --check .",
+        "tsc --noEmit",
+    ],
+    not_match = [],
+)
+
+# =============================================================================
+# Swift tooling (matches Claude Code: swiftlint, swiftformat)
+# =============================================================================
+
+prefix_rule(
+    pattern = [["swiftlint", "swiftformat"]],
+    decision = "allow",
+    justification = "Swift lint and format tools allowed.",
+    match = [
+        "swiftlint lint",
+        "swiftformat .",
+    ],
+    not_match = [],
+)
+
+# =============================================================================
+# System info (matches Claude Code: which, uname, whoami, pwd, env, date)
+# =============================================================================
+
+prefix_rule(
+    pattern = [["which", "uname", "whoami", "pwd", "env", "date"]],
+    decision = "allow",
+    justification = "Read-only system info commands are safe.",
+    match = [
+        "which python",
+        "uname -a",
+        "whoami",
+        "pwd",
+        "env",
+        "date",
+    ],
+    not_match = [],
+)
+
+# =============================================================================
+# Package installs — prompt (not auto-allowed in Claude Code either)
+# =============================================================================
+
 prefix_rule(
     pattern = [["brew", "npm", "pnpm", "yarn", "uv", "pip"], ["install", "add", "sync"]],
     decision = "prompt",
@@ -59,3 +227,28 @@ prefix_rule(
     ],
 )
 
+# =============================================================================
+# Denied — dangerous commands (matches Claude Code deny list)
+# =============================================================================
+
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "deny",
+    justification = "Privileged execution is never auto-approved.",
+    match = [
+        "sudo rm -rf /",
+        "sudo apt install foo",
+    ],
+    not_match = [],
+)
+
+prefix_rule(
+    pattern = [["docker", "docker-compose"]],
+    decision = "deny",
+    justification = "Container operations denied to match Claude Code permissions.",
+    match = [
+        "docker run ubuntu",
+        "docker-compose up",
+    ],
+    not_match = [],
+)
