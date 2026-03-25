@@ -10,6 +10,8 @@ If no arguments provided, analyzes both global and local CLAUDE.md against last 
 
 **Do NOT use subagents or parallel agents. Process all analysis linearly.**
 
+For implementation and review checklists, see `references/workflow/task-execution-checklists`.
+
 ## Review Process
 
 ### Step 1: Gather Conversation History

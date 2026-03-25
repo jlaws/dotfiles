@@ -64,6 +64,8 @@ For each hypothesis (most likely first):
 
 ## Implementation Review (after fix)
 
+For detailed checklists, see `references/workflow/task-execution-checklists`.
+
 After implementing the fix, perform these review steps sequentially:
 
 ### Spec Compliance Check

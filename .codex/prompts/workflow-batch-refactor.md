@@ -18,13 +18,14 @@ Follow this sequence:
 3. Present the batch plan to the user for approval before proceeding.
 
 ### Phase 2: Sequential Batch Execution
-For each batch, process sequentially:
-
-1. Make the specified changes to the batch's assigned files
-2. Run lint/format on changed files
-3. Verify no regressions (run tests if applicable)
-4. Commit changes: `git commit -m "batch N: <summary>"`
-5. Move to next batch
+For each batch, follow the per-task execution flow (see `references/workflow/task-execution-checklists`):
+1. Make the specified changes to the assigned files
+2. Self-review: completeness, consistency, correctness, convention (see Per-Batch checklist below)
+3. Spec compliance check: did I change every instance? Any files missed?
+4. Code quality check: is the pattern applied consistently?
+5. Run lint/format on changed files
+6. Verify tests still pass
+7. Commit changes with a descriptive message: `batch N: <summary>`
 
 ### Phase 3: Verification
 After all batches complete:

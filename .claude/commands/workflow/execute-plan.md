@@ -14,6 +14,8 @@ If no arguments provided, look for the most recent plan in `docs/plans/` and con
 
 **Core principle:** Batch execution with checkpoints for review.
 
+For implementation, self-review, and review checklists, see `references/workflow/task-execution-checklists`.
+
 ### Step 1: Load and Review Plan
 
 1. Read the plan file

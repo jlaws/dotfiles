@@ -21,11 +21,14 @@ Follow this sequence:
 ### Phase 2: Sequential Execution
 Process each batch sequentially:
 
-For each batch:
+For each batch, follow the per-task execution flow (see `references/workflow/task-execution-checklists`):
 1. Make the specified changes to the assigned files
-2. Run lint/format on changed files
-3. Verify tests still pass (if applicable)
-4. Commit the batch: `git commit -m "batch N: <summary>"`
+2. Self-review: completeness, consistency, correctness, convention (see Per-Batch checklist below)
+3. Spec compliance check: did I change every instance? Any files missed?
+4. Code quality check: is the pattern applied consistently?
+5. Run lint/format on changed files
+6. Verify tests still pass
+7. Commit changes with a descriptive message: `batch N: <summary>`
 
 ### Phase 3: Verification
 After all batches complete:
