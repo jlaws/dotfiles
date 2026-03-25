@@ -191,17 +191,6 @@ Leave the code a little better than you found it.
 3. Long-term: [6 months]
 ```
 
-## Parallel Agents
-
-For comprehensive debt audits of large codebases, dispatch parallel search agents:
-
-1. **code-debt-analyst** — Duplication, complexity, code smell inventory
-2. **arch-debt-analyst** — Boundary violations, dependency analysis, pattern drift
-3. **test-debt-analyst** — Coverage gaps, flaky tests, missing integration tests
-4. **infra-debt-analyst** — Deployment gaps, monitoring holes, dependency health
-
-After all agents return, synthesize findings: deduplicate, resolve contradictions, produce unified debt assessment report.
-
 ## Cross-References
 
 - **workflow:code-quality** -- code smells, style conventions

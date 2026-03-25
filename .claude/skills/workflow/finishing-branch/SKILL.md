@@ -11,24 +11,14 @@ allowed-tools: Read, Grep, Glob, Bash
 
 ## The Process
 
-### Subagent Guard
-
-**If you are running as a subagent (spawned via Agent tool with `isolation: "worktree"`):**
-STOP. Do NOT proceed with this skill. Instead:
-1. Ensure all changes are committed to your branch
-2. Return a summary of your changes, branch name, and worktree path to the parent
-3. The parent is responsible for merge and cleanup
-
-This skill is for the lead/parent agent or direct user sessions only.
-
 ### Multi-Branch Integration
 
-When the parent has multiple worktree branches to integrate (e.g., after parallel subagent work):
+When integrating multiple worktree branches:
 
 1. Create integration branch: `git checkout -b integrate/<description> main`
 2. Sequentially merge each branch:
    ```bash
-   git merge <agent-branch> --no-edit
+   git merge <branch> --no-edit
    ```
 3. Run full test suite on merged result
 4. Clean up worktrees: `git worktree remove <path>` for each
@@ -155,7 +145,6 @@ Clean up worktree if applicable.
 - Force-pushing without explicit user request
 - Offering fewer or more than 4 options
 - Cleaning up worktree when user chose "keep as-is"
-- Subagent invoking this skill instead of returning changes to parent
 
 ## Integration
 

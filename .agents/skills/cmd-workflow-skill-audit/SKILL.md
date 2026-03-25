@@ -142,7 +142,7 @@ For each `.md` file under `.agents/skills/cmd-*/`:
 | CM-C1 | Body over 10 words | WARN | Must provide instructions |
 | CM-C2 | If body uses `$ARGUMENTS`, frontmatter has `argument-hint` | WARN | Helps user know what to pass |
 | CM-C3 | If body invokes a skill (e.g., "load skill", "follow skill", "invoke skill"), skill exists | FAIL | Broken skill ref |
-| CM-C4 | If body invokes a subagent, agent exists under `.agents/skills/agent-*/` | WARN | Broken agent ref |
+| CM-C4 | If body invokes an agent, agent exists under `.agents/skills/agent-*/` | WARN | Broken agent ref |
 
 ---
 

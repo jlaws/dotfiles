@@ -186,11 +186,3 @@ This catches behavioral regressions that unit tests miss.
 - [ ] Rollback triggers and procedures defined
 - [ ] Progress tracking per module
 
-## Parallel Agents
-
-For large codebases (>50 files affected), dispatch parallel agents to migrate independent modules:
-
-1. **module-migrator-N** (general-purpose, worktree isolation) — Migrate assigned module independently. Each migrator owns their module exclusively — no cross-module edits.
-2. **migration-reviewer** (search) — Validate completed migrations against comparison tests.
-
-**Workflow**: Lead runs assessment, creates plan, dispatches module-migrators in parallel, reviewer validates each completed module, lead handles integration via `git merge`.

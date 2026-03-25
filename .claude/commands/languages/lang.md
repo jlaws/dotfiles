@@ -4,11 +4,11 @@ description: "Language patterns consultation — idioms, tooling, and project sc
 argument-hint: "<question-or-task>"
 ---
 
-Before invoking the subagent, gather diagnostic context:
+Before starting, gather diagnostic context:
 
 1. **Detect primary language** from config files (package.json, pyproject.toml, Cargo.toml, go.mod, Package.swift, Gemfile).
 2. **Identify tooling** by searching for linter configs, formatter configs, build tool settings.
 3. **Check project conventions** for existing patterns, module structure, and coding standards.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a topic, scope to that; otherwise detect language from the project root).
 
-Use the language-specialist subagent to help with: $ARGUMENTS
+Help with: $ARGUMENTS

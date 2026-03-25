@@ -193,17 +193,6 @@ Leave the code a little better than you found it.
 3. Long-term: [6 months]
 ```
 
-## Parallel Subagents
-
-For comprehensive debt audits of large codebases, dispatch parallel Explore subagents:
-
-1. **code-debt-analyst** (Explore) — Duplication, complexity, code smell inventory
-2. **arch-debt-analyst** (Explore) — Boundary violations, dependency analysis, pattern drift
-3. **test-debt-analyst** (Explore) — Coverage gaps, flaky tests, missing integration tests
-4. **infra-debt-analyst** (Explore) — Deployment gaps, monitoring holes, dependency health
-
-After all subagents return, synthesize findings: deduplicate, resolve contradictions, produce unified debt assessment report.
-
 ## Cross-References
 
 - **workflow:code-quality** -- code smells, style conventions

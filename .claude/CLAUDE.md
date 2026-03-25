@@ -42,25 +42,9 @@ Prohibited operators: `&&`, `||`, `;`, `|` (piping to another command that could
 
 This rule applies to Bash tool calls only — not to Dockerfile `RUN` layers, CI/CD `run:` blocks, or executable shell scripts (hooks, etc.).
 
-## Worktree Rules
+## Execution Model
 
-**Always load** skill `workflow/multi-agent-development` when spawning subagents with worktree isolation.
-
-When running in a worktree (`isolation: "worktree"`):
-- **Commit ALL changes** before returning — uncommitted work is invisible to `git merge`
-- **Squash into one commit** (three separate Bash tool calls):
-  ```bash
-  git add -A
-  ```
-  ```bash
-  git reset --soft $(git merge-base HEAD main)
-  ```
-  ```bash
-  git commit -m "<summary>"
-  ```
-- **NEVER** copy files out (`cp`, `rsync`, file-copy) — parent uses `git merge` to integrate
-- **NEVER** clean up your own worktree — parent handles merge + `git worktree remove`
-- **NEVER** invoke `finishing-branch` skill — return changes on-branch to parent
+**Do NOT use subagents, agent teams, or worktree isolation.** Process all work linearly in a single context. Multi-agent patterns are unreliable and must not be used.
 
 ## Knowledge Base Structure
 - **skills/**: Cross-cutting workflows loaded on demand (code review, debugging, TDD, etc.)

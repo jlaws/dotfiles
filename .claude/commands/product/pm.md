@@ -4,7 +4,7 @@ description: "Product management consultation — PRDs, roadmaps, opportunity as
 argument-hint: "<question-or-task>"
 ---
 
-Before invoking the subagent, gather diagnostic context:
+Before starting, gather diagnostic context:
 
 1. **Detect project type** from package.json, pyproject.toml, Cargo.toml, or similar — understand what the product is.
 2. **Check for existing product artifacts** by searching for PRD, requirements, roadmap, or spec files (docs/, specs/, .md files with "requirement" or "prd" in the name).
@@ -12,4 +12,4 @@ Before invoking the subagent, gather diagnostic context:
 4. **Find user research artifacts** by searching for user interviews, feedback, surveys, or persona files.
 5. **Get scope overview** of the target area (if $ARGUMENTS specifies a feature or component, scope to that).
 
-Use the product-manager subagent to help with: $ARGUMENTS
+Help with: $ARGUMENTS

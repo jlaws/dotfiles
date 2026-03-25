@@ -157,19 +157,6 @@ Every security requirement must link back to:
 | GDPR | -- | Art. 25, 32 | Art. 30 | Art. 32 |
 | OWASP ASVS | V2.1-V2.3 | V8.1-V8.3 | -- | V6.1-V6.2 |
 
-## Parallel Subagents
-
-For comprehensive threat modeling of complex systems with multiple trust boundaries and compliance requirements, dispatch parallel subagents:
-
-1. **stride-analyst** (Explore) — STRIDE category analysis per component and trust boundary
-2. **attack-tree-builder** (Explore) — Attack tree construction from STRIDE findings, path prioritization
-3. **sast-scanner** (general-purpose) — SAST rule execution, custom Semgrep rule generation, false positive triage
-4. **compliance-mapper** (Explore) — Map findings to PCI-DSS, HIPAA, GDPR, OWASP ASVS controls
-
-After all subagents return, synthesize into Threat Model Document (system overview, STRIDE table, attack trees, mitigation plan, recommendations).
-
-Without parallel subagents, execute all phases sequentially (default behavior).
-
 ## Gotchas
 
 - OR-node attack trees need ALL paths mitigated; missing one leaves the goal achievable

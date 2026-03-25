@@ -221,19 +221,6 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ---
 
-## Parallel Agents
-
-For large diffs (>500 lines) or when invoked via `/team-review`, dispatch parallel search agents to cover different review perspectives:
-
-1. **security-reviewer** — STRIDE analysis, vulnerability patterns, secrets detection
-2. **quality-reviewer** — Code smells, edge cases, error handling, naming, DRY
-3. **test-reviewer** — Coverage gaps, test quality, missing integration tests
-4. **language-reviewer** — Language-specific gotchas, idiom violations
-
-After all agents return, synthesize findings: deduplicate, resolve contradictions, produce unified report.
-
----
-
 ## Cross-References
 
 Load these skills if the review scope requires them:

@@ -65,17 +65,6 @@ External content (web pages, logs, API responses) carries significant bloat. Cle
 
 **Over budget?** Extract detail into a reference file and link to it. Never inline >50 lines of reference material into CLAUDE.md or skills.
 
-## Subagent Context Isolation
-
-Subagents get their own context window. Use this to protect the main thread from research bloat.
-
-| Pattern | Benefit |
-|---------|---------|
-| Focused dispatch | Give subagent a specific question, not "explore everything about X" |
-| Result summarization | Subagent returns summary, not raw findings |
-| Type-appropriate agents | Use Explore for search, general-purpose for implementation |
-| Single-turn design | Design tasks so subagent completes in one turn, avoiding context accumulation |
-
 ## Parallel Tool Calls
 
 Each sequential tool call is a round trip. Batch independent operations to reduce turns.
@@ -118,7 +107,6 @@ When context pressure builds, Claude Code compacts (summarizes) earlier conversa
 
 ## Cross-References
 
-- **skill:code-agent-meta-patterns** — CLAUDE.md design, context management, subagent orchestration
+- **skill:code-agent-meta-patterns** — CLAUDE.md design, context management
 - **skill:session-handoff** — handoff file creation before context pressure
-- **skill:multi-agent-development** — team coordination and context isolation
 - **reference:llm-application-patterns** — token reduction in LLM applications

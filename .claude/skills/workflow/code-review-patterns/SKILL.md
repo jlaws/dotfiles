@@ -226,19 +226,6 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ---
 
-## Parallel Subagents
-
-For large diffs (>500 lines) or when invoked via `/team-review`, dispatch parallel Explore subagents to cover different review perspectives:
-
-1. **security-reviewer** (Explore) — STRIDE analysis, vulnerability patterns, secrets detection
-2. **quality-reviewer** (Explore) — Code smells, edge cases, error handling, naming, DRY
-3. **test-reviewer** (Explore) — Coverage gaps, test quality, missing integration tests
-4. **language-reviewer** (Explore) — Language-specific gotchas, idiom violations
-
-After all subagents return, synthesize findings: deduplicate, resolve contradictions, produce unified report.
-
----
-
 ## Cross-References
 
 Load these skills if the review scope requires them:

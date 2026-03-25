@@ -4,11 +4,11 @@ description: "Documentation consultation — technical writing, API docs, and ch
 argument-hint: "<question-or-task>"
 ---
 
-Before invoking the subagent, gather diagnostic context:
+Before starting, gather diagnostic context:
 
 1. **Detect documentation tooling** from config files (docusaurus.config.js, mkdocs.yml, .readthedocs.yml, typedoc.json, sphinx conf.py).
 2. **Identify existing docs** by searching for docs/, README.md, CHANGELOG.md, or API specification files.
 3. **Check for API schemas** by searching for openapi.yaml, swagger.json, or GraphQL schema files.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a component, scope to that; otherwise scan for documentation directories).
 
-Use the documentation-writer subagent to help with: $ARGUMENTS
+Help with: $ARGUMENTS
