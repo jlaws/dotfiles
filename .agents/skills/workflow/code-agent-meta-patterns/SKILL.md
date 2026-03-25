@@ -141,6 +141,33 @@ Over 350 lines: split into multiple skills.
 - Skills: 150-300 lines typical
 - If a skill needs >350 lines, it's trying to do too much
 - Prefer tables and code over prose (higher information density)
+
+## Task Decomposition
+
+### Role-Based Analysis
+
+When tackling complex tasks, analyze sequentially from different roles:
+
+| Role | Focus | Context Needed |
+|---|---|---|
+| Researcher | Find all usages of a pattern | Codebase access, grep |
+| Implementer | Make specific code changes | File context, conventions |
+| Reviewer | Validate changes against rules | Diff, style guide |
+| Documenter | Update docs after changes | Changed files, doc templates |
+
+### When to Decompose
+
+| Decompose into Steps | Handle Directly |
+|---|---|
+| Independent research tasks | Sequential dependent steps |
+| Exploring a large codebase area | Editing a specific file |
+| Generating boilerplate for N items | Making a single targeted change |
+| Multi-perspective analysis | Simple question-answer |
+
+### Background Operations
+- Use `run_in_background` for long builds/tests while continuing other work
+- Collect results when notified, then synthesize
+
 ## Gotchas
 
 - **Context bloat**: Every line in CLAUDE.md consumes context window. Ruthlessly prune. If the agent already knows it (general programming, language syntax), don't restate it.

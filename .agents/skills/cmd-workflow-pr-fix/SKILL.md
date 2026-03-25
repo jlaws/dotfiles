@@ -385,16 +385,20 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ---
 
-### Parallel Search
+### Multi-Perspective Review
 
-For large diffs (>500 lines), dispatch parallel search to cover different review perspectives:
+For thorough coverage, analyze the diff sequentially from each perspective:
 
-1. **security-reviewer** (parallel search) — STRIDE analysis, vulnerability patterns, secrets detection
-2. **quality-reviewer** (parallel search) — Code smells, edge cases, error handling, naming, DRY
-3. **test-reviewer** (parallel search) — Coverage gaps, test quality, missing integration tests
-4. **language-reviewer** (parallel search) — Language-specific gotchas, idiom violations
+1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection — covers Step 4.3
+2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY — covers Steps 4.1, 4.2
+3. **Testing** — Coverage gaps, test quality, missing integration tests — covers Step 4.4
+4. **Language-Specific** — Language-specific gotchas, idiom violations — covers Step 4.5
 
-After all searches return, synthesize findings: deduplicate, resolve contradictions, produce unified report.
+#### Workflow
+1. Execute Steps 1-3 (identify changes, gather context, detect scope)
+2. Analyze the full diff from each perspective above, sequentially
+3. Deduplicate findings across perspectives, resolve contradictions
+4. Produce Step 5 structured report + Step 6 decision gate
 
 ---
 

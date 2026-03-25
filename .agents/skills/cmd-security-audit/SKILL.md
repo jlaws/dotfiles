@@ -182,6 +182,17 @@ Every security requirement must link back to:
 - Session management is often the weakest STRIDE link; model it explicitly
 - Compliance mapping gaps surface best through automated traceability matrices, not manual review
 
+### Comprehensive Threat Modeling
+
+For complex systems with multiple trust boundaries, analyze sequentially from each perspective:
+
+1. **STRIDE Analyst** — Systematic STRIDE analysis per component and trust boundary
+2. **Compliance Mapper** — Map controls to regulatory requirements (SOC2, GDPR, HIPAA)
+3. **Attack Path Analyst** — Build attack trees for high-value targets
+4. **Mitigation Planner** — Prioritize mitigations by risk score
+
+Synthesize into Threat Model Document.
+
 ### References
 
 - .agents/references/ai-ml/ai-safety-and-alignment.md — AI-specific security and safety considerations

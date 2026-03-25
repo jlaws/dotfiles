@@ -32,3 +32,47 @@ For each analysis perspective:
 4. **Review** — verify analysis matches requirements
 5. **If issues:** revise and re-review. Repeat until pass.
 6. **Mark perspective complete**, move to next
+
+### Phase 3: Synthesis
+Combine findings into a unified architecture document:
+- System overview diagram (describe in text/mermaid)
+- Component catalog with responsibilities
+- Key design decisions and trade-offs
+- Risks and open questions
+
+---
+
+## Design Review Checklist
+
+After completing the multi-perspective analysis, review your design against these criteria:
+
+### Spec Compliance
+- Does the design address ALL stated requirements?
+- Are there requirements the design missed or misinterpreted?
+- Is there unnecessary complexity beyond what was asked?
+
+### Quality Assessment
+- **Simplicity**: Is this the simplest design that meets requirements?
+- **Separation of concerns**: Are responsibilities clearly divided?
+- **Extensibility**: Can the design accommodate likely future changes?
+- **Consistency**: Does it align with existing patterns in the codebase?
+
+### Risk Assessment
+- What are the failure modes? How does the system recover?
+- What are the scalability bottlenecks?
+- What are the security boundaries and trust assumptions?
+- What are the hardest parts to implement? To test?
+
+### Trade-offs Documentation
+For each significant design decision:
+- **Chosen approach** and why
+- **Alternatives considered** and why rejected
+- **Trade-offs accepted**
+- **Conditions that would change this decision**
+
+### Red Flags — Redesign Before Implementing
+- Component has multiple unrelated responsibilities
+- Circular dependencies between components
+- Design requires coordination between components for basic operations
+- No clear error handling strategy
+- Design optimizes for hypothetical future requirements over current needs

@@ -182,6 +182,15 @@ This catches behavioral regressions that unit tests miss.
 | Big Bang | Deploy previous version | Minutes (CI/CD rollback) |
 | Feature Flag | Toggle flag off | Seconds |
 
+## Large-Scale Migration
+
+For large codebases (>50 files affected), organize migration into independent module batches:
+
+1. Group files by module/package — each batch must be independently migratable
+2. Process batches sequentially — migrate one module at a time
+3. After each batch: run tests, verify no regressions, commit
+4. After all batches: run full test suite, verify cross-module interactions
+
 ## Deliverables Checklist
 
 - [ ] Migration assessment with complexity score

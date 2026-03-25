@@ -193,6 +193,17 @@ Leave the code a little better than you found it.
 3. Long-term: [6 months]
 ```
 
+## Comprehensive Debt Audit
+
+For large codebases, ensure thorough coverage by analyzing sequentially from each perspective:
+
+1. **Code Debt** — Duplication, complexity, code smell inventory
+2. **Architecture Debt** — Boundary violations, dependency analysis, pattern drift
+3. **Testing Debt** — Coverage gaps, flaky tests, missing integration tests
+4. **Infrastructure Debt** — Deployment gaps, monitoring holes, dependency health
+
+After analyzing all perspectives, synthesize findings: deduplicate, resolve contradictions, produce unified debt assessment report.
+
 ## Cross-References
 
 - **workflow:code-quality** -- code smells, style conventions

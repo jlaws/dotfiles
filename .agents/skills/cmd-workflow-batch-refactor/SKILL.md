@@ -36,6 +36,32 @@ After all batches complete:
 ### Phase 4: PR
 Use the create-pr workflow to open the PR with a summary of all changes.
 
+### Per-Batch Execution Checklist
+
+For each batch, follow this discipline:
+
+#### Implementation
+1. Read ALL files in the batch before making changes
+2. Apply the refactoring pattern consistently across all files
+3. Verify each file compiles/parses after changes
+
+#### Self-Review Before Committing
+- **Completeness**: Did I change every instance? Any files missed?
+- **Consistency**: Is the pattern applied the same way in every file?
+- **Correctness**: Do the changes preserve behavior? Any edge cases?
+- **Convention**: Do changes follow existing codebase patterns?
+
+#### Verification
+1. Run lint/format on changed files
+2. Run tests — if any fail, fix before proceeding
+3. Review the diff for unintended changes
+
+#### Red Flags — Stop and Reassess
+- Batch requires changes to files outside its scope
+- Refactoring changes behavior (not just structure)
+- Test failures that aren't obviously related to the refactoring
+- Merge conflicts between batches (batches weren't truly independent)
+
 ---
 
 ## Refactoring & Technical Debt

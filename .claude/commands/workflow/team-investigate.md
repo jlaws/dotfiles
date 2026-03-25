@@ -59,3 +59,51 @@ For each hypothesis (most likely first):
 ### Verification
 {how the fix was verified}
 ```
+
+---
+
+## Implementation Review (after fix)
+
+After implementing the fix, perform these review steps sequentially:
+
+### Spec Compliance Check
+Verify the fix addresses the original bug:
+- Does the fix resolve the exact symptom reported?
+- Are there requirements the fix missed?
+- Did the fix introduce any extra/unneeded changes?
+- Verify by reproducing the original bug scenario — it must now pass
+
+### Code Quality Check
+Review the fix for quality:
+- Is the code clean, readable, and well-organized?
+- Does it follow existing codebase patterns and conventions?
+- Are there edge cases not handled?
+- Any potential performance, security, or race condition issues?
+
+### Testing Check
+- Did you add a test that would have caught this bug?
+- Does the test verify the fix (not just cover the code)?
+- Do all existing tests still pass?
+
+### Red Flags — Stop Before Committing
+- Fix is a workaround rather than addressing root cause
+- Fix touches many files for what should be a localized change
+- No test added to prevent regression
+- "While I'm here" scope creep beyond the original bug
+
+### Context Passing Template
+When documenting the investigation for handoff:
+```
+## Bug: {description}
+
+Completed:
+- {summary of investigation}
+- {root cause found}
+- {fix applied}
+
+Key findings:
+- {what was learned}
+
+Remaining work:
+- {any follow-up items}
+```

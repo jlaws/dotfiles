@@ -221,6 +221,17 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ---
 
+## Multi-Perspective Review
+
+For large diffs (>500 lines), ensure thorough coverage by analyzing sequentially from each perspective:
+
+1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection, auth gaps
+2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY violations
+3. **Testing** — Coverage gaps, test quality (behavior vs implementation), missing integration tests
+4. **Language-Specific** — Language-specific gotchas, idiom violations, anti-patterns
+
+Analyze each perspective independently, then synthesize: deduplicate, resolve contradictions, produce unified findings report.
+
 ## Cross-References
 
 Load these skills if the review scope requires them:

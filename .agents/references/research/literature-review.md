@@ -236,3 +236,12 @@ papers = search_recent("cat:cs.LG AND ti:efficient AND ti:attention")
 - Stopping search when you have "enough" references without systematic coverage.
 - **Fix**: Define search scope upfront (queries, venues, year range). Track coverage in a spreadsheet. Stop when new queries return only already-seen papers.
 
+## Comprehensive Literature Review
+
+For reviews covering 30+ papers across multiple sources, analyze sequentially:
+
+1. **Database Search** — Systematic search across databases (Semantic Scholar, arXiv, Google Scholar, ACL Anthology)
+2. **Citation Analysis** — Forward/backward citation tracing from seed papers
+3. **Methodology Review** — Categorize methods, identify trends, assess rigor
+4. **Gap Analysis** — Synthesize findings, identify contradictions and research gaps
+

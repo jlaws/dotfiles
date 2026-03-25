@@ -186,6 +186,32 @@ See `references/workflow/hook-patterns.md` for full examples (PreToolUse, PostTo
 - Avoid volatile content in CLAUDE.md (timestamps, changing metrics) — breaks KV cache prefix
 - See `references/workflow/context-efficiency` for full patterns
 
+## Task Decomposition
+
+### Role-Based Analysis
+
+When tackling complex tasks, analyze sequentially from different roles:
+
+| Role | Focus | Context Needed |
+|---|---|---|
+| Researcher | Find all usages of a pattern | Codebase access, grep |
+| Implementer | Make specific code changes | File context, conventions |
+| Reviewer | Validate changes against rules | Diff, style guide |
+| Documenter | Update docs after changes | Changed files, doc templates |
+
+### When to Decompose
+
+| Decompose into Steps | Handle Directly |
+|---|---|
+| Independent research tasks | Sequential dependent steps |
+| Exploring a large codebase area | Editing a specific file |
+| Generating boilerplate for N items | Making a single targeted change |
+| Multi-perspective analysis | Simple question-answer |
+
+### Background Operations
+- Use `run_in_background` for long builds/tests while continuing other work
+- Collect results when notified, then synthesize
+
 ## Permission Management
 
 See `references/workflow/permission-management.md` for full settings hierarchy and JSON examples.

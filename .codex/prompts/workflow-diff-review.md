@@ -218,6 +218,23 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ---
 
+### Multi-Perspective Review
+
+For thorough coverage, analyze the diff sequentially from each perspective:
+
+1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection — covers Step 4.3
+2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY — covers Steps 4.1, 4.2
+3. **Testing** — Coverage gaps, test quality, missing integration tests — covers Step 4.4
+4. **Language-Specific** — Language-specific gotchas, idiom violations — covers Step 4.5
+
+#### Workflow
+1. Execute Steps 1-3 (identify changes, gather context, detect scope)
+2. Analyze the full diff from each perspective above, sequentially
+3. Deduplicate findings across perspectives, resolve contradictions
+4. Produce Step 5 structured report + Step 6 decision gate
+
+---
+
 ### Cross-References
 
 - Code quality: Code smell detection, anti-pattern identification
