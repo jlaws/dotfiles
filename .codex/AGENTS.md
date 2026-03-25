@@ -22,8 +22,6 @@
 - Ask before adding new dependencies or changing external services.
 - For reviews, lead with findings, include file paths and line numbers, and prioritize correctness, regressions, security, and missing tests.
 
-## Delegation
+## Execution Model
 
-- Use focused subagents for narrow tasks.
-- Keep each subagent scoped to one job and one clear output.
-- Do not delegate work that blocks the immediate next step unless parallelism materially helps.
+- Do NOT use subagents or agent teams. Process all work linearly in a single context.

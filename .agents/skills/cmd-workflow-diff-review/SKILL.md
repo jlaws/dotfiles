@@ -220,16 +220,29 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ---
 
-### Parallel Search
+### Multi-Perspective Review
 
-For large diffs (>500 lines), dispatch parallel search to cover different review perspectives:
+For thorough coverage, analyze the diff sequentially from each perspective:
 
-1. **security-reviewer** (parallel search) — STRIDE analysis, vulnerability patterns, secrets detection
-2. **quality-reviewer** (parallel search) — Code smells, edge cases, error handling, naming, DRY
-3. **test-reviewer** (parallel search) — Coverage gaps, test quality, missing integration tests
-4. **language-reviewer** (parallel search) — Language-specific gotchas, idiom violations
+1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection — covers Step 4.3
+2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY — covers Steps 4.1, 4.2
+3. **Testing** — Coverage gaps, test quality, missing integration tests — covers Step 4.4
+4. **Language-Specific** — Language-specific gotchas, idiom violations — covers Step 4.5
 
-After all searches return, synthesize findings: deduplicate, resolve contradictions, produce unified report.
+#### Workflow
+1. Execute Steps 1-3 (identify changes, gather context, detect scope)
+2. Analyze the full diff from each perspective above, sequentially
+3. Deduplicate findings across perspectives, resolve contradictions
+4. Produce Step 5 structured report + Step 6 decision gate
+
+#### Skills per Perspective
+
+| Perspective | Skills/References to Load |
+|---|---|
+| Security | `security:security-analysis`, `security:auth-implementation-patterns` |
+| Code Quality | `workflow:code-quality`, `workflow:code-review-patterns` |
+| Testing | `testing:language-testing-patterns`, `testing:test-driven-development` |
+| Language-Specific | Auto-detected `languages:*-patterns` based on file extensions |
 
 ---
 
@@ -330,54 +343,6 @@ Quick-reference of common language-specific issues to watch for during code revi
 - Unnecessary `clone()` defeating borrow checker
 - `unsafe` blocks without justification
 - Lifetime issues from overly complex borrowing
-
-### Team Review Configuration
-
-Agent team configuration for parallel multi-perspective diff review.
-
-#### Team Configuration
-
-```yaml
-team:
-  recommended_size: 4
-  agent_roles:
-    - name: security-reviewer
-      type: parallel search
-      focus: "STRIDE analysis, vulnerability patterns, secrets detection"
-      skills_loaded: ["security:security-analysis", "security:auth-implementation-patterns"]
-      steps: ["Step 4.3"]
-    - name: quality-reviewer
-      type: parallel search
-      focus: "Code smells, edge cases, error handling, naming, DRY"
-      skills_loaded: ["workflow:code-quality", "workflow:code-review-patterns"]
-      steps: ["Step 4.1", "Step 4.2"]
-    - name: test-reviewer
-      type: parallel search
-      focus: "Coverage gaps, test quality, missing integration tests"
-      skills_loaded: ["testing:language-testing-patterns", "testing:test-driven-development"]
-      steps: ["Step 4.4"]
-    - name: language-reviewer
-      type: parallel search
-      focus: "Language-specific gotchas, idiom violations"
-      skills_loaded: ["Auto-detected languages:*-patterns"]
-      steps: ["Step 4.5"]
-  file_ownership: "shared-read-only"
-  lead_mode: "hands-on"
-```
-
-#### Team Workflow
-
-1. **Lead** executes Steps 1-3 (identify changes, gather context, detect scope)
-2. **Lead** distributes the full diff + changed files to all reviewers
-3. **Reviewers** work in parallel, each covering their assigned steps
-4. **Lead** collects findings, deduplicates, resolves contradictions
-5. **Lead** produces Step 5 structured report + Step 6 decision gate
-
-#### Single-Agent Fallback
-
-Without team mode, execute all perspectives sequentially (default behavior). Team mode is an optional enhancement for large diffs or when explicitly requested.
-
----
 
 ## Verification Before Completion
 

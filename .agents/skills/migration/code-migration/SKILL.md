@@ -177,6 +177,15 @@ This catches behavioral regressions that unit tests miss.
 | Big Bang | Deploy previous version | Minutes (CI/CD rollback) |
 | Feature Flag | Toggle flag off | Seconds |
 
+## Large-Scale Migration
+
+For large codebases (>50 files affected), organize migration into independent module batches:
+
+1. Group files by module/package — each batch must be independently migratable
+2. Process batches sequentially — migrate one module at a time
+3. After each batch: run tests, verify no regressions, commit
+4. After all batches: run full test suite, verify cross-module interactions
+
 ## Deliverables Checklist
 
 - [ ] Migration assessment with complexity score
@@ -186,11 +195,3 @@ This catches behavioral regressions that unit tests miss.
 - [ ] Rollback triggers and procedures defined
 - [ ] Progress tracking per module
 
-## Parallel Agents
-
-For large codebases (>50 files affected), dispatch parallel agents to migrate independent modules:
-
-1. **module-migrator-N** (general-purpose, worktree isolation) — Migrate assigned module independently. Each migrator owns their module exclusively — no cross-module edits.
-2. **migration-reviewer** (search) — Validate completed migrations against comparison tests.
-
-**Workflow**: Lead runs assessment, creates plan, dispatches module-migrators in parallel, reviewer validates each completed module, lead handles integration via `git merge`.

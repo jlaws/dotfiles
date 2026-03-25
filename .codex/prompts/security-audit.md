@@ -172,19 +172,6 @@ Every security requirement must link back to:
 | GDPR | -- | Art. 25, 32 | Art. 30 | Art. 32 |
 | OWASP ASVS | V2.1-V2.3 | V8.1-V8.3 | -- | V6.1-V6.2 |
 
-### Parallel Subagents
-
-For comprehensive threat modeling of complex systems with multiple trust boundaries and compliance requirements, dispatch parallel subagents:
-
-1. **stride-analyst** (Explore) — STRIDE category analysis per component and trust boundary
-2. **attack-tree-builder** (Explore) — Attack tree construction from STRIDE findings, path prioritization
-3. **sast-scanner** (general-purpose) — SAST rule execution, custom Semgrep rule generation, false positive triage
-4. **compliance-mapper** (Explore) — Map findings to PCI-DSS, HIPAA, GDPR, OWASP ASVS controls
-
-After all subagents return, synthesize into Threat Model Document (system overview, STRIDE table, attack trees, mitigation plan, recommendations).
-
-Without parallel subagents, execute all phases sequentially (default behavior).
-
 ### Gotchas
 
 - OR-node attack trees need ALL paths mitigated; missing one leaves the goal achievable
@@ -193,6 +180,17 @@ Without parallel subagents, execute all phases sequentially (default behavior).
 - Error messages are an info disclosure vector -- generic errors externally, detailed internally
 - Session management is often the weakest STRIDE link; model it explicitly
 - Compliance mapping gaps surface best through automated traceability matrices, not manual review
+
+### Comprehensive Threat Modeling
+
+For complex systems with multiple trust boundaries, analyze sequentially from each perspective:
+
+1. **STRIDE Analyst** — Systematic STRIDE analysis per component and trust boundary
+2. **Compliance Mapper** — Map controls to regulatory requirements (SOC2, GDPR, HIPAA)
+3. **Attack Path Analyst** — Build attack trees for high-value targets
+4. **Mitigation Planner** — Prioritize mitigations by risk score
+
+Synthesize into Threat Model Document.
 
 ### References
 

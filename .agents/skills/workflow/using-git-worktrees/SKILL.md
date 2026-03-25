@@ -106,4 +106,4 @@ Before returning or signaling completion:
 ## Integration
 
 - **Called by:** brainstorming (after design approved), any skill needing isolation
-- **Pairs with:** finishing-a-development-branch (cleanup after), executing-plans / multi-agent-development (work happens here)
+- **Pairs with:** finishing-a-development-branch (cleanup after), executing-plans (work happens here)

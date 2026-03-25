@@ -236,15 +236,12 @@ papers = search_recent("cat:cs.LG AND ti:efficient AND ti:attention")
 - Stopping search when you have "enough" references without systematic coverage.
 - **Fix**: Define search scope upfront (queries, venues, year range). Track coverage in a spreadsheet. Stop when new queries return only already-seen papers.
 
-## Parallel Subagents
+## Comprehensive Literature Review
 
-For comprehensive literature reviews covering 30+ papers across multiple sources and subfields, dispatch parallel Explore subagents:
+For reviews covering 30+ papers across multiple sources, analyze sequentially:
 
-1. **searcher-arxiv** (Explore) — Search arxiv for preprints, recent submissions, related work
-2. **searcher-scholar** (Explore) — Search Semantic Scholar and Google Scholar for peer-reviewed work
-3. **searcher-venues** (Explore) — Search specific top venues (NeurIPS, ICML, ICLR, ACL) proceedings
-4. **citation-explorer** (Explore) — Forward + backward citation graph exploration from seed papers
+1. **Database Search** — Systematic search across databases (Semantic Scholar, arXiv, Google Scholar, ACL Anthology)
+2. **Citation Analysis** — Forward/backward citation tracing from seed papers
+3. **Methodology Review** — Categorize methods, identify trends, assess rigor
+4. **Gap Analysis** — Synthesize findings, identify contradictions and research gaps
 
-**Workflow**: Lead defines search scope (queries, year range, target venues), dispatches all searchers in parallel, deduplicates results, builds comparison table, constructs taxonomy, identifies research gaps.
-
-Without parallel subagents, execute all phases sequentially (default behavior).

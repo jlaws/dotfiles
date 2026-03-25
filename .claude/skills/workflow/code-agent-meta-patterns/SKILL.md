@@ -1,6 +1,6 @@
 ---
 name: code-agent-meta-patterns
-description: "Code agent workflow optimization including CLAUDE.md design, hooks configuration, and multi-agent orchestration. Use when optimizing Claude Code workflows, designing CLAUDE.md files, configuring hooks, or orchestrating multi-agent patterns. Do NOT use for skill creation or editing workflow (use writing-skills)."
+description: "Code agent workflow optimization including CLAUDE.md design and hooks configuration. Use when optimizing Claude Code workflows, designing CLAUDE.md files, or configuring hooks. Do NOT use for skill creation or editing workflow (use writing-skills)."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
@@ -178,55 +178,39 @@ See `references/workflow/hook-patterns.md` for full examples (PreToolUse, PostTo
 | Clean external content | WebFetch, logs | Strip HTML boilerplate, nav, ads before reasoning |
 | U-shaped placement | CLAUDE.md, skills | Critical content at beginning/end, reference in middle |
 
-### When to Use Subagents (Task Tool)
-
-| Use Subagent | Stay in Main Thread |
-|---|---|
-| Independent research task | Sequential dependent steps |
-| Exploring a large codebase area | Editing a specific file |
-| Generating boilerplate for N items | Making a single targeted change |
-| Parallel investigation of alternatives | Simple question-answer |
-
 ### Context Budget Rules
 - CLAUDE.md files: aim for <150 lines each
 - Skills: 150-300 lines typical
 - If a skill needs >350 lines, it's trying to do too much
 - Prefer tables and code over prose (higher information density)
 - Avoid volatile content in CLAUDE.md (timestamps, changing metrics) — breaks KV cache prefix
-- Design subagent tasks for single-turn completion to prevent context accumulation
 - See `references/workflow/context-efficiency` for full patterns
 
-## Multi-Agent Orchestration
+## Task Decomposition
 
-### Task Tool Patterns
+### Role-Based Analysis
 
-```markdown
-Use the Task tool to perform these searches in parallel:
+When tackling complex tasks, analyze sequentially from different roles:
 
-1. Search for all uses of `deprecated_function` in src/
-2. Search for the migration guide in docs/
-3. Check the changelog for when it was deprecated
-```
-
-### Agent Specialization
-
-| Agent Role | Task | Context Needed |
+| Role | Focus | Context Needed |
 |---|---|---|
 | Researcher | Find all usages of a pattern | Codebase access, grep |
 | Implementer | Make specific code changes | File context, conventions |
 | Reviewer | Validate changes against rules | Diff, style guide |
 | Documenter | Update docs after changes | Changed files, doc templates |
 
-### Background Agent Patterns
-- Use `run_in_background` for long builds/tests while continuing other work
-- Fire off parallel Task agents for independent research
-- Collect results and synthesize in the main thread
+### When to Decompose
 
-### Orchestration Rules
-- Main thread: decision-making, sequencing, user communication
-- Subagents: independent, parallelizable work
-- Never nest subagents more than one level deep
-- Always specify what output format the subagent should return
+| Decompose into Steps | Handle Directly |
+|---|---|
+| Independent research tasks | Sequential dependent steps |
+| Exploring a large codebase area | Editing a specific file |
+| Generating boilerplate for N items | Making a single targeted change |
+| Multi-perspective analysis | Simple question-answer |
+
+### Background Operations
+- Use `run_in_background` for long builds/tests while continuing other work
+- Collect results when notified, then synthesize
 
 ## Permission Management
 

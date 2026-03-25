@@ -9,7 +9,7 @@ description: "Use when creating new skills, editing existing skills, or verifyin
 
 **Personal skills live in `~/.agents/skills/` (shared) and are synced to tool-specific directories by `setup.sh`**
 
-You write test cases (pressure scenarios with subagents), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
+You write test cases (pressure scenarios), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
 
 **Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill teaches the right thing.
 
@@ -44,7 +44,7 @@ Separate files for: heavy reference (100+ lines), reusable tools. Keep everythin
 
 ```yaml
 # BAD: Summarizes workflow
-description: Use when executing plans - dispatches subagent per task with code review between tasks
+description: Use when executing plans - executes tasks sequentially with code review between tasks
 
 # GOOD: Just triggers
 description: Use when executing implementation plans with independent tasks in the current session
@@ -98,7 +98,7 @@ Applies to new skills AND edits. Write skill before testing? Delete it. Start ov
 
 **REFACTOR:** Agent found new rationalization? Add explicit counter. Re-test until bulletproof.
 
-## Testing Skills With Subagents
+## Testing Skills
 
 For detailed testing methodology, see `references/CLAUDE_MD_TESTING.md`.
 

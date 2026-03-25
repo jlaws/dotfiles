@@ -4,7 +4,7 @@ description: "Audit existing UI for AI fingerprints and generic patterns, then p
 argument-hint: "<component, page, or directory to audit>"
 ---
 
-Before invoking the subagent, gather diagnostic context:
+Before starting, gather diagnostic context:
 
 1. **Detect framework** from config files (next.config.js, vite.config.ts, package.json).
 2. **Detect styling approach**: Tailwind config, CSS modules, styled-components, design token files.
@@ -12,7 +12,7 @@ Before invoking the subagent, gather diagnostic context:
 4. **Scan for AI fingerprints**: Search for `Inter`, `Roboto`, gradient classes, `grid-cols-3`, hardcoded `#000000`.
 5. **Scope the target**: If `$ARGUMENTS` names a component/page, read it directly. Otherwise scan `src/`, `app/`, `pages/` for the largest/most visible UI surfaces.
 
-Then invoke the frontend-engineer subagent with the following redesign framework:
+Then proceed with the following redesign framework:
 
 ---
 

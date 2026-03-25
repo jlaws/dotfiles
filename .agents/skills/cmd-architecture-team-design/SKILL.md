@@ -1,6 +1,6 @@
 ---
 name: cmd-architecture-team-design
-description: "Multi-agent system design suite — parallel specialist analysis to produce architecture documents. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /cmd-architecture-arch instead)."
+description: "Comprehensive system design suite — produce architecture documents covering multiple perspectives. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /cmd-architecture-arch instead)."
 disable-model-invocation: true
 ---
 
@@ -10,48 +10,149 @@ Parse the user's input: it must contain `<directory_path>` followed by `<descrip
 - First token = directory path, remainder = system description.
 - If either is missing, ask the user.
 
-Use parallel search to conduct multi-perspective system design analysis.
+**Do NOT use subagents or parallel agents. Process all design perspectives linearly.**
+
+## Design Process
+
+### Phase 1: Discovery
+1. Read the target directory structure and key files
+2. Identify existing architecture patterns, APIs, data models
+3. Check for existing design docs, ADRs, or README architecture sections
+
+### Phase 2: Multi-Perspective Analysis
+Analyze the system from each perspective sequentially:
+
+**2.1 Component Architecture**
+- System boundaries and component responsibilities
+- Dependencies and interaction patterns (who calls whom, sync vs async)
+- Data flow between components
+- Identify god classes, circular dependencies, unclear ownership
+- Map the dependency graph — are layers clean or tangled?
+
+**2.2 API Design**
+- Public interfaces and contracts
+- Versioning strategy and backwards compatibility approach
+- Error handling patterns and error taxonomy
+- Input validation and sanitization boundaries
+- Pagination, rate limiting, idempotency for external APIs
+- Are APIs designed for the consumer or the implementation?
+
+**2.3 Data Architecture**
+- Data models and relationships (ER diagram or description)
+- Storage strategy and access patterns (read-heavy? write-heavy? mixed?)
+- Migration and evolution approach
+- Data consistency model (strong, eventual, causal)
+- Data lifecycle — creation, transformation, archival, deletion
+- Sensitive data identification and handling
+
+**2.4 Security & Operations**
+- Authentication/authorization model and trust boundaries
+- Deployment topology (single region? multi? edge?)
+- Observability: metrics, logging, tracing, alerting
+- Failure modes and recovery strategy
+- Capacity planning and scaling approach
+- Incident response — what can be rolled back, what can't
+
+### Phase 3: Cross-Cutting Analysis
+
+Analyze concerns that span multiple perspectives:
+
+**3.1 Domain Pipeline Analysis**
+For cross-cutting issues, trace the full path:
+- **Performance**: Request path → DB queries → response. Where are the bottlenecks?
+- **Security**: User input → validation → processing → storage. Where are the trust boundaries?
+- **Error propagation**: Failure point → error handling → user feedback. Are errors meaningful?
+
+**3.2 Integration Points**
+- External service dependencies and failure modes
+- Message queues, event buses, or async communication patterns
+- Shared state and coordination mechanisms
+
+### Phase 4: Synthesis
+
+Combine findings into a unified architecture document:
+- System overview diagram (describe in text/mermaid)
+- Component catalog with responsibilities
+- Key design decisions and trade-offs
+- Risks and open questions
+- Implementation priority order (what to build first and why)
+
+### Phase 5: Implementation Planning
+
+Produce an actionable implementation plan:
+1. **Task breakdown** — ordered list of implementation tasks with dependencies
+2. **Risk-first ordering** — tackle the hardest/riskiest parts first
+3. **Vertical slices** — each task should produce something testable end-to-end
+4. **Test strategy** — what tests are needed at each level (unit, integration, e2e)
 
 ---
 
-## Multi-Perspective Development
+## Design Review Checklist
 
-Coordination model: **parallel analysis** with orchestrated synthesis.
+After completing the multi-perspective analysis, review your design against these criteria:
 
-### Parallel Analysis
+### Spec Compliance
+- Does the design address ALL stated requirements?
+- Are there requirements the design missed or misinterpreted?
+- Is there unnecessary complexity beyond what was asked?
 
-Use when 2+ analysis tasks are independent — one doesn't affect others.
+### Quality Assessment
+- **Simplicity**: Is this the simplest design that meets requirements?
+- **Separation of concerns**: Are responsibilities clearly divided?
+- **Extensibility**: Can the design accommodate likely future changes?
+- **Consistency**: Does it align with existing patterns in the codebase?
 
-#### Task Requirements
+### Risk Assessment
+- What are the failure modes? How does the system recover?
+- What are the scalability bottlenecks?
+- What are the security boundaries and trust assumptions?
+- What are the hardest parts to implement? To test?
 
-Each analysis perspective gets:
-- **Specific scope** — one subsystem, one domain
-- **Clear goal** — e.g., "analyze security boundaries" not "review the system"
-- **Constraints** — "focus on data flow, not implementation details"
-- **Expected output** — "return summary of findings and recommendations"
+### Trade-offs Documentation
+For each significant design decision:
+- **Chosen approach** and why
+- **Alternatives considered** and why rejected
+- **Trade-offs accepted**
+- **Conditions that would change this decision**
 
-#### When NOT to Parallelize
+### Red Flags — Redesign Before Implementing
+- Component has multiple unrelated responsibilities
+- Circular dependencies between components
+- Design requires coordination between components for basic operations
+- No clear error handling strategy
+- Design optimizes for hypothetical future requirements over current needs
+- Can't explain a component's purpose in one sentence
+- "It depends" is the answer to most questions about the design
 
-- **Shared state** — analyses would need the same context simultaneously
-- **Exploratory investigation** — you don't know what's relevant yet
-- **Need full context** — understanding requires seeing entire system
+---
 
-### Sequential Execution
+## Self-Review Before Presenting
 
-Use when executing a plan task-by-task. Fresh perspective per task prevents context pollution.
+Review your work with fresh eyes before presenting to the user:
 
-#### Per-Task Flow
+**Completeness:**
+- Did I analyze every perspective thoroughly?
+- Did I miss any requirements or constraints?
+- Are there edge cases or failure modes I didn't consider?
 
-1. **Dispatch analysis** with full task text + scene-setting context
-2. **Answer questions** if clarification is needed (don't ignore)
-3. **Deliverable:** analysis + recommendations + summary report
-4. **Review** — verify analysis matches requirements
-5. **If issues:** revise and re-review. Repeat until pass.
-6. **Mark task complete**, move to next
+**Quality:**
+- Is the design document clear and actionable?
+- Are diagrams/descriptions precise enough to implement from?
+- Did I follow existing codebase patterns where appropriate?
 
-### Multi-Domain Pipelines
+**Discipline:**
+- Did I avoid overbuilding (YAGNI)?
+- Is the design the simplest thing that could work?
+- Did I only design what was requested?
 
-Chain specialists for cross-cutting issues:
-- **DB perf:** error-detective -> db-optimizer -> perf-engineer -> devops
-- **Frontend bug:** error-detective -> debugger -> ts-pro -> backend -> test-automator
-- **Security vuln:** error-detective -> security-auditor -> test-automator -> code-reviewer
+Fix any issues found during self-review before presenting.
+
+## Report Format
+
+When done, present:
+- What you analyzed (scope, files read, patterns identified)
+- The architecture document (Phase 4 synthesis)
+- Key design decisions and why
+- Implementation plan (Phase 5)
+- Open questions requiring user input
+- Risks and concerns

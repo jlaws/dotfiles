@@ -1,12 +1,14 @@
 ---
 name: cmd-workflow-team-review
-description: "Multi-agent team code review — parallel specialist reviewers for security, quality, testing, and language-specific analysis. Use when you want thorough multi-perspective review of a feature branch. Do NOT use on main/master (fail fast)."
+description: "Thorough code review — security, quality, testing, and language-specific analysis. Use when you want thorough multi-perspective review of a feature branch. Do NOT use on main/master (fail fast)."
 disable-model-invocation: true
 ---
 
 # Team Review
 
-Use the code-review-patterns methodology below with multi-agent review orchestration:
+**Process all review perspectives linearly. Do NOT use subagents or parallel agents.**
+
+Use the code-review-patterns methodology below:
 
 Branch/scope: the user's provided input
 
@@ -222,9 +224,29 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ---
 
-### Parallel Search
+### Review Perspectives
 
-For large diffs (>500 lines) or when invoked via team-review, dispatch parallel search to cover different review perspectives. See Parallel Review Configuration subsection below.
+For thorough coverage, analyze the diff sequentially from each perspective:
+
+1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection — covers Step 4.3
+2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY — covers Steps 4.1, 4.2
+3. **Testing** — Coverage gaps, test quality, missing integration tests — covers Step 4.4
+4. **Language-Specific** — Language-specific gotchas, idiom violations — covers Step 4.5
+
+#### Workflow
+1. Execute Steps 1-3 (identify changes, gather context, detect scope)
+2. Analyze the full diff from each perspective above, sequentially
+3. Deduplicate findings across perspectives, resolve contradictions
+4. Produce Step 5 structured report + Step 6 decision gate
+
+#### Skills per Perspective
+
+| Perspective | Skills/References to Load |
+|---|---|
+| Security | `security:security-analysis`, `security:auth-implementation-patterns` |
+| Code Quality | `workflow:code-quality`, `workflow:code-review-patterns` |
+| Testing | `testing:language-testing-patterns`, `testing:test-driven-development` |
+| Language-Specific | Auto-detected `languages:*-patterns` based on file extensions |
 
 ---
 
@@ -278,27 +300,6 @@ Quick-reference of common language-specific issues to watch for during code revi
 - Unnecessary `clone()` defeating borrow checker
 - `unsafe` blocks without justification
 - Lifetime issues from overly complex borrowing
-
-### Parallel Review Configuration
-
-Dispatch parallel search to cover different review perspectives:
-
-1. **security-reviewer** (parallel search) — STRIDE analysis, vulnerability patterns, secrets detection — covers Step 4.3
-2. **quality-reviewer** (parallel search) — Code smells, edge cases, error handling, naming, DRY — covers Steps 4.1, 4.2
-3. **test-reviewer** (parallel search) — Coverage gaps, test quality, missing integration tests — covers Step 4.4
-4. **language-reviewer** (parallel search) — Language-specific gotchas, idiom violations — covers Step 4.5
-
-#### Workflow
-
-1. **Lead** executes Steps 1-3 (identify changes, gather context, detect scope)
-2. **Lead** distributes the full diff + changed files to all reviewers
-3. **Reviewers** work in parallel, each covering their assigned steps
-4. **Lead** collects findings, deduplicates, resolves contradictions
-5. **Lead** produces Step 5 structured report + Step 6 decision gate
-
-#### Single-Agent Fallback
-
-Without parallel search, execute all perspectives sequentially (default behavior). Parallel dispatch is an optional enhancement for large diffs or when explicitly requested.
 
 ---
 

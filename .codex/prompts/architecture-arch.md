@@ -4,7 +4,7 @@ description: "Architecture consultation — API design, distributed patterns, an
 argument-hint: "<question-or-task>"
 ---
 
-Before invoking the subagent, gather diagnostic context:
+Before starting, gather diagnostic context:
 
 1. **Detect project architecture** from config files and directory structure — monolith, microservices, serverless, etc.
 2. **Identify API patterns** by searching for route definitions, API specs (openapi.yaml, swagger), or GraphQL schemas.
@@ -12,7 +12,7 @@ Before invoking the subagent, gather diagnostic context:
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a component, scope to that; otherwise scan for src/, services/, api/, or similar directories).
 5. **Check for DECISIONS.md** — review lightweight decision log for recent in-flight choices.
 
-Use the architecture-specialist subagent to help with: $ARGUMENTS
+Help with: $ARGUMENTS
 
 ---
 

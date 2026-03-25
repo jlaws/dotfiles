@@ -14,6 +14,8 @@ If no arguments provided, look for the most recent plan in `docs/plans/` and con
 
 **Core principle:** Batch execution with checkpoints for review.
 
+For implementation, self-review, and review checklists, see `references/workflow/task-execution-checklists`.
+
 ### Step 1: Load and Review Plan
 
 1. Read the plan file
@@ -215,19 +217,9 @@ Agent:     Agent reports -> Check VCS diff -> Verify changes -> Report actual st
 
 **Core principle:** Verify tests → Present options → Execute choice → Clean up.
 
-### Subagent Guard
-
-**If you are running as a subagent (spawned via Agent tool with `isolation: "worktree"`):**
-STOP. Do NOT proceed with this process. Instead:
-1. Ensure all changes are committed to your branch
-2. Return a summary of your changes, branch name, and worktree path to the parent
-3. The parent is responsible for merge and cleanup
-
-This process is for the lead/parent agent or direct user sessions only.
-
 ### Multi-Branch Integration
 
-When the parent has multiple worktree branches to integrate (e.g., after parallel subagent work):
+When integrating multiple worktree branches:
 
 1. Create integration branch: `git checkout -b integrate/<description> main`
 2. Sequentially merge each branch:
@@ -359,7 +351,5 @@ Clean up worktree if applicable.
 - Force-pushing without explicit user request
 - Offering fewer or more than 4 options
 - Cleaning up worktree when user chose "keep as-is"
-- Subagent invoking this process instead of returning changes to parent
-
 **Called by:** Executing Plans (Step 5) after all tasks complete
 **Pairs with:** `workflow/using-git-worktrees` for worktree cleanup
