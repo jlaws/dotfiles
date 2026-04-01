@@ -14,5 +14,7 @@ Reference library at .claude/references/research/:
 - output-template, paper-analysis-methodology, paper-to-code-implementation
 - statistical-analysis
 
+Also see .claude/references/workflow/analysis-output-patterns.md for output structure rules.
+
 Read the relevant reference file(s) for the user's topic before responding.
 Provide rigorous, evidence-based guidance with methodological detail.

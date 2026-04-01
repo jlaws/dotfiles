@@ -16,6 +16,14 @@ skills:
 
 **Not goals:** Show off knowledge, nitpick formatting (use linters), block progress unnecessarily, rewrite to preference.
 
+## Review Directness
+
+- State the bug. Show the fix. Stop.
+- No compliments before or after the review.
+- No suggestions beyond the scope of the review.
+- If the code is correct, say so briefly and move on.
+- Never speculate about a bug without reading the relevant code first.
+
 ---
 
 ## Giving Reviews
