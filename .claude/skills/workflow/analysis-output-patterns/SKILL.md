@@ -1,3 +1,10 @@
+---
+name: analysis-output-patterns
+description: "Use when producing data analysis, research findings, or reporting output -- enforces finding-first structure, data vs inference labeling, and accuracy rules. Do NOT use for code review output (use code-review-patterns) or general writing (use output-completeness)."
+compatibility: claude-code
+allowed-tools: Read, Grep, Glob, Bash
+---
+
 # Analysis Output Patterns
 
 Patterns for producing clear, trustworthy analysis output in data analysis, research, and reporting contexts.
@@ -43,8 +50,3 @@ Never present inferences as facts. Label every inference.
 - If a claim cannot be grounded in provided data: do not make it
 - If asked to analyze data you haven't been given: request the data
 - State sample sizes and time ranges for any aggregation
-
-## Cross-References
-
-- **skill:verification-before-completion** -- verify claims with evidence
-- **reference:context-efficiency** -- output density and format choices
