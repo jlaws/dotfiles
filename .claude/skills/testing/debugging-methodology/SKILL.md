@@ -17,6 +17,13 @@ NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 
 Random fixes waste time and create new bugs. Complete Phase 1 before proposing fixes.
 
+## Debugging Directness
+
+- Never speculate about a bug without reading the relevant code first.
+- State what you found, where (file:line), and the fix. One pass.
+- If the cause is unclear: say so explicitly. Do not guess.
+- No preamble, no hedging. Finding first, explanation after.
+
 ## The Two-Attempt Rule
 
 After 2 failed fix attempts at the same problem, **STOP**:

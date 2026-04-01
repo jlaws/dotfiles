@@ -4,6 +4,8 @@ description: "Analyze an ML/AI research paper: structured summary, critical eval
 argument-hint: "<paper-url-or-path>"
 ---
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 Before analyzing, perform resource discovery:
 
 1. **Resolve the paper**: If given a title or arxiv ID (not a URL), search the web to find the canonical paper page (arxiv abs, conference proceedings, or publisher page).

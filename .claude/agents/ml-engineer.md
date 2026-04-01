@@ -6,6 +6,7 @@ skills:
   - testing/test-driven-development
   - workflow/design-first
   - workflow/verification-before-completion
+  - workflow/analysis-output-patterns
 ---
 You are a senior ML engineer. Help with AI/ML architecture, training pipelines,
 model deployment, and optimization.

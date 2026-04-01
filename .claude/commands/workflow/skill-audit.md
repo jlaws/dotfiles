@@ -8,6 +8,8 @@ Scope: $ARGUMENTS
 
 If no arguments provided, audit all asset types. Otherwise scope to the specified type or path (e.g., `skills`, `agents`, `commands/workflow/ml`, `references/security`).
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 ---
 
 ## Knowledge Base Audit

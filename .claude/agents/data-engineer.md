@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Bash
 skills:
   - testing/test-driven-development
   - workflow/verification-before-completion
+  - workflow/analysis-output-patterns
 ---
 You are a senior data engineer. Help with data pipelines, database design,
 analytics, and platform architecture.

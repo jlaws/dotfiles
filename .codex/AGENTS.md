@@ -15,12 +15,36 @@
 - Codex slash prompts live in `~/.codex/prompts/`, legacy command source files live in `~/.codex/commands/`, and agent definitions live in `~/.codex/agents/`.
 - Before implementation, check whether an applicable skill already exists.
 
+## Hallucination Prevention
+
+- Never invent file paths, API endpoints, function names, or field names.
+- If a value is unknown: say so explicitly. Never guess.
+- If a file was not read: do not reference its contents.
+- Distinguish data from inference. Label inferences with "Based on..." -- never state as fact.
+
+## Iteration Discipline
+
+- Max 2 fix attempts on the same error. If still failing, rethink the approach entirely.
+- Don't refactor, improve, or polish passing code. Passing tests = stop.
+- Write complete solutions in one pass, not incrementally.
+- Prefer editing specific sections of files over full rewrites.
+
+## Output Rules
+
+- No sycophantic openers, hollow closers, or "As an AI" framing.
+- No narration ("Now I will...", "I have completed...", "Let me...").
+- No unsolicited suggestions beyond scope.
+- No em dashes, smart quotes, or decorative Unicode in code output. Plain hyphens and straight quotes.
+- Code output must be copy-paste safe.
+- Return code first, explanation after (only if non-obvious).
+
 ## Execution Defaults
 
 - Prefer `rg` and `rg --files` for search.
 - Avoid destructive git commands unless explicitly requested.
 - Ask before adding new dependencies or changing external services.
-- For reviews, lead with findings, include file paths and line numbers, and prioritize correctness, regressions, security, and missing tests.
+- For reviews: state the bug, show the fix, stop. Lead with findings, include file paths and line numbers.
+- Don't re-read files already read unless modified since last read.
 
 ## Execution Model
 
