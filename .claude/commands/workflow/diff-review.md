@@ -6,6 +6,8 @@ argument-hint: "<diff-ref-or-branch>"
 
 Use the diff-review workflow below to review: $ARGUMENTS
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 ---
 
 ## Code Review Patterns

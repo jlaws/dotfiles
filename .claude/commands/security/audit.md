@@ -4,6 +4,8 @@ description: "Security threat model and vulnerability scan — STRIDE analysis, 
 argument-hint: "<target-path-or-scope>"
 ---
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 Before invoking the analysis, perform reconnaissance:
 
 1. **Detect project language/framework** from config files (package.json, Cargo.toml, go.mod, requirements.txt, Gemfile, etc.).
