@@ -195,6 +195,7 @@ install_homebrew_packages() {
 	brew install findutils      # GNU find, locate, updatedb, xargs
 	brew install gnu-sed        # GNU sed
 	brew install wget           # wget with IRI support
+	brew install just					  # better than make
 
 	print_step "Installing updated macOS tools..."
 	brew install vim
