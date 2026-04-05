@@ -9,7 +9,7 @@ Load skill `workflow/analysis-output-patterns` for output structure rules.
 Before producing output, perform pre-processing:
 
 1. **Parse arguments**: The argument is the file path to the email body (read the file to extract content).
-2. **Load seen links**: Read `.seen-links` from the current working directory (one URL per line). All URLs in this file will be skipped during processing. If the file doesn't exist, treat it as empty (no seen links).
+2. **Load seen links**: First check if the email body file contains a `<!-- SEEN LINKS (already processed, skip these):` header block — if present, parse URLs from that block (these are pre-filtered by the caller and only contain links relevant to this email). Only if NO embedded header is found, fall back to reading `.seen-links` from the current working directory. All seen URLs will be skipped during processing.
 3. **Extract all links** from the email body. De-duplicate within this run.
 4. **Filter**: Remove any URLs present in the seen-links file. This applies to ALL URLs encountered during processing — including redirect/resolved URLs discovered when fetching. If a redirect target is already in seen-links, skip that link entirely and exclude it from the report.
 5. **Exclude dangerous/administrative URLs** — silently discard, never navigate to or fetch:
