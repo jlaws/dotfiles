@@ -4,6 +4,8 @@ description: "Frontend consultation — frameworks, design systems, and web patt
 argument-hint: "<question-or-task>"
 ---
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 Before starting, gather diagnostic context:
 
 1. **Detect frontend framework** from config files (next.config.js, svelte.config.js, vite.config.ts, angular.json) and package.json dependencies.

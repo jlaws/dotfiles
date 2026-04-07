@@ -4,6 +4,8 @@ description: "Data engineering consultation. Use when building data pipelines, o
 argument-hint: "<question-or-task>"
 ---
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 Before starting, gather diagnostic context:
 
 1. **Detect data stack** from config files (dbt_project.yml, airflow.cfg, dagster workspace, prefect.yaml, spark configs).

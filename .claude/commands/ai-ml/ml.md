@@ -4,6 +4,8 @@ description: "ML/AI consultation. Use when working with model training, inferenc
 argument-hint: "<question-or-task>"
 ---
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 Before starting, gather diagnostic context:
 
 1. **Detect ML framework** from project config (requirements.txt, pyproject.toml, setup.py) — look for torch, tensorflow, jax, sklearn, transformers, etc.

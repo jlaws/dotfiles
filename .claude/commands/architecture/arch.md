@@ -4,6 +4,8 @@ description: "Architecture consultation — API design, distributed patterns, an
 argument-hint: "<question-or-task>"
 ---
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 Before starting, gather diagnostic context:
 
 1. **Detect project architecture** from config files and directory structure — monolith, microservices, serverless, etc.

@@ -4,6 +4,8 @@ description: "DevOps consultation — CI/CD, containers, IaC, and observability.
 argument-hint: "<question-or-task>"
 ---
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 Before starting, gather diagnostic context:
 
 1. **Detect CI/CD platform** from config files (.github/workflows/, .gitlab-ci.yml, Jenkinsfile, .circleci/).

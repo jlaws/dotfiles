@@ -4,6 +4,8 @@ description: "Business strategy consultation. Use when defining KPIs, planning M
 argument-hint: "<question-or-task>"
 ---
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 Before starting, gather diagnostic context:
 
 1. **Detect project type** from config files (package.json, pyproject.toml, Gemfile) — web app, API, mobile, library, etc.

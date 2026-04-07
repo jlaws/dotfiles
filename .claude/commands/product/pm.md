@@ -4,6 +4,8 @@ description: "Product management consultation — PRDs, roadmaps, opportunity as
 argument-hint: "<question-or-task>"
 ---
 
+Load skill `workflow/analysis-output-patterns` for output structure rules.
+
 Before starting, gather diagnostic context:
 
 1. **Detect project type** from package.json, pyproject.toml, Cargo.toml, or similar — understand what the product is.
