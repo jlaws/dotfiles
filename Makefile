@@ -20,6 +20,6 @@ fix: venv
 	$(BIN)/ruff check --fix . && $(BIN)/ruff format .
 
 typecheck: venv
-	@if [ -n "$(PY_FILES)" ]; then $(BIN)/mypy $(PY_FILES); else echo "No Python files to typecheck"; fi
+	@if [ -n "$(PY_FILES)" ]; then $(BIN)/ty check $(PY_FILES); else echo "No Python files to typecheck"; fi
 
 check: lint typecheck

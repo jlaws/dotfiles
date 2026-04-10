@@ -12,7 +12,7 @@ uv python pin 3.12
 
 # Add dependencies (updates pyproject.toml + uv.lock in one step)
 uv add fastapi uvicorn
-uv add --dev pytest ruff mypy
+uv add --dev pytest ruff ty
 
 # Run without activating venv (preferred)
 uv run pytest
@@ -163,7 +163,7 @@ CMD ["python", "app.py"]
 - run: uv sync --frozen --all-extras --dev
 - run: uv run pytest
 - run: uv run ruff check .
-- run: uv run mypy .
+- run: uv run ty check .
 ```
 
 ## Workspaces (Monorepo)
