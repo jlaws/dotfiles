@@ -66,10 +66,6 @@
     "useHttp1ForAgent": false
   },
   "approvalMode": "allowlist",
-  "sandbox": {
-    "mode": "disabled",
-    "networkAccess": "user_config_with_defaults"
-  },
   "attribution": {
     "attributeCommitsToAgent": false,
     "attributePRsToAgent": false
