@@ -16,7 +16,7 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 
 ### Linting
 ```bash
-make check    # ruff check + mypy (via .venv)
+make check    # ruff check + ty (via .venv)
 make fix      # auto-fix + format
 ```
 

@@ -48,7 +48,7 @@ dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "ruff>=0.4",
-    "mypy>=1.10",
+    "ty>=0.1",
 ]
 docs = [
     "mkdocs-material>=9.0",
@@ -90,9 +90,8 @@ select = ["E", "F", "I", "N", "UP", "B", "SIM", "TCH"]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 
-[tool.mypy]
-python_version = "3.10"
-strict = true
+[tool.ty]
+python-version = "3.10"
 ```
 
 ## Project Layouts
@@ -375,7 +374,7 @@ dependencies = [
 
 ## Gotchas
 
-- **Forgetting `py.typed` marker**: without `src/my_package/py.typed`, mypy won't use your type hints from installed package
+- **Forgetting `py.typed` marker**: without `src/my_package/py.typed`, ty won't use your type hints from installed package
 - **`find_packages()` in src layout**: if using setuptools, must set `package_dir = {"": "src"}` and `packages = find_packages(where="src")`
 - **Upper version caps on dependencies**: `httpx>=0.25,<1.0` breaks users when httpx 1.0 ships and is compatible; only cap at known-breaking versions
 - **Missing `fetch-depth: 0` in CI**: hatch-vcs needs full git history to compute version from tags; shallow clones get `0.0.0`

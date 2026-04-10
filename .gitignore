@@ -18,6 +18,6 @@ Thumbs.db
 
 # Python
 __pycache__/
-.mypy_cache/
+.ty_cache/
 .ruff_cache/
 .venv/

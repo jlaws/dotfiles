@@ -35,7 +35,7 @@ Source: Google Python Style Guide. Only rules linters/formatters cannot enforce.
 |---------|-----|-----|
 | Package manager | `uv` | 10-100x faster than pip/poetry, handles venvs + Python versions |
 | Linter + formatter | `ruff` | Replaces black, isort, flake8 in one tool |
-| Type checker | `mypy` (strict) | Catch bugs at dev time |
+| Type checker | `ty` (strict) | Catch bugs at dev time |
 | Testing | `pytest` + `pytest-asyncio` | De facto standard |
 | Build backend | `hatchling` (libraries), `setuptools` (apps) | Hatch is modern, setuptools is universal |
 
