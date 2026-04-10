@@ -6,7 +6,16 @@ ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false')
 MEMFILE="$HOME/.claude/MEMORY.md"
 # Use lockfile (mkdir is atomic) for concurrent safety
 LOCKDIR="$MEMFILE.lock"
-while ! mkdir "$LOCKDIR" 2>/dev/null; do sleep 0.1; done
+LOCK_RETRIES=0
+while ! mkdir "$LOCKDIR" 2>/dev/null; do
+  LOCK_RETRIES=$((LOCK_RETRIES + 1))
+  if [ "$LOCK_RETRIES" -ge 50 ]; then
+    rmdir "$LOCKDIR" 2>/dev/null  # stale lock -- force remove
+    mkdir "$LOCKDIR" 2>/dev/null || true
+    break
+  fi
+  sleep 0.1
+done
 trap 'rmdir "$LOCKDIR" 2>/dev/null' EXIT
 cat <<'HOOK_OUTPUT'
 If any corrections were made to your understanding, mistakes identified, or lessons learned during this session, please append them to ~/.claude/MEMORY.md under a dated heading. Keep entries concise (1-2 lines each). If no lessons worth recording, do nothing.
