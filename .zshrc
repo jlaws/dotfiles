@@ -75,7 +75,7 @@ HIST_STAMPS="yyyy-mm-dd"
 plugins=(git)
 
 # Homebrew completions
-fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
+fpath=(~/.zfunc /opt/homebrew/share/zsh/site-functions $fpath)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -109,4 +109,6 @@ source $ZSH/oh-my-zsh.sh
 # extra
 source ~/.extra
 source ~/.work
+
+export GPG_TTY=$(tty)
 
