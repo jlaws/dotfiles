@@ -1,21 +1,35 @@
 ---
 name: team-design
 description: "Comprehensive system design suite — produce architecture documents covering multiple perspectives. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /arch instead)."
-argument-hint: "<directory-path> <system-description>"
+argument-hint: "<system-description>"
 ---
 
-Parse arguments: `$ARGUMENTS` must contain `<directory_path>` followed by `<description>`.
-- First token = directory path, remainder = system description.
-- If either is missing, ask the user.
+Parse arguments: `$ARGUMENTS` is a freeform system description that may contain file or directory references inline.
+- The entire string is the system description -- do not strip paths from it.
+- Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
+- If `$ARGUMENTS` is empty, ask the user for a system description.
 
 **Do NOT use subagents or parallel agents. Process all design perspectives linearly.**
 
 ## Design Process
 
 ### Phase 1: Discovery
-1. Read the target directory structure and key files
-2. Identify existing architecture patterns, APIs, data models
-3. Check for existing design docs, ADRs, or README architecture sections
+
+**Step 1 -- Scan for candidate documentation:**
+1. Glob for common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
+2. Glob for root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
+3. Glob for design doc patterns: `**/ADR-*.md`, `**/design-*.md`, `**/RFC-*.md`
+4. Include any file or directory paths found inline in `$ARGUMENTS`
+
+**Step 2 -- Filter by relevance to the system description:**
+1. First pass: filter candidates by file/directory names and paths -- keep files whose names relate to the described system
+2. Second pass: for ambiguous candidates, use Grep to search file contents for keywords from the system description
+3. Discard files that are clearly unrelated (e.g. skip `docs/billing.md` when designing an auth system)
+
+**Step 3 -- Read selected files and explore the codebase:**
+1. Read the relevant documentation files selected above
+2. Read the project structure and key source files
+3. Identify existing architecture patterns, APIs, data models
 
 ### Phase 2: Multi-Perspective Analysis
 Analyze the system from each perspective sequentially:
