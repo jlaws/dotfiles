@@ -181,7 +181,9 @@
 [init]
 
 	defaultBranch = main
+
 [user]
+
 	name = Joe Laws
 	email = 1224112+jlaws@users.noreply.github.com
 	
