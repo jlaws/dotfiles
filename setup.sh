@@ -88,20 +88,17 @@ sync_dotfiles() {
 	git pull origin main
 
 	print_step "Copying dotfiles to home directory..."
-	rsync --exclude ".git/" \
-		--exclude ".DS_Store" \
-		--exclude ".claude/" \
-		--exclude ".codex/" \
-		--exclude ".cursor/" \
-		--exclude ".agents/" \
-		--exclude ".venv/" \
-		--exclude "setup.sh" \
-		--exclude "README.md" \
-		--exclude "CLAUDE.md" \
-		--exclude "ghosty_config.txt" \
-		--exclude "pyproject.toml" \
-		--exclude "Makefile" \
-		--exclude "LICENSE" \
+	rsync --include=".editorconfig" \
+		--include=".extra" \
+		--include=".gitattributes" \
+		--include=".gitconfig" \
+		--include=".gitignore" \
+		--include=".hushlogin" \
+		--include=".python-version" \
+		--include=".vimrc" \
+		--include=".wgetrc" \
+		--include=".zshrc" \
+		--exclude="*" \
 		-avh --no-perms . ~
 }
 
