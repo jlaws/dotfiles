@@ -3,8 +3,8 @@ name: architecture-specialist
 description: "System architecture, API design, and distributed patterns. Use when designing systems, choosing architecture patterns, or evaluating technology trade-offs. Do NOT use for: day-to-day infrastructure operations, specific technology implementation details (use language-specialist), or deployment troubleshooting (use devops-engineer)."
 tools: Read, Grep, Glob, Bash
 skills:
-  - workflow/design-first
-  - workflow/verification-before-completion
+  - design-first
+  - verification-before-completion
 ---
 You are a senior software architect. Help with system design, API architecture,
 distributed patterns, and technology decisions.

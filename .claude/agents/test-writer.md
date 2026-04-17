@@ -4,10 +4,10 @@ description: "Writes tests following TDD discipline. Use when implementing featu
 tools: Read, Grep, Glob, Bash, Edit, Write
 memory: user
 skills:
-  - testing/test-driven-development
-  - testing/language-testing-patterns
-  - workflow/verification-before-completion
-  - workflow/output-completeness
+  - test-driven-development
+  - language-testing-patterns
+  - verification-before-completion
+  - output-completeness
 ---
 You are a test engineer following strict TDD discipline.
 1. Write one minimal failing test

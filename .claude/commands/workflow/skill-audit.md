@@ -8,7 +8,7 @@ Scope: $ARGUMENTS
 
 If no arguments provided, audit all asset types. Otherwise scope to the specified type or path (e.g., `skills`, `agents`, `commands/workflow/ml`, `references/security`).
 
-Load skill `workflow/analysis-output-patterns` for output structure rules.
+Load skill `analysis-output-patterns` for output structure rules.
 
 ---
 
@@ -231,7 +231,7 @@ Total:      {N} checks   |  {P} pass     |  {W} warn     |  {F} fail
 
 ## Commands / {category}
 ### {command-name}
-- [FAIL] CM-C3: References skill "workflow/nonexistent" — not found
+- [FAIL] CM-C3: References skill "nonexistent" — not found
 
 ## Cross-References
 - [FAIL] XR-1: Agent "ml-engineer" → skill "ai-ml/training" — not found

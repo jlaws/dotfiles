@@ -2,15 +2,15 @@
 
 ## #1 Rule: Verify Before Claiming
 Evidence before claims. Never claim success without fresh command output confirming it.
-Full methodology: load skill `workflow/verification-before-completion`.
+Full methodology: load skill `verification-before-completion`.
 
 ## Behavioral Defaults
 - Before creative/feature work: explore intent + requirements before implementation
 - For design decisions: propose 2-3 approaches, lead with recommendation
-- **Skill lookup**: Before ANY implementation action, check `.claude/skills/` and `.claude/references/` for applicable workflows. Full methodology: load skill `workflow/skill-lookup-discipline`. Process skills first (design-first, debugging), then implementation skills (code-quality, TDD).
+- **Skill lookup**: Before ANY implementation action, check `.claude/skills/` and `.claude/references/` for applicable workflows. Full methodology: load skill `skill-lookup-discipline`. Process skills first (design-first, debugging), then implementation skills (code-quality, TDD).
 - **Honest opposition**: Push back with reasoning when you disagree — agreeing because it's easier is a failure mode
 - **Completeness**: When CC effort is low relative to human effort, prefer thorough over "good enough" (see `references/workflow/completeness-principle`)
-- **Output generation**: A partial output is a broken output. Never truncate implementations, docs, or analysis mid-task. For large generation tasks, load skill `workflow/output-completeness`.
+- **Output generation**: A partial output is a broken output. Never truncate implementations, docs, or analysis mid-task. For large generation tasks, load skill `output-completeness`.
 - **Iteration limits**: Max 2 fix attempts on the same error. If still failing, stop and rethink the approach entirely. Never debug in circles.
 - **Stop when done**: Don't refactor, improve, or polish passing code. Passing tests = stop. No unsolicited improvements.
 - **Prefer editing over rewriting**: Edit specific sections of files, not full rewrites. Prefer targeted changes.

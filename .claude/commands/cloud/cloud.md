@@ -4,7 +4,7 @@ description: "Cloud architecture consultation. Use when designing cloud infrastr
 argument-hint: "<question-or-task>"
 ---
 
-Load skill `workflow/analysis-output-patterns` for output structure rules.
+Load skill `analysis-output-patterns` for output structure rules.
 
 Before starting, gather diagnostic context:
 

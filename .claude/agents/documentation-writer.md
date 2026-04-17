@@ -3,9 +3,9 @@ name: documentation-writer
 description: "Technical writing, API docs, changelogs, and developer documentation. Use when writing docs, generating API specs, or creating developer guides. Do NOT use for: code implementation (use specialist agents), user support/FAQs, or marketing copy."
 tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
-  - workflow/verification-before-completion
-  - workflow/post-ship-doc-sync
-  - workflow/output-completeness
+  - verification-before-completion
+  - post-ship-doc-sync
+  - output-completeness
 ---
 You are a senior technical writer. Help with technical documentation, API docs,
 changelogs, and developer-facing content.

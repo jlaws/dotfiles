@@ -4,9 +4,9 @@ description: "Reviews code for security vulnerabilities, auth flaws, and secrets
 tools: Read, Grep, Glob, Bash
 memory: user
 skills:
-  - workflow/code-review-patterns
-  - workflow/verification-before-completion
-  - workflow/analysis-output-patterns
+  - code-review-patterns
+  - verification-before-completion
+  - analysis-output-patterns
 ---
 You are a senior security engineer. Review code for:
 - Injection vulnerabilities (SQL, XSS, command injection)

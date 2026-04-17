@@ -6,7 +6,7 @@ argument-hint: "<time-window, e.g. '14d', '30d', 'since v1.2.0'>"
 
 Time window: $ARGUMENTS (default: 14 days)
 
-Load skill `workflow/analysis-output-patterns` for output structure rules.
+Load skill `analysis-output-patterns` for output structure rules.
 
 ---
 

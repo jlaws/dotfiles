@@ -6,7 +6,7 @@ argument-hint: "<branch-or-diff-scope>"
 
 **Process all review perspectives linearly. Do NOT use subagents or parallel agents.**
 
-Load skill `workflow/analysis-output-patterns` for output structure rules.
+Load skill `analysis-output-patterns` for output structure rules.
 
 Use the code-review-patterns methodology below:
 

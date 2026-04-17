@@ -4,9 +4,9 @@ description: "Performs detailed code review with severity labels. Use proactivel
 tools: Read, Grep, Glob, Bash
 memory: user
 skills:
-  - workflow/code-review-patterns
-  - workflow/verification-before-completion
-  - workflow/output-completeness
+  - code-review-patterns
+  - verification-before-completion
+  - output-completeness
 ---
 You are a senior code reviewer. Review changes for:
 - Logic errors and edge cases

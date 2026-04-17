@@ -200,8 +200,8 @@ name: {name}
 description: "{generated description}"
 tools: {tools list}
 skills:
-  - {skill-path}
-  - workflow/verification-before-completion
+  - {skill-name}
+  - verification-before-completion
 model: {model}  # only if overridden
 memory: {scope}  # only if enabled
 ---
@@ -296,5 +296,5 @@ Read, Write, Edit, Grep, Glob, Bash, LSP, WebFetch, WebSearch, NotebookEdit, Ski
 
 ### Cross-References
 
-- **skill:workflow/writing-skills** -- skill authoring TDD methodology, CSO, persuasion principles
-- **skill:workflow/skill-audit** -- validation rules for all asset types
+- **skill:writing-skills** -- skill authoring TDD methodology, CSO, persuasion principles
+- **skill:skill-audit** -- validation rules for all asset types

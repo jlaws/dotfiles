@@ -4,7 +4,7 @@ description: "Analyze an ML/AI research paper: structured summary, critical eval
 argument-hint: "<paper-url-or-path>"
 ---
 
-Load skill `workflow/analysis-output-patterns` for output structure rules.
+Load skill `analysis-output-patterns` for output structure rules.
 
 Before analyzing, perform resource discovery:
 

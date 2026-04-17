@@ -4,7 +4,7 @@ description: "Process AI research newsletter emails (TLDR AI, The Batch, Import 
 argument-hint: "<email-body-file>"
 ---
 
-Load skill `workflow/analysis-output-patterns` for output structure rules.
+Load skill `analysis-output-patterns` for output structure rules.
 
 Before producing output, perform pre-processing:
 

@@ -26,7 +26,7 @@ For each task in the batch:
 1. Announce which task you're starting
 2. Follow each step exactly as written in the plan
 3. Run all verification commands specified
-4. Apply `workflow/verification-before-completion` — confirm each step passes before moving on
+4. Apply `verification-before-completion` — confirm each step passes before moving on
 5. Commit after each task (or as the plan specifies)
 
 #### Living Document Maintenance
@@ -79,7 +79,7 @@ Based on feedback:
 
 After all tasks are done and verified:
 - Run full test suite one final time
-- Load `workflow/finishing-branch` skill to wrap up the branch
+- Load `finishing-branch` skill to wrap up the branch
 - Follow that skill's process (verify → present options → execute choice)
 
 ## When to Stop and Ask
@@ -128,6 +128,6 @@ Starting Task 4 (Write API endpoints)...
 
 ## Integration
 
-**Receives plans from:** `workflow/writing-plans`
-**Hands off to:** `workflow/finishing-branch` when all tasks complete
-**Uses:** `workflow/verification-before-completion` for each verification step
+**Receives plans from:** `writing-plans`
+**Hands off to:** `finishing-branch` when all tasks complete
+**Uses:** `verification-before-completion` for each verification step

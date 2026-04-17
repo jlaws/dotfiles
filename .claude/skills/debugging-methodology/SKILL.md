@@ -4,7 +4,7 @@ description: Use when investigating bugs, test failures, performance issues, or 
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 skills:
-  - workflow/verification-before-completion
+  - verification-before-completion
 ---
 
 # Debugging Methodology

@@ -4,7 +4,7 @@ description: "Security threat model and vulnerability scan — STRIDE analysis, 
 argument-hint: "<target-path-or-scope>"
 ---
 
-Load skill `workflow/analysis-output-patterns` for output structure rules.
+Load skill `analysis-output-patterns` for output structure rules.
 
 Before invoking the analysis, perform reconnaissance:
 

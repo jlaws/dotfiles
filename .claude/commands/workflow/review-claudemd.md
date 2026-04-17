@@ -10,7 +10,7 @@ If no arguments provided, analyzes both global and local CLAUDE.md against last 
 
 **Do NOT use subagents or parallel agents. Process all analysis linearly.**
 
-Load skill `workflow/analysis-output-patterns` for output structure rules.
+Load skill `analysis-output-patterns` for output structure rules.
 
 ## Review Process
 

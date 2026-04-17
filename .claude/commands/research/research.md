@@ -4,7 +4,7 @@ description: "Research consultation — literature review, statistical analysis,
 argument-hint: "<question-or-task>"
 ---
 
-Load skill `workflow/analysis-output-patterns` for output structure rules.
+Load skill `analysis-output-patterns` for output structure rules.
 
 Before starting, gather diagnostic context:
 
