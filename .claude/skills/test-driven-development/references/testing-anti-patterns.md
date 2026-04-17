@@ -290,7 +290,7 @@ test('retries up to configured max attempts', () => {
   const service = new ApiService(config);
   mockApi.failTimes(2);
 
-  const result = await service.fetchWithRetry('/data');
+  const result = await service.fetchWithRetry('/j-data');
   expect(result.status).toBe(200);
   expect(mockApi.callCount).toBe(3);
 });

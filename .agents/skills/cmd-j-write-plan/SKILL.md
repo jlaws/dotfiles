@@ -1,13 +1,20 @@
 ---
-name: writing-plans
-description: "Structured methodology for writing implementation plans with bite-sized tasks, exact file paths, and TDD integration. Use when you have a spec or requirements for a multi-step task and need to create a detailed plan before writing code. Do NOT use for simple single-file changes or bug fixes."
-compatibility: claude-code
-allowed-tools: Read, Grep, Glob, Bash
+name: cmd-j-write-plan
+description: "Create a structured implementation plan with bite-sized tasks, exact file paths, and TDD integration. Use when you have requirements and need a detailed plan before coding. Do NOT use for changing existing plans (edit the file directly)."
+disable-model-invocation: true
 ---
 
-# Writing Plans
+# Write Plan
 
-## Overview
+Input: the user's provided input
+
+If no input provided, ask what needs to be planned or check for a recent design doc in `docs/plans/`.
+
+---
+
+## Writing Plans
+
+### Overview
 
 Write comprehensive implementation plans assuming the engineer has zero codebase context. Document everything they need: which files to touch, complete code samples, how to test, exact commands with expected output. Bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
 
@@ -15,7 +22,7 @@ Target audience: skilled developer unfamiliar with your codebase and toolset.
 
 **Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
 
-## Plan Document Header
+### Plan Document Header
 
 Every plan MUST start with:
 
@@ -40,7 +47,7 @@ GOOD: "After this change, repeated API calls for the same resource return cached
 ---
 ```
 
-## Bite-Sized Task Granularity
+### Bite-Sized Task Granularity
 
 Each step is one action (2-5 minutes):
 
@@ -52,7 +59,7 @@ Each step is one action (2-5 minutes):
 
 If a step takes more than 5 minutes, split it further.
 
-## Milestone Grouping
+### Milestone Grouping
 
 *Optional — recommended for plans with 6+ tasks.*
 
@@ -79,7 +86,7 @@ Group related tasks into milestones. Each milestone is a narrative arc: goal →
 
 After a prototyping milestone, the executor pauses and reports findings before continuing.
 
-## Task Structure
+### Task Structure
 
 ````markdown
 ### Task N: [Component Name]
@@ -127,7 +134,7 @@ git commit -m "feat: add specific feature"
 ```
 ````
 
-## Requirements
+### Requirements
 
 - **Exact file paths** — always, no "add to the appropriate file"
 - **Complete code** — paste actual code, not "add validation here"
@@ -138,7 +145,7 @@ git commit -m "feat: add specific feature"
 - **Idempotent steps** — every step safely re-runnable. `CREATE TABLE IF NOT EXISTS`, not `CREATE TABLE`. `mkdir -p`, not `mkdir`. If a step fails midway, re-running it from the top must not corrupt state.
 - **Resolve all ambiguities** — no "choose appropriate X" or "use a suitable library". Every decision is made in the plan. If you can't decide, flag it as a decision gate in a prototyping milestone.
 
-## Execution Handoff
+### Execution Handoff
 
 After saving the plan, present execution options:
 
@@ -146,9 +153,9 @@ After saving the plan, present execution options:
 Plan saved to `docs/plans/<filename>.md`. Execution options:
 
 1. **Execute now** — I'll work through tasks in batches with review checkpoints
-   (uses executing-plans skill)
+   (uses executing-plans methodology)
 
-2. **Execute in new session** — Open new session and load the `executing-plans` skill
+2. **Execute in new session** — Open new session and run /execute-plan
    (better for large plans — fresh context per batch)
 
 3. **Manual** — You execute the plan yourself
@@ -156,7 +163,7 @@ Plan saved to `docs/plans/<filename>.md`. Execution options:
 Which approach?
 ```
 
-## Common Mistakes
+### Common Mistakes
 
 | Bad | Good |
 |-----|------|

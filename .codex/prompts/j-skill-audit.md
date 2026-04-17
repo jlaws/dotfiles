@@ -1,42 +1,47 @@
 ---
-name: skill-audit
-description: "Audit the .claude/ knowledge base — skills, commands, agents, references, config, and cross-references. Use when validating conformance after creating or modifying any .claude/ asset, checking naming conventions, or verifying knowledge base integrity. Do NOT use for general code quality (use code-quality) or code review (use code-review-patterns)."
-compatibility: claude-code
-allowed-tools: Read, Grep, Glob, Bash
+name: j-skill-audit
+description: "Audit the .claude/ knowledge base — skills, commands, agents, references, config, and cross-references for conformance and integrity. Use when creating or modifying any .claude/ asset to validate compliance. Do NOT use for quick checks (inspect files directly instead)."
+argument-hint: "<scope: skills|commands|agents|references|config|path>"
 ---
 
-# Knowledge Base Audit
+Scope: $ARGUMENTS
+
+If no arguments provided, audit all asset types. Otherwise scope to the specified type or path (e.g., `skills`, `agents`, `commands/ml`, `references/security`).
+
+---
+
+## Knowledge Base Audit
 
 Full conformance audit of all assets under `.claude/`.
 
-## Scoping
+### Scoping
 
 Determine scope from arguments:
 - **Empty** -> audit ALL asset types
 - **Asset type** (`skills`, `commands`, `agents`, `references`, `config`) -> audit only that type
-- **Name/path** (e.g., `skills/writing-plans`, `agents/code-reviewer`, `commands/j-arch`) -> audit only matching assets
+- **Category/path** (e.g., `skills/workflow`, `agents/code-reviewer`, `commands/j-arch`) -> audit only matching assets
 
-## Phase 1: Discovery
+### Phase 1: Discovery
 
 Enumerate all assets by type:
 
 | Type | Location | Pattern |
 |------|----------|---------|
-| Skills | `.claude/skills/{name}/SKILL.md` | Folder with SKILL.md |
-| Commands | `.claude/commands/{name}.md` | Flat markdown files |
+| Skills | `.claude/skills/{category}/{name}/SKILL.md` | Folder with SKILL.md |
+| Commands | `.claude/commands/{name}.md` | Markdown files |
 | Agents | `.claude/agents/{name}.md` | Markdown files |
 | References | `.claude/references/{category}/{name}.md` | Markdown files |
 | Config | `.claude/CLAUDE.md`, `.claude/settings.json`, `.claude/settings.local.json` | Fixed paths |
 
 For each asset, record: type, category, name, file path, any supporting files.
 
-## Phase 2: Automated Checks
+### Phase 2: Automated Checks
 
 Track every result as PASS, WARN, or FAIL. Report actual values on failure.
 
 ---
 
-### 2A. Skill Checks
+#### 2A. Skill Checks
 
 For each skill directory under `.claude/skills/`:
 
@@ -74,7 +79,7 @@ For each skill directory under `.claude/skills/`:
 
 ---
 
-### 2B. Agent Checks
+#### 2B. Agent Checks
 
 For each `.md` file under `.claude/agents/`:
 
@@ -107,7 +112,7 @@ For each `.md` file under `.claude/agents/`:
 
 ---
 
-### 2C. Command Checks
+#### 2C. Command Checks
 
 For each `.md` file under `.claude/commands/`:
 
@@ -116,8 +121,7 @@ For each `.md` file under `.claude/commands/`:
 | # | Check | Sev | Rule |
 |---|-------|-----|------|
 | CM-S1 | Filename is kebab-case (`.md` extension) | FAIL | Naming convention |
-| CM-S2 | File is flat directly under `commands/` (no category subdir) | WARN | Expected: `commands/{name}.md` |
-| CM-S3 | Filename starts with `j-` prefix | WARN | Custom commands use `j-` prefix to disambiguate from built-ins |
+| CM-S2 | File lives inside a category subdirectory | WARN | Expected: `commands/{name}.md` |
 
 **Frontmatter**
 
@@ -141,7 +145,7 @@ For each `.md` file under `.claude/commands/`:
 
 ---
 
-### 2D. Reference Checks
+#### 2D. Reference Checks
 
 For each `.md` file under `.claude/references/`:
 
@@ -162,7 +166,7 @@ For each `.md` file under `.claude/references/`:
 
 ---
 
-### 2E. Config Checks
+#### 2E. Config Checks
 
 **CLAUDE.md**
 
@@ -182,7 +186,7 @@ For each `.md` file under `.claude/references/`:
 
 ---
 
-### 2F. Cross-Reference Integrity
+#### 2F. Cross-Reference Integrity
 
 Verify links between assets resolve:
 
@@ -195,9 +199,9 @@ Verify links between assets resolve:
 | XR-5 | Skill body cross-references to other skills resolve | WARN | Broken skill ref |
 | XR-6 | Skill supporting files in `references/` subdirs are referenced in SKILL.md | WARN | Orphan supporting file |
 
-## Phase 3: Report
+### Phase 3: Report
 
-### Summary
+#### Summary
 
 ```
 Knowledge Base Audit
@@ -212,7 +216,7 @@ Cross-Refs: {n} checks   |  {pass} pass  |  {warn} warn  |  {fail} fail
 Total:      {N} checks   |  {P} pass     |  {W} warn     |  {F} fail
 ```
 
-### Failures (grouped by asset type, then category)
+#### Failures (grouped by asset type, then category)
 
 ```
 ## Skills / {category}
@@ -223,7 +227,7 @@ Total:      {N} checks   |  {P} pass     |  {W} warn     |  {F} fail
 ### {agent-name}
 - [FAIL] AG-F3: `name` ("reviewer") does not match filename ("code-reviewer")
 
-## Commands
+## Commands / {category}
 ### {command-name}
 - [FAIL] CM-C3: References skill "nonexistent" — not found
 
@@ -231,21 +235,21 @@ Total:      {N} checks   |  {P} pass     |  {W} warn     |  {F} fail
 - [FAIL] XR-1: Agent "ml-engineer" → skill "ai-ml/training" — not found
 ```
 
-### Warnings Only
+#### Warnings Only
 
 Same format, for assets with zero FAILs but one or more WARNs.
 
-### Clean Assets
+#### Clean Assets
 
 Comma-separated list per type:
 ```
 Skills: code-quality, code-review-patterns, ...
 Agents: ml-engineer, test-writer, ...
-Commands: j-arch, j-new, ...
+Commands: ml, experiment, ...
 References: auth-implementation-patterns, ...
 ```
 
-## Execution Notes
+### Execution Notes
 
 - Read each file fully before evaluating
 - Parse frontmatter between first and second `---` lines

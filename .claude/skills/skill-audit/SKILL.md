@@ -14,7 +14,7 @@ Full conformance audit of all assets under `.claude/`.
 Determine scope from arguments:
 - **Empty** -> audit ALL asset types
 - **Asset type** (`skills`, `commands`, `agents`, `references`, `config`) -> audit only that type
-- **Category/path** (e.g., `skills/workflow`, `agents/code-reviewer`, `commands/ai-ml/ml`) -> audit only matching assets
+- **Name/path** (e.g., `skills/writing-plans`, `agents/code-reviewer`, `commands/j-arch`) -> audit only matching assets
 
 ## Phase 1: Discovery
 
@@ -22,8 +22,8 @@ Enumerate all assets by type:
 
 | Type | Location | Pattern |
 |------|----------|---------|
-| Skills | `.claude/skills/{category}/{name}/SKILL.md` | Folder with SKILL.md |
-| Commands | `.claude/commands/{category}/{name}.md` | Markdown files |
+| Skills | `.claude/skills/{name}/SKILL.md` | Folder with SKILL.md |
+| Commands | `.claude/commands/{name}.md` | Flat markdown files |
 | Agents | `.claude/agents/{name}.md` | Markdown files |
 | References | `.claude/references/{category}/{name}.md` | Markdown files |
 | Config | `.claude/CLAUDE.md`, `.claude/settings.json`, `.claude/settings.local.json` | Fixed paths |
@@ -116,7 +116,8 @@ For each `.md` file under `.claude/commands/`:
 | # | Check | Sev | Rule |
 |---|-------|-----|------|
 | CM-S1 | Filename is kebab-case (`.md` extension) | FAIL | Naming convention |
-| CM-S2 | File lives inside a category subdirectory | WARN | Expected: `commands/{category}/{name}.md` |
+| CM-S2 | File is flat directly under `commands/` (no category subdir) | WARN | Expected: `commands/{name}.md` |
+| CM-S3 | Filename starts with `j-` prefix | WARN | Custom commands use `j-` prefix to disambiguate from built-ins |
 
 **Frontmatter**
 
@@ -222,7 +223,7 @@ Total:      {N} checks   |  {P} pass     |  {W} warn     |  {F} fail
 ### {agent-name}
 - [FAIL] AG-F3: `name` ("reviewer") does not match filename ("code-reviewer")
 
-## Commands / {category}
+## Commands
 ### {command-name}
 - [FAIL] CM-C3: References skill "nonexistent" — not found
 
@@ -240,7 +241,7 @@ Comma-separated list per type:
 ```
 Skills: code-quality, code-review-patterns, ...
 Agents: ml-engineer, test-writer, ...
-Commands: ml, experiment, ...
+Commands: j-arch, j-new, ...
 References: auth-implementation-patterns, ...
 ```
 

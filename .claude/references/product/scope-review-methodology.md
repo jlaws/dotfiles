@@ -28,10 +28,10 @@ Challenge assumptions about WHAT to build and how much, before design work begin
 4. **Evaluate** options against constraints (time, team, risk appetite)
 5. **Recommend** a mode with reasoning
 
-## Distinction from /brainstorm
+## Distinction from /j-brainstorm
 
 - **scope-review** = WHAT to build (challenge the boundary)
-- **/brainstorm** = HOW to build it (design within the boundary)
+- **/j-brainstorm** = HOW to build it (design within the boundary)
 - Scope review can precede brainstorm: "Are we building the right thing?" then "How do we build it?"
 
 ## Anti-Patterns
