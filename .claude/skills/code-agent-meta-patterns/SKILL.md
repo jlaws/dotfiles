@@ -150,7 +150,7 @@ If no arguments provided, review all staged/unstaged changes.
 |---------|----------|--------------------|
 | Pass-through | Skill needs user context | `/review focus on security` |
 | Optional | Skill has sensible defaults | `/deploy` or `/deploy staging` |
-| Structured | Multiple params needed | `/create-pr base=main title="Fix auth"` |
+| Structured | Multiple params needed | `/j-create-pr base=main title="Fix auth"` |
 
 ### Rules
 - One command = one skill invocation (usually)
