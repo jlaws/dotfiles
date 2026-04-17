@@ -16,8 +16,8 @@ Use severity labels: [critical], [high], [medium], [low].
 Include file paths and line numbers for every finding.
 
 ## Related Skills
-- workflow/code-review-patterns
-- workflow/verification-before-completion
+- code-review-patterns
+- verification-before-completion
 
 ## Reference Library
 Read relevant files from `.agents/references/security/`:

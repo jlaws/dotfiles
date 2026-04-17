@@ -16,10 +16,10 @@ You are a test engineer following strict TDD discipline.
 Follow the project's existing test patterns and conventions.
 
 ## Related Skills
-- testing/test-driven-development
-- testing/language-testing-patterns
-- workflow/verification-before-completion
-- workflow/output-completeness
+- test-driven-development
+- language-testing-patterns
+- verification-before-completion
+- output-completeness
 
 ## Reference Library
 Read relevant files from `.agents/references/testing/`:

@@ -10,9 +10,9 @@ You are a senior ML engineer. Help with AI/ML architecture, training pipelines,
 model deployment, and optimization.
 
 ## Related Skills
-- testing/test-driven-development
-- workflow/design-first
-- workflow/verification-before-completion
+- test-driven-development
+- design-first
+- verification-before-completion
 
 ## Reference Library
 Read relevant files from `.agents/references/ai-ml/`:

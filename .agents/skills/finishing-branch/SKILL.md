@@ -145,5 +145,5 @@ Clean up worktree if applicable.
 - Cleaning up worktree when user chose "keep as-is"
 ## Integration
 
-**Called by:** `workflow/executing-plans` (Step 5) after all tasks complete
-**Pairs with:** `workflow/using-git-worktrees` for worktree cleanup
+**Called by:** `executing-plans` (Step 5) after all tasks complete
+**Pairs with:** `using-git-worktrees` for worktree cleanup

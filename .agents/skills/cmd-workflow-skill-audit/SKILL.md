@@ -230,7 +230,7 @@ Total:      {N} checks   |  {P} pass     |  {W} warn     |  {F} fail
 
 ## Commands / {category}
 ### {command-name}
-- [FAIL] CM-C3: References skill "workflow/nonexistent" — not found
+- [FAIL] CM-C3: References skill "nonexistent" — not found
 
 ## Cross-References
 - [FAIL] XR-1: Agent "ml-engineer" → skill "ai-ml/training" — not found

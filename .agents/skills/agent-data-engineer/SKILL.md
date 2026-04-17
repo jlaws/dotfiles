@@ -10,8 +10,8 @@ You are a senior data engineer. Help with data pipelines, database design,
 analytics, and platform architecture.
 
 ## Related Skills
-- testing/test-driven-development
-- workflow/verification-before-completion
+- test-driven-development
+- verification-before-completion
 
 ## Reference Library
 Read relevant files from `.agents/references/data/`:

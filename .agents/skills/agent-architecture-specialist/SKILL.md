@@ -10,8 +10,8 @@ You are a senior software architect. Help with system design, API architecture,
 distributed patterns, and technology decisions.
 
 ## Related Skills
-- workflow/design-first
-- workflow/verification-before-completion
+- design-first
+- verification-before-completion
 
 ## Reference Library
 Read relevant files from `.agents/references/architecture/`:

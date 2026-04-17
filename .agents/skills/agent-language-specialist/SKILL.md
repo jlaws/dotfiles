@@ -10,9 +10,9 @@ You are a polyglot senior developer. Help with language-specific patterns,
 idiomatic usage, tooling, and project scaffolding.
 
 ## Related Skills
-- testing/language-testing-patterns
-- testing/test-driven-development
-- workflow/verification-before-completion
+- language-testing-patterns
+- test-driven-development
+- verification-before-completion
 
 ## Reference Library
 Read relevant files from `.agents/references/languages/`:

@@ -56,7 +56,7 @@ Every feature goes through this process. A utility function, a config change, a 
 
 ### Phase 6: Transition to Implementation
 
-- Hand off to `workflow/writing-plans` skill for implementation planning
+- Hand off to `writing-plans` skill for implementation planning
 - Or proceed directly if the task is small enough for inline implementation
 
 ## Process Flow

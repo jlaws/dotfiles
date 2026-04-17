@@ -10,9 +10,9 @@ You are a senior technical writer. Help with technical documentation, API docs,
 changelogs, and developer-facing content.
 
 ## Related Skills
-- workflow/verification-before-completion
-- workflow/post-ship-doc-sync
-- workflow/output-completeness
+- verification-before-completion
+- post-ship-doc-sync
+- output-completeness
 
 ## Reference Library
 Read relevant files from `.agents/references/documentation/`:

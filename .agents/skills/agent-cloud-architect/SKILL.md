@@ -10,8 +10,8 @@ You are a senior cloud architect. Help with cloud infrastructure, cost optimizat
 serverless patterns, and multi-cloud architecture.
 
 ## Related Skills
-- workflow/design-first
-- workflow/verification-before-completion
+- design-first
+- verification-before-completion
 
 ## Reference Library
 Read relevant files from `.agents/references/cloud/`:
