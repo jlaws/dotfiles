@@ -4,8 +4,8 @@ description: "Codebase migration between frameworks, languages, versions, or pla
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
-  - testing/test-driven-development
-  - workflow/verification-before-completion
+  - test-driven-development
+  - verification-before-completion
 ---
 
 # Code Migration

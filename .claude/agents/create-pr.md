@@ -4,7 +4,7 @@ description: "Automate PR workflow — stage, commit, branch, push, and open a G
 model: sonnet
 tools: Bash, Read, Grep, Glob
 skills:
-  - workflow/verification-before-completion
+  - verification-before-completion
 ---
 You automate the full PR workflow. Follow these steps in order:
 

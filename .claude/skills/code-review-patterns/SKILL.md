@@ -4,8 +4,8 @@ description: Use when reviewing PRs, responding to review feedback, or running a
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 skills:
-  - workflow/verification-before-completion
-  - testing/language-testing-patterns
+  - verification-before-completion
+  - language-testing-patterns
 ---
 
 # Code Review Patterns

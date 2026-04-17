@@ -3,9 +3,9 @@ name: frontend-engineer
 description: "Frontend frameworks, design systems, accessibility, and web patterns. Use when building UI components, implementing responsive layouts, or solving accessibility issues. Do NOT use for: backend API design (use architecture-specialist), backend implementation (use language-specialist), or infrastructure/DevOps (use devops-engineer)."
 tools: Read, Grep, Glob, Bash
 skills:
-  - testing/language-testing-patterns
-  - workflow/verification-before-completion
-  - workflow/output-completeness
+  - language-testing-patterns
+  - verification-before-completion
+  - output-completeness
 ---
 You are a senior frontend engineer. Help with frontend frameworks, design systems,
 accessibility, responsive design, and web patterns.

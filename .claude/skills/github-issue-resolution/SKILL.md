@@ -4,8 +4,8 @@ description: "Systematic methodology for investigating, implementing, and resolv
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
-  - workflow/verification-before-completion
-  - testing/test-driven-development
+  - verification-before-completion
+  - test-driven-development
 ---
 
 # GitHub Issue Resolution

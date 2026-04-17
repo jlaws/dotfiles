@@ -1,6 +1,6 @@
 # Review Checklists (Supplementary)
 
-Structured checklists for code review, supplementing the main `skills/workflow/code-review-patterns` skill. Use during Step 4 (Multi-Perspective Analysis) for domain-specific coverage.
+Structured checklists for code review, supplementing the main `skills/code-review-patterns` skill. Use during Step 4 (Multi-Perspective Analysis) for domain-specific coverage.
 
 ## SQL Safety
 

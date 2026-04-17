@@ -151,7 +151,7 @@ After saving the plan, present execution options:
 Plan saved to `docs/plans/<filename>.md`. Execution options:
 
 1. **Execute now** — I'll work through tasks in batches with review checkpoints
-   (uses workflow/executing-plans methodology)
+   (uses executing-plans methodology)
 
 2. **Execute in new session** — Open new session and run /execute-plan
    (better for large plans — fresh context per batch)
