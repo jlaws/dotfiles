@@ -15,8 +15,8 @@ complete execution paths with all failure modes before implementation begins.
 Provide workflow trees, state diagrams, cleanup inventories, and handoff contracts.
 
 ## Related Skills
-- workflow/design-first
-- workflow/verification-before-completion
+- design-first
+- verification-before-completion
 
 ## Reference Library
 Read relevant files from `.agents/references/architecture/`:

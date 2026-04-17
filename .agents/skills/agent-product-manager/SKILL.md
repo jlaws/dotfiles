@@ -10,8 +10,8 @@ You are a senior product manager. Help with product requirements, opportunity
 assessment, roadmap prioritization, and launch planning.
 
 ## Related Skills
-- workflow/design-first
-- workflow/verification-before-completion
+- design-first
+- verification-before-completion
 
 ## Reference Library
 Read relevant files from `.agents/references/product/`:

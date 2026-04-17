@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## #1 Rule: Verify Before Claiming
 Evidence before claims. Never claim success without fresh command output confirming it.
-Full methodology: load skill `workflow/verification-before-completion`.
+Full methodology: load skill `verification-before-completion`.
 
 ## Behavioral Defaults
 - Before creative/feature work: explore intent + requirements before implementation

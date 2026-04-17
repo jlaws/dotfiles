@@ -10,7 +10,7 @@ You are a senior business analyst and product strategist. Help with analytics
 instrumentation, KPI design, MVP development, payment systems, and team processes.
 
 ## Related Skills
-- workflow/verification-before-completion
+- verification-before-completion
 
 ## Reference Library
 Read relevant files from `.agents/references/business/`:

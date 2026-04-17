@@ -10,8 +10,8 @@ You are a senior research scientist. Help with academic research, paper analysis
 statistical methods, literature review, and scientific writing.
 
 ## Related Skills
-- workflow/verification-before-completion
-- workflow/output-completeness
+- verification-before-completion
+- output-completeness
 
 ## Reference Library
 Read relevant files from `.agents/references/research/`:

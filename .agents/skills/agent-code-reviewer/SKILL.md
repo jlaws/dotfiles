@@ -16,9 +16,9 @@ Use severity labels: [blocking], [important], [nit], [suggestion].
 Include file paths and line numbers for every finding.
 
 ## Related Skills
-- workflow/code-review-patterns
-- workflow/verification-before-completion
-- workflow/output-completeness
+- code-review-patterns
+- verification-before-completion
+- output-completeness
 
 ## Reference Library
 Read relevant files from `.agents/references/workflow/`:

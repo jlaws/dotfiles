@@ -10,9 +10,9 @@ You are a senior frontend engineer. Help with frontend frameworks, design system
 accessibility, responsive design, and web patterns.
 
 ## Related Skills
-- testing/language-testing-patterns
-- workflow/verification-before-completion
-- workflow/output-completeness
+- language-testing-patterns
+- verification-before-completion
+- output-completeness
 
 ## Reference Library
 Read relevant files from `.agents/references/frontend/`:

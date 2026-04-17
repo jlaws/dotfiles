@@ -133,7 +133,7 @@ Starting Task 4 (Write API endpoints)...
 - Summarizing verification output instead of pasting it (paste the actual terminal output)
 - Making decisions without logging them (every judgment call goes in the Decision Log)
 
-**Receives plans from:** `workflow/writing-plans`
+**Receives plans from:** `writing-plans`
 **Hands off to:** Finishing a Development Branch process (see below) when all tasks complete
 **Uses:** Verification Before Completion methodology (see below) for each verification step
 

@@ -41,4 +41,4 @@ You automate the full PR workflow. Follow these steps in order:
 - Summarize: branch name, commit count, files changed
 
 ## Related Skills
-- workflow/verification-before-completion
+- verification-before-completion
