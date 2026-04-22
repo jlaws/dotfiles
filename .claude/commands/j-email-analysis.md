@@ -65,16 +65,18 @@ Process AI research newsletter emails into structured, actionable summaries with
 ```markdown
 # Newsletter Analysis: {newsletter-name} — {date}
 
+**Source email:** {email subject line}
+
 ## Summary
-{1-2 sentence high-level overview}
+{1-2 sentence high-level overview — every mention of a specific paper, repo, product, or article must include an inline `[text](url)` link to the external URL the email cited}
 
 ## Topic Overview
 
 ### {Topic 1 Name}
-{2-3 sentences: what this topic covers, why it matters, which links below relate to it}
+{2-3 sentences: what this topic covers, why it matters, with inline `[text](url)` links to the specific articles/papers/repos it covers, e.g. "covers [X's new release](https://...) and [the accompanying paper](https://arxiv.org/...)"}
 
 ### {Topic 2 Name}
-{2-3 sentences: what this topic covers, why it matters, which links below relate to it}
+{2-3 sentences with inline links as above}
 
 {...repeat for each major theme in the newsletter}
 
@@ -118,6 +120,8 @@ Process AI research newsletter emails into structured, actionable summaries with
 ### Guidelines
 
 - **Every item must include its source URL** — no entry should lack a clickable link
+- **Inline-link every prose claim that references a specific item** — every mention of a paper, repo, product, or article in `## Summary` and `## Topic Overview` MUST include an inline markdown `[text](url)` pointing to the external URL that the email cited. Prose without links is not acceptable when a specific item is being discussed.
+- **No redundant links in table description cells** — tables (Research Papers, Open Source Repositories, Products & Tools, Blog Posts & Articles) already have a URL column. Do not embed a second link inside the same row's description/summary cell. Every *other* cell or prose sentence needs a link.
 - **Omit empty sections** — if no repos found, skip that section entirely
 - **Practitioner-focused** — descriptions should answer "why should I care?"
 - **De-duplicate** — same URL appearing in multiple newsletter sections counts once
