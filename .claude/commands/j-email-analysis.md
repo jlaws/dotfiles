@@ -13,10 +13,12 @@ Before producing output, perform pre-processing:
 3. **Extract all links** from the email body. De-duplicate within this run.
 4. **Filter**: Remove any URLs present in the seen-links file. This applies to ALL URLs encountered during processing — including redirect/resolved URLs discovered when fetching. If a redirect target is already in seen-links, skip that link entirely and exclude it from the report.
 5. **Exclude dangerous/administrative URLs** — silently discard, never navigate to or fetch:
-   - Unsubscribe links (URLs containing `unsubscribe`, `opt-out`, `manage-subscription`, `email-preferences`)
-   - Tracking pixels / beacon URLs
+   - Unsubscribe links (URLs containing `unsubscribe`, `opt-out`, `manage-subscription`, `email-preferences`, `list-unsubscribe`)
+   - True tracking pixels / web beacons — i.e. URLs that serve a 1x1 image or empty body purely for open-tracking (e.g. `open.gif`, `pixel.png`, `beacon` endpoints with no readable destination)
    - `mailto:` links
    - Generic email-client links (e.g., "view in browser")
+
+   **Do NOT exclude click-tracking redirector URLs** (e.g. `link.mail.beehiiv.com/ss/c/...`, `tracking.tldrnewsletter.com/...`, `click.convertkit-mail.com/...`). These resolve to real content (articles, papers, products) and ARE the link the newsletter is citing. Keep them verbatim. If you can resolve the redirect to a final destination, prefer the resolved URL — but if not, use the redirector URL as-is. Never write placeholder text in place of one.
 6. **Categorize** each remaining link:
    - **Papers**: arxiv.org, openreview.net, direct PDF links, semanticscholar.org
    - **Repositories**: github.com, gitlab.com, huggingface.co (model/dataset/space repos)
@@ -121,6 +123,7 @@ Process AI research newsletter emails into structured, actionable summaries with
 
 - **Every item must include its source URL** — no entry should lack a clickable link
 - **Inline-link every prose claim that references a specific item** — every mention of a paper, repo, product, or article in `## Summary` and `## Topic Overview` MUST include an inline markdown `[text](url)` pointing to the external URL that the email cited. Prose without links is not acceptable when a specific item is being discussed.
+- **Never substitute placeholder text for a URL** — phrases like `(beehiiv tracking link)`, `(tracking link)`, `(see email)`, or `(link omitted)` are not acceptable substitutes. If you reference a specific item, the actual URL must appear inline. If the URL is a click-tracking redirector, include the redirector URL verbatim — it is still the link.
 - **No redundant links in table description cells** — tables (Research Papers, Open Source Repositories, Products & Tools, Blog Posts & Articles) already have a URL column. Do not embed a second link inside the same row's description/summary cell. Every *other* cell or prose sentence needs a link.
 - **Omit empty sections** — if no repos found, skip that section entirely
 - **Practitioner-focused** — descriptions should answer "why should I care?"
