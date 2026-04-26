@@ -62,6 +62,20 @@ Process AI research newsletter emails into structured, actionable summaries with
 - For arxiv: convert `arxiv.org/abs/XXXX.XXXXX` to `arxiv.org/pdf/XXXX.XXXXX.pdf`
 - Skip download if file already exists in `backlog/`
 
+### Link Format Convention
+
+All URLs in the rendered report MUST be markdown links `[text](url)`. Never emit a bare URL in any section of the output — including tables, `## Summary`, and `## Topic Overview`. Use a short, content-revealing label as link text:
+
+| Source | Label format | Example |
+|---|---|---|
+| arxiv | `arxiv:{id}` | `[arxiv:2401.12345](https://arxiv.org/abs/2401.12345)` |
+| github / gitlab | `{owner}/{repo}` | `[anthropics/claude-code](https://github.com/anthropics/claude-code)` |
+| huggingface | `{namespace}/{name}` | `[meta-llama/Llama-3](https://huggingface.co/meta-llama/Llama-3)` |
+| PDF direct | `{filename}` or `{domain}/{path}` | `[example.com/paper.pdf](https://example.com/paper.pdf)` |
+| Other | `{domain}/{path}` (strip scheme, trim long paths) | `[openai.com/blog/foo](https://openai.com/blog/foo)` |
+
+The downloaded-PDF status cell in the Research Papers table is plain text (`downloaded` or `failed: <reason>`) — it is NOT a link to the local file in `backlog/`.
+
 ### Output Template
 
 ```markdown
@@ -86,31 +100,25 @@ Process AI research newsletter emails into structured, actionable summaries with
 
 | Paper | Authors | URL | PDF | Key Contribution |
 |-------|---------|-----|-----|-----------------|
-| Title | First Author et al. | https://arxiv.org/abs/... | [downloaded](backlog/filename.pdf) or failed | One-sentence practitioner-focused summary |
+| Title | First Author et al. | [arxiv:XXXX.XXXXX](https://arxiv.org/abs/...) | downloaded | One-sentence practitioner-focused summary |
 
 ## Open Source Repositories
 
 | Repository | URL | Stars | Language | Description |
 |-----------|-----|-------|----------|-------------|
-| name | https://github.com/... | N | Lang | One-sentence description |
+| name | [owner/repo](https://github.com/owner/repo) | N | Lang | One-sentence description |
 
 ## Products & Tools
 
 | Name | URL | Description |
 |------|-----|-------------|
-| Name | https://example.com/... | One-sentence description |
+| Name | [example.com/path](https://example.com/...) | One-sentence description |
 
 ## Blog Posts & Articles
 
 | Title | URL | Source | Summary |
 |-------|-----|--------|---------|
-| Title | https://example.com/... | Blog/Org name | One-sentence summary |
-
-## New Links
-- https://example.com/link1
-- https://example.com/link2
-- https://example.com/resolved-redirect-url
-{all unique URLs from this analysis, one per line — includes both original and resolved/redirect URLs discovered during fetching; these are appended to the seen-links file}
+| Title | [example.com/path](https://example.com/...) | Blog/Org name | One-sentence summary |
 
 ## Stats
 - Total links processed: N
@@ -121,6 +129,7 @@ Process AI research newsletter emails into structured, actionable summaries with
 
 ### Guidelines
 
+- **Never emit bare URLs in the report** — every URL in the rendered output MUST be wrapped as `[text](url)` per the Link Format Convention above. This applies to all tables, `## Summary`, `## Topic Overview`, and any other prose.
 - **Every item must include its source URL** — no entry should lack a clickable link
 - **Inline-link every prose claim that references a specific item** — every mention of a paper, repo, product, or article in `## Summary` and `## Topic Overview` MUST include an inline markdown `[text](url)` pointing to the external URL that the email cited. Prose without links is not acceptable when a specific item is being discussed.
 - **Never substitute placeholder text for a URL** — phrases like `(beehiiv tracking link)`, `(tracking link)`, `(see email)`, or `(link omitted)` are not acceptable substitutes. If you reference a specific item, the actual URL must appear inline. If the URL is a click-tracking redirector, include the redirector URL verbatim — it is still the link.
@@ -129,7 +138,7 @@ Process AI research newsletter emails into structured, actionable summaries with
 - **Practitioner-focused** — descriptions should answer "why should I care?"
 - **De-duplicate** — same URL appearing in multiple newsletter sections counts once
 - **Download failures** — note in the PDF column (e.g., "failed: 403"), don't retry
-- **Redirect tracking** — when fetching URLs (PDFs, repo metadata), record any redirect/resolved URLs. Check each against seen-links; if already seen, skip entirely. Both original and final resolved URLs count as "seen" and appear in the New Links section
+- **Redirect tracking** — when fetching URLs (PDFs, repo metadata), record any redirect/resolved URLs. Check each against seen-links; if already seen, skip entirely. Prefer the resolved URL when available
 - **Ambiguous categorization** — prefer the more specific category (paper > blog)
 
 ---
@@ -140,8 +149,4 @@ After producing the structured output, perform these final steps:
 
 9. **Extract title**: Get the email subject line or first heading from the email body. Slugify it (lowercase, hyphens, no special chars, max 8 words).
 10. **Write report**: Save the final report to `emails/YYYY-MM-DD-{slugified-title}.md` (relative to cwd, using today's date). Create `emails/` directory if it doesn't exist.
-11. **Append seen links**: Append all new unique URLs to `.seen-links` in the current working directory (one URL per line). Create the file if it doesn't exist. This includes:
-    - All URLs extracted from the email (after de-duplication and exclusion filtering)
-    - Any redirect/resolved URLs discovered during fetching (e.g., arxiv abs -> pdf, shortened URLs -> final destination)
-    - Do NOT append excluded/dangerous URLs (unsubscribe, tracking, mailto, etc.)
-12. **Confirm**: Print the file path of the written report and the number of URLs appended to the seen-links file.
+11. **Confirm**: Print the file path of the written report.
