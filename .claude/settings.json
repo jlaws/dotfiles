@@ -93,6 +93,7 @@
     "commit": "",
     "pr": ""
   },
+  "skillListingBudgetFraction": 0.03,
   "sandbox": {
     "enabled": false,
     "autoAllowBashIfSandboxed": true,
@@ -108,7 +109,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'SKILL-LOOKUP DISCIPLINE: Before any implementation action, check .claude/skills/ and .claude/references/ for applicable workflows. Load skill-lookup-discipline for full rules. Process skills (design-first, debugging, verification) before implementation skills (code-quality, TDD).'"
+            "command": "echo 'SKILL-LOOKUP DISCIPLINE: Before any implementation action, check .claude/skills/ and .claude/references/ for applicable workflows. Load skill-lookup-discipline for full rules.'"
           }
         ]
       }
