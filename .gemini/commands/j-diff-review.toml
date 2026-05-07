@@ -1,0 +1,426 @@
+description = "Deep multi-perspective diff review -- code quality, security, testing gaps, and language-specific gotchas. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
+
+prompt = '''
+Use the diff-review workflow below to review: {{args}}
+
+Load the `analysis-output-patterns` skill by reading `~/.agents/skills/analysis-output-patterns/SKILL.md` for output structure rules.
+
+---
+
+## Code Review Patterns
+
+### Review Mindset
+
+**Goals:** Catch bugs/edge cases, ensure maintainability, share knowledge, enforce standards, improve design.
+
+**Not goals:** Show off knowledge, nitpick formatting (use linters), block progress unnecessarily, rewrite to preference.
+
+---
+
+### Giving Reviews
+
+#### Review Process (time-boxed)
+
+##### Phase 1: Context (2-3 min)
+1. Read PR description and linked issue
+2. Check PR size (>400 lines? Ask to split)
+3. CI/CD status passing?
+4. Understand the business requirement
+
+##### Phase 2: High-Level (5-10 min)
+- Does solution fit the problem? Simpler approaches?
+- Consistent with existing patterns? Will it scale?
+- Are there tests? Do they cover edge cases?
+
+##### Phase 3: Line-by-Line (10-20 min)
+- **Logic**: Edge cases, off-by-one, null checks, race conditions
+- **Security**: Input validation, SQL injection, XSS, data exposure
+- **Performance**: N+1 queries, unnecessary loops, memory leaks, blocking ops
+- **Maintainability**: Clear names, SRP functions, magic numbers extracted
+
+##### Phase 4: Summary (2-3 min)
+1. Summarize key concerns
+2. Highlight what worked well
+3. Clear decision: Approve / Comment / Request Changes
+4. Offer to pair if complex
+
+#### Feedback Severity Labels
+
+```
+[blocking]    - Must fix before merge
+[important]   - Should fix, discuss if disagree
+[nit]         - Nice to have, not blocking
+[suggestion]  - Alternative approach to consider
+[learning]    - Educational, no action needed
+```
+
+#### Feedback Techniques
+
+- **Ask questions** instead of stating problems: "What happens if `items` is empty?"
+- **Suggest, do not command**: "Would it make sense to extract this? It appears in 3 places."
+- **Be specific and actionable**: "Race condition when concurrent access -- consider a mutex here."
+
+#### Handling Disagreements
+
+1. **Seek understanding**: "What led you to choose this pattern?"
+2. **Acknowledge valid points**: "That is a fair consideration about X."
+3. **Provide data**: "Can we add a benchmark to validate?"
+4. **Escalate if needed**: Get architect/senior to weigh in
+5. **Let go if non-critical**: Perfection is the enemy of progress
+
+#### Common Pitfalls
+
+Perfectionism (blocking for style) | Scope creep ("while you are at it...") | Delayed reviews | Rubber stamping | Bike shedding
+
+---
+
+### Pre-Submission Diff Review
+
+Self-review workflow for current branch changes vs main. Catch issues before reviewers do.
+
+**Do NOT use `gh` or any GitHub CLI commands. All information must come from local git.**
+
+#### Step 1 -- Identify Changes
+
+```bash
+git diff main...HEAD
+git log main..HEAD --oneline
+```
+
+FAIL FAST if current branch IS main or has no commits ahead of main.
+
+#### Step 2 -- Gather Full Context
+
+```bash
+git diff main...HEAD --name-only
+```
+
+**Read every changed file in full** -- not just diff hunks. Context beyond changed lines catches cross-cutting issues.
+
+#### Step 3 -- Detect Review Scope
+
+Inspect file extensions. Load matching language-specific review patterns:
+
+| Extension | Pattern Set |
+|-----------|-------------|
+| `.py` | Python patterns |
+| `.js`, `.ts`, `.tsx` | JS/TS patterns |
+| `.go` | Go concurrency patterns |
+| `.sh` | Bash defensive patterns |
+| `.swift` | Swift patterns |
+| `.rs` | Rust project patterns |
+
+Flag missing tests if diff modifies source but includes no test changes.
+
+#### Step 4 -- Multi-Perspective Analysis
+
+Analyze the diff from each perspective independently, then merge findings.
+
+**4.1 Code Review** -- Edge cases, error handling, logic errors, missing validation (Phase 3 checklist above).
+
+**4.2 Code Quality** -- Smells, naming, DRY violations, unnecessary complexity, coupling.
+
+**4.3 Security** -- STRIDE threats, injection, XSS, SSRF, path traversal, auth gaps, secrets in code, insecure defaults.
+
+**4.4 Testing** -- See Language Testing Patterns section below: coverage gaps, test quality (behavior vs implementation), missing integration tests, flaky indicators.
+
+**4.5 Language-Specific Gotchas** -- Apply auto-detected language patterns. See Language-Specific Review Gotchas subsection below.
+
+#### Step 5 -- Structured Findings Report
+
+```markdown
+## Diff Review -- {BRANCH_NAME}
+
+### Critical
+- {finding} -- {file:line} -- {perspective}
+
+### High
+- {finding} -- {file:line} -- {perspective}
+
+### Medium
+- {finding} -- {file:line} -- {perspective}
+
+### Test Gaps
+- {description of missing coverage}
+
+### What Looks Good
+- {positive observation}
+```
+
+Omit empty severity sections. Always include "What Looks Good".
+
+#### Step 6 -- Decision Gate
+
+**Default: report only.** Do NOT automatically implement fixes.
+
+After presenting findings, ask:
+1. Implement fixes for findings above
+2. Nothing -- review complete
+
+If implementing, follow PR Comment Resolution Step 4 (scope guard, atomic commits, verify before push).
+
+---
+
+### Receiving & Responding to Reviews
+
+#### Response Pattern
+
+```
+1. READ: Complete feedback without reacting
+2. UNDERSTAND: Restate requirement in own words (or ask)
+3. VERIFY: Check against codebase reality
+4. EVALUATE: Technically sound for THIS codebase?
+5. RESPOND: Technical acknowledgment or reasoned pushback
+6. IMPLEMENT: One item at a time, test each
+```
+
+#### Handling Unclear Feedback
+
+If ANY item is unclear, stop. Do not implement partially.
+
+```
+Understand 1,2,3,6. Unclear on 4,5.
+RIGHT: "Understand 1,2,3,6. Need clarification on 4 and 5 before proceeding."
+WRONG: Implement 1,2,3,6 now, ask about 4,5 later
+```
+
+#### From External Reviewers -- Verify Before Implementing
+
+Before implementing: technically correct for THIS codebase? Breaks existing functionality? Reason for current implementation? Works on all platforms? Does reviewer understand full context?
+
+If suggestion seems wrong: push back with technical reasoning.
+If conflicts with prior architectural decisions: stop and discuss with project owner.
+
+#### When to Push Back
+
+- Suggestion breaks existing functionality
+- Reviewer lacks full context
+- Violates YAGNI (unused feature)
+- Technically incorrect for this stack
+- Legacy/compatibility reasons exist
+- Conflicts with prior architectural decisions
+
+**How:** Technical reasoning, specific questions, reference working tests/code.
+
+#### Implementation Order for Multi-Item Feedback
+
+1. Clarify anything unclear FIRST
+2. Blocking issues (breaks, security)
+3. Simple fixes (typos, imports)
+4. Complex fixes (refactoring, logic)
+5. Test each fix individually
+6. Verify no regressions
+
+#### GitHub Thread Replies
+
+Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as top-level PR comments.
+
+---
+
+### Multi-Perspective Review
+
+For thorough coverage, analyze the diff sequentially from each perspective:
+
+1. **Security** -- STRIDE analysis, vulnerability patterns, secrets detection -- covers Step 4.3
+2. **Code Quality** -- Code smells, edge cases, error handling, naming, DRY -- covers Steps 4.1, 4.2
+3. **Testing** -- Coverage gaps, test quality, missing integration tests -- covers Step 4.4
+4. **Language-Specific** -- Language-specific gotchas, idiom violations -- covers Step 4.5
+
+#### Workflow
+1. Execute Steps 1-3 (identify changes, gather context, detect scope)
+2. Analyze the full diff from each perspective above, sequentially
+3. Deduplicate findings across perspectives, resolve contradictions
+4. Produce Step 5 structured report + Step 6 decision gate
+
+#### Skills per Perspective
+
+| Perspective | Skills/References to Load |
+|---|---|
+| Security | `security:security-analysis`, `security:auth-implementation-patterns` |
+| Code Quality | `workflow:code-quality`, `workflow:code-review-patterns` |
+| Testing | `testing:language-testing-patterns`, `testing:test-driven-development` |
+| Language-Specific | Auto-detected `languages:*-patterns` based on file extensions |
+
+---
+
+### Existing Code Discipline
+
+Rules for working within an existing codebase. Check these during review.
+
+#### Read Before Modifying
+
+- **Read the entire file** before changing any part of it -- not just the section you plan to edit
+- Understand the file structure, conventions, and how your target section relates to the rest
+- Check for file-level comments, configuration blocks, or initialization that affects your change
+
+#### Match Existing Patterns
+
+- **Never introduce a new pattern** alongside an existing one without explicitly flagging the inconsistency
+- If the codebase uses pattern A for X, use pattern A -- even if you prefer pattern B
+- If you believe a pattern should change, propose the migration as a separate task
+
+#### Understand Before Deleting
+
+Code may be used in ways not visible through static analysis:
+- Reflection, dynamic dispatch, string-based lookup
+- External consumers (APIs, plugins, downstream repos)
+- Build scripts, code generation, or test infrastructure
+- Feature flags or environment-conditional paths
+
+**If unsure whether code is used: ask, do not delete.**
+
+#### Scope Guard
+
+- If a "small fix" grows mid-implementation -- **STOP and ask**
+- Define your change boundary before starting; resist scope creep
+- A fix that touches 3 files should not silently become a fix that touches 12
+
+#### Separate Refactoring from Features
+
+- Different commits minimum, different branches preferred
+- Never mix behavior changes with structural changes -- reviewers cannot tell what is intentional
+- Refactoring should be verifiable independently (tests still pass, behavior unchanged)
+
+#### Surface Hidden Assumptions
+
+Watch for and document when you encounter:
+- Implicit ordering dependencies (init before use, A before B)
+- Undocumented invariants (field X is always non-null after method Y)
+- Concurrency assumptions (single-threaded, lock held, queue ordering)
+- Environment assumptions (only works on macOS, requires specific env vars)
+
+### Language-Specific Review Gotchas
+
+Quick-reference of common language-specific issues to watch for during code review.
+
+#### Python
+- Mutable default arguments (`def fn(items=[])` -- use `None`)
+- Bare `except:` catching everything
+- Mutable class attributes shared across instances
+- Late binding closures in loops
+- Iterator exhaustion (consuming a generator twice)
+
+#### TypeScript / JavaScript
+- `any` type defeating type safety (use `unknown`)
+- Unhandled async errors (missing try/catch on await)
+- Prop mutation in React components
+- `==` vs `===` coercion bugs
+- Prototype pollution
+
+#### Go
+- Goroutine leaks (missing context cancellation)
+- Unchecked errors (`err` ignored)
+- Nil pointer dereference
+- `defer` in loops (resource accumulation)
+
+#### Bash
+- Unquoted variables causing word splitting
+- Missing `set -euo pipefail`
+- Using `[ ]` instead of `[[ ]]`
+
+#### Swift
+- Retain cycles (missing `[weak self]`)
+- Force unwrapping (`!`) without safety check
+- Main thread violations for UI updates
+
+#### Rust
+- Unnecessary `clone()` defeating borrow checker
+- `unsafe` blocks without justification
+- Lifetime issues from overly complex borrowing
+
+---
+
+## Verification Before Completion
+
+**Core principle:** Evidence before claims, always.
+
+**Violating the letter of this rule is violating the spirit of this rule.**
+
+### The Iron Law
+
+```
+NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
+```
+
+If you have not run the verification command in this message, you cannot claim it passes.
+
+### The Gate Function
+
+```
+BEFORE claiming any status:
+1. IDENTIFY: What command proves this claim?
+2. RUN: Execute the FULL command (fresh, complete)
+3. READ: Full output, check exit code, count failures
+4. VERIFY: Does output confirm the claim?
+   - If NO: State actual status with evidence
+   - If YES: State claim WITH evidence
+5. ONLY THEN: Make the claim
+```
+
+### Common Failures
+
+| Claim | Requires | Not Sufficient |
+|-------|----------|----------------|
+| Tests pass | Test output: 0 failures | Previous run, "should pass" |
+| Linter clean | Linter output: 0 errors | Partial check, extrapolation |
+| Build succeeds | Build: exit 0 | Linter passing |
+| Bug fixed | Original symptom: passes | Code changed, assumed fixed |
+| Agent completed | VCS diff shows changes | Agent reports "success" |
+| Requirements met | Line-by-line checklist | Tests passing |
+
+### Red Flags - STOP
+
+- Using "should", "probably", "seems to"
+- Expressing satisfaction before verification
+- About to commit/push/PR without verification
+- Trusting agent success reports
+- Relying on partial verification
+- **ANY wording implying success without having run verification**
+
+### When To Apply
+
+**ALWAYS before:** Any success/completion claim, any positive statement about work state, committing, PR creation, task completion, moving to next task, delegating to agents.
+
+**No shortcuts. Run the command. Read the output. THEN claim the result.**
+
+---
+
+## Language Testing Patterns
+
+### Universal Principles
+
+#### What to Unit Test
+- Pure functions, transformations, business logic
+- Complex conditionals and state transitions
+- Error handling paths
+- Edge cases: empty arrays, null/undefined, boundary values
+
+#### What NOT to Unit Test
+- Simple getters/setters, pass-through functions
+- Framework internals (React rendering, Express routing)
+- Implementation details -- test behavior, not structure
+- Config/settings values (defaults, env var assignments, constants)
+- Constructor assignments (`this.x = x` tests the language, not your code)
+- Route/endpoint registration (test handler logic instead)
+- Enum values and constants
+- "Renders without crashing" with no behavior assertion
+- Test code (test helpers, fixtures, factories, mocks, test utilities)
+- Wiring/glue code with no logic
+
+**Every test must exercise a decision point, transformation, or behavior path.**
+
+### Testing Pyramid (Shift Left)
+
+```
+        /  E2E  \          Expensive, slow, run infrequently (release testing)
+       /----------\
+      / Integration \       Moderate cost, run in CI
+     /----------------\
+    /    Unit Tests     \   Cheap, fast, run early and often
+   /____________________\
+```
+
+- **Unit tests**: Bulk of test coverage. Fast, isolated, catch logic errors early
+- **Integration tests**: Verify component interactions (DB, APIs, message queues). Run in CI
+- **E2E tests**: Validate key user stories end-to-end. Most expensive, run for release verification
+'''

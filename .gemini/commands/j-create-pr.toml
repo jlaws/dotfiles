@@ -1,0 +1,7 @@
+description = "Automate PR workflow -- stage, commit, branch, push, and open a GitHub PR. Use when ready to submit changes for review. Do NOT use if changes are incomplete (finish implementation first)."
+
+prompt = '''
+Use `@agent-create-pr` to handle the full PR workflow:
+
+Stage, commit, branch, push, and open a GitHub PR for the current changes. Description of changes: {{args}}
+'''

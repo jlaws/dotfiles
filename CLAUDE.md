@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-Personal macOS dotfiles and development environment configuration. Combines traditional Unix dotfile management with a shared agent knowledge base (`.agents/`) and tool-specific configs for Claude Code, Cursor, and Codex.
+Personal macOS dotfiles and development environment configuration. Combines traditional Unix dotfile management with a shared agent knowledge base (`.agents/`) and tool-specific configs for Claude Code, Cursor, Codex, and Gemini CLI.
 
 ## Commands
 
@@ -43,9 +43,12 @@ dotfiles/
 ├── .codex/            # Codex config + proprietary agents/commands
 │   ├── AGENTS.md, config.toml
 │   ├── agents/, commands/, hooks/, rules/
-└── .cursor/           # Cursor config only
-    ├── cli-config.json, hooks.json
-    ├── hooks/, rules/
+├── .cursor/           # Cursor config only
+│   ├── cli-config.json, hooks.json
+│   ├── hooks/, rules/
+└── .gemini/           # Gemini CLI (skills/refs reused from .agents/)
+    ├── GEMINI.md, settings.json
+    ├── agents/, commands/, hooks/, policies/
 ```
 
 ## Key Files

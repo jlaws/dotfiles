@@ -156,10 +156,20 @@ cd ~/Workspace/dotfiles
 
 #### Commands & Skills
 
-The `.claude/` directory contains an extensive knowledge base:
+The `.claude/` directory contains an extensive knowledge base of `/j-*` commands, specialist agents, skills, and references that mirror the shared `.agents/` knowledge base.
 
-- **9 commands** (thin wrappers to skills): audit, debug, diff-review, paper-analysis, pr-fix, skill-audit, team-design, team-investigate, team-review
-- **124 skills** across 16 categories: ai-ml, architecture, business, cloud, data, devops, documentation, frontend, languages, migration, research, security, testing, workflow
+### Gemini
+
+The `.gemini/` directory contains a parallel configuration optimized for the Gemini CLI:
+
+- **`GEMINI.md`** — persistent instructions (auto-loaded by Gemini)
+- **`commands/*.toml`** — `/j-*` slash commands (TOML format, not Markdown)
+- **`agents/*.md`** — specialist subagents invoked via `@agent-<name>`
+- **`hooks/*.sh`** — lifecycle scripts (JSON stdout protocol)
+- **`policies/default.toml`** — fine-grained shell command allow/deny rules
+- **`settings.json`** — Gemini-schema config (model, hooks, policy path)
+
+Skills and references are NOT duplicated under `.gemini/` — Gemini natively auto-discovers them at `~/.agents/skills/` and reads `~/.agents/references/` by path. The existing `setup.sh -c` sync covers everything.
 
 #### Recommended Plugins
 

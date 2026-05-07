@@ -1,0 +1,11 @@
+description = "Audit the ~/.gemini/ and ~/.agents/ knowledge base -- skills, commands, agents, references, config, and cross-references for conformance and integrity. Use when creating or modifying any asset to validate compliance. Do NOT use for quick checks (inspect files directly instead)."
+
+prompt = '''
+Load the `skill-audit` skill by reading `~/.agents/skills/skill-audit/SKILL.md` before doing anything else. Run the full conformance audit.
+
+Scope: {{args}}
+
+If no argument provided, audit all asset types.
+
+Note: Gemini-specific assets live in `~/.gemini/` (commands as TOML, agents as Markdown, hooks as bash). Skills and references are shared at `~/.agents/skills/` and `~/.agents/references/`.
+'''

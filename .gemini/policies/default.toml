@@ -1,0 +1,74 @@
+# Gemini CLI Policy Engine rules
+# Translated from .claude/settings.json permissions.allow / permissions.deny
+# Higher priority wins. Deny rules use highest priority.
+
+# === DENY: dangerous commands ===
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^sudo( |$)"
+decision = "deny"
+priority = 999
+denyMessage = "sudo is not allowed"
+
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^docker(-compose)?( |$)"
+decision = "deny"
+priority = 999
+denyMessage = "docker is not allowed"
+
+# === DENY: sensitive file paths ===
+[[rule]]
+toolName = "read_file"
+commandRegex = "(\\.env(\\.|$)|credentials\\.json|\\.git/config|\\.ssh/|\\.aws/|secrets/)"
+decision = "deny"
+priority = 999
+denyMessage = "Sensitive file path blocked"
+
+# === ALLOW: git read commands ===
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^git (status|log|diff|show|branch|blame|ls-files|rev-parse|remote|tag|fetch|stash)( |$)"
+decision = "allow"
+priority = 200
+
+# === ALLOW: git mutation commands (user trusts) ===
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^git (add|commit|stash|checkout|switch|merge|rebase|cherry-pick|restore|rm|mv|reset|clean|pull|push|worktree|clone)( |$)"
+decision = "allow"
+priority = 190
+
+# === ALLOW: gh, npm, language toolchains ===
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(gh|npx|eslint|prettier|tsc|swiftlint|swiftformat|jq|ruff|ty|make|python3?|uv|cargo|node)( |$)"
+decision = "allow"
+priority = 180
+
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^npm (test|list|outdated|audit|info)( |$)"
+decision = "allow"
+priority = 180
+
+# === ALLOW: read-only shell utilities ===
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(cat|head|tail|sed|awk|grep|rg|find|ls|wc|sort|uniq|tr|xargs|diff|file|stat|pwd|env|date|which|realpath|dirname|basename|echo|printf|tee|open|uname|whoami)( |$)"
+decision = "allow"
+priority = 170
+
+# === ALLOW: filesystem mutations ===
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(mkdir|touch|cp|mv|chmod|rsync)( |$)"
+decision = "allow"
+priority = 160
+
+# === ALLOW: web fetch from trusted domains ===
+[[rule]]
+toolName = "web_fetch"
+commandRegex = "(raw\\.githubusercontent\\.com|github\\.com|api\\.github\\.com|geminicli\\.com|developers\\.google\\.com|google-gemini\\.github\\.io)"
+decision = "allow"
+priority = 150
