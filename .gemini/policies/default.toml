@@ -20,7 +20,7 @@ denyMessage = "docker is not allowed"
 # === DENY: sensitive file paths ===
 [[rule]]
 toolName = "read_file"
-commandRegex = "(\\.env(\\.|$)|credentials\\.json|\\.git/config|\\.ssh/|\\.aws/|secrets/)"
+argsPattern = "\"file_path\":\"(\\.env(\\.|$)|credentials\\.json|\\.git/config|\\.ssh/|\\.aws/|secrets/)"
 decision = "deny"
 priority = 999
 denyMessage = "Sensitive file path blocked"
@@ -69,6 +69,6 @@ priority = 160
 # === ALLOW: web fetch from trusted domains ===
 [[rule]]
 toolName = "web_fetch"
-commandRegex = "(raw\\.githubusercontent\\.com|github\\.com|api\\.github\\.com|geminicli\\.com|developers\\.google\\.com|google-gemini\\.github\\.io)"
+argsPattern = "\"prompt\":\".*(raw\\.githubusercontent\\.com|github\\.com|api\\.github\\.com|geminicli\\.com|developers\\.google\\.com|google-gemini\\.github\\.io)"
 decision = "allow"
 priority = 150

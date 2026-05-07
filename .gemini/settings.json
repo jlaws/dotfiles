@@ -1,5 +1,7 @@
 {
-  "model": "gemini-3.1-pro-preview",
+  "model": {
+    "id": "gemini-3.1-pro-preview"
+  },
   "security": {
     "auth": {
       "selectedType": "gemini-api-key"
@@ -22,17 +24,17 @@
         "matcher": ".*"
       }
     ],
-    "UserPromptSubmit": [
-      {
-        "type": "command",
-        "command": "bash ~/.gemini/hooks/log-prompt.sh",
-        "matcher": ".*"
-      }
-    ],
     "SessionEnd": [
       {
         "type": "command",
         "command": "bash ~/.gemini/hooks/lessons-learned.sh",
+        "matcher": ".*"
+      }
+    ],
+    "BeforeAgent": [
+      {
+        "type": "command",
+        "command": "bash ~/.gemini/hooks/log-prompt.sh",
         "matcher": ".*"
       }
     ]
