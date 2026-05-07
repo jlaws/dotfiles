@@ -12,7 +12,7 @@
 #
 # Flags:
 #   -d    Sync dotfiles to home directory
-#   -c    Sync Claude, Cursor, Codex, and shared agent configuration
+#   -c    Sync Claude, Cursor, Codex, Gemini, and shared agent configuration
 #   -b    Install Homebrew packages
 #   -m    Configure macOS system preferences
 #   -r    Restart affected applications
@@ -158,6 +158,21 @@ sync_agents() {
 	rsync -avh --no-perms .codex/prompts/ "${target}/.codex/prompts/"
 	rsync -avh --no-perms .codex/hooks/ "${target}/.codex/hooks/"
 	rsync -avh --no-perms .codex/rules/ "${target}/.codex/rules/"
+
+	# --- Gemini CLI (.gemini/) ---
+	print_section "Syncing Gemini CLI Configuration"
+	print_step "Target: ${target}/.gemini/"
+
+	mkdir -p "${target}/.gemini/agents" "${target}/.gemini/commands" "${target}/.gemini/hooks" "${target}/.gemini/policies"
+	print_step "Syncing Gemini config, policies, agents, commands, and hooks..."
+	rsync -avh --no-perms .gemini/GEMINI.md     "${target}/.gemini/GEMINI.md"
+	rsync -avh --no-perms .gemini/settings.json "${target}/.gemini/settings.json"
+	rsync -avh --no-perms .gemini/policies/     "${target}/.gemini/policies/"
+	rsync -avh --no-perms .gemini/agents/       "${target}/.gemini/agents/"
+	rsync -avh --no-perms .gemini/commands/     "${target}/.gemini/commands/"
+	rsync -avh --no-perms .gemini/hooks/        "${target}/.gemini/hooks/"
+	chmod +x "${target}/.gemini/hooks/"*.sh 2>/dev/null || true
+	# Note: skills + references reused from ~/.agents/ (Gemini auto-discovers)
 }
 
 # =============================================================================
@@ -774,7 +789,7 @@ usage() {
 	echo ""
 	echo "Flags (can be combined, e.g. -cb, -dcbmr):"
 	echo "  -d    Sync dotfiles to home directory"
-	echo "  -c    Sync Claude, Cursor, Codex, and shared agent configuration"
+	echo "  -c    Sync Claude, Cursor, Codex, Gemini, and shared agent configuration"
 	echo "  -b    Install Homebrew packages"
 	echo "  -m    Configure macOS system preferences"
 	echo "  -r    Restart affected applications"

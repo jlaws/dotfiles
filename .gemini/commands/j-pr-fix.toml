@@ -1,0 +1,9 @@
+description = "Resolve all PR reviewer comments -- categorize, fix, reply inline, verify, and push. Use when you have open PR review comments to address. Do NOT use if there are no comments yet (wait for review)."
+
+prompt = '''
+Load the `pr-comment-resolution` skill by reading `~/.agents/skills/pr-comment-resolution/SKILL.md` before doing anything else. Fetch all reviewer comments, categorize them, implement fixes, reply inline, verify, and push.
+
+PR: {{args}}
+
+If no argument provided, use `gh pr view` to identify the open PR for the current branch.
+'''

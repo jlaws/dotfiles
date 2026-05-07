@@ -1,0 +1,243 @@
+description = "Scaffold a new ~/.gemini/ command, skill, or agent with correct structure and best practices. Use when creating any new ~/.gemini/ asset. Do NOT use for editing existing assets (edit directly)."
+
+prompt = '''
+Create: {{args}}
+
+If no arguments provided, ask which asset type to create (command, skill, or agent).
+
+---
+
+## Phase 1: Parse Arguments
+
+Extract from `{{args}}`:
+- **Type**: first word must be `command`, `skill`, or `agent`
+- **Name**: optional second word (kebab-case)
+
+If type is missing or invalid, ask the user.
+
+### Name Validation
+
+If name provided, verify:
+- Lowercase letters, numbers, hyphens only
+- Max 64 characters
+- Does NOT contain "claude" or "anthropic" or "gemini" or "google" (reserved)
+- No leading/trailing hyphens, no double hyphens
+
+If name fails validation, explain why and ask for a corrected name.
+
+## Phase 2: Gather Requirements
+
+### 2A. Common (all types)
+
+1. **Name** (if not provided in args)
+2. **One-line purpose**: What does this asset do? (used to craft description)
+
+### 2B. Type-Specific
+
+**For commands:**
+1. **Takes arguments?** If yes, mention in description (Gemini commands have no `argument-hint` field)
+2. **Invokes skills?** If yes, which ones? List available via `glob` of `~/.agents/skills/*/SKILL.md`
+3. **Invokes agents?** If yes, which ones? List available via `glob` of `~/.gemini/agents/*.md`
+
+**For skills:**
+1. **Skill type**: Technique (concrete steps), Pattern (mental model), or Reference (API/syntax docs)
+2. **Dependencies**: Other skills this loads? List available skills
+
+**For agents:**
+1. **Tools**: Which tools should this agent access? Options: `read_file`, `grep_search`, `glob`, `run_shell_command`, `replace`, `write_file`, `web_fetch`, `google_web_search`
+2. **Skills to mention in body**: Which skills should be loaded by reading their SKILL.md
+3. **Reference library**: Which `~/.agents/references/` paths should the agent consult?
+4. **Model**: Default `gemini-3.1-pro-preview` (best) or `gemini-3.1-flash-lite-preview` (cheap)
+
+## Phase 3: Generate Description
+
+Craft description following the WHAT + WHEN + DO NOT pattern:
+
+```
+"{What it does} -- {brief qualifier}. Use when {trigger conditions}. Do NOT use for {anti-patterns} ({alternative} instead)."
+```
+
+### Description Rules
+
+| Rule | Constraint |
+|------|-----------|
+| Max length (skills) | 250 chars (truncated in skill listing beyond this) |
+| Max length (commands/agents) | 1024 chars |
+| No XML characters | No `<` or `>` in frontmatter values |
+| Trigger-only for skills | NEVER summarize the workflow in the description |
+| Include negative triggers | "Do NOT use for..." with redirect to alternative |
+
+Present the draft description to the user for approval before proceeding.
+
+## Phase 4: Scaffold the Asset
+
+### 4A. Command Template (TOML)
+
+**File path:** `~/.gemini/commands/{name}.toml`
+
+```toml
+description = "{generated description}"
+
+prompt = """
+{Purpose context}: {{args}}
+
+If no arguments provided, {fallback behavior}.
+
+---
+
+## Phase 1: {First Phase Name}
+
+{Instructions for gathering context, understanding the request}
+
+## Phase 2: {Second Phase Name}
+
+{Core methodology -- the main work}
+
+## Phase 3: {Third Phase Name}
+
+{Verification, output, or handoff}
+
+---
+
+### Cross-References
+
+- **skill:{skill-path}** -- {why referenced}
+- **agent:{agent-name}** -- {why referenced}
+"""
+```
+
+### 4B. Skill Template
+
+**File path:** `~/.agents/skills/{name}/SKILL.md` (skills are shared across all tools)
+
+Create the directory first, then write SKILL.md:
+
+```markdown
+---
+name: {name}
+description: "{generated description}"
+---
+
+# {Skill Title}
+
+## Overview
+
+{One-two sentence core principle.}
+
+## When to Use
+
+- {Symptom or trigger condition 1}
+- {Symptom or trigger condition 2}
+
+## Core Pattern
+
+{The main technique, method, or pattern with concrete steps.}
+
+## Quick Reference
+
+| {Column 1} | {Column 2} |
+|-------------|-------------|
+| {Key point} | {Detail} |
+
+## Common Mistakes
+
+- **{Mistake 1}**: {What goes wrong} -- {Fix}
+```
+
+### 4C. Agent Template
+
+**File path:** `~/.gemini/agents/{name}.md`
+
+```markdown
+---
+name: {name}
+kind: local
+description: "{generated description}"
+model: gemini-3.1-pro-preview
+tools:
+  - read_file
+  - grep_search
+  - glob
+  - run_shell_command
+---
+
+You are a {role description}. {One sentence about approach/expertise.}
+
+Before responding, load these skills by reading their SKILL.md files in `~/.agents/skills/`:
+- {skill-name}
+- verification-before-completion
+
+Reference library at `~/.agents/references/{category}/`:
+- {reference-1}, {reference-2}, {reference-3}
+
+Read the relevant reference file(s) for the user topic before responding.
+{Additional role-specific instructions.}
+```
+
+## Phase 5: Inline Validation
+
+### All Types
+- [ ] Frontmatter has `---` delimiters (skills/agents) or required TOML fields (commands)
+- [ ] `name` field exists and is kebab-case
+- [ ] `name` matches filename (commands/agents) or folder name (skills)
+- [ ] `description` field exists and is under length limit
+- [ ] Description has WHAT + WHEN trigger pattern
+- [ ] No `<`/`>` in frontmatter values
+
+### Commands Only (TOML)
+- [ ] `description` and `prompt` fields exist
+- [ ] If body uses `{{args}}`, description mentions arguments
+- [ ] If body invokes a skill, that skill exists at `~/.agents/skills/<name>/SKILL.md`
+- [ ] If body invokes an agent, that agent exists at `~/.gemini/agents/<name>.md`
+
+### Skills Only
+- [ ] SKILL.md is the filename (exact casing)
+- [ ] Description is trigger-only (no workflow summary)
+
+### Agents Only
+- [ ] File is flat in `~/.gemini/agents/` (no subdirectory)
+- [ ] `tools` field uses snake_case Gemini tool names
+- [ ] `kind: local` set
+- [ ] `model` field set
+
+## Phase 6: Present & Confirm
+
+Show the complete generated file to the user. Ask for approval before writing.
+
+After writing:
+1. Confirm the file was created at the correct path
+2. Suggest: "Run `/j-skill-audit {type}s` to verify full conformance"
+
+---
+
+### Frontmatter Quick Reference
+
+| Field | Command (TOML) | Skill | Agent |
+|-------|---------|-------|-------|
+| name | N/A (filename is name) | Required | Required |
+| description | Required | Required | Required |
+| kind | N/A | N/A | "local" or "remote" |
+| model | N/A | N/A | Optional (default gemini-3.1-pro-preview) |
+| tools | N/A | N/A | Recommended (snake_case array) |
+| temperature | N/A | N/A | Optional |
+| max_turns | N/A | N/A | Optional (default 30) |
+| timeout_mins | N/A | N/A | Optional (default 10) |
+| mcpServers | N/A | N/A | Optional |
+
+### Valid Tool Names (Gemini)
+
+read_file, write_file, replace, list_directory, grep_search, glob, run_shell_command, web_fetch, google_web_search, read_many_files
+
+### Body Conventions
+
+| Type | Convention |
+|------|-----------|
+| Command | `{{args}}` substitution, `prompt = """..."""` block, phased methodology |
+| Skill | Overview, When to Use, Core Pattern (with code example), Quick Reference table, Common Mistakes |
+| Agent | Role statement (1-2 sentences), reference library pointers, delegate methodology to skills |
+
+### Cross-References
+
+- **skill:writing-skills** -- skill authoring TDD methodology
+- **skill:skill-audit** -- validation rules for all asset types
+'''

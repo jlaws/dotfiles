@@ -1,0 +1,9 @@
+description = "Post-ship documentation sync -- discover and fix stale docs after shipping changes. Use when docs may be out of date after a release or feature merge. Do NOT use for writing new docs from scratch (use /j-docs instead)."
+
+prompt = '''
+Load the `post-ship-doc-sync` skill by reading `~/.agents/skills/post-ship-doc-sync/SKILL.md` before doing anything else. Sync documentation with recent code changes.
+
+Scope: {{args}}
+
+If no argument provided, default to `$(git describe --tags --abbrev=0)..HEAD`.
+'''
