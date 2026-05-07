@@ -19,23 +19,35 @@
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "echo '{\"systemMessage\": \"SKILL-LOOKUP DISCIPLINE: Before any implementation action, check ~/.agents/skills/ and ~/.agents/references/ for applicable workflows. Load skill-lookup-discipline for full rules.\"}'",
-        "matcher": ".*"
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"SKILL-LOOKUP DISCIPLINE: Before any implementation action, check ~/.agents/skills/ and ~/.agents/references/ for applicable workflows. Load skill-lookup-discipline for full rules.\"}'"
+          }
+        ]
       }
     ],
     "SessionEnd": [
       {
-        "type": "command",
-        "command": "bash ~/.gemini/hooks/lessons-learned.sh",
-        "matcher": ".*"
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.gemini/hooks/lessons-learned.sh"
+          }
+        ]
       }
     ],
     "BeforeAgent": [
       {
-        "type": "command",
-        "command": "bash ~/.gemini/hooks/log-prompt.sh",
-        "matcher": ".*"
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.gemini/hooks/log-prompt.sh"
+          }
+        ]
       }
     ]
   }
