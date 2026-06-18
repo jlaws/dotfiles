@@ -79,8 +79,6 @@
     ],
     "deny": [
       "Bash(sudo *)",
-      "Bash(docker *)",
-      "Bash(docker-compose *)",
       "Read(./.git/config)",
       "Read(./.env)",
       "Read(./.env.*)",

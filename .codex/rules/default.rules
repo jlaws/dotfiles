@@ -241,14 +241,3 @@ prefix_rule(
     ],
     not_match = [],
 )
-
-prefix_rule(
-    pattern = [["docker", "docker-compose"]],
-    decision = "deny",
-    justification = "Container operations denied to match Claude Code permissions.",
-    match = [
-        "docker run ubuntu",
-        "docker-compose up",
-    ],
-    not_match = [],
-)

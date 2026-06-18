@@ -10,13 +10,6 @@ decision = "deny"
 priority = 999
 denyMessage = "sudo is not allowed"
 
-[[rule]]
-toolName = "run_shell_command"
-commandRegex = "^docker(-compose)?( |$)"
-decision = "deny"
-priority = 999
-denyMessage = "docker is not allowed"
-
 # === DENY: sensitive file paths ===
 [[rule]]
 toolName = "read_file"

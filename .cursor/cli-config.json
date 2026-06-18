@@ -47,8 +47,6 @@
     ],
     "deny": [
       "Shell(sudo)",
-      "Shell(docker)",
-      "Shell(docker-compose)",
       "Read(.git/config)",
       "Read(.env*)",
       "Read(secrets/**)",
