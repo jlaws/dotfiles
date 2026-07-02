@@ -13,4 +13,6 @@ Before starting, gather diagnostic context:
 3. **Check pipeline definitions** by searching for DAGs, workflows, ETL scripts, or migration files.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a pipeline or dataset, scope to that; otherwise scan for data/, pipelines/, dags/, migrations/, etl/ directories).
 
+For deep data-engineering guidance, delegate to the `data-engineer` agent via the Task tool, passing the diagnostic findings above and the request. It loads its skills (test-driven-development, analysis-output-patterns) and the `references/data/` library, then returns specific guidance. Verify its output before presenting.
+
 Help with: $ARGUMENTS

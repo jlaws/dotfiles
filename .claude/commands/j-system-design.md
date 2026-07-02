@@ -4,12 +4,15 @@ description: "Comprehensive system design suite — produce architecture documen
 argument-hint: "<system-description>"
 ---
 
+Load skill `design-first` for design-before-implementation discipline.
+Load skill `analysis-output-patterns` for output structure rules.
+
 Parse arguments: `$ARGUMENTS` is a freeform system description that may contain file or directory references inline.
 - The entire string is the system description -- do not strip paths from it.
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
 - If `$ARGUMENTS` is empty, ask the user for a system description.
 
-**Do NOT use subagents or parallel agents. Process all design perspectives linearly.**
+**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`) via the Task tool and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
 
 ## Design Process
 
@@ -31,8 +34,16 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 2. Read the project structure and key source files
 3. Identify existing architecture patterns, APIs, data models
 
+**Step 4 -- Delegate perspectives to specialist agents (recommended when the system is large):**
+Hand each Phase 2 perspective to its agent via the Task tool, in parallel — they load the relevant skills + `references/` libraries and return findings:
+- Component Architecture, API Design -> `architecture-specialist`
+- Data Architecture -> `data-engineer`
+- Security & Operations -> `security-reviewer` (security) + `devops-engineer` (deployment/observability)
+
+Synthesize their findings in Phase 4 and verify each against the codebase. For small systems, analyze the perspectives inline instead.
+
 ### Phase 2: Multi-Perspective Analysis
-Analyze the system from each perspective sequentially:
+Analyze the system from each perspective (inline, or delegated in parallel per Step 4):
 
 **2.1 Component Architecture**
 - System boundaries and component responsibilities

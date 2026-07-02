@@ -9,7 +9,7 @@ Scope: the user's provided input
 
 If no arguments provided, analyzes both global and local CLAUDE.md against last 20 conversations.
 
-**Do NOT use subagents or parallel agents. Process all analysis linearly.**
+**You may delegate independent analysis passes to subagents and run them in parallel. Synthesize and verify their output before presenting.**
 
 For implementation and review checklists, see `references/workflow/task-execution-checklists`.
 

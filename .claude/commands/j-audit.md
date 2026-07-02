@@ -5,6 +5,7 @@ argument-hint: "<target-path-or-scope>"
 ---
 
 Load skill `analysis-output-patterns` for output structure rules.
+Load skill `code-review-patterns` for severity labeling and vulnerability-spotting discipline.
 
 Before invoking the analysis, perform reconnaissance:
 
@@ -196,7 +197,9 @@ Synthesize into Threat Model Document.
 
 ### References
 
-- .claude/references/ai-ml/ai-safety-and-alignment.md — AI-specific security and safety considerations
+For deep code-level vulnerability review, delegate to the `security-reviewer` agent via the Task tool, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting.
+
+When the target includes AI/ML components, also read `references/ai-ml/ai-safety-and-alignment` for AI-specific security and safety considerations.
 
 ---
 

@@ -222,7 +222,7 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ### Multi-Perspective Review
 
-For thorough coverage, analyze the diff sequentially from each perspective:
+For thorough coverage, analyze the diff from each perspective below. Delegate them to specialist agents via the Task tool in parallel when the diff is large (the perspectives are independent):
 
 1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection — covers Step 4.3
 2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY — covers Steps 4.1, 4.2
@@ -231,18 +231,20 @@ For thorough coverage, analyze the diff sequentially from each perspective:
 
 #### Workflow
 1. Execute Steps 1-3 (identify changes, gather context, detect scope)
-2. Analyze the full diff from each perspective above, sequentially
-3. Deduplicate findings across perspectives, resolve contradictions
+2. Analyze the full diff from each perspective above — inline for small diffs, or delegate to the agents below in parallel for large ones
+3. Deduplicate findings across perspectives, resolve contradictions; verify each agent's findings against the diff
 4. Produce Step 5 structured report + Step 6 decision gate
 
-#### Skills per Perspective
+#### Agent per Perspective
 
-| Perspective | Skills/References to Load |
-|---|---|
-| Security | `security:security-analysis`, `security:auth-implementation-patterns` |
-| Code Quality | `workflow:code-quality`, `workflow:code-review-patterns` |
-| Testing | `testing:language-testing-patterns`, `testing:test-driven-development` |
-| Language-Specific | Auto-detected `languages:*-patterns` based on file extensions |
+Delegate each perspective to its specialist agent (each loads the listed skills + references):
+
+| Perspective | Agent | Loads |
+|---|---|---|
+| Security | `security-reviewer` | code-review-patterns + `references/security/` (security-analysis, auth-implementation-patterns, secrets-management) |
+| Code Quality | `code-reviewer` | code-review-patterns, output-completeness + `references/workflow/`; apply `code-quality` for smell detection |
+| Testing | `test-writer` | test-driven-development, language-testing-patterns + `references/testing/` |
+| Language-Specific | (inline) | auto-detected `references/languages/*-patterns` by file extension |
 
 ---
 

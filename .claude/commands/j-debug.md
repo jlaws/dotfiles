@@ -13,4 +13,6 @@ Before investigating, gather diagnostic context:
 3. **Check recent commits** (`git log --oneline -10`) for potential culprits.
 4. **Capture failure output**: If $ARGUMENTS references a test name, run it first to get the current failure output.
 
-Then invoke the `debugging-methodology` skill via the Skill tool and apply the Four Phases (root cause investigation → pattern analysis → hypothesis and testing → implementation). When the cause is unclear, use the Structured Hypothesis Investigation section to enumerate and test 3-5 hypotheses sequentially.
+Then invoke the `debugging-methodology` skill via the Skill tool and apply the Four Phases (root cause investigation → pattern analysis → hypothesis and testing → implementation). When the cause is unclear, use the Structured Hypothesis Investigation section to enumerate and test 3-5 hypotheses; independent hypotheses may be investigated in parallel via subagents.
+
+Once the root cause is found, you may delegate the durable regression test to the `test-writer` agent via the Task tool. Verify it fails before the fix and passes after.

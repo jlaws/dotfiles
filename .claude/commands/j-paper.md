@@ -94,6 +94,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 - **references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
 - **references/research/literature-review.md** -- when scope expands to surveying related work
 - **references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
+- **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate via the Task tool (it loads `references/research/`); verify its output
 - **skill:analysis-output-patterns** -- output structure rules
 - **skill:verification-before-completion** -- required before claiming compile-clean / submission-ready
 - **skill:output-completeness** -- required when generating templates, sections, or tables

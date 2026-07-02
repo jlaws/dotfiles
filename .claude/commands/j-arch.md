@@ -14,6 +14,8 @@ Before starting, gather diagnostic context:
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a component, scope to that; otherwise scan for src/, services/, api/, or similar directories).
 5. **Check for DECISIONS.md** — review lightweight decision log for recent in-flight choices.
 
+For deep architecture guidance, delegate to the `architecture-specialist` agent via the Task tool, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `references/architecture/` library, then returns specific guidance. Verify its output against the codebase before presenting.
+
 Help with: $ARGUMENTS
 
 ---
