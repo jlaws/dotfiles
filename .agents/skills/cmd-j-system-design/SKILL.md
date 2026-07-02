@@ -10,7 +10,7 @@ Parse the user's input: it must contain `<directory_path>` followed by `<descrip
 - First token = directory path, remainder = system description.
 - If either is missing, ask the user.
 
-**Do NOT use subagents or parallel agents. Process all design perspectives linearly.**
+**You may delegate independent design perspectives to specialist agents and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
 
 ## Design Process
 

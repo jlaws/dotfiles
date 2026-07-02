@@ -6,7 +6,7 @@ Parse arguments: `{{args}}` is a freeform system description that may contain fi
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
 - If `{{args}}` is empty, ask the user for a system description.
 
-**Do NOT use subagents or parallel agents. Process all design perspectives linearly.**
+**You may delegate independent design perspectives to specialist agents and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
 
 ## Design Process
 
