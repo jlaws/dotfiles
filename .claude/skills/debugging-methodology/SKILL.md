@@ -146,6 +146,8 @@ Investigate each in turn:
 2. **Implement Single Fix** — ONE change at a time
 3. **Verify** — test passes? No other tests broken?
 
+If the bug stems from invalid data flowing through multiple layers, read `references/defense-in-depth.md` to add validation at every layer and make it structurally impossible.
+
 **If 3+ Fixes Failed**: See Two-Attempt Rule above. STOP and discuss fundamentals.
 
 ---
