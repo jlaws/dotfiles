@@ -1,6 +1,9 @@
 ---
 name: dependency-upgrade
 description: "Dependency upgrade strategy and risk assessment across all ecosystems (JS/TS, Python, Rust, Go). Use when upgrading major dependencies, resolving conflicts, planning migration paths, or managing version stepping. Do NOT use for security vulnerability scanning (use dependency-auditing)."
+skills:
+  - test-driven-development
+  - verification-before-completion
 ---
 
 # Dependency Upgrade

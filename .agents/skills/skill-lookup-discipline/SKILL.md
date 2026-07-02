@@ -17,7 +17,7 @@ Invoke relevant skills BEFORE any response or action. Even a 1% chance a skill m
 BEFORE acting on any task:
 1. IDENTIFY: What kind of work is this? (feature, bug, refactor, review, plan, etc.)
 2. CHECK: Scan .agents/skills/ and .agents/references/ for applicable patterns
-3. LOAD: Read matching skills
+3. LOAD: Invoke matching skills via the Skill tool
 4. THEN: Proceed with the task following loaded skill guidance
 ```
 
@@ -66,3 +66,7 @@ Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows. 
 - Pure conversational responses (greetings, explanations with no action)
 - Reading files the user explicitly asked you to read
 - Git status / log / diff commands (informational only)
+
+## Integration
+
+This skill is auto-triggered by the session-start hook. It applies to every session.

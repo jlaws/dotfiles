@@ -337,7 +337,7 @@ app = FastAPI(
     title="My API",
     description="API for managing users",
     version="1.0.0",
-    docs_url="/docs",
+    docs_url="/j-docs",
     redoc_url="/redoc"
 )
 

@@ -1,6 +1,8 @@
 ---
 name: debugging-methodology
 description: Use when investigating bugs, test failures, performance issues, or unexpected behavior. Do NOT use for test-first development workflow (use test-driven-development) or load testing and benchmarking (use performance-testing-and-profiling).
+skills:
+  - verification-before-completion
 ---
 
 # Debugging Methodology
@@ -12,6 +14,13 @@ NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 ```
 
 Random fixes waste time and create new bugs. Complete Phase 1 before proposing fixes.
+
+## Debugging Directness
+
+- Never speculate about a bug without reading the relevant code first.
+- State what you found, where (file:line), and the fix. One pass.
+- If the cause is unclear: say so explicitly. Do not guess.
+- No preamble, no hedging. Finding first, explanation after.
 
 ## The Two-Attempt Rule
 
@@ -92,11 +101,50 @@ Map every environmental difference. The bug lives in one of these gaps.
 2. **Test Minimally**: Smallest possible change, one variable at a time
 3. **Verify**: Worked? → Phase 4. Didn't? → NEW hypothesis (don't add more fixes)
 
+#### Structured Hypothesis Investigation
+
+When the cause is unclear, enumerate 3-5 hypotheses up front (most likely first). Independent hypotheses that share no state may be investigated in parallel via subagents; otherwise investigate sequentially. Either way, keep the confirm/refute discipline for each hypothesis — do not blur evidence across them.
+
+For each hypothesis, note:
+- **What to check** — specific file, function, or state to inspect
+- **Evidence that would confirm** — what you'd expect to see if this IS the cause
+- **Evidence that would refute** — what you'd expect to see if this is NOT the cause
+
+Investigate each in turn:
+1. Gather evidence (read code, check logs, add instrumentation)
+2. **Confirm or refute** — be explicit about which
+3. If confirmed: proceed to Phase 4
+4. If refuted: move to next hypothesis
+5. If inconclusive: note what's missing and continue
+
+**Stop as soon as you find the root cause.** Don't investigate remaining hypotheses.
+
+#### Investigation Report Template
+
+```markdown
+## Investigation: {bug description}
+
+### Root Cause
+{explanation}
+
+### Hypotheses Tested
+1. {hypothesis} — {confirmed/refuted} — {evidence}
+2. ...
+
+### Fix
+{what was changed and why}
+
+### Verification
+{how the fix was verified}
+```
+
 ### Phase 4: Implementation
 
 1. **Create Failing Test** — simplest possible reproduction, automated
 2. **Implement Single Fix** — ONE change at a time
 3. **Verify** — test passes? No other tests broken?
+
+If the bug stems from invalid data flowing through multiple layers, read `references/defense-in-depth.md` to add validation at every layer and make it structurally impossible.
 
 **If 3+ Fixes Failed**: See Two-Attempt Rule above. STOP and discuss fundamentals.
 

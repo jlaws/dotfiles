@@ -16,7 +16,7 @@ When integrating multiple worktree branches:
 1. Create integration branch: `git checkout -b integrate/<description> main`
 2. Sequentially merge each branch:
    ```bash
-   git merge <agent-branch> --no-edit
+   git merge <branch> --no-edit
    ```
 3. Run full test suite on merged result
 4. Clean up worktrees: `git worktree remove <path>` for each
@@ -143,6 +143,7 @@ Clean up worktree if applicable.
 - Force-pushing without explicit user request
 - Offering fewer or more than 4 options
 - Cleaning up worktree when user chose "keep as-is"
+
 ## Integration
 
 **Called by:** `executing-plans` (Step 5) after all tasks complete

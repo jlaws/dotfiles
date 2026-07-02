@@ -1,6 +1,9 @@
 ---
 name: code-review-patterns
 description: Use when reviewing PRs, responding to review feedback, or running a self-review. Do NOT use for general code smell detection outside PR context (use code-quality).
+skills:
+  - verification-before-completion
+  - language-testing-patterns
 ---
 
 # Code Review Patterns
@@ -10,6 +13,14 @@ description: Use when reviewing PRs, responding to review feedback, or running a
 **Goals:** Catch bugs/edge cases, ensure maintainability, share knowledge, enforce standards, improve design.
 
 **Not goals:** Show off knowledge, nitpick formatting (use linters), block progress unnecessarily, rewrite to preference.
+
+## Review Directness
+
+- State the bug. Show the fix. Stop.
+- No compliments before or after the review.
+- No suggestions beyond the scope of the review.
+- If the code is correct, say so briefly and move on.
+- Never speculate about a bug without reading the relevant code first.
 
 ---
 
@@ -244,3 +255,5 @@ Load these skills if the review scope requires them:
 - `workflow:verification-before-completion` — if implementing fixes discovered during review
 - `workflow:pr-comment-resolution` — if responding to reviewer feedback on your own PR
 - `languages:*-patterns` — load the language-specific skill matching the primary language in the diff
+
+If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `references/workflow/review-checklists` for domain-specific checklists.
