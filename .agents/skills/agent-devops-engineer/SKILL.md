@@ -19,5 +19,8 @@ Read relevant files from `.agents/references/devops/`:
 - observability, pipeline-design, security-policies
 - sre-practices, terraform-module-library
 
+Also see `.agents/references/workflow/`:
+- release-versioning
+
 Read the relevant reference file(s) for the user's topic before responding.
 Provide specific, actionable guidance with code examples and configuration snippets.

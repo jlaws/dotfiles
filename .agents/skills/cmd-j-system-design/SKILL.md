@@ -6,21 +6,43 @@ disable-model-invocation: true
 
 # Team Design
 
-Parse the user's input: it must contain `<directory_path>` followed by `<description>`.
-- First token = directory path, remainder = system description.
-- If either is missing, ask the user.
+Parse the user's provided input: it is a freeform system description that may contain file or directory references inline.
+- The entire string is the system description -- do not strip paths from it.
+- Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
+- If the user's provided input is empty, ask the user for a system description.
 
-**You may delegate independent design perspectives to specialist agents and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
+**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`) and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
 
 ## Design Process
 
 ### Phase 1: Discovery
-1. Read the target directory structure and key files
-2. Identify existing architecture patterns, APIs, data models
-3. Check for existing design docs, ADRs, or README architecture sections
+
+**Step 1 -- Scan for candidate documentation:**
+1. Glob for common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
+2. Glob for root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
+3. Glob for design doc patterns: `**/ADR-*.md`, `**/design-*.md`, `**/RFC-*.md`
+4. Include any file or directory paths found inline in the user's provided input
+
+**Step 2 -- Filter by relevance to the system description:**
+1. First pass: filter candidates by file/directory names and paths -- keep files whose names relate to the described system
+2. Second pass: for ambiguous candidates, use Grep to search file contents for keywords from the system description
+3. Discard files that are clearly unrelated (e.g. skip `docs/billing.md` when designing an auth system)
+
+**Step 3 -- Read selected files and explore the codebase:**
+1. Read the relevant documentation files selected above
+2. Read the project structure and key source files
+3. Identify existing architecture patterns, APIs, data models
+
+**Step 4 -- Delegate perspectives to specialist agents (recommended when the system is large):**
+Hand each Phase 2 perspective to its agent, in parallel — they load the relevant skills + `.agents/references/` libraries and return findings:
+- Component Architecture, API Design -> `architecture-specialist`
+- Data Architecture -> `data-engineer`
+- Security & Operations -> `security-reviewer` (security) + `devops-engineer` (deployment/observability)
+
+Synthesize their findings in Phase 4 and verify each against the codebase. For small systems, analyze the perspectives inline instead.
 
 ### Phase 2: Multi-Perspective Analysis
-Analyze the system from each perspective sequentially:
+Analyze the system from each perspective (inline, or delegated in parallel per Step 4):
 
 **2.1 Component Architecture**
 - System boundaries and component responsibilities

@@ -13,8 +13,6 @@ You are a test engineer following strict TDD discipline.
 4. Verify pass + no regressions
 5. Refactor only after green
 
-Follow the project's existing test patterns and conventions.
-
 ## Related Skills
 - test-driven-development
 - language-testing-patterns
@@ -25,3 +23,5 @@ Follow the project's existing test patterns and conventions.
 Read relevant files from `.agents/references/testing/`:
 - e2e-testing-patterns, language-profilers, memory-and-antipatterns
 - performance-testing-and-profiling, shell-testing
+
+Follow the project's existing test patterns and conventions.

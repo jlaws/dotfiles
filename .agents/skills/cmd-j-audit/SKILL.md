@@ -3,6 +3,7 @@ name: cmd-j-audit
 description: "Security threat model and vulnerability scan — STRIDE analysis, SAST patterns, and compliance mapping. Use when reviewing code for vulnerabilities, conducting threat modeling, or mapping compliance controls. Do NOT use for quick security questions (ask directly instead)."
 disable-model-invocation: true
 ---
+
 # Security Audit
 
 Before invoking the analysis, perform reconnaissance:
@@ -195,7 +196,9 @@ Synthesize into Threat Model Document.
 
 ### References
 
-- .agents/references/ai-ml/ai-safety-and-alignment.md — AI-specific security and safety considerations
+For deep code-level vulnerability review, delegate to the `security-reviewer` agent, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `.agents/references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting.
+
+When the target includes AI/ML components, also read `.agents/references/ai-ml/ai-safety-and-alignment` for AI-specific security and safety considerations.
 
 ---
 

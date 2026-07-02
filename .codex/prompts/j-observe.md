@@ -1,7 +1,8 @@
-description = "Observability consultation -- logging, metrics, tracing, alerting, and analytics instrumentation. Use when designing observability systems, adding instrumentation, setting up dashboards, or defining SLOs. Do NOT use for CI/CD pipeline config (use /j-devops) or cloud infrastructure (use /j-cloud)."
-
-prompt = '''
-Load the `analysis-output-patterns` skill by reading `~/.agents/skills/analysis-output-patterns/SKILL.md` for output structure rules.
+---
+name: j-observe
+description: "Observability consultation -- logging, metrics, tracing, alerting, and analytics instrumentation. Use when designing observability systems, adding instrumentation, setting up dashboards, or defining SLOs. Do NOT use for CI/CD pipeline config (use /j-devops) or cloud infrastructure (use /j-cloud)."
+argument-hint: "<question-or-task>"
+---
 
 Before starting, gather diagnostic context:
 
@@ -9,19 +10,19 @@ Before starting, gather diagnostic context:
 2. **Identify logging setup** by searching for logger configuration, structured logging libraries (winston, pino, structlog, slog, zerolog, log4j, serilog), or log format definitions.
 3. **Check metrics/tracing instrumentation** by searching for metric registries, histogram/counter definitions, span creation, or OTel SDK initialization.
 4. **Detect analytics tracking** by searching for event tracking calls, analytics providers (Segment, Mixpanel, Amplitude, PostHog), or tracking plan definitions.
-5. **Get scope overview** of the target area (if {{args}} specifies a service or component, scope to that; otherwise scan for monitoring/, observability/, telemetry/, instrumentation/, or analytics/ directories and config).
+5. **Get scope overview** of the target area (if $ARGUMENTS specifies a service or component, scope to that; otherwise scan for monitoring/, observability/, telemetry/, instrumentation/, or analytics/ directories and config).
 
 Load relevant references based on what the diagnostic context reveals:
-- `~/.agents/references/devops/observability` -- golden signals, metric design, tracing strategy, alerting, stack preferences
-- `~/.agents/references/devops/sre-practices` -- error budgets, SLO targets by tier, progressive deployment
-- `~/.agents/references/devops/incident-management` -- severity framework, runbook structure, postmortem process
-- `~/.agents/references/business/analytics-instrumentation` -- event taxonomy, tracking wrappers, funnel design, PII gotchas
-- `~/.agents/references/architecture/error-handling-patterns` -- error hierarchy, logging levels, resilience patterns
-- `~/.agents/references/business/kpi-dashboard-design` -- dashboard hierarchy, KPI framework
+- `.agents/references/devops/observability` -- golden signals, metric design, tracing strategy, alerting, stack preferences
+- `.agents/references/devops/sre-practices` -- error budgets, SLO targets by tier, progressive deployment
+- `.agents/references/devops/incident-management` -- severity framework, runbook structure, postmortem process
+- `.agents/references/business/analytics-instrumentation` -- event taxonomy, tracking wrappers, funnel design, PII gotchas
+- `.agents/references/architecture/error-handling-patterns` -- error hierarchy, logging levels, resilience patterns
+- `.agents/references/business/kpi-dashboard-design` -- dashboard hierarchy, KPI framework
 
-For deep observability design, you may delegate to the `devops-engineer` agent (it loads the `~/.agents/references/devops/` library incl. observability, sre-practices, incident-management). Verify its output before presenting.
+For deep observability design, you may delegate to the `devops-engineer` agent (it loads the `.agents/references/devops/` library incl. observability, sre-practices, incident-management). Verify its output before presenting.
 
-Help with: {{args}}
+Help with: $ARGUMENTS
 
 ---
 
@@ -279,4 +280,3 @@ For greenfield or migration to OTel:
 6. **Collector**: deploy OTel Collector as sidecar or gateway
 7. **Semantic conventions**: follow OTel semantic conventions for attribute names
 8. **Resource attributes**: set `service.name`, `service.version`, `deployment.environment`
-'''

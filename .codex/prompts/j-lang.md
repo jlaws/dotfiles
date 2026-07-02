@@ -11,4 +11,6 @@ Before starting, gather diagnostic context:
 3. **Check project conventions** for existing patterns, module structure, and coding standards.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a topic, scope to that; otherwise detect language from the project root).
 
+For deep language guidance, delegate to the `language-specialist` agent, passing the detected language/tooling and the request. It loads its skills (language-testing-patterns, test-driven-development) and the `.agents/references/languages/` library, then returns idiomatic guidance. Verify its output before presenting.
+
 Help with: $ARGUMENTS

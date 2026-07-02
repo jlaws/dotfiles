@@ -12,6 +12,7 @@ statistical methods, literature review, and scientific writing.
 ## Related Skills
 - verification-before-completion
 - output-completeness
+- analysis-output-patterns
 
 ## Reference Library
 Read relevant files from `.agents/references/research/`:

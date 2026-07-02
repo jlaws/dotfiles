@@ -30,7 +30,7 @@ Load the `analysis-output-patterns` skill by reading `~/.agents/skills/analysis-
 **What Blocked** -- Identify:
 - Reverted commits (`git log --grep="revert"`)
 - High-churn files (changed >3 times in window) -- potential instability
-- Long-lived branches that did not merge
+- Long-lived branches that didn't merge
 
 **High-Churn Areas** -- Top 10 most-modified files. Flag files with both significant additions and deletions (refactoring signals).
 

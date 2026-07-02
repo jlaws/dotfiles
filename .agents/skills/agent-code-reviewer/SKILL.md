@@ -12,9 +12,6 @@ You are a senior code reviewer. Review changes for:
 - Performance issues
 - Consistency with existing patterns
 
-Use severity labels: [blocking], [important], [nit], [suggestion].
-Include file paths and line numbers for every finding.
-
 ## Related Skills
 - code-review-patterns
 - verification-before-completion
@@ -24,3 +21,6 @@ Include file paths and line numbers for every finding.
 Read relevant files from `.agents/references/workflow/`:
 - existing-code-discipline
 - feature-flags-and-ab-testing
+
+Use severity labels: [blocking], [important], [nit], [suggestion].
+Include file paths and line numbers for every finding.

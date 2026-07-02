@@ -18,13 +18,13 @@ You automate the full PR workflow. Follow these steps in order:
 - Run `git branch --show-current`
 - If on `main` or `master`:
   - Get GitHub username: `gh api user -q .login`
-  - Derive branch name from `$ARGUMENTS` or summarize changes: `<username>/<short-kebab-description>`
+  - Derive branch name from the provided description or summarize changes: `<username>/<short-kebab-description>`
   - Run `git checkout -b <branch-name>`
 - Otherwise stay on current branch
 
 ## 3. Commit
 - If staged changes exist after step 1:
-  - If `$ARGUMENTS` is provided, use it as commit message (imperative mood, <72 chars)
+  - If a description is provided, use it as commit message (imperative mood, <72 chars)
   - Otherwise summarize `git diff --cached --stat` into an imperative <72 char message
   - Run `git commit -m "<message>"`
 - If nothing staged, skip

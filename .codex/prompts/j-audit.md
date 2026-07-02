@@ -194,7 +194,9 @@ Synthesize into Threat Model Document.
 
 ### References
 
-- .claude/references/ai-ml/ai-safety-and-alignment.md — AI-specific security and safety considerations
+For deep code-level vulnerability review, delegate to the `security-reviewer` agent, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `.agents/references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting.
+
+When the target includes AI/ML components, also read `.agents/references/ai-ml/ai-safety-and-alignment` for AI-specific security and safety considerations.
 
 ---
 

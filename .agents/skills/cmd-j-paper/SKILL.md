@@ -1,19 +1,18 @@
-description = "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, and submission readiness. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, or preparing a venue submission. Do NOT use for general LaTeX syntax questions (read ~/.agents/references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
+---
+name: cmd-j-paper
+description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, and submission readiness. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, or preparing a venue submission. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
+disable-model-invocation: true
+---
 
-prompt = '''
-Task: {{args}}
+# Research Paper
+
+Task: the user's provided input
 
 If no arguments provided, ask what the user wants to do (init a new paper, edit a section, compile + diagnose, add a citation from a source, check submission readiness, or clean the bibliography).
 
 ## Setup (always do first)
 
-Load these skills by reading their SKILL.md files in `~/.agents/skills/`, in order:
-
-1. `analysis-output-patterns` -- output structure rules
-2. `verification-before-completion` -- required before claiming "compiles cleanly" or "no errors"
-3. `output-completeness` -- for any generated section, template, or table (no truncation)
-
-Read the canonical reference before responding: `~/.agents/references/research/latex-paper-writing.md` (venue specs, preamble template, gotchas).
+Read the canonical reference before responding: `.agents/references/research/latex-paper-writing.md` (venue specs, preamble template, gotchas).
 
 ## Diagnostic scans (run only those relevant to the task)
 
@@ -28,7 +27,7 @@ Read the canonical reference before responding: `~/.agents/references/research/l
 ### a. Init / template scaffold
 
 - Determine target venue from arguments. If ambiguous, ask.
-- Pull the preamble + macros from `~/.agents/references/research/latex-paper-writing.md`.
+- Pull the preamble + macros from `.agents/references/research/latex-paper-writing.md`.
 - If the venue style file (e.g. `neurips_2024.sty`) is not present locally, tell the user the canonical filename to download from the venue site -- do NOT fabricate a URL.
 - Scaffold: `main.tex`, `references.bib`, `sections/`, `figures/`, `latexmkrc`. Use `Write` only for new files; `Edit` for any pre-existing file.
 
@@ -52,12 +51,12 @@ Read the canonical reference before responding: `~/.agents/references/research/l
 - Use `WebFetch` to retrieve the source page (arxiv.org/abs/..., DOI resolver, venue page). Extract title, authors, year, venue, abstract.
 - Generate a deterministic BibTeX key: `firstauthorlast_year_keyword` (e.g. `vaswani_2017_attention`).
 - Append the entry to the detected `.bib` file. Dedupe by DOI first, then normalized title.
-- If `{{args}}` indicates where to cite, insert `\cite{key}` at that location (Edit). Otherwise report the key for the user to place.
+- If the user's provided input indicates where to cite, insert `\cite{key}` at that location (Edit). Otherwise report the key for the user to place.
 - Never fabricate citation fields. If authors / abstract / venue cannot be extracted, say so explicitly and leave the field blank rather than guess.
 
 ### e. Submission readiness checks
 
-Look up the target venue's requirements in `~/.agents/references/research/latex-paper-writing.md`, then verify:
+Look up the target venue's requirements in `.agents/references/research/latex-paper-writing.md`, then verify:
 
 | Check | How |
 |-------|-----|
@@ -88,11 +87,10 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
 ### Cross-References
 
-- **~/.agents/references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
-- **~/.agents/references/research/literature-review.md** -- when scope expands to surveying related work
-- **~/.agents/references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
-- **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate (it loads `~/.agents/references/research/`); verify its output
+- **.agents/references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
+- **.agents/references/research/literature-review.md** -- when scope expands to surveying related work
+- **.agents/references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
+- **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate to the `research-analyst` agent (it loads `.agents/references/research/`); verify its output
 - **skill:analysis-output-patterns** -- output structure rules
 - **skill:verification-before-completion** -- required before claiming compile-clean / submission-ready
 - **skill:output-completeness** -- required when generating templates, sections, or tables
-'''

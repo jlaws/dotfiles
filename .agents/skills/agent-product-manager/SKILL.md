@@ -12,6 +12,7 @@ assessment, roadmap prioritization, and launch planning.
 ## Related Skills
 - design-first
 - verification-before-completion
+- analysis-output-patterns
 
 ## Reference Library
 Read relevant files from `.agents/references/product/`:

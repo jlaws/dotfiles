@@ -2,6 +2,7 @@ description = "Security threat model and vulnerability scan -- STRIDE analysis, 
 
 prompt = '''
 Load the `analysis-output-patterns` skill by reading `~/.agents/skills/analysis-output-patterns/SKILL.md` for output structure rules.
+Load the `code-review-patterns` skill by reading `~/.agents/skills/code-review-patterns/SKILL.md` for severity labeling and vulnerability-spotting discipline.
 
 Before invoking the analysis, perform reconnaissance:
 
@@ -174,7 +175,7 @@ Every security requirement must link back to:
 ### Gotchas
 
 - OR-node attack trees need ALL paths mitigated; missing one leaves the goal achievable
-- Risk scores should drive requirement priority -- do not let stakeholder politics override
+- Risk scores should drive requirement priority -- don't let stakeholder politics override
 - Detective controls (logging) are necessary but insufficient alone; pair with preventive
 - Error messages are an info disclosure vector -- generic errors externally, detailed internally
 - Session management is often the weakest STRIDE link; model it explicitly
@@ -193,7 +194,9 @@ Synthesize into Threat Model Document.
 
 ### References
 
-- ~/.agents/references/ai-ml/ai-safety-and-alignment.md -- AI-specific security and safety considerations
+For deep code-level vulnerability review, delegate to the `security-reviewer` agent, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `~/.agents/references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting.
+
+When the target includes AI/ML components, also read `~/.agents/references/ai-ml/ai-safety-and-alignment` for AI-specific security and safety considerations.
 
 ---
 

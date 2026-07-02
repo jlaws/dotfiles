@@ -1,6 +1,8 @@
 description = "Scaffold a new ~/.gemini/ command, skill, or agent with correct structure and best practices. Use when creating any new ~/.gemini/ asset. Do NOT use for editing existing assets (edit directly)."
 
 prompt = '''
+Load the `writing-skills` skill by reading `~/.agents/skills/writing-skills/SKILL.md` for asset-authoring methodology and the `skill-audit` skill by reading `~/.agents/skills/skill-audit/SKILL.md` for the conformance rules applied in Phase 5, before scaffolding.
+
 Create: {{args}}
 
 If no arguments provided, ask which asset type to create (command, skill, or agent).

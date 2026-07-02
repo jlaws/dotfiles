@@ -5,14 +5,20 @@ Scope: {{args}}
 
 If no arguments provided, analyzes both global and local GEMINI.md against last 20 conversations.
 
-**You may delegate independent analysis passes to subagents and run them in parallel. Synthesize and verify their output before presenting.**
+**You may delegate independent analysis passes (per GEMINI.md file or per perspective) to subagents and run them in parallel. Synthesize and verify their output before presenting.**
 
-Load the `analysis-output-patterns` skill by reading `~/.agents/skills/analysis-output-patterns/SKILL.md` for output structure rules.
+Load these before analyzing:
+- Load the `analysis-output-patterns` skill by reading `~/.agents/skills/analysis-output-patterns/SKILL.md` for output structure rules
+- Load the `code-agent-meta-patterns` skill by reading `~/.agents/skills/code-agent-meta-patterns/SKILL.md` -- GEMINI.md design patterns, context budget rules
+- Load the `verification-before-completion` skill by reading `~/.agents/skills/verification-before-completion/SKILL.md` -- evidence-before-claims methodology
+- Load the `writing-skills` skill by reading `~/.agents/skills/writing-skills/SKILL.md` -- skill creation and testing methodology
+- Read `~/.agents/references/workflow/context-efficiency` -- context management patterns
+- Read `~/.agents/references/workflow/task-execution-checklists` -- implementation and review checklists
 
 ## Review Process
 
 ### Step 1: Gather Conversation History
-1. Read recent conversation logs (use {{args}} to determine scope -- global, local, or N conversations)
+1. Read recent conversation logs (use `{{args}}` to determine scope -- global, local, or N conversations)
 2. Identify conversations where Gemini behavior was suboptimal, instructions were violated, or the user had to correct course
 
 ### Step 2: Analyze Current GEMINI.md
@@ -23,7 +29,7 @@ Load the `analysis-output-patterns` skill by reading `~/.agents/skills/analysis-
    - Is there an outdated rule that caused bad behavior? -> Flag as stale rule
 
 ### Step 3: Multi-Perspective Review
-Analyze sequentially from each perspective:
+Analyze from each perspective (inline, or delegated in parallel per the note above):
 
 **3.1 Instruction Compliance**
 - Which GEMINI.md rules were violated in recent conversations?
@@ -31,7 +37,7 @@ Analyze sequentially from each perspective:
 - Are there conflicting instructions?
 
 **3.2 Missing Patterns**
-- What corrections did the user make that are not captured in GEMINI.md?
+- What corrections did the user make that aren't captured in GEMINI.md?
 - What successful behaviors should be codified?
 - What edge cases caused confusion?
 
@@ -51,7 +57,7 @@ Analyze sequentially from each perspective:
 - {pattern} -- observed in {context} -- suggested rule
 
 ### Stale Rules
-- {rule} -- reason it is stale -- suggested action (remove/update)
+- {rule} -- reason it's stale -- suggested action (remove/update)
 
 ### Proposed Changes
 1. {specific edit with file:line reference}
@@ -61,14 +67,4 @@ Analyze sequentially from each perspective:
 - Present findings to user
 - Ask which changes to implement
 - Make approved edits to GEMINI.md file(s)
-
----
-
-### Cross-References
-
-- **skill:code-agent-meta-patterns** -- agent meta-patterns: GEMINI.md design, context budget rules
-- **reference:workflow/context-efficiency** -- context management patterns
-- **reference:workflow/task-execution-checklists** -- implementation and review checklists
-- **skill:verification-before-completion** -- evidence-before-claims methodology
-- **skill:writing-skills** -- skill creation and testing methodology
 '''
