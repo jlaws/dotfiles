@@ -199,6 +199,8 @@ Synthesize into Threat Model Document.
 
 For deep code-level vulnerability review, delegate to the `security-reviewer` agent via the Task tool, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting.
 
+When the target includes AI/ML components, also read `references/ai-ml/ai-safety-and-alignment` for AI-specific security and safety considerations.
+
 ---
 
 Apply the above methodology to analyze: $ARGUMENTS

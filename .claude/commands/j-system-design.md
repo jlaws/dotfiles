@@ -43,7 +43,7 @@ Hand each Phase 2 perspective to its agent via the Task tool, in parallel — th
 Synthesize their findings in Phase 4 and verify each against the codebase. For small systems, analyze the perspectives inline instead.
 
 ### Phase 2: Multi-Perspective Analysis
-Analyze the system from each perspective sequentially:
+Analyze the system from each perspective (inline, or delegated in parallel per Step 4):
 
 **2.1 Component Architecture**
 - System boundaries and component responsibilities

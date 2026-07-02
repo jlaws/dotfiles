@@ -242,7 +242,7 @@ Delegate each perspective to its specialist agent (each loads the listed skills 
 | Perspective | Agent | Loads |
 |---|---|---|
 | Security | `security-reviewer` | code-review-patterns + `references/security/` (security-analysis, auth-implementation-patterns, secrets-management) |
-| Code Quality | `code-reviewer` | code-review-patterns, output-completeness + `references/workflow/` |
+| Code Quality | `code-reviewer` | code-review-patterns, output-completeness + `references/workflow/`; apply `code-quality` for smell detection |
 | Testing | `test-writer` | test-driven-development, language-testing-patterns + `references/testing/` |
 | Language-Specific | (inline) | auto-detected `references/languages/*-patterns` by file extension |
 
