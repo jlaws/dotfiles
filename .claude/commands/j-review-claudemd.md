@@ -8,7 +8,7 @@ Scope: $ARGUMENTS
 
 If no arguments provided, analyzes both global and local CLAUDE.md against last 20 conversations.
 
-**Do NOT use subagents or parallel agents. Process all analysis linearly.**
+**You may delegate independent analysis passes (per CLAUDE.md file or per perspective) to subagents via the Task tool and run them in parallel. Synthesize and verify their output before presenting.**
 
 Load skill `analysis-output-patterns` for output structure rules.
 
@@ -67,10 +67,10 @@ Analyze sequentially from each perspective:
 
 ---
 
-### Cross-References
+### Load Before Analyzing
 
-- **skill:code-agent-meta-patterns** — CLAUDE.md design patterns, context budget rules
-- **reference:workflow/context-efficiency** — context management patterns
-- **reference:workflow/task-execution-checklists** — implementation and review checklists
-- **skill:verification-before-completion** — evidence-before-claims methodology
-- **skill:writing-skills** — skill creation and testing methodology
+- Load skill `code-agent-meta-patterns` — CLAUDE.md design patterns, context budget rules
+- Load skill `verification-before-completion` — evidence-before-claims methodology
+- Load skill `writing-skills` — skill creation and testing methodology
+- Read `references/workflow/context-efficiency` — context management patterns
+- Read `references/workflow/task-execution-checklists` — implementation and review checklists

@@ -6,6 +6,8 @@ argument-hint: "<pr-number-or-url>"
 
 Invoke the `pr-comment-resolution` skill via the Skill tool before doing anything else. Fetch all reviewer comments, categorize them, implement fixes, reply inline, verify, and push.
 
+For complex or contested threads, you may delegate a focused re-review to the `code-reviewer` agent via the Task tool before replying. Verify its findings against the code.
+
 PR: $ARGUMENTS
 
 If no argument provided, use `gh pr view` to identify the open PR for the current branch.

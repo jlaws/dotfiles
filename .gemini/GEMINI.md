@@ -64,7 +64,7 @@ This rule applies to `run_shell_command` calls only -- not to Dockerfile `RUN` l
 
 ## Execution Model
 
-**Do NOT use subagents, agent teams, or parallel agents by default.** Process all work linearly in a single context. Multi-agent patterns are unreliable and must not be used unless the user explicitly requests delegation to a specific `@agent-<name>`.
+Use subagents to parallelize independent work and to delegate to specialist agents (`~/.gemini/agents/`, invoked via `@agent-<name>`) when a task matches their domain — commands gather context, then invoke the matching agent. Prefer delegation for well-scoped, independent subtasks and run them in parallel when they don't depend on each other; keep tightly-coupled or sequential work in a single context. A subagent reporting "success" is not proof — verify its output against source evidence (see `verification-before-completion`).
 
 ## Worktree Rules
 

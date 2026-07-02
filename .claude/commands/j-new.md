@@ -4,6 +4,8 @@ description: "Scaffold a new .claude/ command, skill, or agent with correct stru
 argument-hint: "<type: command|skill|agent> [name]"
 ---
 
+Load skill `writing-skills` for asset-authoring methodology and `skill-audit` for the conformance rules applied in Phase 5, before scaffolding.
+
 Create: $ARGUMENTS
 
 If no arguments provided, ask which asset type to create (command, skill, or agent).

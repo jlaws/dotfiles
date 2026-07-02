@@ -48,4 +48,6 @@
 
 ## Execution Model
 
-- Do NOT use subagents or agent teams. Process all work linearly in a single context.
+- Use subagents to parallelize independent work and to delegate to specialist agents when a task matches their domain — gather context, then invoke the matching agent.
+- Prefer delegation for well-scoped, independent subtasks (run in parallel when they don't depend on each other); keep tightly-coupled or sequential work in a single context.
+- A subagent reporting "success" is not proof — verify its output against source evidence before trusting it.

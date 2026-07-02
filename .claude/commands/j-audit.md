@@ -197,15 +197,7 @@ Synthesize into Threat Model Document.
 
 ### References
 
-Load relevant references based on the reconnaissance findings:
-- `references/security/security-analysis` -- core vulnerability-analysis methodology and checklist
-- `references/security/auth-implementation-patterns` -- authn/authz, session, token, and RBAC patterns
-- `references/security/secrets-management` -- secret storage, rotation, and leakage prevention
-- `references/security/dependency-auditing` -- SCA, vulnerable-dependency detection and triage
-- `references/security/ci-and-supply-chain` -- build/pipeline integrity, artifact signing, SLSA
-- `references/security/dependabot-renovate-config` -- automated dependency-update configuration
-- `references/security/compliance-and-data-privacy` -- GDPR/HIPAA/SOC2 controls, PII handling
-- `references/ai-ml/ai-safety-and-alignment` -- AI-specific security and safety considerations
+For deep code-level vulnerability review, delegate to the `security-reviewer` agent via the Task tool, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting.
 
 ---
 

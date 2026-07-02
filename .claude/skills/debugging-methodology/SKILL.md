@@ -105,7 +105,7 @@ Map every environmental difference. The bug lives in one of these gaps.
 
 #### Structured Hypothesis Investigation
 
-When the cause is unclear, enumerate 3-5 hypotheses up front and investigate sequentially (most likely first). Process all hypotheses linearly — do NOT parallelize.
+When the cause is unclear, enumerate 3-5 hypotheses up front (most likely first). Independent hypotheses that share no state may be investigated in parallel via subagents; otherwise investigate sequentially. Either way, keep the confirm/refute discipline for each hypothesis — do not blur evidence across them.
 
 For each hypothesis, note:
 - **What to check** — specific file, function, or state to inspect

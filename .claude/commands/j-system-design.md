@@ -12,7 +12,7 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
 - If `$ARGUMENTS` is empty, ask the user for a system description.
 
-**Do NOT use subagents or parallel agents. Process all design perspectives linearly.**
+**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`) via the Task tool and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
 
 ## Design Process
 
@@ -34,12 +34,13 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 2. Read the project structure and key source files
 3. Identify existing architecture patterns, APIs, data models
 
-**Step 4 -- Load references relevant to the perspectives you will analyze:**
-- **Structure & patterns**: `references/architecture/architecture-patterns`, `microservices-patterns`, `distributed-communication-patterns`, `event-sourcing-examples`, `real-time-systems` -- decomposition, service boundaries, async/event flows
-- **API design**: `references/architecture/api-design-principles`, `api-design-checklist`, `rest-best-practices`, `graphql-schema-design`, `pagination-patterns` -- contracts, versioning, error taxonomy
-- **Data & scale**: `references/architecture/caching-strategies`, `retry-patterns`, `background-job-processing`, `saas-multi-tenancy`, `ml-system-design` -- storage/access, resilience, multi-tenancy
-- **Errors & testing**: `references/architecture/error-handling-patterns`, `error-management`, `testing-strategies`, `testing-and-integration` -- failure modes, recovery, test strategy
-- **Decisions & spec**: `references/architecture/architecture-decision-records`, `references/architecture/workflow-specification` -- ADRs, up-front execution-path/failure-mode specification
+**Step 4 -- Delegate perspectives to specialist agents (recommended when the system is large):**
+Hand each Phase 2 perspective to its agent via the Task tool, in parallel — they load the relevant skills + `references/` libraries and return findings:
+- Component Architecture, API Design -> `architecture-specialist`
+- Data Architecture -> `data-engineer`
+- Security & Operations -> `security-reviewer` (security) + `devops-engineer` (deployment/observability)
+
+Synthesize their findings in Phase 4 and verify each against the codebase. For small systems, analyze the perspectives inline instead.
 
 ### Phase 2: Multi-Perspective Analysis
 Analyze the system from each perspective sequentially:

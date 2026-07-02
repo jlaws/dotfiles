@@ -57,7 +57,7 @@ This rule applies to Bash tool calls only — not to Dockerfile `RUN` layers, CI
 
 ## Execution Model
 
-**Do NOT use subagents, agent teams, or parallel agents.** Process all work linearly in a single context. Multi-agent patterns are unreliable and must not be used.
+Use subagents to parallelize independent work and to delegate to specialist agents (`.claude/agents/`) when a task matches their domain — commands gather context, then invoke the matching agent. Prefer delegation for well-scoped, independent subtasks and run them in parallel when they don't depend on each other; keep tightly-coupled or sequential work in a single context. A subagent reporting "success" is not proof — verify its output against source evidence (see `verification-before-completion`).
 
 ## Worktree Rules
 
