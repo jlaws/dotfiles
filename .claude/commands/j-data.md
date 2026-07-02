@@ -13,4 +13,11 @@ Before starting, gather diagnostic context:
 3. **Check pipeline definitions** by searching for DAGs, workflows, ETL scripts, or migration files.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a pipeline or dataset, scope to that; otherwise scan for data/, pipelines/, dags/, migrations/, etl/ directories).
 
+Load relevant references based on the diagnostic context:
+- **Pipelines & orchestration**: `references/data/airflow-dag-patterns`, `ml-pipeline-orchestration`, `streaming-data-processing` -- DAG design, batch vs stream, orchestration
+- **Platform & warehouse**: `references/data/data-platform-architecture`, `analytics-and-transformations`, `spark-optimization` -- lakehouse/warehouse design, dbt transforms, Spark tuning
+- **Relational**: `references/data/postgresql-table-design`, `database-optimization`, `database-migration` -- schema design, query/index tuning, zero-downtime migrations
+- **NoSQL & search**: `references/data/nosql-data-modeling`, `search-infrastructure` -- document/KV/wide-column modeling, search indexing
+- **Analysis & ingestion**: `references/data/eda-and-visualization`, `jupyter-notebook-patterns`, `web-scraping-and-data-collection` -- exploration, notebook discipline, scraping/collection
+
 Help with: $ARGUMENTS

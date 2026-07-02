@@ -4,6 +4,9 @@ description: "Comprehensive system design suite — produce architecture documen
 argument-hint: "<system-description>"
 ---
 
+Load skill `design-first` for design-before-implementation discipline.
+Load skill `analysis-output-patterns` for output structure rules.
+
 Parse arguments: `$ARGUMENTS` is a freeform system description that may contain file or directory references inline.
 - The entire string is the system description -- do not strip paths from it.
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
@@ -30,6 +33,13 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 1. Read the relevant documentation files selected above
 2. Read the project structure and key source files
 3. Identify existing architecture patterns, APIs, data models
+
+**Step 4 -- Load references relevant to the perspectives you will analyze:**
+- **Structure & patterns**: `references/architecture/architecture-patterns`, `microservices-patterns`, `distributed-communication-patterns`, `event-sourcing-examples`, `real-time-systems` -- decomposition, service boundaries, async/event flows
+- **API design**: `references/architecture/api-design-principles`, `api-design-checklist`, `rest-best-practices`, `graphql-schema-design`, `pagination-patterns` -- contracts, versioning, error taxonomy
+- **Data & scale**: `references/architecture/caching-strategies`, `retry-patterns`, `background-job-processing`, `saas-multi-tenancy`, `ml-system-design` -- storage/access, resilience, multi-tenancy
+- **Errors & testing**: `references/architecture/error-handling-patterns`, `error-management`, `testing-strategies`, `testing-and-integration` -- failure modes, recovery, test strategy
+- **Decisions & spec**: `references/architecture/architecture-decision-records`, `references/architecture/workflow-specification` -- ADRs, up-front execution-path/failure-mode specification
 
 ### Phase 2: Multi-Perspective Analysis
 Analyze the system from each perspective sequentially:

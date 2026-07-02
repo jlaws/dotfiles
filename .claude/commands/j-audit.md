@@ -5,6 +5,7 @@ argument-hint: "<target-path-or-scope>"
 ---
 
 Load skill `analysis-output-patterns` for output structure rules.
+Load skill `code-review-patterns` for severity labeling and vulnerability-spotting discipline.
 
 Before invoking the analysis, perform reconnaissance:
 
@@ -196,7 +197,15 @@ Synthesize into Threat Model Document.
 
 ### References
 
-- .claude/references/ai-ml/ai-safety-and-alignment.md — AI-specific security and safety considerations
+Load relevant references based on the reconnaissance findings:
+- `references/security/security-analysis` -- core vulnerability-analysis methodology and checklist
+- `references/security/auth-implementation-patterns` -- authn/authz, session, token, and RBAC patterns
+- `references/security/secrets-management` -- secret storage, rotation, and leakage prevention
+- `references/security/dependency-auditing` -- SCA, vulnerable-dependency detection and triage
+- `references/security/ci-and-supply-chain` -- build/pipeline integrity, artifact signing, SLSA
+- `references/security/dependabot-renovate-config` -- automated dependency-update configuration
+- `references/security/compliance-and-data-privacy` -- GDPR/HIPAA/SOC2 controls, PII handling
+- `references/ai-ml/ai-safety-and-alignment` -- AI-specific security and safety considerations
 
 ---
 

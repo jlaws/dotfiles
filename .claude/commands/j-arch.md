@@ -5,6 +5,7 @@ argument-hint: "<question-or-task>"
 ---
 
 Load skill `analysis-output-patterns` for output structure rules.
+Load skill `design-first` for design-before-implementation discipline.
 
 Before starting, gather diagnostic context:
 
@@ -13,6 +14,14 @@ Before starting, gather diagnostic context:
 3. **Check architecture documentation** for existing ADRs, design docs, or README architecture sections.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a component, scope to that; otherwise scan for src/, services/, api/, or similar directories).
 5. **Check for DECISIONS.md** — review lightweight decision log for recent in-flight choices.
+
+Load relevant references based on the diagnostic context:
+- **API design**: `references/architecture/api-design-principles`, `api-design-checklist`, `rest-best-practices`, `rest-api-template`, `graphql-schema-design`, `grpc-examples`, `pagination-patterns` -- contract design, versioning, REST/GraphQL/gRPC conventions
+- **Distributed patterns**: `references/architecture/microservices-patterns`, `distributed-communication-patterns`, `message-queue-examples`, `event-sourcing-examples`, `real-time-systems`, `notification-systems` -- service boundaries, async messaging, event flows
+- **Resilience & scale**: `references/architecture/caching-strategies`, `retry-patterns`, `background-job-processing`, `saas-multi-tenancy` -- caching, backoff/idempotency, job queues, multi-tenancy
+- **Patterns & structure**: `references/architecture/architecture-patterns`, `architecture-decision-records`, `ml-system-design`, `server-examples`, `mcp-server-development`, `deployment` -- pattern selection, ADRs, ML systems, deployment topology
+- **Errors & testing**: `references/architecture/error-management`, `error-handling-patterns`, `testing-strategies`, `testing-and-integration` -- error taxonomy, resilience, integration test strategy
+- **Process**: `references/workflow/existing-code-discipline` -- reuse-before-adding discipline
 
 Help with: $ARGUMENTS
 
