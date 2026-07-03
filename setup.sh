@@ -128,6 +128,7 @@ sync_agents() {
 	rsync -avh --no-perms .claude/agents/ "${target}/.claude/agents/"
 	rsync -avh --no-perms .claude/commands/ "${target}/.claude/commands/"
 	rsync -avh --no-perms .claude/hooks/ "${target}/.claude/hooks/"
+	rm -f "${target}/.claude/hooks/lessons-learned.sh"
 	rsync -avh --no-perms .claude/skills/ "${target}/.claude/skills/"
 	rsync -avh --no-perms .claude/references/ "${target}/.claude/references/"
 
@@ -140,6 +141,7 @@ sync_agents() {
 	rsync -avh --no-perms .cursor/cli-config.json "${target}/.cursor/cli-config.json"
 	rsync -avh --no-perms .cursor/hooks.json "${target}/.cursor/hooks.json"
 	rsync -avh --no-perms .cursor/hooks/ "${target}/.cursor/hooks/"
+	rm -f "${target}/.cursor/hooks/lessons-learned.sh"
 	rsync -avh --no-perms .cursor/rules/ "${target}/.cursor/rules/"
 
 	print_step "Syncing shared skills and references to Cursor..."
@@ -157,6 +159,7 @@ sync_agents() {
 	rsync -avh --no-perms .codex/agents/ "${target}/.codex/agents/"
 	rsync -avh --no-perms .codex/prompts/ "${target}/.codex/prompts/"
 	rsync -avh --no-perms .codex/hooks/ "${target}/.codex/hooks/"
+	rm -f "${target}/.codex/hooks/lessons-learned.sh"
 	rsync -avh --no-perms .codex/rules/ "${target}/.codex/rules/"
 
 	# --- Gemini CLI (.gemini/) ---
@@ -171,6 +174,7 @@ sync_agents() {
 	rsync -avh --no-perms .gemini/agents/       "${target}/.gemini/agents/"
 	rsync -avh --no-perms .gemini/commands/     "${target}/.gemini/commands/"
 	rsync -avh --no-perms .gemini/hooks/        "${target}/.gemini/hooks/"
+	rm -f "${target}/.gemini/hooks/lessons-learned.sh"
 	chmod +x "${target}/.gemini/hooks/"*.sh 2>/dev/null || true
 	# Note: skills + references reused from ~/.agents/ (Gemini auto-discovers)
 }

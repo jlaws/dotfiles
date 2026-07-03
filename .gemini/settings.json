@@ -28,17 +28,6 @@
         ]
       }
     ],
-    "SessionEnd": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.gemini/hooks/lessons-learned.sh"
-          }
-        ]
-      }
-    ],
     "BeforeAgent": [
       {
         "matcher": ".*",
