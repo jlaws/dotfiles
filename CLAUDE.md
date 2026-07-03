@@ -10,20 +10,31 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 
 ### Setup & Installation
 ```bash
-./setup.sh           # Interactive: syncs dotfiles, installs packages, configures macOS
-./setup.sh --force   # Non-interactive: skips all confirmation prompts
+./setup.sh                 # Interactive: syncs dotfiles, installs packages, configures macOS
+./setup.sh --force         # Non-interactive: skips all confirmation prompts
+./setup.sh --list-archives # List timestamped archives of prior runs
+./setup.sh --uninstall     # Revert the most recent run (guarded)
+./setup.sh --dry-run -m    # Preview a step's changes without writing
 ```
 
-### Linting
+`setup.sh` is a shim that runs the `macos_setup` Python package (stdlib only, Python 3.12+).
+
+### Linting & Tests
 ```bash
 make check    # ruff check + ty (via .venv)
 make fix      # auto-fix + format
+make test     # stdlib unittest suite (python -m unittest)
 ```
 
 ### What setup.sh does:
-1. **Syncs dotfiles** to `~` via rsync (excludes .git, setup.sh, README)
+1. **Syncs dotfiles** to `~` (root dotfiles + agent configs), archiving replaced files first
 2. **Installs Homebrew packages**: coreutils, findutils, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump, mermaid-cli, node, pyright, rust-analyzer
-3. **Configures macOS**: ~200 `defaults write` commands for Finder, Dock, Safari, security, etc.
+3. **Configures macOS**: ~200 `defaults` settings for Finder, Dock, Safari, security, etc., snapshotting each domain first
+
+Every run writes a timestamped archive to `~/.dotfile-archive/<timestamp>/` (files, per-domain
+plist snapshots, `manifest.json`). `--uninstall` reverts a run; reverts are **guarded** — a file
+or setting is only restored if it still matches what setup applied, otherwise left as-is.
+Homebrew packages are not uninstalled.
 
 ## Repository Structure
 
@@ -31,9 +42,11 @@ make fix      # auto-fix + format
 dotfiles/
 ├── Root dotfiles (.zshrc, .extra, .gitconfig, .vimrc, .editorconfig, etc.)
 ├── ghosty_config.txt  # Ghostty terminal configuration reference
-├── setup.sh           # Main installation script
+├── setup.sh           # Entry-point shim → python3 -m macos_setup
+├── macos_setup/       # Python package: install + archive + uninstall/reset
+├── tests/             # stdlib unittest suite for macos_setup
 ├── pyproject.toml     # ruff config, project metadata
-├── Makefile           # lint, format, fix targets
+├── Makefile           # lint, format, fix, test targets
 ├── .agents/           # Shared agent KB (agentskills.io spec)
 │   ├── skills/        # agent-*, cmd-*, workflow/*, testing/*, migration/*
 │   └── references/    # Domain knowledge by category
@@ -59,7 +72,8 @@ dotfiles/
 | `.extra` | 60+ aliases, functions, PATH setup (234 lines) |
 | `.gitconfig` | Git aliases (`l`, `s`, `d`, `go`, `dm`, `amend`) |
 | `.vimrc` | Solarized Dark, relative line numbers, centralized backups |
-| `setup.sh` | Main orchestration script (~876 lines) |
+| `setup.sh` | Shim that execs `python3 -m macos_setup` |
+| `macos_setup/` | Install/archive/uninstall package (stdlib only) |
 | `ghosty_config.txt` | Ghostty terminal configuration reference |
 
 ## Shell Aliases (from .extra)
@@ -75,6 +89,8 @@ dotfiles/
 
 - Shell configs use `#` comments, keep aliases short and documented
 - `.extra` is the primary customization point (not `.zshrc`)
-- macOS `defaults write` commands in setup.sh follow pattern: domain, key, type, value
+- macOS settings live in the `SETTINGS` registry in `macos_setup/macos_defaults.py` (one dict per setting: scope, domain, key, type, value); this single list drives both apply and revert
+- `macos_setup` is stdlib-only (no runtime pip deps) so it runs on a fresh Mac; keep the subprocess boundary behind the `Runner` seam for testability
+- Follow TDD for `macos_setup` changes; add/adjust `tests/` and keep `make test` + `make check` green
 - Agent skills follow the [agentskills.io](https://agentskills.io/specification) spec (SKILL.md with YAML frontmatter)
 - Do not hardcode counts of KB assets (agents, commands, references, skills) — they go stale

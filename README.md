@@ -76,10 +76,14 @@ Or skip confirmation prompts:
 
 ## What the Setup Script Does
 
-The setup script performs three main tasks:
+`setup.sh` is a thin shim that runs the `macos_setup` Python package (Python 3.12+, standard
+library only — no virtualenv or pip installs at runtime). It performs three main tasks and
+**archives everything it changes** so a run can be undone later (see [Uninstall / Reset](#uninstall--reset)).
 
 ### 1. Sync Dotfiles
-Copies all dotfiles to your home directory using `rsync`, preserving any local changes not in the repo.
+Copies the dotfiles and agent configs to your home directory. Before overwriting any existing
+file, the original is saved into the run's archive; newly created files are tracked so they can
+be removed on uninstall.
 
 ### 2. Install Packages (via Homebrew)
 - **GNU utilities**: `coreutils`, `findutils`, `gnu-sed`, `moreutils`
@@ -87,6 +91,8 @@ Copies all dotfiles to your home directory using `rsync`, preserving any local c
 - **Git tools**: `git`, `git-lfs`, `gh`
 - **Shell utilities**: `autojump`, `mermaid-cli`
 - **Language servers**: `node`, `pyright`, `rust-analyzer`
+
+Homebrew packages are **not** removed on uninstall.
 
 ### 3. Configure macOS
 Sets hundreds of macOS preferences including:
@@ -96,6 +102,29 @@ Sets hundreds of macOS preferences including:
 - **Dock**: Auto-hide, no recent apps, fast animations
 - **Safari**: Developer tools enabled, privacy settings, no auto-fill
 - **Security**: Password required immediately after sleep
+
+Before each setting is changed, its prior value (and a full snapshot of the affected preference
+domain) is recorded in the archive so it can be restored.
+
+## Uninstall / Reset
+
+Every run writes a timestamped archive under `~/.dotfile-archive/<YYYY-MM-DD-HHMMSS>/`
+containing the files it replaced, a snapshot of each macOS preference domain it touched, and a
+`manifest.json` recording what changed. A `latest` symlink points at the newest archive.
+
+```zsh
+./setup.sh --list-archives        # show archives with timestamps
+./setup.sh --uninstall            # revert the most recent run (latest)
+./setup.sh --uninstall 2026-07-03-141530   # revert a specific run
+./setup.sh --dry-run -m           # preview what a step would change, write nothing
+```
+
+Reset is **guarded**: a file or macOS setting is only reverted if its current value still
+matches what setup applied. If you changed it afterward, it is left untouched and logged as
+`user-modified, left as-is`. Files that setup replaced are restored from the archive; files it
+newly added are removed. System-level settings (`pmset`, `nvram`, `systemsetup`, firewall) are
+reverted on a best-effort basis — readable values are restored, and anything that can't be read
+back precisely is returned to a known macOS default and logged.
 
 ## Manual Configuration
 
@@ -124,7 +153,8 @@ Some settings can't be automated and require manual setup:
 | `.gitattributes` | Git file handling attributes |
 | `.wgetrc` | Wget configuration |
 | `ghosty_config.txt` | Ghostty terminal configuration reference |
-| `setup.sh` | Main setup script |
+| `setup.sh` | Entry-point shim that runs the `macos_setup` package |
+| `macos_setup/` | Python package: install, archive, and uninstall/reset logic |
 
 ## Customization
 
@@ -151,6 +181,9 @@ To pull the latest changes and re-sync:
 cd ~/Workspace/dotfiles
 ./setup.sh
 ```
+
+Each re-run creates its own timestamped archive, so you can always roll back to the state before
+the most recent run with `./setup.sh --uninstall`.
 
 ### Claude
 

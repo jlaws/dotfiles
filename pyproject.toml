@@ -17,5 +17,8 @@ ignore = ["E501"]
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
 [tool.ty.environment]
 python-version = "3.12"
