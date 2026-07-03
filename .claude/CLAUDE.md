@@ -113,6 +113,15 @@ When working in a git worktree:
 - Unsolicited suggestions beyond scope ("you might also want...").
 - Narrate actions ("Now I will...", "I have completed...", "Let me...").
 
+### Writing style (Hemingway)
+Applies to prose, not code.
+- Short, declarative sentences. One idea each.
+- Simple, common words; a 10-year-old should follow.
+- State it positively: what is, not what isn't.
+- Cut -ly adverbs and filler modifiers.
+- Plain verbs: "use" not "utilize", "looked" not "gazed".
+- Respect the reader's time; a rare vivid word is fine, used sparingly.
+
 ## Output Formatting
 - No em dashes, smart quotes, or decorative Unicode in code output.
 - Plain hyphens and straight quotes only.

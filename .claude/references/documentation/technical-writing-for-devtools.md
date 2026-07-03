@@ -60,6 +60,13 @@ See references/changelog-patterns.md for Keep a Changelog format, styles, and ru
 - Max 25 words per sentence for instructional content
 - Use "Note:" sparingly; if everything is a note, nothing is
 
+### Word Choice (Hemingway)
+- Prefer simple, common words; a 10-year-old should follow
+- Positive over negative: state what is, not what isn't
+- Cut -ly adverbs and filler modifiers
+- Plain verbs: "use" not "utilize", "looked" not "gazed"
+- Short sentences carry weight; a rare vivid word is fine, used sparingly
+
 ## Information Architecture
 
 ### Progressive Disclosure

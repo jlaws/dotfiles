@@ -14,6 +14,7 @@ Sources of inspiration and borrowed patterns behind this repo's dotfiles, config
 - **Agent Skills specification (agentskills.io)** — https://agentskills.io/specification — the `.agents/` knowledge base follows this spec (`SKILL.md` + YAML frontmatter, `agent-*`/`cmd-*` naming). Cited in `CLAUDE.md` and `.agents/README.md`.
 - **Google Style Guides** — https://google.github.io/styleguide/ — `Source:` citations throughout `references/languages/*` (Python, Go, Swift API Design, and others).
 - **Keep a Changelog** — https://keepachangelog.com/ — changelog format used in `references/documentation/changelog-patterns.md`.
+- **Hemingway writing style (Cole Schafer)** — https://www.coleschafer.com/blog/ernest-hemingway-writing-style — prose-style guidance ("Writing style (Hemingway)" blocks) in the harness configs and `references/documentation/technical-writing-for-devtools.md`.
 
 ## Vendored third-party files
 

@@ -37,6 +37,8 @@
 - No em dashes, smart quotes, or decorative Unicode in code output. Plain hyphens and straight quotes.
 - Code output must be copy-paste safe.
 - Return code first, explanation after (only if non-obvious).
+- Prose (not code): short declarative sentences, simple common words, positive phrasing.
+- Cut -ly adverbs and filler; use plain verbs ("use" not "utilize"). Respect reader time.
 
 ## Execution Defaults
 
