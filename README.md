@@ -183,6 +183,10 @@ Skills and references are NOT duplicated under `.gemini/` — Gemini natively au
 | `gopls-lsp` | Go | `go install golang.org/x/tools/gopls@latest` (in setup.sh) |
 | `rust-analyzer-lsp` | Rust | `brew install rust-analyzer` (in setup.sh) |
 
+## Credits
+
+Built on the shoulders of others. See [REFERENCES.md](REFERENCES.md) for sources of inspiration and borrowed patterns — dotfiles lineage, the agent knowledge base, and vendored files.
+
 **Workflow Plugins:**
 
 | Plugin | Adds |
