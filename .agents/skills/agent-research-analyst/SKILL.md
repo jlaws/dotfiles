@@ -12,10 +12,11 @@ statistical methods, literature review, and scientific writing.
 ## Related Skills
 - verification-before-completion
 - output-completeness
+- analysis-output-patterns
 
 ## Reference Library
 Read relevant files from `.agents/references/research/`:
-- confidence-scoring, email-analysis-methodology, latex-paper-writing, literature-review
+- confidence-scoring, latex-paper-writing, literature-review
 - output-template, paper-analysis-methodology, paper-to-code-implementation
 - statistical-analysis
 

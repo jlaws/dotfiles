@@ -86,3 +86,8 @@ Load proactively when:
 - Writing a research analysis or technical report
 - Generating test suites (skeleton tests = broken tests)
 - Any task where "partially done" would block the user
+
+## Cross-References
+
+- **workflow:llm-output-completeness** — root cause research and parameter tuning for truncation
+- **workflow:completeness-principle** — project-level completeness standards

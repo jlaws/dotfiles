@@ -8,9 +8,14 @@ Scope: $ARGUMENTS
 
 If no arguments provided, analyzes both global and local CLAUDE.md against last 20 conversations.
 
-**You may delegate independent analysis passes to subagents and run them in parallel. Synthesize and verify their output before presenting.**
+**You may delegate independent analysis passes (per CLAUDE.md file or per perspective) to subagents and run them in parallel. Synthesize and verify their output before presenting.**
 
-For implementation and review checklists, see `references/workflow/task-execution-checklists`.
+Load these before analyzing:
+- Load skill `code-agent-meta-patterns` — CLAUDE.md design patterns, context budget rules
+- Load skill `verification-before-completion` — evidence-before-claims methodology
+- Load skill `writing-skills` — skill creation and testing methodology
+- Read `.agents/references/workflow/context-efficiency` — context management patterns
+- Read `.agents/references/workflow/task-execution-checklists` — implementation and review checklists
 
 ## Review Process
 
@@ -26,7 +31,7 @@ For implementation and review checklists, see `references/workflow/task-executio
    - Is there an outdated rule that caused bad behavior? → Flag as stale rule
 
 ### Step 3: Multi-Perspective Review
-Analyze sequentially from each perspective:
+Analyze from each perspective (inline, or delegated in parallel per the note above):
 
 **3.1 Instruction Compliance**
 - Which CLAUDE.md rules were violated in recent conversations?
@@ -64,13 +69,3 @@ Analyze sequentially from each perspective:
 - Present findings to user
 - Ask which changes to implement
 - Make approved edits to CLAUDE.md file(s)
-
----
-
-### Cross-References
-
-- **skill:code-agent-meta-patterns** — CLAUDE.md design patterns, context budget rules
-- **reference:workflow/context-efficiency** — context management patterns
-- **reference:workflow/task-execution-checklists** — implementation and review checklists
-- **skill:verification-before-completion** — evidence-before-claims methodology
-- **skill:writing-skills** — skill creation and testing methodology

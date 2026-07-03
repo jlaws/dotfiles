@@ -12,6 +12,7 @@ analytics, and platform architecture.
 ## Related Skills
 - test-driven-development
 - verification-before-completion
+- analysis-output-patterns
 
 ## Reference Library
 Read relevant files from `.agents/references/data/`:

@@ -11,4 +11,6 @@ Before starting, gather diagnostic context:
 3. **Check component structure** for existing component library, storybook config, or design system setup.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a component, scope to that; otherwise scan for src/components/, pages/, app/, or similar directories).
 
+For deep frontend guidance, delegate to the `frontend-engineer` agent, passing the diagnostic findings above and the request. It loads its skills (language-testing-patterns, output-completeness) and the `.agents/references/frontend/` library, then returns specific guidance. Verify its output before presenting.
+
 Help with: $ARGUMENTS

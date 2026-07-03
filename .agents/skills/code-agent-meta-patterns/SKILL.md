@@ -1,9 +1,9 @@
 ---
 name: code-agent-meta-patterns
-description: "Code agent workflow optimization including CLAUDE.md design, hooks configuration, and context management. Use when optimizing code agent workflows, designing CLAUDE.md files, or configuring hooks. Do NOT use for skill creation or editing workflow (use writing-skills)."
+description: "Code agent workflow optimization including CLAUDE.md design and hooks configuration. Use when optimizing Claude Code workflows, designing CLAUDE.md files, or configuring hooks. Do NOT use for skill creation or editing workflow (use writing-skills)."
 ---
 
-# Code Agent Meta-Patterns
+# Claude Code Meta-Patterns
 
 ## CLAUDE.md Optimization
 
@@ -11,7 +11,7 @@ description: "Code agent workflow optimization including CLAUDE.md design, hooks
 
 | Include | Avoid |
 |---------|-------|
-| Project-specific conventions (naming, patterns) | Generic programming advice the agent already knows |
+| Project-specific conventions (naming, patterns) | Generic programming advice Claude already knows |
 | Build/test/lint commands | Full API documentation (link to it instead) |
 | Architecture decisions and rationale | Verbose explanations of obvious patterns |
 | File/directory purpose map | Repeating info available in package.json/pyproject.toml |
@@ -80,7 +80,7 @@ description: "Use when [specific trigger scenario]. Also applies to [related sce
 ```
 
 **Description rules:**
-- Always start with "Use when" -- this is the trigger phrase the agent matches on
+- Always start with "Use when" -- this is the trigger phrase Claude matches on
 - Be specific: "Use when writing database migrations" not "Use for database stuff"
 - Include 2-3 trigger scenarios separated by commas or "or"
 - Keep under 200 characters
@@ -123,6 +123,45 @@ Over 350 lines: split into multiple skills.
 | "Use when writing unit tests for React components using Testing Library" | "Use for testing" |
 | "Use when debugging production incidents, writing postmortems, or setting up alerting" | "Incident management" |
 
+## Command Design
+
+Commands are thin wrappers that invoke skills. Keep them minimal.
+
+### Command Structure
+
+```markdown
+---
+name: review
+description: "Review code changes for quality, security, and convention compliance"
+---
+
+Use the code-review skill to review the current changes.
+
+Focus on: $ARGUMENTS
+
+If no arguments provided, review all staged/unstaged changes.
+```
+
+### `$ARGUMENTS` Patterns
+
+| Pattern | Use Case | Example Invocation |
+|---------|----------|--------------------|
+| Pass-through | Skill needs user context | `/review focus on security` |
+| Optional | Skill has sensible defaults | `/deploy` or `/deploy staging` |
+| Structured | Multiple params needed | `/j-create-pr base=main title="Fix auth"` |
+
+### Rules
+- One command = one skill invocation (usually)
+- Commands in `.claude/commands/` for project, `~/.claude/commands/` for global
+- No logic in commands; all logic lives in skills
+- Description should make the command discoverable
+
+## Hook Patterns
+
+See `references/workflow/hook-patterns.md` for full examples (PreToolUse, PostToolUse JSON configs).
+
+**Key principles:** hooks should be fast (<5s), fail loudly, use narrow matchers, test manually first.
+
 ## Context Management
 
 ### Keeping Context Small
@@ -133,14 +172,17 @@ Over 350 lines: split into multiple skills.
 | Scope CLAUDE.md | Always | Only include what affects daily coding |
 | Prune stale instructions | Monthly | Remove anything that hasn't been relevant |
 | Use directory-level CLAUDE.md | Large monorepos | Put module-specific rules in module dirs |
-| Search then read | Always | Search first, read only confirmed-relevant files |
+| Search then read | Always | Glob/Grep first, Read only confirmed-relevant files |
 | Clean external content | WebFetch, logs | Strip HTML boilerplate, nav, ads before reasoning |
+| U-shaped placement | CLAUDE.md, skills | Critical content at beginning/end, reference in middle |
 
 ### Context Budget Rules
 - CLAUDE.md files: aim for <150 lines each
 - Skills: 150-300 lines typical
 - If a skill needs >350 lines, it's trying to do too much
 - Prefer tables and code over prose (higher information density)
+- Avoid volatile content in CLAUDE.md (timestamps, changing metrics) — breaks KV cache prefix
+- See `references/workflow/context-efficiency` for full patterns
 
 ## Task Decomposition
 
@@ -168,11 +210,19 @@ When tackling complex tasks, analyze sequentially from different roles:
 - Use `run_in_background` for long builds/tests while continuing other work
 - Collect results when notified, then synthesize
 
+## Permission Management
+
+See `references/workflow/permission-management.md` for full settings hierarchy and JSON examples.
+
+**Key rules:** minimal permissions by default, deny overrides allow, use glob patterns, `settings.local.json` for personal overrides.
+
 ## Gotchas
 
-- **Context bloat**: Every line in CLAUDE.md consumes context window. Ruthlessly prune. If the agent already knows it (general programming, language syntax), don't restate it.
+- **Context bloat**: Every line in CLAUDE.md consumes context window. Ruthlessly prune. If Claude already knows it (general programming, language syntax), don't restate it.
 - **Over-engineering skills**: A skill should solve a recurring problem. If you've only needed it once, it's not a skill -- it's a conversation. Wait for the third occurrence.
 - **Stale instructions**: CLAUDE.md that references deleted files, old conventions, or deprecated workflows actively misleads. Review quarterly.
-- **Description mismatch**: If the skill description doesn't match what the skill actually does, the agent will invoke it at the wrong time or skip it when needed. Test trigger phrases.
+- **Description mismatch**: If the skill description doesn't match what the skill actually does, Claude will invoke it at the wrong time or skip it when needed. Test trigger phrases.
 - **Skill overlap**: Two skills with similar descriptions cause unpredictable invocation. Deduplicate or make descriptions clearly distinct.
+- **Command complexity**: If a command file exceeds 10 lines, the logic should be in a skill. Commands are routing, not logic.
+- **Hook performance**: A slow hook on every file write makes the entire workflow painful. Profile hooks and keep them under 2 seconds.
 - **Ignoring layer precedence**: Putting project-specific rules in global CLAUDE.md means they apply to every project. Keep global truly global.

@@ -1,8 +1,6 @@
 ---
 name: skill-audit
 description: "Audit the .claude/ knowledge base — skills, commands, agents, references, config, and cross-references. Use when validating conformance after creating or modifying any .claude/ asset, checking naming conventions, or verifying knowledge base integrity. Do NOT use for general code quality (use code-quality) or code review (use code-review-patterns)."
-compatibility: claude-code
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Knowledge Base Audit

@@ -140,7 +140,7 @@ with DAG(dag_id='sensor_example', schedule='@daily', start_date=datetime(2024, 1
     wait_for_file = S3KeySensor(
         task_id='wait_for_s3_file',
         bucket_name='data-lake',
-        bucket_key='raw/{{ ds }}/data.parquet',
+        bucket_key='raw/{{ ds }}/j-data.parquet',
         aws_conn_id='aws_default',
         timeout=60 * 60 * 2,
         poke_interval=60 * 5,

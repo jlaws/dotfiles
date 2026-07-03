@@ -1,26 +1,29 @@
 description = "Comprehensive system design suite -- produce architecture documents covering multiple perspectives. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /j-arch instead)."
 
 prompt = '''
+Load the `design-first` skill by reading `~/.agents/skills/design-first/SKILL.md` for design-before-implementation discipline.
+Load the `analysis-output-patterns` skill by reading `~/.agents/skills/analysis-output-patterns/SKILL.md` for output structure rules.
+
 Parse arguments: `{{args}}` is a freeform system description that may contain file or directory references inline.
 - The entire string is the system description -- do not strip paths from it.
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
 - If `{{args}}` is empty, ask the user for a system description.
 
-**You may delegate independent design perspectives to specialist agents and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
+**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`) and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
 
 ## Design Process
 
 ### Phase 1: Discovery
 
 **Step 1 -- Scan for candidate documentation:**
-1. Use `glob` for common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
-2. Use `glob` for root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
-3. Use `glob` for design doc patterns: `**/ADR-*.md`, `**/design-*.md`, `**/RFC-*.md`
+1. Glob for common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
+2. Glob for root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
+3. Glob for design doc patterns: `**/ADR-*.md`, `**/design-*.md`, `**/RFC-*.md`
 4. Include any file or directory paths found inline in `{{args}}`
 
 **Step 2 -- Filter by relevance to the system description:**
 1. First pass: filter candidates by file/directory names and paths -- keep files whose names relate to the described system
-2. Second pass: for ambiguous candidates, use `grep_search` to search file contents for keywords from the system description
+2. Second pass: for ambiguous candidates, use Grep to search file contents for keywords from the system description
 3. Discard files that are clearly unrelated (e.g. skip `docs/billing.md` when designing an auth system)
 
 **Step 3 -- Read selected files and explore the codebase:**
@@ -28,8 +31,16 @@ Parse arguments: `{{args}}` is a freeform system description that may contain fi
 2. Read the project structure and key source files
 3. Identify existing architecture patterns, APIs, data models
 
+**Step 4 -- Delegate perspectives to specialist agents (recommended when the system is large):**
+Hand each Phase 2 perspective to its agent, in parallel -- they load the relevant skills + `~/.agents/references/` libraries and return findings:
+- Component Architecture, API Design -> `architecture-specialist`
+- Data Architecture -> `data-engineer`
+- Security & Operations -> `security-reviewer` (security) + `devops-engineer` (deployment/observability)
+
+Synthesize their findings in Phase 4 and verify each against the codebase. For small systems, analyze the perspectives inline instead.
+
 ### Phase 2: Multi-Perspective Analysis
-Analyze the system from each perspective sequentially:
+Analyze the system from each perspective (inline, or delegated in parallel per Step 4):
 
 **2.1 Component Architecture**
 - System boundaries and component responsibilities
@@ -60,7 +71,7 @@ Analyze the system from each perspective sequentially:
 - Observability: metrics, logging, tracing, alerting
 - Failure modes and recovery strategy
 - Capacity planning and scaling approach
-- Incident response -- what can be rolled back, what cannot
+- Incident response -- what can be rolled back, what can't
 
 ### Phase 3: Cross-Cutting Analysis
 
@@ -130,7 +141,7 @@ For each significant design decision:
 - Design requires coordination between components for basic operations
 - No clear error handling strategy
 - Design optimizes for hypothetical future requirements over current needs
-- Cannot explain a component purpose in one sentence
+- Can't explain a component's purpose in one sentence
 - "It depends" is the answer to most questions about the design
 
 ---
@@ -142,7 +153,7 @@ Review your work with fresh eyes before presenting to the user:
 **Completeness:**
 - Did I analyze every perspective thoroughly?
 - Did I miss any requirements or constraints?
-- Are there edge cases or failure modes I did not consider?
+- Are there edge cases or failure modes I didn't consider?
 
 **Quality:**
 - Is the design document clear and actionable?

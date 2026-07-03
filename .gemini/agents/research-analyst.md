@@ -19,7 +19,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - analysis-output-patterns
 
 Reference library at `~/.agents/references/research/`:
-- confidence-scoring, email-analysis-methodology, latex-paper-writing, literature-review
+- confidence-scoring, latex-paper-writing, literature-review
 - output-template, paper-analysis-methodology, paper-to-code-implementation
 - statistical-analysis
 

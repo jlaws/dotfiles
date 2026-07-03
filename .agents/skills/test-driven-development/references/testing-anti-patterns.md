@@ -34,6 +34,8 @@ test('renders sidebar', () => {
 - Test passes when mock is present, fails when it's not
 - Tells you nothing about real behavior
 
+**your human partner's correction:** "Are we testing the behavior of a mock?"
+
 **The fix:**
 ```typescript
 // ✅ GOOD: Test real component or don't mock it
@@ -186,6 +188,12 @@ const mockResponse = {
 // Later: breaks when code accesses response.metadata.requestId
 ```
 
+**Why this is wrong:**
+- **Partial mocks hide structural assumptions** - You only mocked fields you know about
+- **Downstream code may depend on fields you didn't include** - Silent failures
+- **Tests pass but integration fails** - Mock incomplete, real API complete
+- **False confidence** - Test proves nothing about real behavior
+
 **The Iron Rule:** Mock the COMPLETE data structure as it exists in reality, not just fields your immediate test uses.
 
 **The fix:**
@@ -199,7 +207,37 @@ const mockResponse = {
 };
 ```
 
+### Gate Function
+
+```
+BEFORE creating mock responses:
+  Check: "What fields does the real API response contain?"
+
+  Actions:
+    1. Examine actual API response from docs/examples
+    2. Include ALL fields system might consume downstream
+    3. Verify mock matches real response schema completely
+
+  Critical:
+    If you're creating a mock, you must understand the ENTIRE structure
+    Partial mocks fail silently when code depends on omitted fields
+
+  If uncertain: Include all documented fields
+```
+
 ## Anti-Pattern 5: Integration Tests as Afterthought
+
+**The violation:**
+```
+✅ Implementation complete
+❌ No tests written
+"Ready for testing"
+```
+
+**Why this is wrong:**
+- Testing is part of implementation, not optional follow-up
+- TDD would have caught this
+- Can't claim complete without tests
 
 **The fix:**
 ```
@@ -219,7 +257,30 @@ test('has correct default timeout', () => {
   const config = new AppConfig();
   expect(config.timeout).toBe(5000);  // Restates source code
 });
+
+// ❌ BAD: Testing route registration
+test('registers /users endpoint', () => {
+  const routes = app.getRoutes();
+  expect(routes).toContainEqual({ path: '/users', method: 'GET' });
+});
+
+// ❌ BAD: Testing enum values
+test('Status has ACTIVE value', () => {
+  expect(Status.ACTIVE).toBe('active');
+});
+
+// ❌ BAD: "Renders without crashing" with no assertion
+test('renders without crashing', () => {
+  render(<UserProfile />);
+  // ...nothing checked
+});
 ```
+
+**Why this is wrong:**
+- Tautologies that restate source code as assertions
+- No decision, transformation, or behavior path exercised
+- Pass by definition — can only fail if source code changes (which is what you want)
+- Inflate coverage without catching any bugs
 
 **The fix:**
 ```typescript
@@ -233,6 +294,40 @@ test('retries up to configured max attempts', () => {
   expect(result.status).toBe(200);
   expect(mockApi.callCount).toBe(3);
 });
+
+// ✅ GOOD: Test handler logic, not route existence
+test('GET /users returns paginated results', async () => {
+  const res = await request(app).get('/users?page=2&limit=10');
+  expect(res.body.data).toHaveLength(10);
+  expect(res.body.page).toBe(2);
+});
+
+// ✅ GOOD: Render with behavioral assertion
+test('displays user name and email', () => {
+  render(<UserProfile user={testUser} />);
+  expect(screen.getByText(testUser.name)).toBeInTheDocument();
+  expect(screen.getByText(testUser.email)).toBeInTheDocument();
+});
+```
+
+### Gate Function
+
+```
+BEFORE writing any test:
+  Ask: "What decision, transformation, or behavior does this test exercise?"
+
+  IF answer is "checks a value is set/exists":
+    STOP - This is a tautology test
+    Find the logic that USES the value and test that instead
+
+  IF answer is "confirms something is registered/configured":
+    STOP - Test the behavior the registration enables
+
+  Red flags:
+    - Test mirrors a single line of source code
+    - No conditional or transformation in the code under test
+    - Test only verifies assignment or existence
+    - Removing the test would never let a real bug through
 ```
 
 ## Anti-Pattern 7: Testing Test Code
@@ -244,9 +339,28 @@ describe('createMockUser', () => {
   test('returns user with default values', () => {
     const user = createMockUser();
     expect(user.id).toBeDefined();
+    expect(user.name).toBeDefined();
+    expect(user.email).toContain('@');
+  });
+
+  test('applies overrides', () => {
+    const user = createMockUser({ name: 'Alice' });
+    expect(user.name).toBe('Alice');
   });
 });
+
+// ❌ BAD: Testing a test fixture loader
+test('loadFixture returns parsed JSON', () => {
+  const data = loadFixture('users.json');
+  expect(data).toBeInstanceOf(Array);
+});
 ```
+
+**Why this is wrong:**
+- **Circular validation** -- test code verifying test code, no production behavior exercised
+- **Inflates coverage on non-production code** -- meaningless metric improvement
+- **Test code is validated implicitly** -- if `createMockUser` is broken, the production tests using it fail
+- **If a helper is complex enough to need its own tests, it should be production code**
 
 **The fix:**
 ```typescript
@@ -257,7 +371,47 @@ test('deactivated users cannot place orders', () => {
 
   expect(() => order.place(user, cart)).toThrow('User is deactivated');
 });
+
+// The factory is validated by this test working correctly.
+// If createMockUser breaks, this test breaks -- no separate test needed.
 ```
+
+### Gate Function
+
+```
+BEFORE writing a test:
+  Ask: "Is the code under test production code or test infrastructure?"
+
+  IF test infrastructure (helpers, fixtures, factories, mocks, utilities):
+    STOP - Don't write tests for test code
+    Test code is validated when production tests that use it pass
+
+  IF the helper is complex enough to seem like it needs tests:
+    Move it to production code (shared library/utility)
+    THEN write tests for it as production code
+```
+
+## When Mocks Become Too Complex
+
+**Warning signs:**
+- Mock setup longer than test logic
+- Mocking everything to make test pass
+- Mocks missing methods real components have
+- Test breaks when mock changes
+
+**your human partner's question:** "Do we need to be using a mock here?"
+
+**Consider:** Integration tests with real components often simpler than complex mocks
+
+## TDD Prevents These Anti-Patterns
+
+**Why TDD helps:**
+1. **Write test first** → Forces you to think about what you're actually testing
+2. **Watch it fail** → Confirms test tests real behavior, not mocks
+3. **Minimal implementation** → No test-only methods creep in
+4. **Real dependencies** → You see what the test actually needs before mocking
+
+**If you're testing mock behavior, you violated TDD** - you added mocks without watching test fail against real code first.
 
 ## Quick Reference
 
@@ -281,6 +435,8 @@ test('deactivated users cannot place orders', () => {
 - Can't explain why mock is needed
 - Mocking "just to be safe"
 - Tautology tests that restate source code as assertions
+- No conditional or transformation in code under test
+- Tests that only verify assignment or existence
 - Tests targeting test helpers, factories, or fixtures instead of production code
 
 ## The Bottom Line

@@ -15,7 +15,7 @@ distributed patterns, and technology decisions.
 
 ## Reference Library
 Read relevant files from `.agents/references/architecture/`:
-- api-design-checklist, api-design-principles, architecture-decision-records, decision-logging
+- api-design-checklist, api-design-principles, architecture-decision-records, decision-logging, rest-api-template
 
 Also see `.agents/references/workflow/`:
 - existing-code-discipline

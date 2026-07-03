@@ -85,7 +85,7 @@ services:
       context: .
       dockerfile: Dockerfile.train
     volumes:
-      - ./data:/app/data
+      - ./j-data:/app/data
       - ./checkpoints:/app/checkpoints
     deploy:
       resources:

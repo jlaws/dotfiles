@@ -146,7 +146,7 @@ Plan saved to `docs/plans/<filename>.md`. Execution options:
 1. **Execute now** — I'll work through tasks in batches with review checkpoints
    (uses executing-plans skill)
 
-2. **Execute in new session** — Open new session and run the plan
+2. **Execute in new session** — Open new session and load the `executing-plans` skill
    (better for large plans — fresh context per batch)
 
 3. **Manual** — You execute the plan yourself

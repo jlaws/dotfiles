@@ -10,6 +10,7 @@ Create a HANDOFF.md that lets the next session (or a different agent) resume wor
 ## When to Create
 
 - Session ending with incomplete work
+- Context window pressure (approaching compaction)
 - Switching to a different task temporarily
 - Handing off to a teammate or different agent
 - Before a planned break in multi-session work

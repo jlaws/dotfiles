@@ -86,7 +86,7 @@ Confirm:
 
 ### GREEN - Minimal Code
 
-Write simplest code to pass the test. Nothing more.
+Write simplest code to pass the test. Nothing more. Write the complete solution in one pass — not incrementally (partial code → test → add more → test again wastes cycles).
 
 ```typescript
 async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
@@ -102,6 +102,8 @@ async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
 ```
 
 Don't add features, refactor other code, or "improve" beyond the test.
+
+**Stop when green.** Once tests pass, you are done. Do not refactor, polish, or improve passing code unless explicitly asked. Passing tests = stop.
 
 ### Verify GREEN - Watch It Pass
 
@@ -185,6 +187,7 @@ Can't check all boxes? You skipped TDD. Start over.
 | Test too complicated | Design too complicated. Simplify interface. |
 | Must mock everything | Code too coupled. Use dependency injection. |
 | Test setup huge | Extract helpers. Still complex? Simplify design. |
+| Same error twice | Max 2 fix attempts on the same failure. If still failing, rethink the approach entirely. |
 
 ## Debugging Integration
 

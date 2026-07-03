@@ -1,7 +1,9 @@
 description = "Design-before-implementation workflow -- explore intent, requirements, and design before writing code. Use when creating features, building components, or modifying behavior. Do NOT use after implementation is started (use /j-execute-plan instead)."
 
 prompt = '''
-Load the `design-first` skill by reading `~/.agents/skills/design-first/SKILL.md` before doing anything else. Use it to explore intent, requirements, and design for the topic below.
+Load the `design-first` skill by reading `~/.agents/skills/design-first/SKILL.md` before doing anything else. Use it to explore intent, requirements, and design for the topic below. Load the `analysis-output-patterns` skill by reading `~/.agents/skills/analysis-output-patterns/SKILL.md` for output structure.
+
+For scoping, product framing, or architecture options, you may delegate to a specialist agent -- `scope-reviewer` or `product-manager` (load `~/.agents/references/product/`) or `architecture-specialist` (loads `~/.agents/references/architecture/`). Verify their output before presenting.
 
 Topic: {{args}}
 

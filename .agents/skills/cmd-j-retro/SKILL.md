@@ -3,6 +3,7 @@ name: cmd-j-retro
 description: "Engineering retrospective from git history — metrics, patterns, and insights for a time window. Use when reviewing what shipped, what blocked, and high-churn areas. Do NOT use for team retrospectives (single-person focused)."
 disable-model-invocation: true
 ---
+
 # Engineering Retrospective
 
 Time window: the user's provided input (default: 14 days)

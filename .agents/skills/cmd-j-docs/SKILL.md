@@ -11,6 +11,8 @@ Before starting, gather diagnostic context:
 1. **Detect documentation tooling** from config files (docusaurus.config.js, mkdocs.yml, .readthedocs.yml, typedoc.json, sphinx conf.py).
 2. **Identify existing docs** by searching for docs/, README.md, CHANGELOG.md, or API specification files.
 3. **Check for API schemas** by searching for openapi.yaml, swagger.json, or GraphQL schema files.
-4. **Get scope overview** of the target area (if the user specifies a component, scope to that; otherwise scan for documentation directories).
+4. **Get scope overview** of the target area (if the user's provided input specifies a component, scope to that; otherwise scan for documentation directories).
 
-Help with the documentation topic specified by the user.
+For deep documentation guidance, delegate to the `documentation-writer` agent, passing the diagnostic findings above and the request. It loads its skills (post-ship-doc-sync, output-completeness) and the `.agents/references/documentation/` library, then returns specific guidance. Verify its output before presenting.
+
+Help with: the user's provided input

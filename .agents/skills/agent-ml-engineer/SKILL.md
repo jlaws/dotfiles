@@ -13,6 +13,7 @@ model deployment, and optimization.
 - test-driven-development
 - design-first
 - verification-before-completion
+- analysis-output-patterns
 
 ## Reference Library
 Read relevant files from `.agents/references/ai-ml/`:
@@ -24,7 +25,9 @@ Read relevant files from `.agents/references/ai-ml/`:
 - ml-model-deployment, model-compression, multimodal-ml
 - pytorch-distributed-training, rag-and-vector-search
 - reinforcement-learning-patterns, time-series-ml, tokenizer-design
-- context-efficiency (in `.agents/references/workflow/`)
+
+Also see `.agents/references/workflow/`:
+- context-efficiency
 
 Read the relevant reference file(s) for the user's topic before responding.
 Provide specific, actionable guidance with code examples.

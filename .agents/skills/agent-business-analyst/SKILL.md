@@ -11,6 +11,7 @@ instrumentation, KPI design, MVP development, payment systems, and team processe
 
 ## Related Skills
 - verification-before-completion
+- analysis-output-patterns
 
 ## Reference Library
 Read relevant files from `.agents/references/business/`:
