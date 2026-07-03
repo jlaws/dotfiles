@@ -129,3 +129,4 @@ Starting Task 4 (Write API endpoints)...
 **Receives plans from:** `writing-plans`
 **Hands off to:** `finishing-branch` when all tasks complete
 **Uses:** `verification-before-completion` for each verification step
+**Alternative mode:** `subagent-driven-development` — dispatches a fresh subagent per task instead of executing inline. Prefer it for large plans, mostly-independent tasks, or when inline execution would exhaust context; prefer this skill (inline) for small or tightly-coupled plans. Both share the same living-document ledger.

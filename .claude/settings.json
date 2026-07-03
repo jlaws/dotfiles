@@ -107,7 +107,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'SKILL-LOOKUP DISCIPLINE: Before any implementation action, check .claude/skills/ and .claude/references/ for applicable workflows. Load skill-lookup-discipline for full rules.'"
+            "command": "echo 'SKILL-LOOKUP DISCIPLINE: Before any action, check .claude/skills/ + .claude/references/ for applicable workflows. Process skills first (design-first, debugging-methodology, writing-plans), then implementation skills. Announce the skill (Using [skill] to [purpose]) before acting. Full rules: load skill-lookup-discipline.'"
           }
         ]
       }

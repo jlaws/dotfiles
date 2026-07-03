@@ -35,6 +35,12 @@ Examples:
 - "Fix this bug" → debugging skill first, then domain-specific references
 - "Review this PR" → code-review-patterns first
 
+## Announce the Skill
+
+When you invoke a skill, say so before acting: **`Using [skill] to [purpose].`** This makes the workflow visible and surfaces a wrong-skill choice early, before you've acted on it.
+
+If the skill contains a checklist or numbered process, create matching todos so each step is tracked to completion.
+
 ## Skill Types
 
 **Rigid** (TDD, verification-before-completion, debugging): Follow exactly. Don't adapt away discipline.

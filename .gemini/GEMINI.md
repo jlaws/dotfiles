@@ -66,6 +66,9 @@ This rule applies to `run_shell_command` calls only -- not to Dockerfile `RUN` l
 
 Use subagents to parallelize independent work and to delegate to specialist agents (`~/.gemini/agents/`, invoked via `@agent-<name>`) when a task matches their domain — commands gather context, then invoke the matching agent. Prefer delegation for well-scoped, independent subtasks and run them in parallel when they don't depend on each other; keep tightly-coupled or sequential work in a single context. A subagent reporting "success" is not proof — verify its output against source evidence (see `verification-before-completion`).
 
+- **Parallel dispatch**: for concurrent independent work, load the `dispatching-parallel-agents` skill (`~/.agents/skills/dispatching-parallel-agents/SKILL.md`).
+- **Plan execution modes**: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) -- choose by plan size/coupling; both via `/j-execute-plan`.
+
 ## Worktree Rules
 
 When working in a git worktree:
