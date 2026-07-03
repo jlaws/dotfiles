@@ -121,16 +121,6 @@
           }
         ]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/lessons-learned.sh"
-          }
-        ]
-      }
     ]
   },
   "env": {

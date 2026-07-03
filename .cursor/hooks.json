@@ -10,11 +10,6 @@
       {
         "command": ".cursor/hooks/log-prompt.sh"
       }
-    ],
-    "stop": [
-      {
-        "command": ".cursor/hooks/lessons-learned.sh"
-      }
     ]
   }
 }
