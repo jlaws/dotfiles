@@ -136,20 +136,31 @@ git commit -m "feat: add specific feature"
 - **Idempotent steps** — every step safely re-runnable. `CREATE TABLE IF NOT EXISTS`, not `CREATE TABLE`. `mkdir -p`, not `mkdir`. If a step fails midway, re-running it from the top must not corrupt state.
 - **Resolve all ambiguities** — no "choose appropriate X" or "use a suitable library". Every decision is made in the plan. If you can't decide, flag it as a decision gate in a prototyping milestone.
 
+## Self-Review (before handoff)
+
+Before presenting execution options, review the finished plan against this checklist and fix any gap:
+
+- **Spec coverage** — every requirement maps to at least one task; nothing dropped.
+- **Placeholder scan** — no "TBD", "add validation", "handle edge cases", or "choose appropriate X" remains; every decision is made in the plan.
+- **Type/signature consistency** — function and type signatures match across every task that references them.
+
 ## Execution Handoff
 
-After saving the plan, present execution options:
+After the self-review, present execution options:
 
 ```
 Plan saved to `docs/plans/<filename>.md`. Execution options:
 
-1. **Execute now** — I'll work through tasks in batches with review checkpoints
-   (uses executing-plans skill)
+1. **Execute now (inline)** — work through tasks in batches with review checkpoints
+   (uses executing-plans skill; run via /j-execute-plan)
 
-2. **Execute in new session** — Open new session and load the `executing-plans` skill
-   (better for large plans — fresh context per batch)
+2. **Execute via subagents** — fresh agent per task with per-task spec + quality review
+   (uses subagent-driven-development skill; best for large or independent-task plans)
 
-3. **Manual** — You execute the plan yourself
+3. **Execute in new session** — open a new session and load executing-plans
+   (fresh context per batch)
+
+4. **Manual** — you execute the plan yourself
 
 Which approach?
 ```
