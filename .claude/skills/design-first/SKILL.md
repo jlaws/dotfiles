@@ -53,6 +53,7 @@ Every feature goes through this process. A utility function, a config change, a 
 ### Phase 5: Document
 
 - Save validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- **Self-review before committing** — scan the written design for placeholders, internal contradictions, and scope creep (features beyond what was agreed). Fix or flag anything you find.
 - Commit the design document
 - Skip file output only if user explicitly says no
 

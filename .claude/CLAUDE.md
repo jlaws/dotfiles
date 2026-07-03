@@ -59,6 +59,9 @@ This rule applies to Bash tool calls only — not to Dockerfile `RUN` layers, CI
 
 Use subagents to parallelize independent work and to delegate to specialist agents (`.claude/agents/`) when a task matches their domain — commands gather context, then invoke the matching agent. Prefer delegation for well-scoped, independent subtasks and run them in parallel when they don't depend on each other; keep tightly-coupled or sequential work in a single context. A subagent reporting "success" is not proof — verify its output against source evidence (see `verification-before-completion`).
 
+- **Parallel dispatch**: for concurrent independent work, load `dispatching-parallel-agents`.
+- **Plan execution modes**: execute a written plan either inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) — choose by plan size/coupling; both run via `/j-execute-plan`.
+
 ## Worktree Rules
 
 When working in a git worktree:
