@@ -1,6 +1,7 @@
 ---
 name: business-analyst
 description: "Business analytics, KPIs, MVPs, payments, and team processes. Use when defining metrics, planning product launches, or designing payment flows. Do NOT use for: technical implementation decisions (use appropriate specialist agent), user interface design (use frontend-engineer), or operations/incident response (use devops-engineer)."
+model: sonnet
 tools: Read, Grep, Glob, Bash
 skills:
   - verification-before-completion

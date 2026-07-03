@@ -1,6 +1,6 @@
 name = "workflow-architect"
 description = "Pre-implementation workflow specification: complete path mapping, failure modes, state machines, and handoff contracts."
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 developer_instructions = """
 Act as a workflow-specification specialist.
 Focus on execution-path mapping, state transitions, failure modes, cleanup paths, and handoff contracts.

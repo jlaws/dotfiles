@@ -1,6 +1,7 @@
 ---
 name: research-analyst
 description: "Academic research, paper analysis, statistical methods, and literature review. Use when reviewing papers, conducting literature surveys, or designing experiments. Do NOT use for: applied implementation guidance (use specialist agents), business metrics (use business-analyst), or software engineering best practices (use code-reviewer)."
+model: opus
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 skills:
   - verification-before-completion

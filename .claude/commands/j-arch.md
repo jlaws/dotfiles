@@ -2,6 +2,7 @@
 name: j-arch
 description: "Architecture consultation — API design, distributed patterns, and system design. Use when designing APIs, choosing architecture patterns, or making technology decisions."
 argument-hint: "<question-or-task>"
+model: opus
 ---
 
 Load skill `analysis-output-patterns` for output structure rules.

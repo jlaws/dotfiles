@@ -1,6 +1,7 @@
 ---
 name: ml-engineer
 description: "ML/AI architecture, model training, deployment, and optimization. Use when designing ML pipelines, fine-tuning models, or deploying inference services. Do NOT use for: data infrastructure pipelines without ML context (use data-engineer), general system architecture (use architecture-specialist), or research methodology (use research-analyst)."
+model: opus
 tools: Read, Grep, Glob, Bash
 skills:
   - test-driven-development

@@ -1,6 +1,7 @@
 ---
 name: language-specialist
 description: "Language-specific patterns, tooling, and project scaffolding. Use when setting up projects, choosing idiomatic patterns, or configuring language toolchains. Do NOT use for: system architecture decisions (use architecture-specialist), domain-specific guidance (use appropriate specialist agent), or testing discipline (use test-writer)."
+model: sonnet
 tools: Read, Grep, Glob, Bash
 skills:
   - language-testing-patterns

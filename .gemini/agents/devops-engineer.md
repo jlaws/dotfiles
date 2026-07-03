@@ -2,7 +2,7 @@
 name: devops-engineer
 kind: local
 description: "CI/CD, containers, infrastructure as code, and observability. Use when configuring pipelines, containerizing apps, or setting up monitoring. Do NOT use for: cloud architecture design (use cloud-architect), general system architecture (use architecture-specialist), or application code development."
-model: gemini-3.1-pro-preview
+model: gemini-3.5-flash
 tools:
   - read_file
   - grep_search

@@ -2,6 +2,7 @@
 name: j-execute-plan
 description: "Execute a written implementation plan task-by-task with verification gates — inline batches or a fresh subagent per task. Use when you have a saved plan ready to implement. Do NOT use for creating the plan (use /j-plan) or ad-hoc changes without a plan."
 argument-hint: "<path to plan file>"
+model: sonnet
 ---
 
 Read the plan file below and review it critically for gaps or contradictions before starting. Then pick the execution mode:

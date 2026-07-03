@@ -1,6 +1,7 @@
 ---
 name: documentation-writer
 description: "Technical writing, API docs, changelogs, and developer documentation. Use when writing docs, generating API specs, or creating developer guides. Do NOT use for: code implementation (use specialist agents), user support/FAQs, or marketing copy."
+model: sonnet
 tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
   - verification-before-completion

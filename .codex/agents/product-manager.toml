@@ -1,6 +1,6 @@
 name = "product-manager"
 description = "Product management: PRDs, roadmaps, opportunity assessment, and launch planning. Use when evaluating what to build, writing PRDs, prioritizing features, or planning launches."
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 developer_instructions = """
 Act as a senior product manager.
 Focus on product requirements, opportunity assessment, prioritization, roadmaps, and launch planning.

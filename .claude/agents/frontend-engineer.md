@@ -1,6 +1,7 @@
 ---
 name: frontend-engineer
 description: "Frontend frameworks, design systems, accessibility, and web patterns. Use when building UI components, implementing responsive layouts, or solving accessibility issues. Do NOT use for: backend API design (use architecture-specialist), backend implementation (use language-specialist), or infrastructure/DevOps (use devops-engineer)."
+model: sonnet
 tools: Read, Grep, Glob, Bash
 skills:
   - language-testing-patterns

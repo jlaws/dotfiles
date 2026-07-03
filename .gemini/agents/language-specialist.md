@@ -2,7 +2,7 @@
 name: language-specialist
 kind: local
 description: "Language-specific patterns, tooling, and project scaffolding. Use when setting up projects, choosing idiomatic patterns, or configuring language toolchains. Do NOT use for: system architecture decisions (use architecture-specialist), domain-specific guidance (use appropriate specialist agent), or testing discipline (use test-writer)."
-model: gemini-3.1-pro-preview
+model: gemini-3.5-flash
 tools:
   - read_file
   - grep_search

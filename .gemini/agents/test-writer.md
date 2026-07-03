@@ -2,7 +2,7 @@
 name: test-writer
 kind: local
 description: "Writes tests following TDD discipline. Use when implementing features, fixing bugs, or when test coverage is needed. Do NOT use for: test strategy/planning (use architecture-specialist), code review feedback (use code-reviewer), or performance testing methodology (use research-analyst)."
-model: gemini-3.1-pro-preview
+model: gemini-3.5-flash
 tools:
   - read_file
   - grep_search
