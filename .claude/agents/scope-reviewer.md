@@ -1,6 +1,7 @@
 ---
 name: scope-reviewer
 description: "Strategic scope review — challenge assumptions about WHAT to build before design work begins. Four modes: EXPAND, SELECTIVE EXPAND, HOLD, REDUCE. Use when evaluating feature scope, validating MVP boundaries, or before design work. Do NOT use for technical design (use architecture-specialist) or after implementation has started."
+model: opus
 tools: Read, Grep, Glob, Bash
 skills:
   - design-first

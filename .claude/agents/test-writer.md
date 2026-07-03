@@ -1,6 +1,7 @@
 ---
 name: test-writer
 description: "Writes tests following TDD discipline. Use when implementing features, fixing bugs, or when test coverage is needed. Do NOT use for: test strategy/planning (use architecture-specialist), code review feedback (use code-reviewer), or performance testing methodology (use research-analyst)."
+model: sonnet
 tools: Read, Grep, Glob, Bash, Edit, Write
 memory: user
 skills:

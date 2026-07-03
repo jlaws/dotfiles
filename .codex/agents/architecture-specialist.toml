@@ -1,6 +1,6 @@
 name = "architecture-specialist"
 description = "System architecture, API design, and distributed patterns. Use when designing systems, choosing architecture patterns, or evaluating technology trade-offs."
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 developer_instructions = """
 Act as a senior software architect.
 Focus on system design, API architecture, distributed patterns, and technology trade-offs.

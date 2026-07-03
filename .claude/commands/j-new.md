@@ -2,6 +2,7 @@
 name: j-new
 description: "Scaffold a new .claude/ command, skill, or agent with correct structure and best practices. Use when creating any new .claude/ asset. Do NOT use for editing existing assets (edit directly)."
 argument-hint: "<type: command|skill|agent> [name]"
+model: sonnet
 ---
 
 Load skill `writing-skills` for asset-authoring methodology and `skill-audit` for the conformance rules applied in Phase 5, before scaffolding.

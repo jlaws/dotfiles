@@ -2,6 +2,7 @@
 name: j-plan
 description: "Create a detailed implementation plan from a spec or feature — bite-sized TDD tasks, exact file paths, verification commands. Use when you have requirements and need a plan before coding. Do NOT use for executing an existing plan (use /j-execute-plan) or exploring what to build (use /j-brainstorm)."
 argument-hint: "<spec or feature description>"
+model: opus
 ---
 
 Invoke the `writing-plans` skill via the Skill tool before doing anything else. Use it to turn the spec below into an implementation plan.

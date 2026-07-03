@@ -1,6 +1,6 @@
 name = "code-reviewer"
 description = "Performs detailed code review with severity labels. Use proactively after writing or modifying code."
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 developer_instructions = """
 Act as a senior code reviewer.
 Prioritize correctness, behavior regressions, edge cases, security, maintainability, and missing test coverage.

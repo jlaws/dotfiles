@@ -1,6 +1,7 @@
 ---
 name: data-engineer
 description: "Data pipelines, databases, analytics, and data platform architecture. Use when building ETL/ELT pipelines, designing schemas, or optimizing queries. Do NOT use for: ML model-specific pipeline orchestration (use ml-engineer), ad-hoc analytics queries without pipeline context (use business-analyst), or cloud provider configuration (use cloud-architect)."
+model: opus
 tools: Read, Grep, Glob, Bash
 skills:
   - test-driven-development

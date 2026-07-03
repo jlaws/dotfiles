@@ -2,7 +2,7 @@
 name: business-analyst
 kind: local
 description: "Business analytics, KPIs, MVPs, payments, and team processes. Use when defining metrics, planning product launches, or designing payment flows. Do NOT use for: technical implementation decisions (use appropriate specialist agent), user interface design (use frontend-engineer), or operations/incident response (use devops-engineer)."
-model: gemini-3.1-pro-preview
+model: gemini-3.5-flash
 tools:
   - read_file
   - grep_search

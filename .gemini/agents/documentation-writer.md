@@ -2,7 +2,7 @@
 name: documentation-writer
 kind: local
 description: "Technical writing, API docs, changelogs, and developer documentation. Use when writing docs, generating API specs, or creating developer guides. Do NOT use for: code implementation (use specialist agents), user support/FAQs, or marketing copy."
-model: gemini-3.1-pro-preview
+model: gemini-3.5-flash
 tools:
   - read_file
   - grep_search

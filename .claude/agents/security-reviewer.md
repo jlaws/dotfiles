@@ -1,6 +1,7 @@
 ---
 name: security-reviewer
 description: "Reviews code for security vulnerabilities, auth flaws, and secrets exposure. Use proactively when reviewing auth, API, or data handling code. Do NOT use for: security policy/compliance decisions, threat modeling (use architecture-specialist), or general code quality (use code-reviewer)."
+model: opus
 tools: Read, Grep, Glob, Bash
 memory: user
 skills:

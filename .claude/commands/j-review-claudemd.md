@@ -2,6 +2,7 @@
 name: j-review-claudemd
 description: "Analyze recent conversation history to improve CLAUDE.md files — find violated instructions, missing patterns, and outdated rules. Use when tuning Claude Code behavior or after a batch of sessions. Do NOT use for quick questions (edit files directly instead)."
 argument-hint: "<scope: global|local|number|empty>"
+model: sonnet
 ---
 
 Scope: $ARGUMENTS

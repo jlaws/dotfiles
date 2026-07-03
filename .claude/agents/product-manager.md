@@ -1,6 +1,7 @@
 ---
 name: product-manager
 description: "Product management — PRDs, roadmaps, opportunity assessment, and launch planning. Use when evaluating what to build, writing PRDs, prioritizing features, or planning launches. Do NOT use for: technical architecture (use architecture-specialist), business metrics/KPIs (use business-analyst), or implementation (use appropriate specialist agent)."
+model: opus
 tools: Read, Grep, Glob, Bash
 skills:
   - design-first

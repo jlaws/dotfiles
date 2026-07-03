@@ -2,6 +2,7 @@
 name: j-debug
 description: "Systematic bug investigation — root cause analysis, not random fixes. Use when a test fails, a bug appears, or behavior is unexpected. Do NOT use for asking how to fix something (code directly instead)."
 argument-hint: "<bug-description-or-failing-test>"
+model: opus
 ---
 
 Bug / failing test: $ARGUMENTS

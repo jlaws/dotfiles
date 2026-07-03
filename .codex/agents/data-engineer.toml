@@ -1,6 +1,6 @@
 name = "data-engineer"
 description = "Data pipelines, databases, analytics, and data platform architecture. Use when building ETL/ELT pipelines, designing schemas, or optimizing queries."
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 developer_instructions = """
 Act as a senior data engineer.
 Focus on pipelines, schemas, warehouse or lakehouse design, query performance, and data platform trade-offs.

@@ -1,6 +1,7 @@
 ---
 name: devops-engineer
 description: "CI/CD, containers, infrastructure as code, and observability. Use when configuring pipelines, containerizing apps, or setting up monitoring. Do NOT use for: cloud architecture design (use cloud-architect), general system architecture (use architecture-specialist), or application code development."
+model: sonnet
 tools: Read, Grep, Glob, Bash
 skills:
   - verification-before-completion

@@ -2,7 +2,7 @@
 name: frontend-engineer
 kind: local
 description: "Frontend frameworks, design systems, accessibility, and web patterns. Use when building UI components, implementing responsive layouts, or solving accessibility issues. Do NOT use for: backend API design (use architecture-specialist), backend implementation (use language-specialist), or infrastructure/DevOps (use devops-engineer)."
-model: gemini-3.1-pro-preview
+model: gemini-3.5-flash
 tools:
   - read_file
   - grep_search

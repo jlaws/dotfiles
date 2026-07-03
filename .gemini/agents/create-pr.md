@@ -2,7 +2,7 @@
 name: create-pr
 kind: local
 description: "Automate PR workflow -- stage, commit, branch, push, and open a GitHub PR. Use when ready to submit changes for review. Do NOT use for: code review (use code-reviewer), test creation (use test-writer), or git troubleshooting (resolve conflicts manually first)."
-model: gemini-3.1-pro-preview
+model: gemini-3.5-flash
 tools:
   - run_shell_command
   - read_file

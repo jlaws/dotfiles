@@ -2,6 +2,7 @@
 name: j-data
 description: "Data engineering consultation. Use when building data pipelines, optimizing queries, or designing data platforms. Do NOT use for basic SQL questions (search references/data/ for quick help)."
 argument-hint: "<question-or-task>"
+model: opus
 ---
 
 Load skill `analysis-output-patterns` for output structure rules.
