@@ -8,7 +8,10 @@ dev = ["ruff", "ty"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+# macos_setup runs via `python3 -m macos_setup` on whatever system Python a fresh Mac provides
+# (often 3.9, from the Xcode Command Line Tools) -- not the 3.12 dev venv. Target the real floor
+# so lint/type checks catch any accidental 3.10+-only syntax.
+target-version = "py39"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "D", "PIE", "RUF"]
@@ -17,5 +20,8 @@ ignore = ["E501"]
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
 [tool.ty.environment]
-python-version = "3.12"
+python-version = "3.9"

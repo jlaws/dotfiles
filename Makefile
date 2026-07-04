@@ -2,7 +2,7 @@ VENV := .venv
 BIN := $(VENV)/bin
 PY_FILES := $(shell find . -name '*.py' -not -path './.venv/*' -not -path './.claude/references/*')
 
-.PHONY: venv lint format fix typecheck check
+.PHONY: venv lint format fix typecheck check test verify
 
 venv: $(VENV)/.installed
 
@@ -22,4 +22,9 @@ fix: venv
 typecheck: venv
 	@if [ -n "$(PY_FILES)" ]; then $(BIN)/ty check $(PY_FILES); else echo "No Python files to typecheck"; fi
 
+test: venv
+	$(BIN)/python -m unittest discover -s tests -t .
+
 check: lint typecheck
+
+verify: check test
