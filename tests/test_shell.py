@@ -14,6 +14,20 @@ class BuildArgvTests(unittest.TestCase):
         self.assertEqual(build_argv(["pmset", "-a"], sudo=True), ["sudo", "pmset", "-a"])
 
 
+class RunnerLoggingTests(unittest.TestCase):
+    def test_logs_command_and_exit_code_at_debug(self):
+        with self.assertLogs("macos_setup.shell", level="DEBUG") as cm:
+            Runner().run(["printf", "hi"], capture=True)
+        joined = " ".join(cm.output)
+        self.assertIn("printf", joined)
+        self.assertIn("exit 0", joined)
+
+    def test_logs_sudo_prefix(self):
+        with self.assertLogs("macos_setup.shell", level="DEBUG") as cm:
+            Runner().run(["true"], sudo=False)
+        self.assertNotIn("sudo", " ".join(cm.output))
+
+
 class RunnerTests(unittest.TestCase):
     def test_capture_returns_stdout(self):
         result = Runner().run(["printf", "hi"], capture=True)

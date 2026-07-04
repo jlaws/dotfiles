@@ -8,6 +8,7 @@ documented macOS default on revert and logged.
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -17,6 +18,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from macos_setup.archive import Archive
     from macos_setup.shell import Runner
+
+_LOG = logging.getLogger(__name__)
 
 FIREWALL = "/usr/libexec/ApplicationFirewall/socketfilterfw"
 
@@ -173,39 +176,30 @@ def _read(runner: Runner, argv: list[str], sudo: bool) -> str:
     return result.stdout if result.returncode == 0 else ""
 
 
-def apply_system(
-    archive: Archive,
-    runner: Runner,
-    home: Path,
-    *,
-    dry_run: bool = False,
-    log: Callable[[str], None] = print,
-) -> None:
+def apply_system(archive: Archive, runner: Runner, home: Path, *, dry_run: bool = False) -> None:
     """Capture originals then apply all system-level settings."""
     for item in _scalar_items(home):
         if dry_run:
-            log(f"would set {item.name}")
+            _LOG.info("would set %s", item.name)
             continue
         original = item.parse(_read(runner, item.read, item.read_sudo))
         present = original is not None
         archive.record_system(item.name, present=present, original=original, applied=item.applied)
         for write in item.writes:
             runner.run(write, sudo=True)
-        log(f"set {item.name}")
+        _LOG.info("set %s", item.name)
 
-    _apply_pmset(archive, runner, dry_run=dry_run, log=log)
-    _apply_restartfreeze(archive, runner, dry_run=dry_run, log=log)
-    _apply_chflags(archive, runner, home, dry_run=dry_run, log=log)
+    _apply_pmset(archive, runner, dry_run=dry_run)
+    _apply_restartfreeze(archive, runner, dry_run=dry_run)
+    _apply_chflags(archive, runner, home, dry_run=dry_run)
     if not dry_run:
         archive.save()
 
 
-def _apply_pmset(
-    archive: Archive, runner: Runner, *, dry_run: bool, log: Callable[[str], None]
-) -> None:
+def _apply_pmset(archive: Archive, runner: Runner, *, dry_run: bool) -> None:
     """Snapshot pmset then apply the managed power settings."""
     if dry_run:
-        log("would configure pmset")
+        _LOG.info("would configure pmset")
         return
     before = parse_pmset_custom(_read(runner, ["pmset", "-g", "custom"], False))
     applied: dict[str, dict[str, str]] = {"battery": {}, "ac": {}}
@@ -221,31 +215,23 @@ def _apply_pmset(
     for key, battery, ac in _PMSET_BC:
         runner.run(["pmset", "-b", key, battery], sudo=True)
         runner.run(["pmset", "-c", key, ac], sudo=True)
-    log("configured pmset")
+    _LOG.info("configured pmset")
 
 
-def _apply_restartfreeze(
-    archive: Archive, runner: Runner, *, dry_run: bool, log: Callable[[str], None]
-) -> None:
+def _apply_restartfreeze(archive: Archive, runner: Runner, *, dry_run: bool) -> None:
     """Enable restart-on-freeze (no getter, so it cannot be precisely restored)."""
     if dry_run:
-        log("would set systemsetup:restartfreeze")
+        _LOG.info("would set systemsetup:restartfreeze")
         return
     archive.record_system("systemsetup:restartfreeze", present=False, original=None, applied="on")
     runner.run(["systemsetup", "-setrestartfreeze", "on"], sudo=True)
+    _LOG.info("set systemsetup:restartfreeze")
 
 
-def _apply_chflags(
-    archive: Archive,
-    runner: Runner,
-    home: Path,
-    *,
-    dry_run: bool,
-    log: Callable[[str], None],
-) -> None:
+def _apply_chflags(archive: Archive, runner: Runner, home: Path, *, dry_run: bool) -> None:
     """Reveal ~/Library and /Volumes (default macOS state is hidden)."""
     if dry_run:
-        log("would reveal ~/Library and /Volumes")
+        _LOG.info("would reveal ~/Library and /Volumes")
         return
     archive.record_system("chflags:library", present=True, original="hidden", applied="nohidden")
     archive.record_system("chflags:volumes", present=True, original="hidden", applied="nohidden")
@@ -253,15 +239,10 @@ def _apply_chflags(
     runner.run(["chflags", "nohidden", library], check=False)
     runner.run(["xattr", "-d", "com.apple.FinderInfo", library], check=False)
     runner.run(["chflags", "nohidden", "/Volumes"], sudo=True, check=False)
+    _LOG.info("revealed ~/Library and /Volumes")
 
 
-def revert_system(
-    archive: Archive,
-    runner: Runner,
-    *,
-    dry_run: bool = False,
-    log: Callable[[str], None] = print,
-) -> None:
+def revert_system(archive: Archive, runner: Runner, *, dry_run: bool = False) -> None:
     """Best-effort revert of system settings, guarded where the value reads back."""
     records = {record["name"]: record for record in archive.manifest.get("system", [])}
     home = Path.home()
@@ -272,26 +253,24 @@ def revert_system(
             continue
         current = item.parse(_read(runner, item.read, item.read_sudo))
         if current != record["applied"]:
-            log(f"skip (user-modified) {item.name}")
+            _LOG.warning("skip (user-modified) %s", item.name)
             continue
         for write in item.restore(record["original"], record["present"]):
             if not dry_run:
                 runner.run(write, sudo=True)
-        log(f"revert {item.name}")
+        _LOG.info("revert %s", item.name)
 
     if "pmset" in records:
-        _revert_pmset(records["pmset"], runner, dry_run=dry_run, log=log)
+        _revert_pmset(records["pmset"], runner, dry_run=dry_run)
     if "chflags:library" in records and not dry_run:
         runner.run(["chflags", "hidden", str(home / "Library")], check=False)
         runner.run(["chflags", "hidden", "/Volumes"], sudo=True, check=False)
-        log("revert chflags (re-hidden, best-effort)")
+        _LOG.info("revert chflags (re-hidden, best-effort)")
     if "systemsetup:restartfreeze" in records:
-        log("skip systemsetup:restartfreeze (no getter; left as-is)")
+        _LOG.warning("skip systemsetup:restartfreeze (no getter; left as-is)")
 
 
-def _revert_pmset(
-    record: dict[str, Any], runner: Runner, *, dry_run: bool, log: Callable[[str], None]
-) -> None:
+def _revert_pmset(record: dict[str, Any], runner: Runner, *, dry_run: bool) -> None:
     """Restore readable pmset keys from the snapshot; reset the rest to documented defaults."""
     before = record["original"]
     applied = record["applied"]
@@ -301,15 +280,15 @@ def _revert_pmset(
             if key not in applied.get(section, {}):
                 continue
             if current.get(section, {}).get(key) != applied[section][key]:
-                log(f"skip (user-modified) pmset {flag} {key}")
+                _LOG.warning("skip (user-modified) pmset %s %s", flag, key)
                 continue
             original = before.get(section, {}).get(key)
             if original is None:
                 continue
             if not dry_run:
                 runner.run(["pmset", flag, key, original], sudo=True)
-            log(f"revert pmset {flag} {key}")
+            _LOG.info("revert pmset %s %s", flag, key)
     for key, default in _PMSET_DEFAULTS.items():
         if not dry_run:
             runner.run(["pmset", "-a", key, default], sudo=True)
-        log(f"reset pmset {key} to documented default {default}")
+        _LOG.warning("reset pmset %s to documented default %s (not precisely restorable)", key, default)

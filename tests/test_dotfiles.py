@@ -16,10 +16,6 @@ from macos_setup.dotfiles import (
 )
 
 
-def _noop(*_args):
-    pass
-
-
 class Sha256Tests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -125,7 +121,7 @@ class RevertFilesTests(unittest.TestCase):
         dest.write_text("original")
         apply_file(self.src, dest, self.archive)
 
-        summary = revert_files(self.archive, log=_noop)
+        summary = revert_files(self.archive)
 
         self.assertEqual(dest.read_text(), "original")
         self.assertIn(str(dest), summary.restored)
@@ -134,7 +130,7 @@ class RevertFilesTests(unittest.TestCase):
         dest = self.tmp / "home" / ".added"
         apply_file(self.src, dest, self.archive)
 
-        summary = revert_files(self.archive, log=_noop)
+        summary = revert_files(self.archive)
 
         self.assertFalse(dest.exists())
         self.assertIn(str(dest), summary.deleted)
@@ -146,10 +142,31 @@ class RevertFilesTests(unittest.TestCase):
         apply_file(self.src, dest, self.archive)
         dest.write_text("user edit after setup")
 
-        summary = revert_files(self.archive, log=_noop)
+        summary = revert_files(self.archive)
 
         self.assertEqual(dest.read_text(), "user edit after setup")
         self.assertIn(str(dest), summary.skipped)
+
+    def test_user_modified_logs_warning(self):
+        dest = self.tmp / "home" / ".extra"
+        dest.parent.mkdir(parents=True)
+        dest.write_text("original")
+        apply_file(self.src, dest, self.archive)
+        dest.write_text("user edit after setup")
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING") as cm:
+            revert_files(self.archive)
+        self.assertTrue(any("user-modified" in line for line in cm.output))
+
+    def test_restore_logs_info(self):
+        dest = self.tmp / "home" / ".extra"
+        dest.parent.mkdir(parents=True)
+        dest.write_text("original")
+        apply_file(self.src, dest, self.archive)
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as cm:
+            revert_files(self.archive)
+        self.assertTrue(any("restore" in line for line in cm.output))
 
 
 if __name__ == "__main__":

@@ -6,11 +6,13 @@ Package installs are not reversed by ``--uninstall``: removing tools the user ma
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from macos_setup.shell import Runner
+
+_LOG = logging.getLogger(__name__)
 
 # Homebrew formulae, in install order. coreutils is first (it gets a follow-up symlink).
 BREW_PACKAGES = [
@@ -43,43 +45,31 @@ _ELAN_INSTALL = (
 _CLAUDE_INSTALL = "curl -fsSL https://claude.ai/install.sh | bash"
 
 
-def _run(
-    runner: Runner,
-    argv: list[str],
-    *,
-    dry_run: bool,
-    log: Callable[[str], None],
-    check: bool = True,
-) -> None:
+def _run(runner: Runner, argv: list[str], *, dry_run: bool, check: bool = True) -> None:
     """Run or, in dry-run mode, log a single install command."""
     if dry_run:
-        log(f"would run: {' '.join(argv)}")
+        _LOG.info("would run: %s", " ".join(argv))
         return
-    log(f"run: {' '.join(argv)}")
+    _LOG.info("run: %s", " ".join(argv))
     runner.run(argv, check=check)
 
 
-def install_packages(
-    runner: Runner,
-    *,
-    dry_run: bool = False,
-    log: Callable[[str], None] = print,
-) -> None:
+def install_packages(runner: Runner, *, dry_run: bool = False) -> None:
     """Update Homebrew, install packages and language servers, then clean up.
 
     Raises:
         RuntimeError: If Homebrew is not installed.
     """
     if not runner.run(["brew", "--version"], capture=True, check=False).ok:
-        raise RuntimeError(
-            "Homebrew is required but not installed. Install it from https://brew.sh first."
-        )
+        message = "Homebrew is required but not installed. Install it from https://brew.sh first."
+        _LOG.error(message)
+        raise RuntimeError(message)
 
-    _run(runner, ["brew", "update"], dry_run=dry_run, log=log)
-    _run(runner, ["brew", "upgrade"], dry_run=dry_run, log=log)
+    _run(runner, ["brew", "update"], dry_run=dry_run)
+    _run(runner, ["brew", "upgrade"], dry_run=dry_run)
 
     for package in BREW_PACKAGES:
-        _run(runner, ["brew", "install", package], dry_run=dry_run, log=log)
+        _run(runner, ["brew", "install", package], dry_run=dry_run)
 
     if not dry_run:
         prefix = runner.run(["brew", "--prefix"], capture=True, check=False).stdout.strip()
@@ -88,17 +78,11 @@ def install_packages(
                 runner,
                 ["ln", "-sf", f"{prefix}/bin/gsha256sum", f"{prefix}/bin/sha256sum"],
                 dry_run=dry_run,
-                log=log,
                 check=False,
             )
 
-    _run(
-        runner,
-        ["npm", "install", "-g", "typescript-language-server", "typescript"],
-        dry_run=dry_run,
-        log=log,
-    )
-    _run(runner, ["go", "install", "golang.org/x/tools/gopls@latest"], dry_run=dry_run, log=log)
-    _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run, log=log)
-    _run(runner, ["bash", "-c", _CLAUDE_INSTALL], dry_run=dry_run, log=log)
-    _run(runner, ["brew", "cleanup"], dry_run=dry_run, log=log)
+    _run(runner, ["npm", "install", "-g", "typescript-language-server", "typescript"], dry_run=dry_run)
+    _run(runner, ["go", "install", "golang.org/x/tools/gopls@latest"], dry_run=dry_run)
+    _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
+    _run(runner, ["bash", "-c", _CLAUDE_INSTALL], dry_run=dry_run)
+    _run(runner, ["brew", "cleanup"], dry_run=dry_run)

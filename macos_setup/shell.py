@@ -7,8 +7,11 @@ Keeping it isolated lets the rest of the code stay pure: tests inject a fake wit
 
 from __future__ import annotations
 
+import logging
 import subprocess
 from dataclasses import dataclass
+
+_LOG = logging.getLogger(__name__)
 
 
 @dataclass
@@ -50,6 +53,7 @@ class Runner:
             check: Raise :class:`subprocess.CalledProcessError` on a nonzero exit.
         """
         full = build_argv(argv, sudo=sudo)
+        _LOG.debug("run: %s", " ".join(full))
         proc = subprocess.run(
             full,
             check=False,
@@ -57,6 +61,7 @@ class Runner:
             stdout=subprocess.PIPE if capture else None,
             stderr=subprocess.PIPE if capture else None,
         )
+        _LOG.debug("exit %d: %s", proc.returncode, " ".join(full))
         result = CompletedResult(proc.returncode, proc.stdout or "", proc.stderr or "")
         if check and proc.returncode != 0:
             raise subprocess.CalledProcessError(

@@ -7,6 +7,7 @@ reverts a run (guarded). ``--dry-run`` previews without writing. See ``README.md
 from __future__ import annotations
 
 import argparse
+import logging
 import threading
 import time
 from dataclasses import dataclass
@@ -16,10 +17,16 @@ from pathlib import Path
 from macos_setup.archive import Archive, resolve_archive
 from macos_setup.brew import install_packages
 from macos_setup.dotfiles import revert_files, sync_agents, sync_dotfiles
+from macos_setup.logging_setup import configure_logging
 from macos_setup.macos_defaults import SETTINGS, apply_defaults, revert_defaults
 from macos_setup.shell import Runner
 from macos_setup.system import apply_system, revert_system
 
+# Not `logging.getLogger(__name__)`: when this file runs as the entry point (`python3 -m
+# macos_setup`), Python sets `__name__` to the literal string "__main__", which would create an
+# unrelated top-level logger outside the "macos_setup" hierarchy that configure_logging() never
+# attaches a handler to.
+_LOG = logging.getLogger("macos_setup.__main__")
 _LATEST = "__latest__"
 
 _RESTART_APPS = [
@@ -52,6 +59,7 @@ class Actions:
     dry_run: bool
     force: bool
     project: str | None
+    verbose: bool
 
     @property
     def run_all(self) -> bool:
@@ -91,6 +99,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--dry-run", action="store_true", dest="dry_run", help="Preview changes; write nothing"
     )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Show DEBUG-level detail (every command run)"
+    )
     return parser
 
 
@@ -120,6 +131,7 @@ def resolve_actions(ns: argparse.Namespace) -> Actions:
         dry_run=ns.dry_run,
         force=ns.force,
         project=ns.project,
+        verbose=ns.verbose,
     )
 
 
@@ -163,13 +175,14 @@ def _preflight(runner: Runner) -> None:
     _start_sudo_keepalive(runner)
 
 
-def restart_apps(runner: Runner, *, dry_run: bool = False, log=print) -> None:
+def restart_apps(runner: Runner, *, dry_run: bool = False) -> None:
     """Restart the apps affected by preference changes."""
     for app in _RESTART_APPS:
         if dry_run:
-            log(f"would restart {app}")
+            _LOG.info("would restart %s", app)
             continue
         runner.run(["killall", app], check=False)
+        _LOG.info("restarted %s", app)
 
 
 def _list_archives(root: Path) -> None:
@@ -192,12 +205,12 @@ def _uninstall(archive_root: Path, actions: Actions, runner: Runner) -> int:
     try:
         path = resolve_archive(archive_root, actions.uninstall_ref)
     except FileNotFoundError as exc:
-        print(f"error: {exc}")
+        _LOG.error(str(exc))
         return 1
     if not actions.force and not actions.dry_run and not _confirm(
         f"Revert changes from {path.name}? [y/N] "
     ):
-        print("Aborted.")
+        _LOG.warning("Aborted.")
         return 1
     archive = Archive.load(path)
     touched_macos = bool(archive.manifest.get("settings") or archive.manifest.get("system"))
@@ -208,7 +221,7 @@ def _uninstall(archive_root: Path, actions: Actions, runner: Runner) -> int:
     revert_system(archive, runner, dry_run=actions.dry_run)
     if touched_macos and not actions.dry_run:
         restart_apps(runner)
-    print(f"Reverted from {path}")
+    _LOG.info("Reverted from %s", path)
     return 0
 
 
@@ -217,7 +230,7 @@ def _install(actions: Actions, runner: Runner, repo: Path, home: Path, archive_r
     if actions.run_all and not actions.force and not actions.dry_run and not _confirm(
         "This will overwrite files and change system settings. Continue? [y/N] "
     ):
-        print("Aborted.")
+        _LOG.warning("Aborted.")
         return 1
     if actions.needs_sudo and not actions.dry_run:
         _preflight(runner)
@@ -243,7 +256,7 @@ def _install(actions: Actions, runner: Runner, repo: Path, home: Path, archive_r
         restart_apps(runner, dry_run=actions.dry_run)
     if not actions.dry_run:
         archive.save()
-        print(f"Archive: {archive.path}")
+        _LOG.info("Archive: %s", archive.path)
     return 0
 
 
@@ -256,10 +269,11 @@ def main(
 ) -> int:
     """Parse arguments and dispatch to list/uninstall/install."""
     ns = build_parser().parse_args(argv)
+    configure_logging(verbose=ns.verbose)
     try:
         actions = resolve_actions(ns)
     except ValueError as exc:
-        print(f"error: {exc}")
+        _LOG.error(str(exc))
         return 2
 
     runner = runner or Runner()

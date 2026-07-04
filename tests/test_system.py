@@ -32,10 +32,6 @@ AC Power:
 """
 
 
-def _noop(*_args):
-    pass
-
-
 class ParserTests(unittest.TestCase):
     def test_pmset_splits_battery_and_ac(self):
         parsed = parse_pmset_custom(PMSET_SAMPLE)
@@ -87,7 +83,7 @@ class ApplySystemTests(unittest.TestCase):
         runner = FakeRunner(_reader)
         archive = Archive.create(self.tmp, "ts")
 
-        apply_system(archive, runner, self.tmp, log=_noop)
+        apply_system(archive, runner, self.tmp)
 
         names = {r["name"]: r for r in archive.manifest["system"]}
         self.assertEqual(names["nvram:SystemAudioVolume"]["original"], "%80")
@@ -100,7 +96,7 @@ class ApplySystemTests(unittest.TestCase):
         runner = FakeRunner(_reader)
         archive = Archive.create(self.tmp, "ts")
 
-        apply_system(archive, runner, self.tmp, dry_run=True, log=_noop)
+        apply_system(archive, runner, self.tmp, dry_run=True)
 
         self.assertNotIn(["nvram", "SystemAudioVolume= "], runner.argv_list())
 
@@ -121,7 +117,7 @@ class RevertSystemTests(unittest.TestCase):
 
         # current value equals applied (" "), so the guard passes.
         runner = FakeRunner(lambda argv: CompletedResult(0, "SystemAudioVolume\t \n", ""))
-        revert_system(archive, runner, log=_noop)
+        revert_system(archive, runner)
 
         self.assertIn(["nvram", "SystemAudioVolume=%80"], runner.argv_list())
 
@@ -134,9 +130,33 @@ class RevertSystemTests(unittest.TestCase):
 
         # current value differs from applied, so leave it alone.
         runner = FakeRunner(lambda argv: CompletedResult(0, "SystemAudioVolume\t%50\n", ""))
-        revert_system(archive, runner, log=_noop)
+        revert_system(archive, runner)
 
         self.assertNotIn(["nvram", "SystemAudioVolume=%80"], runner.argv_list())
+
+    def test_user_modified_logs_warning(self):
+        archive = Archive.create(self.tmp, "ts")
+        archive.record_system(
+            "nvram:SystemAudioVolume", present=True, original="%80", applied=" "
+        )
+        archive.save()
+        runner = FakeRunner(lambda argv: CompletedResult(0, "SystemAudioVolume\t%50\n", ""))
+
+        with self.assertLogs("macos_setup.system", level="WARNING") as cm:
+            revert_system(archive, runner)
+        self.assertTrue(any("user-modified" in line for line in cm.output))
+
+    def test_restore_logs_info(self):
+        archive = Archive.create(self.tmp, "ts")
+        archive.record_system(
+            "nvram:SystemAudioVolume", present=True, original="%80", applied=" "
+        )
+        archive.save()
+        runner = FakeRunner(lambda argv: CompletedResult(0, "SystemAudioVolume\t \n", ""))
+
+        with self.assertLogs("macos_setup.system", level="INFO") as cm:
+            revert_system(archive, runner)
+        self.assertTrue(any("revert" in line for line in cm.output))
 
 
 if __name__ == "__main__":

@@ -59,10 +59,6 @@ class FakeDefaults:
         return None
 
 
-def _noop(*_args):
-    pass
-
-
 class ApplyDefaultsTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -79,7 +75,7 @@ class ApplyDefaultsTests(unittest.TestCase):
             Setting("com.apple.dock", "autohide", "bool", True),
         ]
 
-        apply_defaults(settings, archive, runner, "14.0", log=_noop)
+        apply_defaults(settings, archive, runner, "14.0")
 
         snap = plistlib.loads((archive.domains_dir / "com.apple.dock.plist").read_bytes())
         self.assertEqual(snap, {"tilesize": 48})
@@ -104,7 +100,6 @@ class ApplyDefaultsTests(unittest.TestCase):
             runner,
             "14.0",
             dry_run=True,
-            log=_noop,
         )
 
         self.assertEqual(fake.state["com.apple.dock"]["tilesize"], 48)
@@ -125,14 +120,14 @@ class RevertDefaultsTests(unittest.TestCase):
             Setting("com.apple.dock", "tilesize", "int", 36),
             Setting("com.apple.dock", "autohide", "bool", True),
         ]
-        apply_defaults(settings, archive, runner, "14.0", log=_noop)
+        apply_defaults(settings, archive, runner, "14.0")
         return archive, runner
 
     def test_revert_restores_original_and_deletes_added(self):
         fake = FakeDefaults({"com.apple.dock": {"tilesize": 48}})
         archive, runner = self._apply(fake)
 
-        summary = revert_defaults(archive, runner, log=_noop)
+        summary = revert_defaults(archive, runner)
 
         self.assertEqual(fake.state["com.apple.dock"]["tilesize"], 48)
         self.assertNotIn("autohide", fake.state["com.apple.dock"])
@@ -144,10 +139,30 @@ class RevertDefaultsTests(unittest.TestCase):
         archive, runner = self._apply(fake)
         fake.state["com.apple.dock"]["tilesize"] = 64  # user change after setup
 
-        summary = revert_defaults(archive, runner, log=_noop)
+        summary = revert_defaults(archive, runner)
 
         self.assertEqual(fake.state["com.apple.dock"]["tilesize"], 64)
         self.assertIn(("com.apple.dock", "tilesize"), summary.skipped)
+
+    def test_skip_logs_warning(self):
+        fake = FakeDefaults({"com.apple.dock": {"tilesize": 48}})
+        archive, runner = self._apply(fake)
+        fake.state["com.apple.dock"]["tilesize"] = 64
+
+        with self.assertLogs("macos_setup.macos_defaults", level="WARNING") as cm:
+            revert_defaults(archive, runner)
+        self.assertTrue(any("user-modified" in line for line in cm.output))
+
+    def test_apply_logs_info_per_domain(self):
+        fake = FakeDefaults({})
+        runner = FakeRunner(fake.handle)
+        archive = Archive.create(Path(tempfile.mkdtemp()), "ts")
+
+        with self.assertLogs("macos_setup.macos_defaults", level="INFO") as cm:
+            apply_defaults(
+                [Setting("com.apple.dock", "tilesize", "int", 36)], archive, runner, "14.0"
+            )
+        self.assertTrue(any("com.apple.dock" in line for line in cm.output))
 
 
 if __name__ == "__main__":

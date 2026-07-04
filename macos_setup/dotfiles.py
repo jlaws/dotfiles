@@ -8,14 +8,17 @@ sha, leaving anything edited after setup untouched.
 from __future__ import annotations
 
 import hashlib
+import logging
 import shutil
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from macos_setup.archive import Archive
+
+_LOG = logging.getLogger(__name__)
 
 # Root dotfiles synced into the home directory (matches the original rsync allowlist).
 ROOT_DOTFILES = [
@@ -133,14 +136,10 @@ def remove_file(dest: Path, archive: Archive) -> None:
     shutil.copy2(dest, backup)
     archive.record_file(str(dest), "removed", sha256_file(dest))
     dest.unlink()
+    _LOG.debug("removed stale file %s", dest)
 
 
-def revert_files(
-    archive: Archive,
-    *,
-    dry_run: bool = False,
-    log: Callable[[str], None] = print,
-) -> FileSummary:
+def revert_files(archive: Archive, *, dry_run: bool = False) -> FileSummary:
     """Restore or delete tracked files whose contents setup still owns; skip user-edited ones."""
     summary = FileSummary()
     for record in archive.manifest.get("files", []):
@@ -153,15 +152,15 @@ def revert_files(
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(backup, dest)
             summary.restored.append(str(dest))
-            log(f"restore {dest}")
+            _LOG.info("restore %s", dest)
         elif decision == "delete":
             if not dry_run:
                 dest.unlink()
             summary.deleted.append(str(dest))
-            log(f"delete {dest}")
+            _LOG.info("delete %s", dest)
         else:
             summary.skipped.append(str(dest))
-            log(f"skip (user-modified) {dest}")
+            _LOG.warning("skip (user-modified) %s", dest)
     return summary
 
 
@@ -175,48 +174,39 @@ def _iter_pairs(src: Path, dest: Path) -> Iterator[tuple[Path, Path]]:
         yield src, dest
 
 
-def sync_dotfiles(
-    repo: Path,
-    home: Path,
-    archive: Archive,
-    *,
-    dry_run: bool = False,
-    log: Callable[[str], None] = print,
-) -> None:
+def sync_dotfiles(repo: Path, home: Path, archive: Archive, *, dry_run: bool = False) -> None:
     """Sync the root dotfile allowlist from ``repo`` into ``home``."""
+    _LOG.info("Syncing %d dotfiles to %s", len(ROOT_DOTFILES), home)
     for name in ROOT_DOTFILES:
         src = repo / name
         if not src.exists():
             continue
         dest = home / name
         if dry_run:
-            log(f"would sync {dest}")
+            _LOG.info("would sync %s", dest)
             continue
         apply_file(src, dest, archive)
-        log(f"sync {dest}")
+        _LOG.debug("sync %s", dest)
 
 
-def sync_agents(
-    repo: Path,
-    target: Path,
-    archive: Archive,
-    *,
-    dry_run: bool = False,
-    log: Callable[[str], None] = print,
-) -> None:
+def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = False) -> None:
     """Sync agent configs (Claude, Cursor, Codex, Gemini, shared .agents) into ``target``."""
+    _LOG.info("Syncing agent configuration to %s", target)
+    synced = 0
     for src_rel, dest_rel in AGENT_SYNC:
         for src_file, dest_file in _iter_pairs(repo / src_rel, target / dest_rel):
             if dry_run:
-                log(f"would sync {dest_file}")
+                _LOG.info("would sync %s", dest_file)
                 continue
             apply_file(src_file, dest_file, archive)
+            _LOG.debug("sync %s", dest_file)
+            synced += 1
     if dry_run:
         return
     for removal in AGENT_REMOVALS:
         remove_file(target / removal, archive)
     _make_hooks_executable(target / ".gemini" / "hooks")
-    log(f"synced agent configs to {target}")
+    _LOG.info("Synced %d agent config files to %s", synced, target)
 
 
 def _make_hooks_executable(hooks_dir: Path) -> None:

@@ -7,10 +7,10 @@ applied, so changes made after setup are left alone.
 
 from __future__ import annotations
 
+import logging
 import os
 import plistlib
 import tempfile
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -18,6 +18,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from macos_setup.archive import Archive
     from macos_setup.shell import Runner
+
+_LOG = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -167,14 +169,16 @@ def apply_defaults(
     macos_version: str,
     *,
     dry_run: bool = False,
-    log: Callable[[str], None] = print,
 ) -> None:
     """Apply settings, snapshotting each domain first and recording originals + applied values."""
     for scope, domain, group in _group_by_domain(applicable(settings, macos_version)):
         if dry_run:
             for setting in group:
-                log(f"would set {domain} {setting.key} {' '.join(build_write_args(setting))}")
+                _LOG.info(
+                    "would set %s %s %s", domain, setting.key, " ".join(build_write_args(setting))
+                )
             continue
+        _LOG.info("Configuring %s (%d settings)", domain, len(group))
         before = export_domain(runner, scope, domain)
         snapshot = archive.domains_dir / domain_snapshot_name(domain)
         snapshot.write_bytes(plistlib.dumps(before))
@@ -183,7 +187,7 @@ def apply_defaults(
                 _defaults_argv(scope, ["write", domain, setting.key, *build_write_args(setting)]),
                 sudo=(scope == "sudo"),
             )
-            log(f"set {domain} {setting.key}")
+            _LOG.debug("set %s %s", domain, setting.key)
         after = export_domain(runner, scope, domain)
         for setting in group:
             archive.record_setting(
@@ -197,13 +201,7 @@ def apply_defaults(
         archive.save()
 
 
-def revert_defaults(
-    archive: Archive,
-    runner: Runner,
-    *,
-    dry_run: bool = False,
-    log: Callable[[str], None] = print,
-) -> RevertSummary:
+def revert_defaults(archive: Archive, runner: Runner, *, dry_run: bool = False) -> RevertSummary:
     """Revert recorded settings, importing the merged domain only for keys setup still owns."""
     summary = RevertSummary()
     groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
@@ -220,10 +218,10 @@ def revert_defaults(
         result = merge_revert(live, saved, keys, applied)
 
         for key in result.reverted:
-            log(f"revert {domain} {key}")
+            _LOG.info("revert %s %s", domain, key)
             summary.reverted.append((domain, key))
         for key in result.skipped:
-            log(f"skip (user-modified) {domain} {key}")
+            _LOG.warning("skip (user-modified) %s %s", domain, key)
             summary.skipped.append((domain, key))
 
         if dry_run:
