@@ -8,7 +8,6 @@ applied, so changes made after setup are left alone.
 from __future__ import annotations
 
 import logging
-import os
 import plistlib
 import tempfile
 from dataclasses import dataclass, field
@@ -228,13 +227,10 @@ def revert_defaults(archive: Archive, runner: Runner, *, dry_run: bool = False) 
             continue
         # `defaults import` merges, so restore known keys via a small plist and delete the rest.
         if result.restore:
-            with tempfile.NamedTemporaryFile("wb", suffix=".plist", delete=False) as handle:
-                handle.write(plistlib.dumps(result.restore))
-                path = handle.name
-            try:
-                runner.run(_defaults_argv(scope, ["import", domain, path]), sudo=(scope == "sudo"))
-            finally:
-                os.unlink(path)
+            with tempfile.TemporaryDirectory() as tmpdir:
+                path = Path(tmpdir) / "restore.plist"
+                path.write_bytes(plistlib.dumps(result.restore))
+                runner.run(_defaults_argv(scope, ["import", domain, str(path)]), sudo=(scope == "sudo"))
         for key in result.delete:
             runner.run(_defaults_argv(scope, ["delete", domain, key]), sudo=(scope == "sudo"))
     return summary
