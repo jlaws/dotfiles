@@ -62,6 +62,19 @@ Use subagents to parallelize independent work and to delegate to specialist agen
 - **Parallel dispatch**: for concurrent independent work, load `dispatching-parallel-agents`.
 - **Plan execution modes**: execute a written plan either inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) — choose by plan size/coupling; both run via `/j-execute-plan`.
 
+## Task Delegation
+
+When spawning subagents, pick the cheapest model that can do the job:
+- **Haiku**: bulk mechanical tasks, no judgment needed
+- **Sonnet**: scoped research, code exploration, synthesis
+- **Opus**: only when real planning or tradeoffs are involved
+
+Caps:
+- Haiku never spawns further subagents — if it needs to, the task was wrong-sized
+- Max spawn depth is 2 (parent → subagent → one more tier)
+
+If a subagent realizes it needs a smarter model, it returns to the parent instead of escalating on its own.
+
 ## Scheduled Wakeups
 Do NOT use ScheduleWakeup to re-trigger prompts. If a long-running task completes, stop and wait for user input rather than re-injecting the original prompt.
 
