@@ -39,8 +39,8 @@ For each task in order:
 2. **Dispatch the implementer subagent** (via the Task tool) with: the brief file path, the model for this task (see Model Selection), explicit constraints (what NOT to touch), and the deliverable (code + passing tests + one commit). Answer clarifying questions if the implementer asks.
 3. **Implementer self-reviews and commits.** It follows TDD (failing test -> implement -> pass), commits, and reports the commit range.
 4. **Generate the review package.** `git diff <task-base>..<task-head>` — capture to a scratch file rather than pasting a large diff into the reviewer prompt.
-5. **Dispatch the task reviewer** (via the Task tool). It MUST return **both** verdicts:
-   - **Spec compliance** — does the diff satisfy the task brief's behavioral check and acceptance?
+5. **Dispatch the task reviewer** (via the Task tool). It MUST return **both** verdicts, **spec compliance first, then code quality**:
+   - **Spec compliance** — does the diff satisfy the task brief's behavioral check and acceptance? Flag any acceptance item that **cannot be confirmed from the diff alone** for the orchestrator to resolve — never assume it holds. Treat any **unrequested addition** (extra code, deps, files beyond the brief) as a finding: scope creep is a failure, not a bonus.
    - **Code quality** — smells, edge cases, error handling, naming, test quality.
    Reviewer output is a severity-labeled findings list (Critical / Important / Nit).
 6. **Fix loop.** If Critical/Important findings exist, dispatch a fix subagent with the findings file, then re-review. Repeat until clean. Never dismiss findings pre-emptively in the reviewer prompt.

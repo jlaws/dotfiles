@@ -249,6 +249,17 @@ Delegate each perspective to its specialist agent (each loads the listed skills 
 
 ---
 
+### Adversarial Debate Mode (optional — high-risk diffs)
+
+For risky or high-stakes diffs, escalate the multi-perspective pass into a debate:
+
+1. **Freeze a shared packet** — the diff plus context, identical for every reviewer.
+2. **Fan out the perspective agents blind to each other** (scale the count to change risk).
+3. **Cross-critique for 1-2 rounds** — broadcast round-1 findings; each reviewer may revise, but any change of position **must state a technical reason** ("good point" is banned).
+4. **Report survivors and disputes** — findings that survive cross-critique are high-confidence; flag unresolved disputes for the human rather than forcing consensus.
+
+Every finding cites `file:line`. Conclude with a **PASS / CONCERNS / FAIL / BLOCKED** verdict and P0-P3 severities. Run the fan-out with the harness Workflow / `deep-research` primitives.
+
 ### Cross-References
 
 - Code quality: Code smell detection, anti-pattern identification

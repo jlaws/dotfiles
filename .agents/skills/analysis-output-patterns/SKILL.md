@@ -34,6 +34,13 @@ Distinguish clearly between what the data shows and what is inferred:
 
 Never present inferences as facts. Label every inference.
 
+### Gap Markers
+
+Use a controlled vocabulary for gaps so they are not silently dropped or mistaken for negatives:
+- **UNKNOWN** — an unresolved assumption or open question
+- **UNVERIFIED** — an external claim we could not confirm (not the same as false)
+- **UNPROVEN** — a criterion mapped but not demonstrated by a run
+
 ## Formatting
 
 - Tables and bullets over prose paragraphs
