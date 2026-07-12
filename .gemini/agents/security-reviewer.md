@@ -23,8 +23,8 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 Reference library at `~/.agents/references/security/`:
 - auth-implementation-patterns, ci-and-supply-chain, compliance-and-data-privacy
 - dependabot-renovate-config, dependency-auditing, secrets-management
-- security-analysis
+- security-analysis, vulnerability-review-pipeline
 
-Read `~/.agents/references/security/security-analysis.md` for methodology.
+Read `~/.agents/references/security/security-analysis.md` for what to look for, and `vulnerability-review-pipeline.md` for how to run a trustworthy review (execution-verify, independent grader, patch-validation gate).
 Use severity labels: [critical], [high], [medium], [low].
 Include file paths and line numbers for every finding.
