@@ -206,6 +206,15 @@ def search_recent(
 papers = search_recent("cat:cs.LG AND ti:efficient AND ti:attention")
 ```
 
+## Citation Verification
+
+Before finalizing a bibliography or related-work section:
+
+- **Verify each citation exists** — look it up (Semantic Scholar / DOI), fuzzy-match title + first author + year against the result, and flag near-misses for manual check.
+- **Detect orphan citations** — every `\cite{key}` must resolve to a bib entry, and every bib entry should be cited at least once; report both directions.
+- **Never fabricate fields** — if authors, venue, or year cannot be confirmed, leave the field blank and mark it rather than guessing (see `confidence-scoring`).
+- **Anti-gaming self-review** — do not "pass" your own related-work by lowering the bar. If you cannot verify a citation, halt and report it as `UNVERIFIED` instead of asserting it.
+
 ## Gotchas and Anti-Patterns
 
 ### Citation Bias
