@@ -43,6 +43,7 @@ Full methodology: load skill `verification-before-completion`.
 - Working-set budget: load only the skills/references the current subtask needs; unload when done. Loading everything dilutes attention — a quality cost, not just a token cost.
 - For bulk agent-to-agent data payloads, prefer a compact serialization (minimal repeated keys, e.g. TOON-style) over verbose JSON.
 - Shape command output before it enters context (strip noise, collapse passing runs, cap large output to a scratch file) but preserve failures/errors verbatim — see `references/workflow/context-efficiency`.
+- Each enabled MCP server injects tool-definition tokens every turn — enable per-project, prefer lazy-load/tool-search, prefer official servers (see `references/architecture/mcp-client-configuration`).
 
 ## Git Workflow
 - Commit messages: freeform imperative mood, <72 char subject, no period
