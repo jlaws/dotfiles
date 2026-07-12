@@ -16,6 +16,7 @@ Full methodology: load skill `verification-before-completion`.
 - **Honest opposition**: Push back with reasoning when you disagree — agreeing because it's easier is a failure mode
 - **Completeness**: When effort is low relative to human effort, prefer thorough over "good enough"
 - **Output generation**: A partial output is a broken output. Never truncate implementations, docs, or analysis mid-task
+- **Iteration limits**: Max 2 fix attempts on the same error; stop when the check passes or two consecutive rounds make no measurable progress, then rethink
 
 ## Context Preservation
 - Store intermediate results in filesystem (HANDOFF.md, scratch files) rather than relying on conversation memory

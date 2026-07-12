@@ -11,7 +11,7 @@ alwaysApply: true
 - Use bullet points and code examples.
 - Assume I'm an experienced developer.
 - Challenge my assumptions when appropriate.
-- Ask clarifying questions rather than guessing.
+- Ask clarifying questions rather than guessing — each with your recommended answer, and only after checking whether the code already answers it.
 - Be extremely concise; sacrifice grammar for brevity.
 - End plans with unresolved questions list.
 - Structure plans in multiple phases.

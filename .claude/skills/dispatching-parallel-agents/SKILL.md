@@ -54,6 +54,27 @@ Parallel agents finishing is not the end. After they return:
 - Trusting parallel summaries without checking the combined diff + full suite
 - Parallelizing work that edits overlapping files
 
+## Orchestration Limits & Patterns
+
+For large or automated fan-outs (e.g. the harness Workflow tool), apply these:
+
+- **Concurrency cap** — run about 16 agents at once (or fewer); excess should queue, not all launch together.
+- **Total-spawn ceiling** — bound the total agents a run may create; a runaway loop is a bug.
+- **Gauge cost on a slice first** — run one representative unit before fanning out the whole set; extrapolate cost and fix the brief before committing to N.
+- **Isolated copy per parallel edit** — if agents mutate files concurrently, give each its own worktree/copy so they cannot corrupt each other (see `using-git-worktrees`).
+- **Adversarial cross-check** — route each finding to an independent verifier and report only survivors (see `code-review-patterns` debate mode). A finding one agent produced and the same agent confirmed is not verified.
+
+### Choosing an execution mode
+
+| Question | Inline (this context) | Subagents (dispatch) | Deterministic workflow |
+|----------|----------------------|----------------------|------------------------|
+| Who holds the plan? | You | You (thin orchestrator) | The script |
+| Where do results live? | Conversation | Files (briefs, findings) | Structured returns |
+| Repeatable / resumable? | No | Partly | Yes (same script + args) |
+| Scale | A few steps | Tens of tasks | Hundreds, pipelined |
+
+Reach for a workflow when control flow should be deterministic (loops, fan-out, verify gates); dispatch when judgment-heavy tasks are independent; stay inline when the work is small or tightly coupled.
+
 ## Integration
 
 **Pairs with:** `subagent-driven-development` (run independent plan tasks concurrently)

@@ -236,6 +236,17 @@ papers = search_recent("cat:cs.LG AND ti:efficient AND ti:attention")
 - Stopping search when you have "enough" references without systematic coverage.
 - **Fix**: Define search scope upfront (queries, venues, year range). Track coverage in a spreadsheet. Stop when new queries return only already-seen papers.
 
+## Multi-Agent Deep Research
+
+For broad, fact-checked reviews, fan out instead of searching linearly:
+
+- **Multi-angle fan-out** — search several ways in parallel (by method, by task, by author, by venue, by citation graph); each angle is blind to what the others surface.
+- **Per-claim verification** — extract atomic claims, then verify each against its sources independently; spawn N skeptics per high-stakes claim and keep only those that survive (see the adversarial pattern in `code-review-patterns`).
+- **Cited synthesis** — every sentence in the synthesis traces to a source; mark unverifiable claims `UNVERIFIED` (see `confidence-scoring`), never drop them silently.
+- **Completeness critic** — a final pass asks "what modality, source, or claim is missing?" and feeds the next round.
+
+The harness `deep-research` skill and the Workflow tool implement this fan-out -> verify -> synthesize loop; prefer them over re-implementing orchestration.
+
 ## Comprehensive Literature Review
 
 For reviews covering 30+ papers across multiple sources, analyze sequentially:

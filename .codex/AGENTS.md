@@ -6,6 +6,7 @@
 - Prefer search-first exploration. Use fast file discovery before reading large files.
 - Keep work complete. Avoid partial implementations, stubbed code, and unfinished docs.
 - Push back on weak assumptions with concrete technical reasoning.
+- Ask clarifying questions rather than guessing -- carry a recommended answer, and check the codebase first.
 - Prefer small, atomic changes and review the diff before committing.
 
 ## Knowledge Base
@@ -24,7 +25,7 @@
 
 ## Iteration Discipline
 
-- Max 2 fix attempts on the same error. If still failing, rethink the approach entirely.
+- Max 2 fix attempts on the same error; more generally, stop when the check passes or two consecutive rounds make no measurable progress. Then rethink the approach entirely.
 - Don't refactor, improve, or polish passing code. Passing tests = stop.
 - Write complete solutions in one pass, not incrementally.
 - Prefer editing specific sections of files over full rewrites.

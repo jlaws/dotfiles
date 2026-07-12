@@ -18,7 +18,7 @@ Full methodology: load skill `verification-before-completion` (read `~/.agents/s
 - **Honest opposition**: Push back with reasoning when you disagree -- agreeing because it's easier is a failure mode
 - **Completeness**: When agent effort is low relative to human effort, prefer thorough over "good enough" (see `~/.agents/references/workflow/completeness-principle`)
 - **Output generation**: A partial output is a broken output. Never truncate implementations, docs, or analysis mid-task. For large generation tasks, load skill `output-completeness`.
-- **Iteration limits**: Max 2 fix attempts on the same error. If still failing, stop and rethink the approach entirely. Never debug in circles.
+- **Iteration limits**: Max 2 fix attempts on the same error; more generally, stop when the check passes OR two consecutive rounds make no measurable progress. Then rethink the approach entirely — never debug in circles.
 - **Stop when done**: Don't refactor, improve, or polish passing code. Passing tests = stop. No unsolicited improvements.
 - **Prefer editing over rewriting**: Edit specific sections of files, not full rewrites. Prefer targeted changes.
 - **Scope discipline**: Deliver exactly what was requested. No extras, no "you might also want...", no unsolicited suggestions beyond scope.
@@ -110,7 +110,7 @@ When working in a git worktree:
 - Use bullet points and code examples.
 - Assume I'm an experienced developer.
 - Challenge my assumptions when appropriate.
-- Ask clarifying questions rather than guessing.
+- Ask clarifying questions rather than guessing — each with your recommended answer, and only after checking whether the code already answers it.
 - Be extremely concise; sacrifice grammar for brevity.
 - End plans with unresolved questions list (concise, skip grammar).
 - Structure plans in multiple phases.
