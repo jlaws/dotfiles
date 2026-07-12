@@ -62,6 +62,9 @@ Use subagents to parallelize independent work and to delegate to specialist agen
 - **Parallel dispatch**: for concurrent independent work, load `dispatching-parallel-agents`.
 - **Plan execution modes**: execute a written plan either inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) — choose by plan size/coupling; both run via `/j-execute-plan`.
 
+## Scheduled Wakeups
+Do NOT use ScheduleWakeup to re-trigger prompts. If a long-running task completes, stop and wait for user input rather than re-injecting the original prompt.
+
 ## Worktree Rules
 
 When working in a git worktree:
