@@ -55,3 +55,16 @@
 - A subagent reporting "success" is not proof — verify its output against source evidence before trusting it.
 - Parallel dispatch: for concurrent independent work, load the `dispatching-parallel-agents` skill.
 - Plan execution modes: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) — choose by plan size/coupling; both via `/j-execute-plan`.
+
+## Task Delegation
+
+When spawning subagents, pick the cheapest model that can do the job:
+- `gpt-5.6 luna`: bulk mechanical tasks, no judgment needed
+- `gpt-5.6 terra`: scoped research, code exploration, synthesis
+- `gpt-5.6 sol`: only when real planning or tradeoffs are involved
+
+Caps:
+- `luna` never spawns further subagents -- if it needs to, the task was wrong-sized
+- Max spawn depth is 2 (parent -> subagent -> one more tier)
+
+If a subagent realizes it needs a smarter model, it returns to the parent instead of escalating on its own.
