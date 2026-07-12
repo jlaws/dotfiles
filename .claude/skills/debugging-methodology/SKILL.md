@@ -45,6 +45,19 @@ After 2 failed fix attempts at the same problem, **STOP**:
 
 ### Phase 1: Root Cause Investigation
 
+**0. Classify the Failure Locus**
+
+Before proposing any fix, decide where the fault actually lives:
+
+| Locus | Meaning | Fix belongs in |
+|-------|---------|----------------|
+| Code-under-test (SUT) | The product code is wrong | Product code |
+| Test harness | Setup, fixtures, or scaffolding is wrong | Test infrastructure |
+| Checker / oracle | The assertion or expected value is wrong | The test's expectation |
+| Environment | Config, deps, versions, network | Environment, not code |
+
+A harness, checker, or environment fault is **never** fixed by changing product code. Misclassifying the locus is the most common cause of thrashing.
+
 **1. Read Error Messages Carefully**
 - Read stack traces completely; note line numbers, file paths, error codes
 - The error message often tells you exactly what's wrong — don't skim

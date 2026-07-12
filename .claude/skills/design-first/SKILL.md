@@ -33,6 +33,9 @@ Every feature goes through this process. A utility function, a config change, a 
 
 - One question at a time — don't overwhelm
 - Prefer multiple-choice questions when possible
+- Each question carries your **recommended answer** — let the user confirm, not explain from scratch
+- **Research before asking** — if the codebase can answer it (Glob/Grep/Read), find out first; only ask what the code can't tell you
+- Order questions by dependency — resolve the ones that unlock others first
 - Focus on: purpose, constraints, success criteria, edge cases
 - Keep asking until you understand what you're building
 

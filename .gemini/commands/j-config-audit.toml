@@ -1,0 +1,11 @@
+description = "Security audit of the agent-config surface across all tool trees (~/.gemini, ~/.agents, and peers) -- leaked secrets, over-broad tool permissions, and prompt-injection vectors. Use before publishing or syncing configs, or in CI. Do NOT use for application code security (use /j-audit) or KB conformance (use /j-skill-audit)."
+
+prompt = '''
+Load the `config-security-audit` skill by reading `~/.agents/skills/config-security-audit/SKILL.md` before doing anything else. Run the full config-security scan.
+
+Scope: {{args}}
+
+If no argument provided, scan all configuration trees.
+
+Note: Gemini-specific config lives in `~/.gemini/` (GEMINI.md, settings.json, commands as TOML, agents as Markdown, hooks as bash). Skills and references are shared at `~/.agents/`.
+'''

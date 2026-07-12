@@ -218,6 +218,18 @@ See `references/workflow/permission-management.md` for full settings hierarchy a
 
 **Key rules:** minimal permissions by default, deny overrides allow, use glob patterns, `settings.local.json` for personal overrides.
 
+## Agent Anti-Patterns (self-audit before finalizing)
+
+Before declaring work done, check you did not:
+
+1. Assume without checking — guessed a path, API, or behavior instead of verifying
+2. Fail to ask when genuinely confused — proceeded on a guess
+3. Not surface an inconsistency or tradeoff you noticed
+4. Overcomplicate — bloated abstractions, needless options, premature generality
+5. Leave dead code, stubs, or commented-out blocks behind
+
+Each maps to a rule already in the harness config (verify-before-claiming, clarifying questions, honest opposition, scope discipline, stop-when-done) — this is the fast pre-flight check.
+
 ## Gotchas
 
 - **Context bloat**: Every line in CLAUDE.md consumes context window. Ruthlessly prune. If Claude already knows it (general programming, language syntax), don't restate it.

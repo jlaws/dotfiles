@@ -243,6 +243,21 @@ For large diffs (>500 lines), ensure thorough coverage by analyzing sequentially
 
 Analyze each perspective independently, then synthesize: deduplicate, resolve contradictions, produce unified findings report.
 
+## Verdict & Evidence
+
+Conclude every review with one standard verdict — **PASS / CONCERNS / FAIL / BLOCKED** — and tag each finding **P0-P3** (see `verification-before-completion`: Verdict Grammar). Weight findings by the Evidence Hierarchy (reproduced > static-traced > pattern-match) and cite a concrete `file:line` for every one. **BLOCKED means the review could not cover something (tool or coverage limit) — never silently turn it into an approval or a product defect.** Reviewers work under the read-only contract: find and report, do not mutate.
+
+## Adversarial Debate Mode (optional — high-risk or high-stakes diffs)
+
+For risky changes, run reviewers as a debate instead of a single pass:
+
+1. **Freeze a shared packet** — the diff plus context, identical for every reviewer.
+2. **Fan out 2+ independent reviewers, one lens each** (e.g. correctness, security, tests, performance). Keep them **blind to each other** on the first pass. Scale the count to change risk.
+3. **Cross-critique, 1-2 rounds** — broadcast round-1 findings; each reviewer may revise. Any change of position **must state a technical reason** — "good point" is banned.
+4. **Report survivors and disputes** — findings that survive cross-critique are high-confidence; flag unresolved disputes for the human rather than forcing consensus.
+
+Every finding cites `file:line`. Run this with the harness Workflow / `deep-research` primitives (independent subagents plus adversarial verification) rather than re-implementing orchestration here.
+
 ## Cross-References
 
 Load these skills if the review scope requires them:

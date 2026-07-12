@@ -12,6 +12,8 @@ Reference for Claude Code hook configuration patterns. Hooks run shell commands 
 | `PostToolUse` | After a tool executes | Lint/format written files, verify output |
 | `Notification` | Claude sends a notification | Custom alerting, logging |
 | `Stop` | Claude stops responding | Post-completion validation, cleanup |
+| `PreCompact` | Before context is compacted | Snapshot task/files/next-step to a scratch file |
+| `SessionStart` | A session begins | Restore snapshot, load context-preservation digest |
 
 ## Configuration
 
@@ -136,6 +138,38 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
 | Hook blocks everything | Narrow the matcher pattern (e.g., `Bash(git commit)` not `Bash(git)`) |
 | Hook output not visible | Ensure command writes to stdout; stderr may be swallowed |
 | Hook too slow | Move heavy work to `Stop` hook or run async with `&` |
+
+## Advanced Patterns
+
+### Runtime Cost Profiles
+
+Gate hook enforcement behind an env var so users tune cost without editing hooks:
+
+| Profile (`HOOK_PROFILE`) | Runs |
+|--------------------------|------|
+| `minimal` | Blocking safety gates only (dangerous commands) |
+| `standard` | Safety + format/lint on write (default) |
+| `strict` | Standard + type-check + tests on stop |
+
+Also honor a disable list (e.g. `HOOK_DISABLE=typecheck,tests`) so one slow hook can be turned off without removing config.
+
+### Tiered Authorization Gate
+
+A PreToolUse gate can classify an action into three tiers instead of a binary allow/deny:
+
+| Tier | Action | Examples |
+|------|--------|----------|
+| Allow | Proceed silently | reads, formatting, local test runs |
+| Confirm | Require explicit human confirmation | deletes, `git push --force`, network writes, anything that spends money |
+| Block | Refuse | `rm -rf /`, curl-piped-to-shell, writing secrets |
+
+### Fail-Open Principle
+
+A hook that filters or transforms tool content (not a safety gate) MUST pass content through unchanged if it errors — never block or corrupt the workflow because a formatter crashed. Safety gates are the opposite: fail closed (block on error).
+
+### PreCompact Snapshot
+
+A `PreCompact` hook can write current task, open files, and next step to a scratch file, and a `SessionStart` hook can read it back — enforcing the Context Preservation rule mechanically instead of relying on the model to remember.
 
 ## Cross-References
 

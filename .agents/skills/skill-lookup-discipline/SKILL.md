@@ -17,8 +17,9 @@ Invoke relevant skills BEFORE any response or action. Even a 1% chance a skill m
 BEFORE acting on any task:
 1. IDENTIFY: What kind of work is this? (feature, bug, refactor, review, plan, etc.)
 2. CHECK: Scan .agents/skills/ and .agents/references/ for applicable patterns
-3. LOAD: Invoke matching skills via the Skill tool
-4. THEN: Proceed with the task following loaded skill guidance
+3. PRUNE: Keep only the smallest set of skills that covers the task — loading extras dilutes attention
+4. LOAD: Invoke matching skills via the Skill tool
+5. THEN: Proceed with the task following loaded skill guidance
 ```
 
 ## Skill Priority

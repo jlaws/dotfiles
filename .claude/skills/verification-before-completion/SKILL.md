@@ -42,6 +42,48 @@ BEFORE claiming any status:
 | Bug fixed | Original symptom: passes | Code changed, assumed fixed |
 | Agent completed | VCS diff shows changes | Agent reports "success" |
 | Requirements met | Line-by-line checklist | Tests passing |
+| UI/web renders | Fresh page evidence: screenshot or asserted URL/title/DOM/a11y snapshot | "The code should render it" |
+
+For UI/web changes, prefer an accessibility-tree snapshot over raw HTML — semantic and far cheaper in tokens.
+
+## Green Is Not Enough: Why Did It Pass?
+
+A passing check counts only if it exercised the target. Judge *why* it is green:
+
+| Verdict | Meaning |
+|---------|---------|
+| PASS-hardening | The assertion ran the changed path and held |
+| INCONCLUSIVE | Green, but the assertion never exercised the target (dead test, wrong path, mocked away) |
+
+- A green result must cite the oracle output **and** evidence the target condition actually ran (log line, coverage, instrumented print).
+- Never judge on pre-action evidence. Capture a **fresh post-action observation**; if it disagrees with the claim, report a **DEVIATION** — do not retro-fit the claim to stale state.
+- Judge iteration by a mechanical metric (count, exit code, measured value), never "seems better".
+
+## Verdict Grammar
+
+Report review/verification status with one standard verdict plus severity:
+
+| Verdict | Meaning |
+|---------|---------|
+| PASS | Verified, no blocking issues |
+| CONCERNS | Works, but non-blocking issues found (list them) |
+| FAIL | A defect is proven with evidence |
+| BLOCKED | Could not verify — a coverage or tooling limit |
+
+- Findings carry a priority: **P0** (must fix now) through **P3** (nice to have).
+- **BLOCKED is a limitation of the check, never a product defect.** Do not downgrade BLOCKED into FAIL or PASS — state what you could not verify and why.
+
+## Evidence Hierarchy
+
+Weight evidence by strength; prefer the strongest available:
+
+1. **Reproduced** — a deterministic run or observation of the behavior (strongest)
+2. **Static-traced** — followed the code path by reading, no run
+3. **Pattern-match** — "looks like" a known issue (weakest; verify before claiming)
+
+## Read-Only Reviewer Contract
+
+A review or audit agent MUST NOT mutate the code it inspects. Declare the boundary up front and keep findings evidence-only. Fixing is a separate, later step by a different actor.
 
 ## Red Flags - STOP
 

@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Glob, Bash
 
 # Knowledge Base Audit
 
-Full conformance audit of all assets under `.claude/`.
+Full conformance audit of KB assets across all tool trees. `.agents/` is the source of truth; `.claude/`, `.cursor/`, `.codex/`, `.gemini/` carry mirrored copies.
 
 ## Scoping
 
@@ -29,6 +29,8 @@ Enumerate all assets by type:
 | Config | `.claude/CLAUDE.md`, `.claude/settings.json`, `.claude/settings.local.json` | Fixed paths |
 
 For each asset, record: type, category, name, file path, any supporting files.
+
+**Multi-tree scope.** `.agents/skills` and `.agents/references` are canonical; `.claude/`, `.cursor/`, `.codex/`, and `.gemini/` carry mirrored copies. Audit `.agents/` as the source of truth, then diff each mirror against it and flag drift (a mirror changed without its source, or vice versa). Skills/references duplicated in `.claude/` should differ only by frontmatter.
 
 ## Phase 2: Automated Checks
 
@@ -244,6 +246,21 @@ Agents: ml-engineer, test-writer, ...
 Commands: j-arch, j-new, ...
 References: auth-implementation-patterns, ...
 ```
+
+## Health Score (qualitative)
+
+Beyond PASS/WARN/FAIL, rate the KB on four axes and name the weakest — that is where to invest next.
+
+| Axis | Question |
+|------|----------|
+| Groundedness | Do skills/refs use concrete repo paths and repo-specific examples, or generic advice? |
+| Coverage | Are the common task types covered by a skill, with no large gaps? |
+| Freshness | Any asset unreferenced by an agent/command/config, or pointing at deleted files? |
+| Structure | Frontmatter valid, cross-references resolve, naming conventions hold, within line budgets? |
+
+**Groundedness rule:** prefer concrete file paths and repo-specific examples over generic advice — a skill that could apply to any repo teaches little about this one. Flag generic-only skills for grounding.
+
+**Staleness:** an asset never referenced by any agent, command, or config across all trees is a removal/merge candidate — report it.
 
 ## Execution Notes
 

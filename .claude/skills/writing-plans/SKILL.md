@@ -145,6 +145,7 @@ Before presenting execution options, review the finished plan against this check
 - **Spec coverage** — every requirement maps to at least one task; nothing dropped.
 - **Placeholder scan** — no "TBD", "add validation", "handle edge cases", or "choose appropriate X" remains; every decision is made in the plan.
 - **Type/signature consistency** — function and type signatures match across every task that references them.
+- **Junior-engineer bar** — the plan is good enough only if an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing could execute it correctly. If any step relies on taste or unstated context, make it explicit. Name YAGNI and DRY as constraints where a task invites over-building.
 
 ## Execution Handoff
 

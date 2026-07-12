@@ -33,6 +33,9 @@ Create a HANDOFF.md that lets the next session (or a different agent) resume wor
 - {Decision 1}: {rationale}
 - {Decision 2}: {rationale}
 
+## Rejected Approaches
+- {approach tried and abandoned}: {why it failed or was not pursued}
+
 ## Files Modified
 | File | Change | Status |
 |------|--------|--------|
@@ -85,4 +88,6 @@ When resuming from a handoff:
 - Include exact test commands (not "run the tests")
 - List decisions with rationale — the "why" is harder to reconstruct than the "what"
 - Keep it under 100 lines — this is a resume document, not documentation
+- Write/update at context-fill milestones (e.g. 50%, 75%), not only at the limit
+- After a compaction, emit a short re-orientation digest (task + current file + next step) before continuing
 - Delete the handoff after successful resumption

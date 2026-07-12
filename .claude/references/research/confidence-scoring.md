@@ -94,6 +94,18 @@ Structure research output with confidence metadata:
 - [If any sources disagreed]
 ```
 
+## Gap Vocabulary
+
+When a claim cannot be resolved, label it — never silently drop it or count it as false. An unverified claim is not a refuted claim.
+
+| Marker | Meaning |
+|--------|---------|
+| UNKNOWN | An assumption or open question left unresolved |
+| UNVERIFIED | An external claim we could not confirm (tool error, missing data, no source) |
+| UNPROVEN | An acceptance criterion mapped but not yet demonstrated by a run |
+
+Treat UNVERIFIED as distinct from "false": absence of confirmation is not evidence against.
+
 ## Confidence Calibration
 
 ### Red Flags (Lower confidence)
