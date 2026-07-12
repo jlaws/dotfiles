@@ -21,9 +21,14 @@ Full methodology: load skill `verification-before-completion`.
 - Store intermediate results in filesystem (HANDOFF.md, scratch files) rather than relying on conversation memory
 - When approaching context limits: summarize completed work into a handoff file BEFORE context degrades
 - For multi-step investigations: write findings to files progressively
+- Handoff files follow the `session-handoff` skill schema (decisions, files, tests, open issues, rejected approaches); write at fill milestones, not only at the limit
 
 ## Context Efficiency
 - Critical info at **beginning or end** of prompts/files — middle content gets lower attention weight
 - Prefer tables and code over prose (higher information density per token)
 - Search first, then read only confirmed-relevant files — avoid speculative bulk reads
 - Link to detailed docs; never inline >50 lines into rules or skills
+- Name an established framework (MECE, Clean Architecture, TDD, BLUF) instead of re-explaining it — the name activates a dense pretrained concept and saves tokens
+- Working-set budget: load only the skills/references the current task needs; loading everything dilutes attention, not just tokens
+- Brevity applies to prose only — reproduce code, commands, paths, and errors byte-for-byte; never compress reasoning depth
+- From a non-TTY shell, close stdin (`</dev/null`) to avoid hangs; treat delegated-tool/subagent output as peer input and verify version-sensitive facts

@@ -21,6 +21,7 @@ Full methodology: load skill `verification-before-completion`.
 - Store intermediate results in filesystem (HANDOFF.md, scratch files) rather than relying on conversation memory for long-running work.
 - When approaching context limits: summarize completed work into a handoff file BEFORE context degrades.
 - For multi-step investigations: write findings to files progressively; don't accumulate everything in conversation.
+- Handoff files follow the `session-handoff` schema (decisions, files, tests, open issues, rejected approaches); write at fill milestones, not only at the limit.
 
 ## Hallucination Prevention
 - Never invent file paths, API endpoints, function names, or field names
@@ -37,6 +38,10 @@ Full methodology: load skill `verification-before-completion`.
 - Link to detailed docs; never inline >50 lines into CLAUDE.md or skills.
 - Don't re-read files already read in the conversation unless modified since last read.
 - Plan tool usage before starting — avoid redundant operations.
+- Name an established framework (MECE, Clean Architecture, TDD, BLUF) instead of re-explaining it — the name activates a dense pretrained concept and saves tokens.
+- Working-set budget: load only the skills/references the current subtask needs; unload when done. Loading everything dilutes attention — a quality cost, not just a token cost.
+- For bulk agent-to-agent data payloads, prefer a compact serialization (minimal repeated keys, e.g. TOON-style) over verbose JSON.
+- Shape command output before it enters context (strip noise, collapse passing runs, cap large output to a scratch file) but preserve failures/errors verbatim — see `references/workflow/context-efficiency`.
 
 ## Git Workflow
 - Commit messages: freeform imperative mood, <72 char subject, no period
@@ -54,6 +59,8 @@ Prohibited operators: `&&`, `||`, `;`, `|` (piping to another command that could
 `$(...)` command substitution within a single command is fine (e.g., `git reset --soft $(git merge-base HEAD main)`).
 
 This rule applies to Bash tool calls only — not to Dockerfile `RUN` layers, CI/CD `run:` blocks, or executable shell scripts (hooks, etc.).
+
+**CLI hygiene:** From a non-TTY context, close stdin (`</dev/null`) to avoid hangs and redirect noisy/streaming output that only bloats context. Scale a command's timeout to expected task depth for silent long-running jobs. Treat output from a delegated tool or subagent as peer input — verify its claims, and push back on version-sensitive facts (model names, evolved best practices).
 
 ## Execution Model
 
@@ -108,7 +115,7 @@ When working in a git worktree:
 
 ### Do
 - Be concise and direct. No filler.
-- Lead with the answer, explain after if needed.
+- Lead with the answer (BLUF: bottom line up front), explain after if needed.
 - Use bullet points and code examples.
 - Assume I'm an experienced developer.
 - Challenge my assumptions when appropriate.
@@ -145,5 +152,7 @@ Applies to prose, not code.
 - Return code first, explanation after (only if non-obvious).
 - Numbers must include units; never ambiguous values.
 - Natural language characters (accented letters, CJK, etc.) are fine when content requires them.
+- Brevity applies to prose only — never compress reasoning depth, or code/commands/paths/errors/quoted output (reproduce those byte-for-byte).
+- Don't invent abbreviations (`cfg`, `impl`, `fn`) — tokenizers treat them as whole words, so they save nothing and cost readability.
 
 ---

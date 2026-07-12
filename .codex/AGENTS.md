@@ -39,6 +39,15 @@
 - Return code first, explanation after (only if non-obvious).
 - Prose (not code): short declarative sentences, simple common words, positive phrasing.
 - Cut -ly adverbs and filler; use plain verbs ("use" not "utilize"). Respect reader time.
+- Lead with the bottom line (BLUF); state the answer before the reasoning.
+- Brevity applies to prose only -- reproduce code, commands, paths, errors, and quoted output byte-for-byte; never compress reasoning depth.
+- Don't invent abbreviations (`cfg`, `impl`, `fn`) -- tokenizers treat them as whole words, so they save nothing and cost readability.
+
+## Context Efficiency
+
+- Name an established framework (MECE, Clean Architecture, TDD, BLUF) instead of re-explaining it -- the name activates a dense pretrained concept and saves tokens.
+- Working-set budget: load only the skills/references the current subtask needs; unload when done. Loading everything dilutes attention, not just tokens.
+- Shape command output before it enters context (strip noise, collapse passing runs, cap large output to a scratch file), but preserve failures and errors verbatim. Full tactics: `~/.agents/references/workflow/context-efficiency.md`.
 
 ## Execution Defaults
 
@@ -47,6 +56,8 @@
 - Ask before adding new dependencies or changing external services.
 - For reviews: state the bug, show the fix, stop. Lead with findings, include file paths and line numbers.
 - Don't re-read files already read unless modified since last read.
+- From a non-TTY context, close stdin (`</dev/null`) to avoid hangs and redirect noisy output; scale a command's timeout to expected task depth for silent long jobs.
+- When context is constrained, preserve progress in a HANDOFF.md using the `session-handoff` schema (decisions, files, tests, open issues, rejected approaches) before context degrades.
 
 ## Execution Model
 

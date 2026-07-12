@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## Do
 - Be concise and direct. No filler.
-- Lead with the answer, explain after if needed.
+- Lead with the answer (BLUF: bottom line up front), explain after if needed.
 - Use bullet points and code examples.
 - Assume I'm an experienced developer.
 - Challenge my assumptions when appropriate.

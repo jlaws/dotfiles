@@ -41,6 +41,8 @@ Search first, read second. Never bulk-read files speculatively.
 - Reading an entire file when only one function is relevant (use `offset`/`limit`)
 - Using Read to scan for keywords (use Grep instead)
 
+**Delta reads:** when re-reading a file you just changed, read only the changed range (`git diff`, or Read with `offset`/`limit`) instead of the whole file. For a large unfamiliar file, read signatures/imports first, then Grep to the exact symbol and read only that range.
+
 ## Data Cleaning
 
 External content (web pages, logs, API responses) carries significant bloat. Clean before injecting into context.
@@ -53,6 +55,20 @@ External content (web pages, logs, API responses) carries significant bloat. Cle
 | Documentation | Boilerplate headers, version badges | Content sections, examples |
 
 **HTML to Markdown conversion reduces tokens 2-3x.** WebFetch does this automatically; when processing raw HTML, strip tags before reasoning.
+
+## Command Output Shaping
+
+Shape tool and command output before it enters context — most of it is noise.
+
+| Tactic | Do |
+|--------|-----|
+| Strip noise | Remove ANSI colors, progress bars, spinners |
+| Collapse passing runs | A green suite becomes one line: "142 passed, 0 failed" |
+| Dedupe | Fold repeated log lines / stack frames to first occurrence + count |
+| Cap large output | Write big output to a scratch file, then Grep it — do not inline megabytes |
+| Prefer compact flags | `git status --porcelain`, `git log --oneline`, `ls -1`, `--quiet` |
+
+**Hard constraint:** preserve failures, exit codes, and error strings **verbatim**. Shaping is for noise, never for evidence — `verification-before-completion` depends on the real output.
 
 ## Context Budget
 
@@ -75,6 +91,8 @@ When a task involves heavy research that could bloat the main context, consider 
 | Result summarization | Capture findings as a summary, discard raw search output |
 | File-based handoff | Write findings to a scratch file rather than accumulating in conversation |
 | Single-pass analysis | Complete each analysis phase fully before starting the next |
+
+**Reversible summarization:** before you summarize or drop large output, persist the full original to a scratch file and cite its path — detail stays recoverable. Only summarize (or delegate to a subagent for context savings) when the estimated tokens saved exceed the overhead; scale compression intensity up as the window fills.
 
 ## Parallel Tool Calls
 
