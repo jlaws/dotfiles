@@ -62,6 +62,14 @@ description: Use when executing implementation plans with independent tasks in t
 ## Common Mistakes (what goes wrong + fixes)
 ```
 
+## Keyword Discipline (RFC 2119)
+
+Use MUST / MUST NOT / SHOULD / MAY with their RFC 2119 meanings so a hard gate reads differently from a suggestion. Reserve MUST/MUST NOT for non-negotiable rules, SHOULD for strong defaults with an escape hatch, MAY for options. Letting "should" creep into a hard gate is how discipline erodes.
+
+## Co-located Scripts
+
+For mechanical steps (validation, formatting, deterministic checks), ship a `scripts/` file in the skill directory and call it, rather than describing the steps in prose. Reserve the LLM for judgment; let a script do what a script does better. Keep scripts one level deep and list any dependencies.
+
 ## Claude Search Optimization (CSO)
 
 - Use concrete triggers/symptoms in description, not language-specific symptoms
@@ -152,6 +160,10 @@ Three responses:
 1. "Skill WAS clear, I chose to ignore" -> Need stronger foundational principle
 2. "Skill should have said X" -> Add their suggestion
 3. "I didn't see section Y" -> Make it more prominent
+
+### Interpretation Test
+
+Before shipping behavior-shaping wording, run the same prompt about 5 times (or across 5 fresh contexts). Five different interpretations means the wording is ambiguous — rewrite until the readings converge.
 
 ## Persuasion Principles for Skill Design
 

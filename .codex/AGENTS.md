@@ -60,6 +60,7 @@
 - Don't re-read files already read unless modified since last read.
 - From a non-TTY context, close stdin (`</dev/null`) to avoid hangs and redirect noisy output; scale a command's timeout to expected task depth for silent long jobs.
 - When context is constrained, preserve progress in a HANDOFF.md using the `session-handoff` schema (decisions, files, tests, open issues, rejected approaches) before context degrades.
+- Artifact tiers: `summary/` and `planning/` are commit-worthy; `tasks/` optional; `scratchpad/` is gitignored working space.
 
 ## Execution Model
 

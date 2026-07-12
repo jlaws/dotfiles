@@ -23,6 +23,7 @@ Full methodology: load skill `verification-before-completion`.
 - When approaching context limits: summarize completed work into a handoff file BEFORE context degrades
 - For multi-step investigations: write findings to files progressively
 - Handoff files follow the `session-handoff` skill schema (decisions, files, tests, open issues, rejected approaches); write at fill milestones, not only at the limit
+- Artifact tiers: `summary/` and `planning/` are commit-worthy; `tasks/` optional; `scratchpad/` is gitignored working space
 
 ## Context Efficiency
 - Critical info at **beginning or end** of prompts/files — middle content gets lower attention weight
