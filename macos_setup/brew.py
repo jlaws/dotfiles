@@ -31,6 +31,7 @@ BREW_PACKAGES = [
     "gh",
     "autojump",
     "mermaid-cli",
+    "poppler",
     "rustup",
     "mold",
     "node",
@@ -82,6 +83,7 @@ def install_packages(runner: Runner, *, dry_run: bool = False) -> None:
             )
 
     _run(runner, ["npm", "install", "-g", "typescript-language-server", "typescript"], dry_run=dry_run)
+    _run(runner, ["npm", "install", "-g", "agent-browser"], dry_run=dry_run)
     _run(runner, ["go", "install", "golang.org/x/tools/gopls@latest"], dry_run=dry_run)
     _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
     _run(runner, ["bash", "-c", _CLAUDE_INSTALL], dry_run=dry_run)

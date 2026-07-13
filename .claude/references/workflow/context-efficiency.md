@@ -56,6 +56,8 @@ External content (web pages, logs, API responses) carries significant bloat. Cle
 
 **HTML to Markdown conversion reduces tokens 2-3x.** WebFetch does this automatically; when processing raw HTML, strip tags before reasoning.
 
+**Fetch-tool selection (cheapest first):** WebFetch for public/static pages (does HTML to Markdown for free); the agent-browser CLI when a page is JS-rendered or behind an auth wall; `pdftotext` for PDFs rather than the Read tool, which spends vision tokens on document pages.
+
 ## Command Output Shaping
 
 Shape tool and command output before it enters context — most of it is noise.

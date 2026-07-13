@@ -28,7 +28,7 @@ make test     # stdlib unittest suite (python -m unittest)
 
 ### What setup.sh does:
 1. **Syncs dotfiles** to `~` (root dotfiles + agent configs), archiving replaced files first
-2. **Installs Homebrew packages**: coreutils, findutils, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump, mermaid-cli, node, pyright, rust-analyzer
+2. **Installs Homebrew packages**: coreutils, findutils, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump, mermaid-cli, poppler, node, pyright, rust-analyzer
 3. **Configures macOS**: ~200 `defaults` settings for Finder, Dock, Safari, security, etc., snapshotting each domain first
 
 Every run writes a timestamped archive to `~/.dotfile-archive/<timestamp>/` (files, per-domain
