@@ -1,6 +1,6 @@
 ---
 name: skill-audit
-description: "Audit the .claude/ knowledge base — skills, commands, agents, references, config, and cross-references. Use when validating conformance after creating or modifying any .claude/ asset, checking naming conventions, or verifying knowledge base integrity. Do NOT use for general code quality (use code-quality) or code review (use code-review-patterns)."
+description: "Audit the .claude/ knowledge base — skills, commands, agents, references, config, cross-references, and documentation currency. Use when validating conformance after creating or modifying any .claude/ asset, checking naming conventions, or verifying knowledge base integrity. Do NOT use for general code quality (use code-quality) or code review (use code-review-patterns)."
 ---
 
 # Knowledge Base Audit
@@ -195,6 +195,14 @@ Verify links between assets resolve:
 | XR-5 | Skill body cross-references to other skills resolve | WARN | Broken skill ref |
 | XR-6 | Skill supporting files in `references/` subdirs are referenced in SKILL.md | WARN | Orphan supporting file |
 
+### 2G. Documentation Currency
+
+| # | Check | Sev | Rule |
+|---|-------|-----|------|
+| DOC-1 | Mirror parity — shared skill/reference bodies identical across `.agents`↔`.claude` (differ only by frontmatter); each `j-*` command and each agent has its `.gemini`/`.codex` counterpart and its `cmd-`/`agent-` source skill | WARN | Drift means one tree's docs are stale |
+| DOC-2 | Description reflects behavior — the `description` still matches what the body does after edits (no stale/misleading trigger) | WARN | Stale description misroutes invocation |
+| DOC-3 | Registration — a new or renamed asset is discoverable in `.claude/CLAUDE.md` Knowledge Base Structure (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
+
 ## Phase 3: Report
 
 ### Summary
@@ -255,6 +263,8 @@ Beyond PASS/WARN/FAIL, rate the KB on four axes and name the weakest — that is
 | Coverage | Are the common task types covered by a skill, with no large gaps? |
 | Freshness | Any asset unreferenced by an agent/command/config, or pointing at deleted files? |
 | Structure | Frontmatter valid, cross-references resolve, naming conventions hold, within line budgets? |
+
+**Documentation currency:** mirror parity across trees and description-behavior match are part of freshness — see checks DOC-1..3.
 
 **Groundedness rule:** prefer concrete file paths and repo-specific examples over generic advice — a skill that could apply to any repo teaches little about this one. Flag generic-only skills for grounding.
 

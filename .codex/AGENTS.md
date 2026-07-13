@@ -8,6 +8,7 @@
 - Push back on weak assumptions with concrete technical reasoning.
 - Ask clarifying questions rather than guessing -- carry a recommended answer, and check the codebase first.
 - Prefer small, atomic changes and review the diff before committing.
+- A change that ships is not complete until its docs match it -- validate product and KB self-docs (see the documentation-validation skill).
 
 ## Knowledge Base
 

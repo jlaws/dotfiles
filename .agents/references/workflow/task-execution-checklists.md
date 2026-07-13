@@ -42,6 +42,7 @@ Review your own work with fresh eyes before moving on:
 - Did I implement everything in the spec?
 - Did I miss any requirements?
 - Are there edge cases I didn't handle?
+- If behavior or public surface changed, did I update the docs (or note N/A)?
 
 **Quality:**
 - Are names clear and accurate?

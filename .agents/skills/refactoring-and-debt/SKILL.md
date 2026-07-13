@@ -22,6 +22,8 @@ A refactoring changes structure without changing behavior. If you're adding feat
 4. **Commit** (small atomic commit, message describes the refactoring)
 5. **Repeat**
 
+> Renames or interface changes that touch public surface (API, CLI, config, exported names) are not done until the docs that name them are updated — see `documentation-validation`.
+
 Each commit is a safe rollback point. If anything breaks, `git revert` is trivial.
 
 ## Code Smell to Refactoring Mapping
@@ -206,3 +208,4 @@ After analyzing all perspectives, synthesize findings: deduplicate, resolve cont
 
 - **workflow:code-quality** -- code smells, style conventions
 - **workflow:verification-before-completion** -- ensuring refactoring is verified before claiming done
+- **workflow:documentation-validation** -- when a rename or interface change touches public surface, confirm docs (README, API reference) still match

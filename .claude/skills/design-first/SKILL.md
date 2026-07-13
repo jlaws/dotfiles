@@ -59,6 +59,7 @@ Every feature goes through this process. A utility function, a config change, a 
 - **Self-review before committing** — scan the written design for placeholders, internal contradictions, and scope creep (features beyond what was agreed). Fix or flag anything you find.
 - Commit the design document
 - Skip file output only if user explicitly says no
+- Design docs are not user docs — when the feature ships, keep README/API/usage docs current too (see `documentation-validation`)
 
 ### Phase 6: Transition to Implementation
 

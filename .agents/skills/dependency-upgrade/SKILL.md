@@ -142,5 +142,5 @@ Document ALL overrides with comments explaining why they exist.
 - [ ] Full regression test
 - [ ] Deploy to staging with real data
 - [ ] Monitor errors 24-48h
-- [ ] Update documentation if APIs changed
+- [ ] Validate documentation — dependency docs (README install/requirements, CHANGELOG, version-pinned examples) reflect the new version, or N/A (see `documentation-validation`)
 - [ ] Remove any temporary overrides/workarounds

@@ -199,4 +199,5 @@ For large codebases (>50 files affected), organize migration into independent mo
 - [ ] Comparison tests for each module (written before migration)
 - [ ] Rollback triggers and procedures defined
 - [ ] Progress tracking per module
+- [ ] Documentation updated for the target stack (README, API reference, config/CLI docs, CHANGELOG) — or N/A per change (see `documentation-validation`)
 

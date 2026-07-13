@@ -78,6 +78,7 @@ Fixes #${ISSUE_NUMBER} by implementing proper error handling.
 - [x] Code follows project style guidelines
 - [x] Self-review completed
 - [x] No new warnings introduced
+- [x] Documentation updated (or N/A)
 EOF
 )" \
   --base main \
@@ -108,3 +109,4 @@ gh issue close ${ISSUE_NUMBER} --comment "Resolved via #${PR_NUMBER}"
 4. Pull request with issue linking
 5. Verification steps for reviewers
 6. Rollback plan
+7. Documentation validated — product docs and any KB self-docs current, or N/A with reason (see `documentation-validation`)

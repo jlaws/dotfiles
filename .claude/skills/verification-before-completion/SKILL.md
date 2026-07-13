@@ -43,6 +43,7 @@ BEFORE claiming any status:
 | Agent completed | VCS diff shows changes | Agent reports "success" |
 | Requirements met | Line-by-line checklist | Tests passing |
 | UI/web renders | Fresh page evidence: screenshot or asserted URL/title/DOM/a11y snapshot | "The code should render it" |
+| Docs current | Docs updated for the change, or N/A stated with reason | "Code works, docs later" |
 
 For UI/web changes, prefer an accessibility-tree snapshot over raw HTML — semantic and far cheaper in tokens.
 
@@ -93,6 +94,7 @@ A review or audit agent MUST NOT mutate the code it inspects. Declare the bounda
 - Trusting agent success reports
 - Relying on partial verification
 - **ANY wording implying success without having run verification**
+- Claiming a change complete without a documentation decision (update or explicit N/A)
 
 ## Rationalization Prevention
 
@@ -118,5 +120,7 @@ Agent:     Agent reports -> Check VCS diff -> Verify changes -> Report actual st
 ## When To Apply
 
 **ALWAYS before:** Any success/completion claim, any positive statement about work state, committing, PR creation, task completion, moving to next task, delegating to agents.
+
+For any change that ships (feature, behavior change, refactor/rename, new KB asset), a documentation decision is part of "complete" — see `documentation-validation`.
 
 **No shortcuts. Run the command. Read the output. THEN claim the result.**

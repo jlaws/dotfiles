@@ -176,6 +176,7 @@ Before marking work complete:
 - [ ] Edge cases and errors covered
 - [ ] Every test exercises a decision point, transformation, or behavior path (not config/settings)
 - [ ] All tests target production code (no tests for test helpers/fixtures/utilities)
+- [ ] Documentation validated — product docs (README/API/CHANGELOG) and any KB self-docs reflect the change, or N/A declared with a reason (see `documentation-validation`)
 
 Can't check all boxes? You skipped TDD. Start over.
 

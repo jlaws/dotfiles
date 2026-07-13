@@ -8,5 +8,6 @@ If the current branch is `main` or `master`, derive a safe feature branch name b
 Use imperative commit messages under 72 characters.
 When creating a PR, always write an explicit title and body from the actual diff and commit history. Never rely on `--fill`.
 Return the branch name, commit summary, changed-file summary, and the PR URL.
+Before finishing, confirm the change's documentation is current (product docs and any KB self-docs) or state why none is needed.
 """
 

@@ -261,6 +261,7 @@ After writing:
 1. Confirm the file was created at the correct path
 2. If skill: confirm the directory was created
 3. Suggest: "Run `/j-skill-audit {type}s` to verify full conformance"
+4. Register & document the new asset: update the CLAUDE.md Knowledge Base Structure section and MEMORY.md index (if the repo has one), add any cross-references, and create the `.agents` ↔ `.claude` mirror copy (body identical; `.claude` adds only `compatibility` + `allowed-tools`). See `documentation-validation`.
 
 ---
 

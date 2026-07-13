@@ -16,7 +16,8 @@ Invoke the `test-driven-development` skill before coding. Then follow this execu
 4. **Implement** — Make each test pass one-by-one. After each change, run the full test suite. Write minimal code.
 5. **Lint** — Run the project's formatter and linter (check Makefile, package.json scripts, or pyproject.toml for commands). Fix all issues.
 6. **Final verification** — Run the full test suite. Paste output confirming all tests pass and output is clean.
-7. **Commit** — Create a commit summarizing what was implemented and test coverage achieved.
+7. **Validate docs** — Apply the `documentation-validation` gate: if the feature/fix changed public surface or documented behavior, update README/API/CHANGELOG (or declare N/A with a reason).
+8. **Commit** — Create a commit summarizing what was implemented and test coverage achieved.
 
 Do not move to step 4 until ALL tests from step 2 are written. Do not skip running tests between implementations in step 4.
 
