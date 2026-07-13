@@ -38,6 +38,19 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertLess(argvs.index(["brew", "update"]), argvs.index(["brew", "install", "coreutils"]))
         self.assertLess(argvs.index(["brew", "install", "coreutils"]), argvs.index(["brew", "cleanup"]))
 
+    def test_installs_fetch_tool_clis(self):
+        runner = FakeRunner(_brew_ok)
+        install_packages(runner)
+
+        argvs = runner.argv_list()
+        self.assertIn(["brew", "install", "poppler"], argvs)
+        self.assertIn(["brew", "install", "agent-browser"], argvs)
+        self.assertIn(["agent-browser", "install"], argvs)
+        self.assertLess(
+            argvs.index(["brew", "install", "agent-browser"]),
+            argvs.index(["agent-browser", "install"]),
+        )
+
     def test_install_logs_info_per_package(self):
         runner = FakeRunner(_brew_ok)
         with self.assertLogs("macos_setup.brew", level="INFO") as cm:
