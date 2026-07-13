@@ -44,7 +44,12 @@ class InstallPackagesTests(unittest.TestCase):
 
         argvs = runner.argv_list()
         self.assertIn(["brew", "install", "poppler"], argvs)
-        self.assertIn(["npm", "install", "-g", "agent-browser"], argvs)
+        self.assertIn(["brew", "install", "agent-browser"], argvs)
+        self.assertIn(["agent-browser", "install"], argvs)
+        self.assertLess(
+            argvs.index(["brew", "install", "agent-browser"]),
+            argvs.index(["agent-browser", "install"]),
+        )
 
     def test_install_logs_info_per_package(self):
         runner = FakeRunner(_brew_ok)
