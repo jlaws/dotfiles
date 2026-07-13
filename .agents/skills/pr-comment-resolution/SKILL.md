@@ -128,9 +128,10 @@ Cross-reference `workflow:verification-before-completion` — evidence before cl
 2. Run linter if configured
 3. Review full diff: git diff $(git merge-base HEAD origin/{base_branch})..HEAD
 4. Confirm no unintended changes leaked in
-5. Push
-6. Watch CI: gh pr checks $PR --watch
-7. Re-request review from original reviewers:
+5. Validate documentation (`documentation-validation`) — docs match any behavior/surface changes from the fixes, or N/A
+6. Push
+7. Watch CI: gh pr checks $PR --watch
+8. Re-request review from original reviewers:
    gh pr edit $PR --add-reviewer {reviewer1},{reviewer2}
 ```
 
@@ -157,6 +158,7 @@ Present to the user:
 ### Verification
 - Tests: {PASS/FAIL — evidence}
 - Lint: {PASS/FAIL — evidence}
+- Docs: {updated / N/A — reason}
 - CI: {PASS/FAIL/PENDING — link}
 - Review re-requested: {reviewers}
 ```

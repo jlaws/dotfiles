@@ -77,6 +77,7 @@ Based on feedback:
 
 After all tasks are done and verified:
 - Run full test suite one final time
+- Validate documentation with the `documentation-validation` skill — product docs and KB self-docs current, or N/A with reason
 - Load `finishing-branch` skill to wrap up the branch
 - Follow that skill's process (verify → present options → execute choice)
 

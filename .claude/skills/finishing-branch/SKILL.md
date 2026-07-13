@@ -3,6 +3,8 @@ name: finishing-branch
 description: "Structured 4-step process for completing a development branch — verify tests, determine base, present integration options, execute with cleanup. Use when implementation is complete and you need to decide how to integrate the work. Do NOT use mid-implementation or before tests pass."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
+skills:
+  - documentation-validation
 ---
 
 # Finishing a Development Branch
@@ -45,6 +47,10 @@ Cannot proceed with merge/PR until tests pass.
 STOP. Do not proceed to Step 2. Fix tests first.
 
 **If tests pass:** Continue.
+
+### Step 1b: Validate Documentation
+
+Before presenting options, run the `documentation-validation` gate: confirm product docs (README/API/CHANGELOG) and any KB self-docs reflect what this branch changed, or declare N/A with a reason. Stale docs block completion just like failing tests.
 
 ### Step 2: Determine Base Branch
 
@@ -145,8 +151,10 @@ Clean up worktree if applicable.
 - Force-pushing without explicit user request
 - Offering fewer or more than 4 options
 - Cleaning up worktree when user chose "keep as-is"
+- Presenting integration options with documentation that doesn't match the branch's changes (run `documentation-validation` first)
 
 ## Integration
 
 **Called by:** `executing-plans` (Step 5) after all tasks complete
 **Pairs with:** `using-git-worktrees` for worktree cleanup
+**Uses:** `documentation-validation` before presenting options

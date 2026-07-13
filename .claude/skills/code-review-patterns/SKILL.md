@@ -143,6 +143,8 @@ Analyze the diff from each perspective independently, then merge findings.
 
 **4.5 Language-Specific Gotchas** — Apply auto-detected `languages:*-patterns` skills. See [references/language-gotchas.md](references/language-gotchas.md).
 
+**4.6 Documentation** — Cross-reference `workflow:documentation-validation`: does the diff change public surface (API, CLI, config) or documented behavior without updating README/API docs/CHANGELOG? Flag stale docs as a finding.
+
 ### Step 5 — Structured Findings Report
 
 ```markdown
@@ -272,5 +274,6 @@ Load these skills if the review scope requires them:
 - `workflow:verification-before-completion` — if implementing fixes discovered during review
 - `workflow:pr-comment-resolution` — if responding to reviewer feedback on your own PR
 - `languages:*-patterns` — load the language-specific skill matching the primary language in the diff
+- `workflow:documentation-validation` — if the diff changes public surface or documented behavior and docs may be stale
 
 If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `references/workflow/review-checklists` for domain-specific checklists.

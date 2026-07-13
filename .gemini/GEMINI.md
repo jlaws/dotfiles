@@ -22,6 +22,7 @@ Full methodology: load skill `verification-before-completion` (read `~/.agents/s
 - **Stop when done**: Don't refactor, improve, or polish passing code. Passing tests = stop. No unsolicited improvements.
 - **Prefer editing over rewriting**: Edit specific sections of files, not full rewrites. Prefer targeted changes.
 - **Scope discipline**: Deliver exactly what was requested. No extras, no "you might also want...", no unsolicited suggestions beyond scope.
+- **Documentation currency**: A change that ships is not complete until its docs match it. Validate product docs and KB self-docs before claiming done. Load skill `documentation-validation`.
 
 ## Context Preservation
 - When context is constrained: preserve current task, file paths being edited, test results, and key decisions. Discard exploration output and intermediate reasoning.

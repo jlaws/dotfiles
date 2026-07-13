@@ -244,4 +244,6 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 - [ ] Re-test until bulletproof
 
 **Deployment:**
+- [ ] Update KB self-docs: `description` frontmatter and cross-references current; CLAUDE.md KB-structure section and MEMORY.md index (if present) updated if the asset set changed (see `documentation-validation`)
+- [ ] Sync the `.agents` ↔ `.claude` mirror (bodies identical; `.claude` adds only `compatibility` + `allowed-tools`)
 - [ ] Commit and push

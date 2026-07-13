@@ -47,6 +47,7 @@ Squash first, then rebase — a single commit resolves conflicts once instead of
 Detect and run the repo's checks before pushing:
 - If a `Makefile` exposes them, run `make check` then `make test`.
 - Otherwise detect the toolchain (`package.json` scripts, `pytest`, `cargo test`, etc.) and run its test/build/lint.
+- Run the `documentation-validation` gate: confirm product docs and any KB self-docs match this branch's changes, or declare N/A with a reason. A green test suite does not prove docs are current.
 
 STOP before pushing on any failure. A rebase can introduce a semantic break even with no textual conflict — a broken branch must not be published. Report the failure and let the user fix it.
 
@@ -79,3 +80,4 @@ STOP before pushing on any failure. A rebase can introduce a semantic break even
 - **agent:create-pr** -- baseline stage/commit/branch/push/open logic this command extends with fetch, rebase, and force-push
 - **skill:finishing-branch** -- base detection via `git merge-base` and the heredoc PR body; note it flags force-push, which is intentional and authorized here
 - **skill:using-git-worktrees** -- source of the canonical 3-call squash sequence
+- **skill:documentation-validation** -- per-change doc gate applied in Phase 4 before force-push

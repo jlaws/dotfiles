@@ -5,6 +5,7 @@ model: sonnet
 tools: Bash, Read, Grep, Glob
 skills:
   - verification-before-completion
+  - documentation-validation
 ---
 You automate the full PR workflow. Follow these steps in order:
 

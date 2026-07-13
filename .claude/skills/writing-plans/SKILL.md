@@ -137,6 +137,7 @@ git commit -m "feat: add specific feature"
 - **Frequent commits** — one commit per task or logical unit
 - **Idempotent steps** — every step safely re-runnable. `CREATE TABLE IF NOT EXISTS`, not `CREATE TABLE`. `mkdir -p`, not `mkdir`. If a step fails midway, re-running it from the top must not corrupt state.
 - **Resolve all ambiguities** — no "choose appropriate X" or "use a suitable library". Every decision is made in the plan. If you can't decide, flag it as a decision gate in a prototyping milestone.
+- **Documentation task** — if the change alters public surface or documented behavior, include an explicit doc-update task; don't leave docs implicit. See `documentation-validation`.
 
 ## Self-Review (before handoff)
 
@@ -146,6 +147,7 @@ Before presenting execution options, review the finished plan against this check
 - **Placeholder scan** — no "TBD", "add validation", "handle edge cases", or "choose appropriate X" remains; every decision is made in the plan.
 - **Type/signature consistency** — function and type signatures match across every task that references them.
 - **Junior-engineer bar** — the plan is good enough only if an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing could execute it correctly. If any step relies on taste or unstated context, make it explicit. Name YAGNI and DRY as constraints where a task invites over-building.
+- **Documentation coverage** — a change that ships a public-surface or behavior change has a doc-update task, or the plan states docs are N/A with a reason.
 
 ## Execution Handoff
 

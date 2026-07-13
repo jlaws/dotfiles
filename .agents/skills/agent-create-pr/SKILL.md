@@ -42,3 +42,4 @@ You automate the full PR workflow. Follow these steps in order:
 
 ## Related Skills
 - verification-before-completion
+- documentation-validation

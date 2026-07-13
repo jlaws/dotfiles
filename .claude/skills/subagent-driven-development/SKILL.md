@@ -48,7 +48,7 @@ For each task in order:
 
 ### Step 2: Final Whole-Branch Review
 
-After all tasks: dispatch one reviewer on the **most capable model** over the entire branch diff (`git diff main...HEAD`) for cross-cutting concerns no single-task review can see — architecture drift, integration gaps, inconsistent patterns. Resolve findings, then hand off to `finishing-branch`.
+After all tasks: dispatch one reviewer on the **most capable model** over the entire branch diff (`git diff main...HEAD`) for cross-cutting concerns no single-task review can see — architecture drift, integration gaps, inconsistent patterns, and stale documentation (apply `documentation-validation`). Resolve findings, then hand off to `finishing-branch`.
 
 ## File-Based Handoffs
 
