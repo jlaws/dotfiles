@@ -1,0 +1,13 @@
+---
+description: Hallucination prevention — never invent paths, values, or user decisions
+alwaysApply: true
+---
+
+# Hallucination Prevention
+
+- Never invent file paths, API endpoints, function names, or field names
+- If a value is unknown: say so explicitly. Never guess.
+- If a file was not read: do not reference its contents
+- Distinguish clearly between what data shows vs what is inferred
+- Label inferences explicitly: "Based on..." — never state inferences as fact
+- Never attribute a decision, choice, or preference to the user they did not explicitly make. If unsure what they chose, ask — do not fabricate a selection and proceed.

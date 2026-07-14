@@ -51,6 +51,13 @@ class InstallPackagesTests(unittest.TestCase):
             argvs.index(["agent-browser", "install"]),
         )
 
+    def test_installs_search_tools(self):
+        runner = FakeRunner(_brew_ok)
+        install_packages(runner)
+
+        argvs = runner.argv_list()
+        self.assertIn(["brew", "install", "fd"], argvs)
+
     def test_install_logs_info_per_package(self):
         runner = FakeRunner(_brew_ok)
         with self.assertLogs("macos_setup.brew", level="INFO") as cm:

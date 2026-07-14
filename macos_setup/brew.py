@@ -19,6 +19,7 @@ BREW_PACKAGES = [
     "coreutils",
     "moreutils",
     "findutils",
+    "fd",
     "gnu-sed",
     "wget",
     "just",
