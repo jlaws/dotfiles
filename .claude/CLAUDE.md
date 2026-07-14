@@ -14,7 +14,11 @@ Full methodology: load skill `verification-before-completion`.
 - **Iteration limits**: Max 2 fix attempts on the same error; more generally, stop when the check passes OR two consecutive rounds make no measurable progress. Then rethink the approach entirely — never debug in circles.
 - **Stop when done**: Don't refactor, improve, or polish passing code. Passing tests = stop. No unsolicited improvements.
 - **Prefer editing over rewriting**: Edit specific sections of files, not full rewrites. Prefer targeted changes.
+- **Change the default, don't add a flag**: When the user wants new behavior to be the norm, make it the default rather than gating it behind an opt-in flag. After 2 failed attempts on a heavy approach, fall back to the simple one instead of a third try.
 - **Scope discipline**: Deliver exactly what was requested. No extras, no "you might also want...", no unsolicited suggestions beyond scope.
+- **Broad or destructive directives**: Before acting on "remove/delete/refactor X everywhere"-style instructions, confirm the exact scope in one line if there is any ambiguity.
+- **Expensive operations**: Re-run only what changed or failed; reuse cached results rather than recomputing a full suite to observe a subset. Get explicit confirmation before starting any multi-hour, costly, or hard-to-reverse run.
+- **Resource teardown**: Tear down paid cloud services, emulators, and local dev stacks you started when work pauses or finishes. Never leave them running unattended.
 - **Documentation currency**: A change that ships is not complete until its docs match it. Validate product docs and KB self-docs before claiming done. Load skill `documentation-validation`.
 
 ## Context Preservation
@@ -31,6 +35,7 @@ Full methodology: load skill `verification-before-completion`.
 - If a file was not read: do not reference its contents
 - Distinguish clearly between what data shows vs what is inferred
 - Label inferences explicitly: "Based on..." — never state inferences as fact
+- Never attribute a decision, choice, or preference to the user they did not explicitly make. If unsure what they chose, ask — do not fabricate a selection and proceed.
 
 ## Context Efficiency
 - Critical info at **beginning or end** of prompts/files — middle content gets lower attention weight.
@@ -53,6 +58,9 @@ Full methodology: load skill `verification-before-completion`.
 - Always verify changes with `git diff` before committing
 - Never force push to main/master
 - Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
+- When a PR is already open for the current work, push follow-up fixes to that same PR/branch. Do not open a new PR unless the user asks.
+- After opening a PR, stop and wait for the user to review/merge before starting the next work item, unless told to keep going.
+- After a squash or rebase, diff against the pre-squash tree (and confirm the branch) to verify no file or config was dropped before force-pushing.
 
 ## Bash Commands
 
@@ -60,7 +68,13 @@ Full methodology: load skill `verification-before-completion`.
 
 Prohibited operators: `&&`, `||`, `;`, `|` (piping to another command that could be its own call).
 
-`$(...)` command substitution within a single command is fine (e.g., `git reset --soft $(git merge-base HEAD main)`).
+**Self-check before every Bash call:** does it contain `&&`, `||`, `;`, or a pipe into a second command? If so, split it into separate calls. This is the most-violated rule — the common offenders are all prohibited:
+- `git add -A; git diff --cached --stat` → two calls
+- `cmd ... | tail -20` / `... | head` / `... | grep ...` → run `cmd` alone, redirect to a scratch file, then Grep it
+- `docker ps -q | xargs -r docker rm -f; pgrep -f ... | xargs kill` → separate calls per cleanup step
+- `sleep 25; tail ...` → use Monitor with an until-loop, never chained sleeps
+
+**Allowed within one call:** output redirects (`>`, `2>`, `</dev/null`), `$(...)` command substitution (e.g., `git reset --soft $(git merge-base HEAD main)`), heredocs (`$(cat <<EOF ...)`), and a single background-poll loop (`until <cond>; do sleep N; done`).
 
 This rule applies to Bash tool calls only — not to Dockerfile `RUN` layers, CI/CD `run:` blocks, or executable shell scripts (hooks, etc.).
 
@@ -125,7 +139,7 @@ When working in a git worktree:
 - Challenge my assumptions when appropriate.
 - Ask clarifying questions rather than guessing — each with your recommended answer, and only after checking whether the code already answers it.
 - Be extremely concise; sacrifice grammar for brevity.
-- End plans with unresolved questions list (concise, skip grammar).
+- Resolve open questions before finalizing a plan — research the code first, then ask via AskUserQuestion. The final plan contains no open-questions section.
 - Structure plans in multiple phases.
 
 ### Don't

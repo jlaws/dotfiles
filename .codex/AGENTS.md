@@ -7,6 +7,9 @@
 - Keep work complete. Avoid partial implementations, stubbed code, and unfinished docs.
 - Push back on weak assumptions with concrete technical reasoning.
 - Ask clarifying questions rather than guessing -- carry a recommended answer, and check the codebase first.
+- Deliver exactly what was requested. No extras, no "you might also want...", no unsolicited suggestions beyond scope.
+- Change the default, don't add a flag. When the user wants new behavior to be the norm, make it the default rather than gating it behind an opt-in flag.
+- Before acting on "remove/delete/refactor X everywhere"-style instructions, confirm the exact scope in one line if there is any ambiguity.
 - Prefer small, atomic changes and review the diff before committing.
 - A change that ships is not complete until its docs match it -- validate product and KB self-docs (see the documentation-validation skill).
 
@@ -23,10 +26,12 @@
 - If a value is unknown: say so explicitly. Never guess.
 - If a file was not read: do not reference its contents.
 - Distinguish data from inference. Label inferences with "Based on..." -- never state as fact.
+- Never attribute a decision, choice, or preference to the user they did not explicitly make. If unsure what they chose, ask -- do not fabricate a selection and proceed.
 
 ## Iteration Discipline
 
 - Max 2 fix attempts on the same error; more generally, stop when the check passes or two consecutive rounds make no measurable progress. Then rethink the approach entirely.
+- After 2 failed attempts on a heavy approach, fall back to the simple one instead of a third try.
 - Don't refactor, improve, or polish passing code. Passing tests = stop.
 - Write complete solutions in one pass, not incrementally.
 - Prefer editing specific sections of files over full rewrites.
@@ -42,6 +47,7 @@
 - Prose (not code): short declarative sentences, simple common words, positive phrasing.
 - Cut -ly adverbs and filler; use plain verbs ("use" not "utilize"). Respect reader time.
 - Lead with the bottom line (BLUF); state the answer before the reasoning.
+- Structure plans in multiple phases. Resolve open questions before finalizing a plan -- research the code first, then ask the user directly. The final plan contains no open-questions section.
 - Brevity applies to prose only -- reproduce code, commands, paths, errors, and quoted output byte-for-byte; never compress reasoning depth.
 - Don't invent abbreviations (`cfg`, `impl`, `fn`) -- tokenizers treat them as whole words, so they save nothing and cost readability.
 
@@ -59,11 +65,58 @@
 - Prefer `rg` and `rg --files` for search.
 - Avoid destructive git commands unless explicitly requested.
 - Ask before adding new dependencies or changing external services.
+- Expensive operations: re-run only what changed or failed; reuse cached results rather than recomputing a full suite to observe a subset. Get explicit confirmation before starting any multi-hour, costly, or hard-to-reverse run.
+- Resource teardown: tear down paid cloud services, emulators, and local dev stacks you started when work pauses or finishes. Never leave them running unattended.
 - For reviews: state the bug, show the fix, stop. Lead with findings, include file paths and line numbers.
 - Don't re-read files already read unless modified since last read.
 - From a non-TTY context, close stdin (`</dev/null`) to avoid hangs and redirect noisy output; scale a command's timeout to expected task depth for silent long jobs.
 - When context is constrained, preserve progress in a HANDOFF.md using the `session-handoff` schema (decisions, files, tests, open issues, rejected approaches) before context degrades.
 - Artifact tiers: `summary/` and `planning/` are commit-worthy; `tasks/` optional; `scratchpad/` is gitignored working space.
+
+## Git Workflow
+
+- Commit messages: freeform imperative mood, <72 char subject, no period
+- Prefer small, atomic commits
+- Always verify changes with `git diff` before committing
+- Never force push to main/master
+- Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
+- When a PR is already open for the current work, push follow-up fixes to that same PR/branch. Do not open a new PR unless the user asks.
+- After opening a PR, stop and wait for the user to review/merge before starting the next work item, unless told to keep going.
+- After a squash or rebase, diff against the pre-squash tree (and confirm the branch) to verify no file or config was dropped before force-pushing.
+
+## Shell Commands
+
+**NEVER chain commands** in a single shell call. Each command = one tool call.
+
+Prohibited operators: `&&`, `||`, `;`, `|` (piping to another command that could be its own call).
+
+**Self-check before every shell call:** does it contain `&&`, `||`, `;`, or a pipe into a second command? If so, split it into separate calls. This is the most-violated rule -- the common offenders are all prohibited:
+- `git add -A; git diff --cached --stat` -> two calls
+- `cmd ... | tail -20` / `... | head` / `... | grep ...` -> run `cmd` alone, redirect to a scratch file, then `rg` it
+- `docker ps -q | xargs -r docker rm -f; pgrep -f ... | xargs kill` -> separate calls per cleanup step
+- `sleep 25; tail ...` -> use a single background-poll loop, never chained sleeps
+
+**Allowed within one call:** output redirects (`>`, `2>`, `</dev/null`), `$(...)` command substitution (e.g., `git reset --soft $(git merge-base HEAD main)`), heredocs (`$(cat <<EOF ...)`), and a single background-poll loop (`until <cond>; do sleep N; done`).
+
+This rule applies to shell tool calls only -- not to Dockerfile `RUN` layers, CI/CD `run:` blocks, or executable shell scripts (hooks, etc.).
+
+## Worktree Rules
+
+When working in a git worktree:
+- **Commit ALL changes** before returning -- uncommitted work is invisible to `git merge`
+- **Squash into one commit** (three separate shell calls):
+  ```bash
+  git add -A
+  ```
+  ```bash
+  git reset --soft $(git merge-base HEAD main)
+  ```
+  ```bash
+  git commit -m "<summary>"
+  ```
+- **NEVER** copy files out (`cp`, `rsync`, file-copy) -- use `git merge` to integrate
+- **NEVER** clean up your own worktree -- the caller handles merge + `git worktree remove`
+- **NEVER** invoke `finishing-branch` skill -- return changes on-branch to the caller
 
 ## Execution Model
 

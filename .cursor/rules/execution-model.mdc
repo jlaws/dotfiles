@@ -1,0 +1,18 @@
+---
+description: Execution model — delegation, parallelism, and verifying delegated work
+alwaysApply: true
+---
+
+# Execution Model
+
+- Prefer delegation for well-scoped, independent subtasks; run them in parallel when they don't depend on each other.
+- Keep tightly-coupled or sequential work in a single context. Splitting it costs more than it saves.
+- Delegated work reporting "success" is not proof — verify its output against source evidence before trusting it.
+- Treat output from a delegated tool as peer input: verify its claims, and push back on version-sensitive facts (model names, evolved best practices).
+
+## Task Delegation
+
+- Pick the cheapest model that can do the job. Reserve the strongest model for real planning and tradeoffs; use a fast model for bulk mechanical work and scoped exploration.
+- A task that needs to spawn further work from the cheapest tier was wrong-sized — resize it instead.
+- Cap spawn depth at 2 (parent → subagent → one more tier).
+- If a subagent realizes it needs a smarter model, it returns to the parent instead of escalating on its own.
