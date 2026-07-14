@@ -1,12 +1,38 @@
 # Architecture Decision Records
 
+## Concepts
+
+| Term | Meaning |
+|------|---------|
+| **Architectural Decision (AD)** | A justified design choice that addresses an architecturally significant requirement. |
+| **Architecturally Significant Requirement (ASR)** | A requirement important enough that the decision it drives warrants a record. |
+| **Architecture Decision Record (ADR)** | A document capturing a single AD and its rationale — context, options, decision, consequences. |
+| **Decision Log** | The full collection of ADRs kept for a project (the `docs/adr/` set). |
+
+### Architectural Significance Test
+
+Write an ADR when a decision meets any of these — it is an ASR:
+- Affects the system's structure or a component boundary.
+- Cross-cutting: touches multiple components or teams.
+- Hard or costly to reverse later.
+- Involves a non-obvious trade-off worth explaining to future readers.
+
+If none apply, skip the ADR (see the table below).
+
 ## ADR Lifecycle
 
 ```
-Proposed -> Accepted -> Deprecated -> Superseded
-              |
-           Rejected
+Proposed -> Accepted -> Deprecated
+                     -> Superseded (by ADR-NNNN)
+Proposed -> Rejected
 ```
+
+Status-header conventions:
+- `Status: Proposed` — under discussion, not yet decided.
+- `Status: Accepted` — the decision is in force.
+- `Status: Rejected` — considered and declined (kept for the record).
+- `Status: Deprecated` — no longer applies, with no direct replacement (add a dated note explaining why).
+- `Status: Superseded by ADR-NNNN` — replaced by a newer decision. The replacing ADR carries `Supersedes ADR-NNNN` in its Status and Related Decisions.
 
 ## When to Write an ADR
 
@@ -18,7 +44,30 @@ Proposed -> Accepted -> Deprecated -> Superseded
 | Security architecture | Routine maintenance |
 | Integration patterns | Configuration changes |
 
+## Amendments & Status Transitions
+
+An Accepted ADR's **Decision is immutable**. The record changes only through one of these paths:
+
+| Situation | Action | Status |
+|-----------|--------|--------|
+| Clarification, corrected detail, or added consequence that does **not** reverse the decision | Add a dated row to the ADR's **Amendment Log**; leave the Decision text untouched | stays `Accepted` |
+| The decision itself changes (reversal or material change) | Write a **new ADR** that supersedes the old one; cross-link both | old -> `Superseded by ADR-NNNN`, new -> `Supersedes ADR-NNNN` |
+| Decision no longer relevant, no replacement | Mark deprecated with a dated note | `Deprecated` |
+
+The boundary is simple: **any reversal or material change gets a new ADR** (use the Deprecation ADR template). Minor clarifications get an Amendment Log row. Never rewrite an accepted Decision in place. Superseded and deprecated ADRs stay in the log; they are immutable history, not deletions.
+
+The **Amendment Log** is a fixed section in every ADR (see templates). It starts empty:
+
+```markdown
+## Amendment Log
+| Date | Change | Reason | By |
+|------|--------|--------|-----|
+| YYYY-MM-DD | Clarified retry-budget wording | Ambiguous in review | @name |
+```
+
 ## Templates
+
+Recognized ADR formats include Nygard (the 2011 original), MADR (most widely adopted), the Y-Statement (one-sentence), and ISO/IEC/IEEE 42010. The templates below cover the common ones.
 
 ### Standard ADR (MADR Format)
 
@@ -64,6 +113,10 @@ We will use **[choice]**.
 
 ## Related Decisions
 - ADR-NNNN: [title]
+
+## Amendment Log
+| Date | Change | Reason | By |
+|------|--------|--------|-----|
 ```
 
 ### Lightweight ADR
@@ -83,6 +136,10 @@ We will use **[choice]**.
 **Good**: [benefits]
 **Bad**: [costs]
 **Mitigations**: [how to address the bad]
+
+## Amendment Log
+| Date | Change | Reason | By |
+|------|--------|--------|-----|
 ```
 
 ### Y-Statement Format
@@ -95,6 +152,8 @@ and against **[alternatives]**,
 to achieve **[goals]**,
 accepting that **[tradeoff]**.
 ```
+
+(Single-sentence format — no Amendment Log; amend by superseding.)
 
 ### Deprecation ADR
 
@@ -115,6 +174,10 @@ Accepted (Supersedes ADR-NNNN)
 
 ## Lessons Learned
 - [What we'd do differently]
+
+## Amendment Log
+| Date | Change | Reason | By |
+|------|--------|--------|-----|
 ```
 
 ## Directory Structure
@@ -127,17 +190,6 @@ docs/adr/
   0002-caching-strategy.md
   0003-mongodb-profiles.md  # [DEPRECATED]
   0020-deprecate-mongodb.md # Supersedes 0003
-```
-
-## adr-tools
-
-```bash
-brew install adr-tools
-adr init docs/adr
-adr new "Use PostgreSQL as Primary Database"
-adr new -s 3 "Deprecate MongoDB in Favor of PostgreSQL"
-adr generate toc > docs/adr/README.md
-adr link 2 "Complements" 1 "Is complemented by"
 ```
 
 ## Review Checklist
@@ -159,12 +211,17 @@ adr link 2 "Complements" 1 "Is complemented by"
 - [ ] Team notified
 - [ ] Implementation tickets created
 
+### Definition of Done
+
+A decision is done when it has: **evidence** for the choice, the **criteria and alternatives** considered, **agreement** from the deciders, a written **ADR (documentation)**, and a **realization/review plan** (how it gets built and when it is revisited).
+
 ## Do's and Don'ts
 
 - **Write early** - before implementation starts
 - **Keep short** - 1-2 pages max
 - **Be honest about trade-offs** - include real cons
 - **Don't change accepted ADRs** - write new ones to supersede
+- **Record minor clarifications in the Amendment Log** - not by editing the Decision
 - **Don't hide failures** - rejected decisions are valuable
 - **Don't be vague** - specific decisions, specific consequences
 
