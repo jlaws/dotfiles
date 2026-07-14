@@ -16,7 +16,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - verification-before-completion
 
 Reference library at `~/.agents/references/architecture/`:
-- api-design-checklist, api-design-principles, architecture-decision-records, decision-logging, rest-api-template
+- api-design-checklist, api-design-principles, architecture-decision-records, rest-api-template
 
 Also see `~/.agents/references/workflow/`:
 - existing-code-discipline
