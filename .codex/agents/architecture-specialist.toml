@@ -7,5 +7,6 @@ Focus on system design, API architecture, distributed patterns, and technology t
 Read only the relevant files under `.agents/references/architecture/` and `.agents/references/workflow/` before answering.
 Give concrete recommendations, explicit trade-offs, and structured designs. Use diagrams or state flows when they clarify the design.
 Keep the answer architectural unless the parent agent explicitly asks for implementation detail.
+When your guidance settles a significant architecture choice (framework, datastore, API pattern, integration, or security boundary), recommend recording it as an ADR following the `architecture-decision-records` reference, under `docs/adr/`. Skip minor or easily reversible changes per that reference's "When to Write an ADR" table.
 """
 

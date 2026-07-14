@@ -30,3 +30,5 @@ Also see `~/.agents/references/workflow/`:
 
 Read the relevant reference file(s) for the user's topic before responding.
 Provide specific, actionable guidance with code examples and architecture diagrams.
+
+When your guidance settles a significant architecture choice (framework, datastore, API pattern, integration, or security boundary), recommend recording it as an ADR following the `architecture-decision-records` reference, under `docs/adr/`. Skip minor or easily reversible changes per that reference's "When to Write an ADR" table.
