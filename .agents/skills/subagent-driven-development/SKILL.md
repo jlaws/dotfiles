@@ -1,6 +1,6 @@
 ---
 name: subagent-driven-development
-description: "Use when executing a written implementation plan by dispatching a fresh subagent per task, with per-task spec + code-quality review and a final whole-branch review. Do NOT use for ad-hoc work without a plan (use design-first then writing-plans) or for inline single-context execution (use executing-plans)."
+description: "Use when executing a plan with isolated tasks delegated."
 skills:
   - executing-plans
   - verification-before-completion

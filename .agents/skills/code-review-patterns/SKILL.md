@@ -1,6 +1,6 @@
 ---
 name: code-review-patterns
-description: Use when reviewing PRs, responding to review feedback, or running a self-review. Do NOT use for general code smell detection outside PR context (use code-quality).
+description: "Use when reviewing PRs or responding to review feedback."
 skills:
   - verification-before-completion
   - language-testing-patterns

@@ -1,6 +1,6 @@
 ---
 name: dispatching-parallel-agents
-description: "Use when several independent problems can be worked concurrently — dispatches one focused subagent per problem domain in a single message. Do NOT use for interconnected failures, work that needs whole-system context, or tasks that edit overlapping code (keep those in one context)."
+description: "Use when independent tasks can run concurrently."
 compatibility: claude-code
 allowed-tools: Task, Read, Grep, Glob, Bash
 skills:

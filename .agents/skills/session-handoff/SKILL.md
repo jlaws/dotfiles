@@ -1,6 +1,6 @@
 ---
 name: session-handoff
-description: "Create structured HANDOFF.md documents preserving decisions, file paths, test results, and next steps between sessions. Use when saving session progress, creating handoff notes, preparing context for next session, ending a work session, switching context, or hitting context limits. Do NOT use for general documentation (use technical-writing-for-devtools)."
+description: "Use when preserving work for another session or agent."
 ---
 
 # Session Handoff

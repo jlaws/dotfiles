@@ -1,11 +1,11 @@
 ---
 name: config-security-audit
-description: "Security audit of the agent-config surface across all tool trees (.claude, .codex, .cursor, .gemini, .agents) — scans for leaked secrets, over-broad tool permissions, and prompt-injection vectors. Use before publishing or syncing agent configs, or in CI. Do NOT use for application code security (use agent-security-reviewer / security-analysis) or KB conformance (use skill-audit)."
+description: "Use when auditing agent configuration security."
 ---
 
 # Config Security Audit
 
-Static security scan of the checked-in agent-configuration surface. These files ship across four tools and a shared knowledge base, so a leaked secret or an over-broad permission has a large blast radius. Complements `skill-audit`, which checks conformance and structure but not security.
+Static security scan of the checked-in Claude, Codex, Gemini, and shared knowledge-base configuration. A leaked secret or over-broad permission has a large blast radius. Complements `skill-audit`, which checks conformance and structure but not security.
 
 ## Scope
 
@@ -15,7 +15,6 @@ Scan every configuration surface across all trees. The repo root is the base.
 |------|-------|
 | Claude | `.claude/CLAUDE.md`, `.claude/settings.json`, `.claude/settings.local.json`, `.claude/hooks/`, `.claude/agents/`, `.claude/commands/` |
 | Codex | `.codex/AGENTS.md`, `.codex/config.toml`, `.codex/rules/`, `.codex/hooks/`, `.codex/agents/`, `.codex/prompts/` |
-| Cursor | `.cursor/cli-config.json`, `.cursor/hooks.json`, `.cursor/hooks/`, `.cursor/rules/` |
 | Gemini | `.gemini/GEMINI.md`, `.gemini/settings.json`, `.gemini/hooks/`, `.gemini/agents/`, `.gemini/commands/` |
 | Shared | `.agents/skills/`, `.agents/references/`, any MCP server config |
 

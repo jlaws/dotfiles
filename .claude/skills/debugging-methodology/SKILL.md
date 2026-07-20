@@ -1,6 +1,6 @@
 ---
 name: debugging-methodology
-description: Use when investigating bugs, test failures, performance issues, or unexpected behavior. Do NOT use for test-first development workflow (use test-driven-development) or load testing and benchmarking (use performance-testing-and-profiling).
+description: "Use when investigating bugs, failures, or odd behavior."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 skills:

@@ -1,6 +1,6 @@
 ---
 name: j-paper
-description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, and submission readiness. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, or preparing a venue submission. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
+description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, and submission readiness. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, or preparing a venue submission. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use $cmd-j-docs)."
 argument-hint: "<task: e.g., 'init neurips template', 'compile and fix errors', 'add citation for <url>', 'check page limit'>"
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: code-migration
-description: "Codebase migration between frameworks, languages, versions, or platforms with assessment, planning, and rollback patterns. Use when migrating codebases between frameworks, languages, versions, or platforms. Provides migration assessment patterns, planning templates, strategy selection, testing strategies, rollback procedures, and automation approaches. Do NOT use for dependency version upgrades (use dependency-upgrade)."
+description: "Use when migrating code across frameworks or platforms."
 skills:
   - test-driven-development
   - verification-before-completion
@@ -198,4 +198,3 @@ For large codebases (>50 files affected), organize migration into independent mo
 - [ ] Rollback triggers and procedures defined
 - [ ] Progress tracking per module
 - [ ] Documentation updated for the target stack (README, API reference, config/CLI docs, CHANGELOG) — or N/A per change (see `documentation-validation`)
-

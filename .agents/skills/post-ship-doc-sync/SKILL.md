@@ -1,6 +1,6 @@
 ---
 name: post-ship-doc-sync
-description: Reusable workflow to discover and fix stale documentation after shipping changes. Use when docs may be out of date after a release, merge, or significant feature work. Do NOT use for writing new documentation from scratch (use documentation-writer agent).
+description: "Use when shipped changes may have left documentation stale."
 ---
 
 # Post-Ship Documentation Sync

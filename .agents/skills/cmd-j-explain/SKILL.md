@@ -1,6 +1,6 @@
 ---
 name: cmd-j-explain
-description: "Generate a self-contained HTML document or information report that explains a topic — inline CSS/JS/SVG, visual hierarchy, spatial diagrams, no external dependencies. Use when you want a shareable, scannable explainer or findings report instead of a wall of markdown. Do NOT use for quick answers or inline comments (respond directly) or markdown project docs (use /j-docs)."
+description: "Use when invoking the j-explain workflow."
 disable-model-invocation: true
 ---
 
@@ -31,4 +31,4 @@ Write the file to `./<topic-slug>.html`, or to the output path the user gave. Ve
 - **html-report-authoring** — the single-file HTML method: structure, spatial layout, interactivity, export.
 - **output-completeness** — emit the entire file; never truncate.
 - **analysis-output-patterns** — findings-first structure and data-vs-inference labeling for reports.
-- **/j-docs** — use instead for markdown project documentation.
+- **$cmd-j-docs** — use instead for markdown project documentation.

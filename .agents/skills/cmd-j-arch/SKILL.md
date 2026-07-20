@@ -1,6 +1,6 @@
 ---
 name: cmd-j-arch
-description: "Architecture consultation — API design, distributed patterns, and system design. Use when designing APIs, choosing architecture patterns, or making technology decisions."
+description: "Use when invoking the j-arch workflow."
 disable-model-invocation: true
 ---
 

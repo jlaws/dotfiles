@@ -1,6 +1,6 @@
 ---
 name: writing-skills
-description: "Use when creating new skills, editing existing skills, or verifying skills work before deployment. Do NOT use for CLAUDE.md design, hooks, or general Claude Code workflow (use code-agent-meta-patterns)."
+description: "Use when creating, editing, or validating agent skills."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
@@ -9,7 +9,7 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 
 **Writing skills IS Test-Driven Development applied to process documentation.**
 
-**Personal skills live in agent-specific directories (`~/.claude/skills` for Claude Code, `~/.codex/skills` for Codex)**
+**Codex and Gemini use `~/.agents/skills`; Claude uses `~/.claude/skills`.**
 
 You write test cases (pressure scenarios), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
 
@@ -40,7 +40,7 @@ Separate files for: heavy reference (100+ lines), reusable tools. Keep everythin
 
 ## SKILL.md Structure
 
-**Frontmatter:** Only `name` (letters/numbers/hyphens) and `description` (max 1024 chars, third-person, starts with "Use when...")
+**Frontmatter:** Only `name` (letters/numbers/hyphens) and `description` (at most 64 characters, third-person, starts with "Use when...")
 
 **CRITICAL:** Description = triggering conditions ONLY. Never summarize the skill's workflow in description. Testing showed Claude follows description shortcuts instead of reading skill body.
 
@@ -247,5 +247,5 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 
 **Deployment:**
 - [ ] Update KB self-docs: `description` frontmatter and cross-references current; CLAUDE.md KB-structure section and MEMORY.md index (if present) updated if the asset set changed (see `documentation-validation`)
-- [ ] Sync the `.agents` ↔ `.claude` mirror (bodies identical; `.claude` adds only `compatibility` + `allowed-tools`)
+- [ ] Sync shared workflow bodies to `.claude`; ensure `cmd-j-*` skills have Claude, Codex, and Gemini command counterparts
 - [ ] Commit and push

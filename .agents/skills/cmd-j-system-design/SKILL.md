@@ -1,6 +1,6 @@
 ---
 name: cmd-j-system-design
-description: "Comprehensive system design suite — produce architecture documents covering multiple perspectives. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /j-arch instead)."
+description: "Use when invoking the j-system-design workflow."
 disable-model-invocation: true
 ---
 

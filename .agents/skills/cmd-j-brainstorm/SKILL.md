@@ -1,6 +1,6 @@
 ---
 name: cmd-j-brainstorm
-description: "Design-before-implementation workflow — explore intent, requirements, and design before writing code. Use when creating features, building components, or modifying behavior. Do NOT use after implementation is started (use /j-execute-plan instead)."
+description: "Use when invoking the j-brainstorm workflow."
 disable-model-invocation: true
 ---
 

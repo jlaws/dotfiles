@@ -1,11 +1,11 @@
 ---
 name: skill-audit
-description: "Audit the .claude/ knowledge base — skills, commands, agents, references, config, cross-references, and documentation currency. Use when validating conformance after creating or modifying any .claude/ asset, checking naming conventions, or verifying knowledge base integrity. Do NOT use for general code quality (use code-quality) or code review (use code-review-patterns)."
+description: "Use when auditing agent knowledge-base integrity."
 ---
 
 # Knowledge Base Audit
 
-Full conformance audit of KB assets across all tool trees. `.agents/` is the source of truth; `.claude/`, `.cursor/`, `.codex/`, `.gemini/` carry mirrored copies.
+Full conformance audit of shared workflows and tool-native agent assets. `.agents/` is the Codex/Gemini source for skills and references; each tool owns its native agents and commands.
 
 ## Scoping
 
@@ -28,7 +28,7 @@ Enumerate all assets by type:
 
 For each asset, record: type, category, name, file path, any supporting files.
 
-**Multi-tree scope.** `.agents/skills` and `.agents/references` are canonical; `.claude/`, `.cursor/`, `.codex/`, and `.gemini/` carry mirrored copies. Audit `.agents/` as the source of truth, then diff each mirror against it and flag drift (a mirror changed without its source, or vice versa). Skills/references duplicated in `.claude/` should differ only by frontmatter.
+**Multi-tree scope.** Audit shared workflows and references in `.agents/`, their Claude copies, and each tool's native agents and commands. Shared workflow and reference bodies duplicated in `.claude/` should differ only by supported frontmatter. Every `cmd-j-*` skill must have Claude, Codex, and Gemini command counterparts. Native agent name sets must match across the three tools.
 
 ## Phase 2: Automated Checks
 
@@ -57,7 +57,7 @@ For each skill directory under `.claude/skills/`:
 | SK-F3 | `name` is kebab-case | FAIL | Letters, numbers, hyphens only |
 | SK-F4 | `name` matches folder name | FAIL | Must be identical |
 | SK-F5 | `description` field exists | FAIL | Required |
-| SK-F6 | `description` under 1024 chars | WARN | Guide limit |
+| SK-F6 | Repository-owned `description` at most 64 chars | FAIL | Codex metadata budget |
 | SK-F7 | No XML `<`/`>` in frontmatter fields | FAIL | Breaks YAML parsing |
 | SK-F8 | No "claude"/"anthropic" in `name` | FAIL | Reserved terms |
 | SK-F9 | Description has WHAT + WHEN (trigger phrase like "Use when") | WARN | Discoverability |
@@ -199,7 +199,7 @@ Verify links between assets resolve:
 
 | # | Check | Sev | Rule |
 |---|-------|-----|------|
-| DOC-1 | Mirror parity — shared skill/reference bodies identical across `.agents`↔`.claude` (differ only by frontmatter); each `j-*` command and each agent has its `.gemini`/`.codex` counterpart and its `cmd-`/`agent-` source skill | WARN | Drift means one tree's docs are stale |
+| DOC-1 | Parity: shared workflow/reference bodies match Claude copies; every `cmd-j-*` has three native command counterparts; native agent name sets match | WARN | Drift means one tool's assets are stale |
 | DOC-2 | Description reflects behavior — the `description` still matches what the body does after edits (no stale/misleading trigger) | WARN | Stale description misroutes invocation |
 | DOC-3 | Registration — a new or renamed asset is discoverable in `.claude/CLAUDE.md` Knowledge Base Structure (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
 

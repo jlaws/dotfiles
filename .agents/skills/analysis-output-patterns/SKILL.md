@@ -1,6 +1,6 @@
 ---
 name: analysis-output-patterns
-description: "Use when producing data analysis, research findings, or reporting output -- enforces finding-first structure, data vs inference labeling, and accuracy rules. Do NOT use for code review output (use code-review-patterns) or general writing (use output-completeness)."
+description: "Use when presenting analysis, research, or report findings."
 ---
 
 # Analysis Output Patterns

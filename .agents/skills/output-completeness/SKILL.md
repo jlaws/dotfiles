@@ -1,6 +1,6 @@
 ---
 name: output-completeness
-description: "Enforce complete output generation — no truncation, no stubs, no skeleton code. Load for large code implementations, multi-part responses, complex refactors, full documentation sections, or any task where truncation risk is high. Distinct from verification-before-completion (which governs claims about work state)."
+description: "Use when output risks truncation, stubs, or omitted sections."
 ---
 
 # Output Completeness

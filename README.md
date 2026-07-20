@@ -189,7 +189,11 @@ the most recent run with `./setup.sh --uninstall`.
 
 #### Commands & Skills
 
-The `.claude/` directory contains an extensive knowledge base of `/j-*` commands, specialist agents, skills, and references that mirror the shared `.agents/` knowledge base.
+The `.claude/` directory is self-contained with `/j-*` commands, specialist agents, skills, and references.
+
+### Codex
+
+The `.codex/` directory contains Codex-native agents, prompts, hooks, and command rules. Reusable workflows and `$cmd-j-*` command skills live under `.agents/`, which Codex discovers directly. For example, invoke `$cmd-j-tdd` or `$cmd-j-plan` in Codex. The files under `.codex/prompts/` remain available through `/prompts:j-tdd` style slash commands.
 
 ### Gemini
 
@@ -237,4 +241,3 @@ Install after running `setup.sh` launch claude and run:
 /plugin install commit-commands@claude-plugin-directory
 /plugin install claude-md-management@claude-plugin-directory
 ```
-

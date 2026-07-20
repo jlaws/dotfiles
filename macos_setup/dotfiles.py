@@ -35,7 +35,7 @@ ROOT_DOTFILES = [
 ]
 
 # Agent-config sync pairs, relative to (repo, target). Files and directories both allowed;
-# directories are copied recursively. Cross-tree entries reuse the shared .agents/ knowledge base.
+# directories are copied recursively. Codex and Gemini reuse the shared .agents/ knowledge base.
 AGENT_SYNC = [
     (".agents/skills", ".agents/skills"),
     (".agents/references", ".agents/references"),
@@ -46,12 +46,6 @@ AGENT_SYNC = [
     (".claude/hooks", ".claude/hooks"),
     (".claude/skills", ".claude/skills"),
     (".claude/references", ".claude/references"),
-    (".cursor/cli-config.json", ".cursor/cli-config.json"),
-    (".cursor/hooks.json", ".cursor/hooks.json"),
-    (".cursor/hooks", ".cursor/hooks"),
-    (".cursor/rules", ".cursor/rules"),
-    (".agents/skills", ".cursor/skills"),
-    (".agents/references", ".cursor/references"),
     (".codex/AGENTS.md", ".codex/AGENTS.md"),
     (".codex/config.toml", ".codex/config.toml"),
     (".codex/agents", ".codex/agents"),
@@ -68,10 +62,14 @@ AGENT_SYNC = [
 
 # Stale files removed from the target after syncing (archived first so uninstall can restore).
 AGENT_REMOVALS = [
+    ".cursor",
     ".claude/hooks/lessons-learned.sh",
-    ".cursor/hooks/lessons-learned.sh",
     ".codex/hooks/lessons-learned.sh",
     ".gemini/hooks/lessons-learned.sh",
+]
+
+AGENT_REMOVAL_GLOBS = [
+    ".agents/skills/agent-*",
 ]
 
 
@@ -129,7 +127,7 @@ def apply_file(src: Path, dest: Path, archive: Archive) -> None:
 
 def remove_file(dest: Path, archive: Archive) -> None:
     """Archive and delete ``dest`` if present; record it so uninstall can restore it."""
-    if not dest.exists():
+    if not dest.exists() and not dest.is_symlink():
         return
     backup = _archive_dest(archive, dest)
     backup.parent.mkdir(parents=True, exist_ok=True)
@@ -137,6 +135,24 @@ def remove_file(dest: Path, archive: Archive) -> None:
     archive.record_file(str(dest), "removed", sha256_file(dest))
     dest.unlink()
     _LOG.debug("removed stale file %s", dest)
+
+
+def remove_path(dest: Path, archive: Archive) -> None:
+    """Archive and remove one file or directory tree without following directory symlinks."""
+    if not dest.exists() and not dest.is_symlink():
+        return
+    if not dest.is_dir() or dest.is_symlink():
+        remove_file(dest, archive)
+        return
+
+    children = sorted(dest.rglob("*"), key=lambda path: len(path.parts), reverse=True)
+    for child in children:
+        if child.is_file() or child.is_symlink():
+            remove_file(child, archive)
+        elif child.is_dir():
+            child.rmdir()
+    dest.rmdir()
+    _LOG.debug("removed stale directory %s", dest)
 
 
 def revert_files(archive: Archive, *, dry_run: bool = False) -> FileSummary:
@@ -189,8 +205,24 @@ def sync_dotfiles(repo: Path, home: Path, archive: Archive, *, dry_run: bool = F
         _LOG.debug("sync %s", dest)
 
 
+def _agent_removal_paths(repo: Path, target: Path) -> Iterator[Path]:
+    """Yield stale managed paths, including command skills removed from the source tree."""
+    for removal in AGENT_REMOVALS:
+        yield target / removal
+    for pattern in AGENT_REMOVAL_GLOBS:
+        yield from sorted(target.glob(pattern))
+
+    source_commands = {
+        path.name for path in (repo / ".agents" / "skills").glob("cmd-j-*")
+    }
+    target_skills = target / ".agents" / "skills"
+    for command in sorted(target_skills.glob("cmd-j-*")):
+        if command.name not in source_commands:
+            yield command
+
+
 def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = False) -> None:
-    """Sync agent configs (Claude, Cursor, Codex, Gemini, shared .agents) into ``target``."""
+    """Sync agent configs (Claude, Codex, Gemini, shared .agents) into ``target``."""
     _LOG.info("Syncing agent configuration to %s", target)
     synced = 0
     for src_rel, dest_rel in AGENT_SYNC:
@@ -201,10 +233,15 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
             apply_file(src_file, dest_file, archive)
             _LOG.debug("sync %s", dest_file)
             synced += 1
+    for removal in _agent_removal_paths(repo, target):
+        if not removal.exists() and not removal.is_symlink():
+            continue
+        if dry_run:
+            _LOG.info("would remove %s", removal)
+        else:
+            remove_path(removal, archive)
     if dry_run:
         return
-    for removal in AGENT_REMOVALS:
-        remove_file(target / removal, archive)
     _make_hooks_executable(target / ".gemini" / "hooks")
     _LOG.info("Synced %d agent config files to %s", synced, target)
 

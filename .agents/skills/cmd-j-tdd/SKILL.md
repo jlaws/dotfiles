@@ -1,6 +1,6 @@
 ---
 name: cmd-j-tdd
-description: "Autonomous TDD implementation loop — write tests first, run to confirm failure, implement until green, lint, commit. Use when adding a feature or fixing a bug with test-driven development. Do NOT use for debugging existing failures (use /j-debug)."
+description: "Use when invoking the j-tdd workflow."
 disable-model-invocation: true
 ---
 

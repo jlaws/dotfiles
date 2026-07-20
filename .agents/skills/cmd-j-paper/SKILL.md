@@ -1,6 +1,6 @@
 ---
 name: cmd-j-paper
-description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, and submission readiness. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, or preparing a venue submission. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
+description: "Use when invoking the j-paper workflow."
 disable-model-invocation: true
 ---
 

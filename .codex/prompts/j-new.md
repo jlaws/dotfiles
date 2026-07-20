@@ -1,6 +1,6 @@
 ---
 name: j-new
-description: "Scaffold a new .claude/ command, skill, or agent with correct structure and best practices. Use when creating any new .claude/ asset. Do NOT use for editing existing assets (edit directly)."
+description: "Use when scaffolding a Codex command, skill, or agent."
 argument-hint: "<type: command|skill|agent> [name]"
 ---
 
@@ -40,42 +40,39 @@ If name fails validation, explain why and ask for a corrected name.
 ### 2B. Type-Specific
 
 **For commands:**
-1. **Category**: List existing categories via `Glob(".claude/commands/*/")` and let user pick or create new
-2. **Takes arguments?** If yes, ask for argument-hint text
-3. **Invokes skills?** If yes, which ones? List available via `Glob(".claude/skills/*/")` and `Glob(".claude/skills/*/*/SKILL.md")`
-4. **Invokes agents?** If yes, which ones? List available via `Glob(".claude/agents/*.md")`
+1. **Takes arguments?** If yes, ask for argument-hint text
+2. **Invokes skills?** If yes, list available `.agents/skills/*/SKILL.md`
+3. **Invokes agents?** If yes, list available `.codex/agents/*.toml`
 
 **For skills:**
-1. **Category**: List existing categories via `Glob(".claude/skills/*/")` and let user pick or create new
-2. **Skill type**: Technique (concrete steps), Pattern (mental model), or Reference (API/syntax docs)
-3. **Allowed tools**: Which tools should this skill use without per-use approval? Options: Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch
-4. **Dependencies**: Other skills this loads? List available skills
-5. **Auto-invocable?** Should Claude invoke this automatically based on description match, or manual-only (`disable-model-invocation: true`)?
+1. **Skill type**: Technique (concrete steps), Pattern (mental model), or Reference (API/syntax docs)
+2. **Dependencies**: Other skills this loads? List available skills
+3. **Auto-invocable?** Should Codex invoke this from description matching, or only through an explicit `$` mention?
 
 **For agents:**
-1. **Tools**: Which tools should this agent access? Options: Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch
-2. **Skills to preload**: Which skills should be injected into agent context? List available
-3. **Reference library**: Which `.claude/references/` paths should the agent consult? List available categories via `Glob(".claude/references/*/")` 
-4. **Model override?** Default (inherit), sonnet, opus, haiku
-5. **Persistent memory?** None, user, project, or local scope
+1. **Skills to load**: Which shared workflows should the agent invoke?
+2. **Reference library**: Which `.agents/references/` paths should the agent consult?
+3. **Model override?** Default inheritance or an installed Codex model
+4. **Reasoning effort?** Default inheritance or a supported effort value
+5. **Sandbox override?** Default inheritance or a narrower sandbox
 
 ## Phase 3: Generate Description
 
-Craft description following the WHAT + WHEN + DO NOT pattern:
+Craft a trigger-only description:
 
 ```
-"{What it does} -- {brief qualifier}. Use when {trigger conditions}. Do NOT use for {anti-patterns} ({alternative} instead)."
+"Use when {specific trigger conditions}."
 ```
 
 ### Description Rules
 
 | Rule | Constraint |
 |------|-----------|
-| Max length (skills) | 250 chars (truncated in skill listing beyond this) |
+| Max length (skills) | 64 characters |
 | Max length (commands/agents) | 1024 chars |
 | No XML characters | No `<` or `>` in frontmatter values |
 | Trigger-only for skills | NEVER summarize the workflow in the description |
-| Include negative triggers | "Do NOT use for..." with redirect to alternative |
+| Distinct trigger | Name the task or symptom that selects this skill |
 
 **Bad skill description** (summarizes workflow):
 ```
@@ -95,16 +92,18 @@ Generate the file using the correct template for the asset type.
 
 ### 4A. Command Template
 
-**File path:** `.claude/commands/{category}/{name}.md`
+**File paths:** `.agents/skills/cmd-j-{name}/SKILL.md` and `.codex/prompts/j-{name}.md`
+
+Create both files. The skill is the primary `$cmd-j-{name}` command; the prompt is the `/prompts:j-{name}` fallback. Keep their workflow bodies aligned.
 
 ```markdown
 ---
-name: {name}
-description: "{generated description}"
-argument-hint: "{hint}"  # only if takes arguments
+name: cmd-j-{name}
+description: "Use when invoking the j-{name} workflow."
+disable-model-invocation: true
 ---
 
-{Purpose context}: $ARGUMENTS  # only if takes arguments
+{Purpose context}: the user's provided input
 
 If no arguments provided, {fallback behavior}.
 
@@ -130,9 +129,11 @@ If no arguments provided, {fallback behavior}.
 - **agent:{agent-name}** -- {why referenced}
 ```
 
+For `.codex/prompts/j-{name}.md`, use `name: j-{name}`, add `argument-hint` when needed, replace "the user's provided input" with `$ARGUMENTS`, and omit `disable-model-invocation`.
+
 ### 4B. Skill Template
 
-**File path:** `.claude/skills/{category}/{name}/SKILL.md`
+**File path:** `.agents/skills/{name}/SKILL.md`
 
 Create the directory first, then write SKILL.md:
 
@@ -140,10 +141,6 @@ Create the directory first, then write SKILL.md:
 ---
 name: {name}
 description: "{generated description}"
-compatibility: claude-code
-allowed-tools: {tools list}
-skills:  # only if has dependencies
-  - {dependency-path}
 ---
 
 # {Skill Title}
@@ -194,27 +191,20 @@ For **workflow/procedural skills**, also add:
 
 ### 4C. Agent Template
 
-**File path:** `.claude/agents/{name}.md`
+**File path:** `.codex/agents/{name}.toml`
 
-```markdown
----
-name: {name}
-description: "{generated description}"
-tools: {tools list}
-skills:
-  - {skill-name}
-  - verification-before-completion
-model: {model}  # only if overridden
-memory: {scope}  # only if enabled
----
-
-You are a {role description}. {One sentence about approach/expertise.}
-
-Reference library at .claude/references/{category}/:
-- {reference-1}, {reference-2}, {reference-3}
-
-Read the relevant reference file(s) for the user's topic before responding.
+```toml
+name = "{name}"
+description = "{generated description}"
+model = "{model}" # only if overridden
+model_reasoning_effort = "{effort}" # only if overridden
+sandbox_mode = "{sandbox}" # only if narrowed
+developer_instructions = """
+You are a {role description}. {One sentence about approach.}
+Load these shared skills when relevant: {skill names}.
+Read relevant files under `.agents/references/{category}/`.
 {Additional role-specific instructions.}
+"""
 ```
 
 ## Phase 5: Inline Validation
@@ -224,15 +214,16 @@ Before writing, validate the generated content against skill-audit rules:
 ### All Types
 - [ ] Frontmatter has `---` delimiters
 - [ ] `name` field exists and is kebab-case
-- [ ] `name` matches filename (commands/agents) or folder name (skills)
+- [ ] `name` matches the skill folder, prompt filename, or agent convention
 - [ ] `description` field exists and is under length limit
 - [ ] Description has WHAT + WHEN trigger pattern
 - [ ] No `<`/`>` in frontmatter values
 - [ ] No "claude"/"anthropic" in name
 
 ### Commands Only
-- [ ] File lives in a category subdirectory
-- [ ] If body uses `$ARGUMENTS`, frontmatter has `argument-hint`
+- [ ] Shared skill lives at `.agents/skills/cmd-j-{name}/SKILL.md`
+- [ ] Prompt fallback lives at `.codex/prompts/j-{name}.md`
+- [ ] If the prompt uses `$ARGUMENTS`, its frontmatter has `argument-hint`
 - [ ] If body invokes a skill, that skill exists
 - [ ] If body invokes an agent, that agent exists
 - [ ] Body has 10+ words
@@ -245,10 +236,10 @@ Before writing, validate the generated content against skill-audit rules:
 - [ ] Description is trigger-only (no workflow summary)
 
 ### Agents Only
-- [ ] File is flat in agents/ (no subdirectory)
-- [ ] `tools` field exists with valid tool names
-- [ ] If `skills:` references skills, each resolves to existing SKILL.md
-- [ ] Body has 20+ words
+- [ ] TOML file is flat in `.codex/agents/`
+- [ ] `name`, `description`, and `developer_instructions` exist
+- [ ] Any referenced skills or reference paths resolve
+- [ ] Optional model, reasoning, and sandbox values are supported
 
 Report any WARN or FAIL findings. Auto-fix where possible (e.g., truncate description, fix casing).
 
@@ -259,8 +250,8 @@ Show the complete generated file to the user. Ask for approval before writing.
 After writing:
 1. Confirm the file was created at the correct path
 2. If skill: confirm the directory was created
-3. Suggest: "Run `/j-skill-audit {type}s` to verify full conformance"
-4. Register & document the new asset: update the CLAUDE.md Knowledge Base Structure section and MEMORY.md index (if the repo has one), add any cross-references, and create the `.agents` ↔ `.claude` mirror copy (body identical; `.claude` adds only `compatibility` + `allowed-tools`). See `documentation-validation`.
+3. Suggest: "Run `$cmd-j-skill-audit {type}s` to verify full conformance"
+4. Register and document the new asset. Commands require the shared skill plus native Claude, Codex, and Gemini command counterparts. Agents require native definitions in all three tool trees. Shared workflow skills require a `.claude/skills/` mirror with the same body. See `documentation-validation`.
 
 ---
 
@@ -270,32 +261,20 @@ After writing:
 |-------|---------|-------|-------|
 | name | Required | Required | Required |
 | description | Required | Required | Required |
-| argument-hint | If $ARGUMENTS | Optional | N/A |
-| compatibility | N/A | "claude-code" | N/A |
-| allowed-tools | N/A | Recommended | N/A |
-| tools | N/A | N/A | Recommended |
-| skills | N/A | Optional (deps) | Optional (preload) |
-| model | N/A | Optional | Optional |
-| memory | N/A | N/A | Optional (user/project/local) |
-| disable-model-invocation | N/A | Optional | N/A |
-| user-invocable | N/A | Optional | N/A |
-| context | N/A | Optional (fork) | N/A |
-| effort | N/A | Optional | Optional |
-| color | N/A | N/A | Optional |
-| maxTurns | N/A | N/A | Optional |
-| permissionMode | N/A | N/A | Optional |
-
-### Valid Tool Names
-
-Read, Write, Edit, Grep, Glob, Bash, LSP, WebFetch, WebSearch, NotebookEdit, Skill
+| argument-hint | Prompt fallback only | N/A | N/A |
+| developer_instructions | N/A | N/A | Required |
+| model | N/A | N/A | Optional |
+| disable-model-invocation | Shared skill | Optional | N/A |
+| model_reasoning_effort | N/A | N/A | Optional |
+| sandbox_mode | N/A | N/A | Optional |
 
 ### Body Conventions
 
 | Type | Convention |
 |------|-----------|
-| Command | `$ARGUMENTS` substitution, `---` divider, phased methodology, cross-references section |
+| Command | Shared skill accepts user input; prompt fallback uses `$ARGUMENTS`; keep workflow bodies aligned |
 | Skill | Overview, When to Use, Core Pattern (with code example), Quick Reference table, Common Mistakes |
-| Agent | Role statement (1-2 sentences), reference library pointers, delegate methodology to skills |
+| Agent | Focused TOML `developer_instructions` with shared skill and reference pointers |
 
 ### Cross-References
 

@@ -17,7 +17,7 @@
 
 - Global Codex config lives under `~/.codex/`.
 - User skills live under `~/.agents/skills/` and domain references under `~/.agents/references/`.
-- Codex slash prompts live in `~/.codex/prompts/`, legacy command source files live in `~/.codex/commands/`, and agent definitions live in `~/.codex/agents/`.
+- Invoke command skills as `$cmd-j-*` (for example, `$cmd-j-tdd`). Codex slash-prompt fallbacks live in `~/.codex/prompts/`, and agent definitions live in `~/.codex/agents/`. `@` mentions files, plugins, or tools; it is not the custom-command prefix.
 - Before implementation, check whether an applicable skill already exists.
 
 ## Hallucination Prevention

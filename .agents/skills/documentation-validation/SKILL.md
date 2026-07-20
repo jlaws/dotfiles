@@ -1,6 +1,6 @@
 ---
 name: documentation-validation
-description: "Use when finishing a change that ships — feature, behavior change, refactor/rename, or new KB asset — before claiming it done or opening a PR. Do NOT use for the whole-release doc sweep (use post-ship-doc-sync) or writing new docs from scratch (use documentation-writer)."
+description: "Use when validating docs before shipping a change."
 ---
 
 # Documentation Validation
@@ -40,10 +40,11 @@ stale. This table decides *which* docs to open per change.
 | Add feature | README feature list, API reference, CHANGELOG, usage/quickstart | (usually N/A unless a KB asset is added) |
 | Modify behavior | API reference, config/CLI reference, CHANGELOG, any doc describing the old behavior | — |
 | Refactor / rename | Public names in README/API docs, import paths, config keys, CLI flags | cross-references that name the renamed asset |
-| Add new KB asset | — | `description` frontmatter + body, CLAUDE.md KB-structure section, MEMORY.md index (if present), cross-references, and `.agents` ↔ `.claude` mirror parity |
+| Add new KB asset | — | `description` frontmatter + body, KB-structure docs, MEMORY.md index (if present), cross-references, native command/agent parity, and shared workflow/reference mirror parity |
 
 Product docs = README / API / CHANGELOG / usage. KB self-docs = the asset's own
-`description` and body, the KB-structure index, and mirror parity across trees.
+`description` and body, the KB-structure index, native asset parity, and any
+required shared workflow or reference mirror.
 
 ## Declaring N/A
 
@@ -57,7 +58,7 @@ If a change genuinely needs no doc update, state it explicitly:
 - "Docs can follow in a separate PR" / "I'll update docs later"
 - Renaming a public symbol but leaving its old name in README/API docs
 - Changing behavior described in a doc without touching that doc
-- Adding a KB asset without registering it (CLAUDE.md structure / MEMORY index) or syncing the `.agents` ↔ `.claude` mirror
+- Adding a KB asset without registering it or satisfying its native/mirror parity rule
 - Treating this as the full post-release sweep (that is `post-ship-doc-sync`)
 
 ## Cross-References

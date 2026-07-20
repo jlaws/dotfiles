@@ -1,6 +1,6 @@
 ---
 name: cmd-j-defrag
-description: "Scan the codebase for fragmentation — duplicated components, inconsistent patterns, files to consolidate, logic to share — and fix it in verified batches. Use to keep the codebase coherent on a regular cadence. Do NOT use for single-file cleanups (edit directly) or diff review before merge (use /j-diff-review)."
+description: "Use when invoking the j-defrag workflow."
 disable-model-invocation: true
 ---
 
@@ -36,7 +36,7 @@ For each cluster, highest value first:
 2. Apply the consolidation/extraction/dedup using `refactoring-and-debt` safe sequences.
 3. Re-run tests; they must stay green (`verification-before-completion`).
 4. One atomic commit per cluster (imperative subject, <72 chars).
-5. If a cluster renamed or moved public surface (exported names, CLI flags, config keys, or KB asset names/paths), apply the `documentation-validation` gate before the commit — update docs and the `.agents` ↔ `.claude` mirror, or declare N/A.
+5. If a cluster renamed or moved public surface (exported names, CLI flags, config keys, or KB asset names/paths), apply the `documentation-validation` gate before the commit — update docs and any required native or mirror copies, or declare N/A.
 
 Stop when: tests fail and cannot be fixed in <=2 attempts, or two consecutive rounds make no progress. Then report and hand back.
 
@@ -49,5 +49,5 @@ Report clusters fixed, clusters deferred (with reason), and residual fragmentati
 - **refactoring-and-debt** — fix mechanics, smell→refactoring map, safe refactoring sequences.
 - **code-quality** — DRY and code-smell detection for the scan phase.
 - **verification-before-completion** — the green-tests gate between batches.
-- **/j-diff-review** — use instead when reviewing a single diff before merge.
+- **$cmd-j-diff-review** — use instead when reviewing a single diff before merge.
 - **documentation-validation** — doc gate when a cluster renames or moves public surface.

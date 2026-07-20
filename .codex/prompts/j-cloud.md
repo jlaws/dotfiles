@@ -1,6 +1,6 @@
 ---
 name: j-cloud
-description: "Cloud architecture consultation. Use when designing cloud infrastructure, optimizing costs, or planning deployments. Do NOT use for container/Kubernetes questions (use /j-devops instead)."
+description: "Cloud architecture consultation. Use when designing cloud infrastructure, optimizing costs, or planning deployments. Do NOT use for container/Kubernetes questions (use $cmd-j-devops instead)."
 argument-hint: "<question-or-task>"
 ---
 

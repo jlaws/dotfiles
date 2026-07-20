@@ -63,7 +63,7 @@ Craft description following the WHAT + WHEN + DO NOT pattern:
 
 | Rule | Constraint |
 |------|-----------|
-| Max length (skills) | 250 chars (truncated in skill listing beyond this) |
+| Max length (skills) | 64 characters |
 | Max length (commands/agents) | 1024 chars |
 | No XML characters | No `<` or `>` in frontmatter values |
 | Trigger-only for skills | NEVER summarize the workflow in the description |
@@ -110,7 +110,7 @@ If no arguments provided, {fallback behavior}.
 
 ### 4B. Skill Template
 
-**File path:** `~/.agents/skills/{name}/SKILL.md` (skills are shared across all tools)
+**File path:** `~/.agents/skills/{name}/SKILL.md` (skills are shared by Codex and Gemini)
 
 Create the directory first, then write SKILL.md:
 
@@ -209,7 +209,7 @@ Show the complete generated file to the user. Ask for approval before writing.
 After writing:
 1. Confirm the file was created at the correct path
 2. Suggest: "Run `/j-skill-audit {type}s` to verify full conformance"
-3. Register & document the new asset: update the CLAUDE.md Knowledge Base Structure section and MEMORY.md index (if the repo has one), add any cross-references, and create the `~/.agents/` ↔ `~/.claude/` mirror copy (body identical; `~/.claude/` adds only `compatibility` + `allowed-tools`). See `documentation-validation`.
+3. Register and document the new asset. Commands require native Claude, Codex, and Gemini counterparts plus the shared `cmd-j-*` skill. Agents require native definitions in all three tool trees. Shared workflow skills require a `~/.claude/skills/` mirror with the same body. See `documentation-validation`.
 
 ---
 

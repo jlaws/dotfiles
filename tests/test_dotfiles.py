@@ -11,8 +11,10 @@ from macos_setup.dotfiles import (
     apply_file,
     file_revert_decision,
     remove_file,
+    remove_path,
     revert_files,
     sha256_file,
+    sync_agents,
 )
 
 
@@ -102,6 +104,94 @@ class RemoveFileTests(unittest.TestCase):
 
     def test_absent_file_records_nothing(self):
         remove_file(self.tmp / "nope.sh", self.archive)
+        self.assertEqual(self.archive.manifest["files"], [])
+
+
+class RemovePathTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.archive = Archive.create(self.tmp / "arch", "ts")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_directory_files_are_archived_and_removed(self):
+        dest = self.tmp / "home" / ".cursor"
+        (dest / "ai-tracking").mkdir(parents=True)
+        (dest / "settings.json").write_text("settings")
+        (dest / "ai-tracking" / "tracking.db").write_text("database")
+
+        remove_path(dest, self.archive)
+
+        self.assertFalse(dest.exists())
+        records = self.archive.manifest["files"]
+        self.assertEqual(len(records), 2)
+        self.assertTrue(all(record["action"] == "removed" for record in records))
+
+    def test_removed_directory_files_can_be_restored(self):
+        dest = self.tmp / "home" / ".cursor"
+        (dest / "nested").mkdir(parents=True)
+        original = dest / "nested" / "state.json"
+        original.write_text("state")
+        remove_path(dest, self.archive)
+
+        summary = revert_files(self.archive)
+
+        self.assertEqual(original.read_text(), "state")
+        self.assertIn(str(original), summary.restored)
+
+
+class SyncAgentsTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.repo = self.tmp / "repo"
+        self.target = self.tmp / "home"
+        self.archive = Archive.create(self.tmp / "arch", "ts")
+        command = self.repo / ".agents" / "skills" / "cmd-j-tdd" / "SKILL.md"
+        command.parent.mkdir(parents=True)
+        command.write_text("---\nname: cmd-j-tdd\ndescription: Use when invoking TDD\n---\n")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _write_target(self, relative: str, content: str = "managed") -> Path:
+        path = self.target / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+        return path
+
+    def test_removes_cursor_agent_wrappers_and_orphaned_commands(self):
+        cursor_file = self._write_target(".cursor/ai-tracking/tracking.db")
+        agent_wrapper = self._write_target(
+            ".agents/skills/agent-reviewer/SKILL.md"
+        )
+        current_command = self._write_target(
+            ".agents/skills/cmd-j-tdd/SKILL.md", "stale command"
+        )
+        orphaned_command = self._write_target(
+            ".agents/skills/cmd-j-write-plan/SKILL.md"
+        )
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(cursor_file.exists())
+        self.assertFalse(agent_wrapper.exists())
+        self.assertFalse(orphaned_command.exists())
+        self.assertTrue(current_command.exists())
+        self.assertIn("name: cmd-j-tdd", current_command.read_text())
+
+    def test_dry_run_reports_removals_without_changing_files(self):
+        cursor_file = self._write_target(".cursor/state.json")
+        agent_wrapper = self._write_target(
+            ".agents/skills/agent-reviewer/SKILL.md"
+        )
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+
+        self.assertTrue(cursor_file.exists())
+        self.assertTrue(agent_wrapper.exists())
+        self.assertTrue(any("would remove" in line for line in captured.output))
         self.assertEqual(self.archive.manifest["files"], [])
 
 
