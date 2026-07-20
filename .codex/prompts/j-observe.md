@@ -1,6 +1,6 @@
 ---
 name: j-observe
-description: "Observability consultation -- logging, metrics, tracing, alerting, and analytics instrumentation. Use when designing observability systems, adding instrumentation, setting up dashboards, or defining SLOs. Do NOT use for CI/CD pipeline config (use /j-devops) or cloud infrastructure (use /j-cloud)."
+description: "Observability consultation -- logging, metrics, tracing, alerting, and analytics instrumentation. Use when designing observability systems, adding instrumentation, setting up dashboards, or defining SLOs. Do NOT use for CI/CD pipeline config (use $cmd-j-devops) or cloud infrastructure (use $cmd-j-cloud)."
 argument-hint: "<question-or-task>"
 ---
 

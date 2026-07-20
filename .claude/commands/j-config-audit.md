@@ -1,6 +1,6 @@
 ---
 name: j-config-audit
-description: "Security audit of the agent-config surface across all tool trees (.claude, .codex, .cursor, .gemini, .agents) — leaked secrets, over-broad tool permissions, and prompt-injection vectors. Use before publishing or syncing configs, or in CI. Do NOT use for application code security (use /j-audit) or KB conformance (use /j-skill-audit)."
+description: "Security audit of Claude, Codex, Gemini, and shared agent configuration for secrets, over-broad permissions, and prompt-injection vectors."
 argument-hint: "<scope: secrets|permissions|injection|path>"
 model: sonnet
 ---

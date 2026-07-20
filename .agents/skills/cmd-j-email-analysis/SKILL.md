@@ -1,6 +1,6 @@
 ---
 name: cmd-j-email-analysis
-description: "Process AI research newsletter emails (TLDR AI, The Batch, Import AI, etc.) -- extract links, categorize, download paper PDFs, and produce a structured summary. Use when processing research newsletters. Do NOT use for non-research emails (handle manually instead)."
+description: "Use when invoking the j-email-analysis workflow."
 disable-model-invocation: true
 ---
 

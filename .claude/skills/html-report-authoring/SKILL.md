@@ -1,6 +1,6 @@
 ---
 name: html-report-authoring
-description: "Use when generating a self-contained HTML document, explainer, or information report -- single-file inline CSS/JS/SVG, visual hierarchy, spatial diagrams, interactivity, export buttons. Do NOT use for markdown docs (use /j-docs) or code review output (use code-review-patterns)."
+description: "Use when creating a self-contained interactive HTML report."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-Personal macOS dotfiles and development environment configuration. Combines traditional Unix dotfile management with a shared agent knowledge base (`.agents/`) and tool-specific configs for Claude Code, Cursor, Codex, and Gemini CLI.
+Personal macOS dotfiles and development environment configuration. Combines traditional Unix dotfile management with a shared Codex/Gemini knowledge base (`.agents/`) and tool-specific configs for Claude Code, Codex, and Gemini CLI.
 
 ## Commands
 
@@ -47,18 +47,15 @@ dotfiles/
 ├── tests/             # stdlib unittest suite for macos_setup
 ├── pyproject.toml     # ruff config, project metadata
 ├── Makefile           # lint, format, fix, test targets
-├── .agents/           # Shared agent KB (agentskills.io spec)
-│   ├── skills/        # agent-*, cmd-*, workflow/*, testing/*, migration/*
-│   └── references/    # Domain knowledge by category
+├── .agents/           # Shared Codex/Gemini KB (agentskills.io spec)
+│   ├── skills/        # cmd-j-* entry points + reusable workflows
+│   └── references/    # Shared domain knowledge by category
 ├── .claude/           # Claude Code (self-contained)
 │   ├── CLAUDE.md, settings.json
 │   ├── agents/, commands/, hooks/, skills/, references/
-├── .codex/            # Codex config + proprietary agents/commands
+├── .codex/            # Codex config + native agents/prompts
 │   ├── AGENTS.md, config.toml
-│   ├── agents/, commands/, hooks/, rules/
-├── .cursor/           # Cursor config only
-│   ├── cli-config.json, hooks.json
-│   ├── hooks/, rules/
+│   ├── agents/, prompts/, hooks/, rules/
 └── .gemini/           # Gemini CLI (skills/refs reused from .agents/)
     ├── GEMINI.md, settings.json
     ├── agents/, commands/, hooks/, policies/

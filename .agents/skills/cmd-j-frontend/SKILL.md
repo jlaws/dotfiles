@@ -1,6 +1,6 @@
 ---
 name: cmd-j-frontend
-description: "Frontend consultation — frameworks, design systems, and web patterns. Use when building with React, Next.js, Svelte, Tailwind, or solving frontend challenges. Do NOT use for backend API design (use /j-arch instead)."
+description: "Use when invoking the j-frontend workflow."
 disable-model-invocation: true
 ---
 

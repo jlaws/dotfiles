@@ -58,4 +58,4 @@ Structured checklists for code review, supplementing the main `skills/code-revie
 | Stale API/CLI docs | Public signature/flag changed in diff, docs untouched | Update reference docs; add CHANGELOG entry |
 | Renamed public symbol | Rename in diff, old name still in README/docs | Grep docs for old name; update |
 | New feature undocumented | New user-facing capability, no README/usage update | Add usage section |
-| KB asset added without registration | New skill/command/agent, CLAUDE.md structure / MEMORY index untouched, mirror unsynced | Register + sync `.agents` ↔ `.claude` |
+| KB asset added without registration | New skill/command/agent, KB structure or parity untouched | Register + satisfy native or mirror parity |

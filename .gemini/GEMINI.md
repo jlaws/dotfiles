@@ -3,8 +3,9 @@
 ## Gemini-Specific Conventions
 - Slash commands: `~/.gemini/commands/*.toml` (TOML, not Markdown)
 - Subagents: `~/.gemini/agents/*.md` invoked via `@agent-<name>`
-- Skills: auto-discovered from `~/.agents/skills/<name>/SKILL.md` (and `~/.gemini/skills/`)
+- Skills: auto-discovered from `~/.agents/skills/<name>/SKILL.md`; no duplicate `.gemini/skills` tree
 - References: `~/.agents/references/` (read directly via `read_file`)
+- Prefer Gemini's native `/j-*` commands; shared `$cmd-j-*` skills remain for Codex compatibility
 - Tool names use snake_case: `read_file`, `run_shell_command`, `grep_search`, `glob`, `replace`, `write_file`, `web_fetch`, `google_web_search`
 
 ## #1 Rule: Verify Before Claiming
@@ -125,7 +126,7 @@ When working in a git worktree:
 - **NEVER** invoke `finishing-branch` skill -- return changes on-branch to the caller
 
 ## Knowledge Base Structure
-- **`~/.agents/skills/`**: Cross-cutting workflows loaded on demand (auto-discovered by Gemini)
+- **`~/.agents/skills/`**: `$cmd-j-*` entry points and workflows loaded on demand
 - **`~/.agents/references/`**: Domain knowledge loaded on-demand by agents and commands
 - **`~/.gemini/agents/`**: Specialist subagents that read from `~/.agents/references/`
 - **`~/.gemini/commands/`**: Slash commands (TOML) that gather context then invoke agents/skills

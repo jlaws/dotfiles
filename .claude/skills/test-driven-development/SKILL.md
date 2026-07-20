@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: Use when implementing features, fixing bugs, or refactoring — enforces writing tests before implementation code. Do NOT use for investigating existing bugs or failures (use debugging-methodology) or pre-commit verification (use verification-before-completion).
+description: "Use when implementing changes with tests written first."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---

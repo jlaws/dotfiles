@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: "Structured methodology for writing implementation plans with bite-sized tasks, exact file paths, and TDD integration. Use when you have a spec or requirements for a multi-step task and need to create a detailed plan before writing code. Do NOT use for simple single-file changes or bug fixes."
+description: "Use when planning a multi-step implementation before coding."
 ---
 
 # Writing Plans

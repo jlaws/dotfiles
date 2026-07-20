@@ -1,6 +1,6 @@
 ---
 name: refactoring-and-debt
-description: "Use when systematically refactoring code or analyzing/remediating technical debt. Do NOT use for general code quality checks (use code-quality) or pre-commit verification (use verification-before-completion)."
+description: "Use when refactoring code or reducing technical debt."
 ---
 
 # Refactoring & Technical Debt

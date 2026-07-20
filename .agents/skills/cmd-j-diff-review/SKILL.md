@@ -1,6 +1,6 @@
 ---
 name: cmd-j-diff-review
-description: "Deep multi-perspective diff review — code quality, security, testing gaps, and language-specific gotchas. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
+description: "Use when invoking the j-diff-review workflow."
 disable-model-invocation: true
 ---
 

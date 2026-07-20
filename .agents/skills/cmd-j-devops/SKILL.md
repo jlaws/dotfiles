@@ -1,6 +1,6 @@
 ---
 name: cmd-j-devops
-description: "DevOps consultation — CI/CD, containers, IaC, and observability. Use when configuring Docker, Kubernetes, Terraform, GitHub Actions, or monitoring. Do NOT use for cloud provider selection (use /j-cloud instead)."
+description: "Use when invoking the j-devops workflow."
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: j-explain
-description: "Generate a self-contained HTML document or information report that explains a topic — inline CSS/JS/SVG, visual hierarchy, spatial diagrams, no external dependencies. Use when you want a shareable, scannable explainer or findings report instead of a wall of markdown. Do NOT use for quick answers or inline comments (respond directly) or markdown project docs (use /j-docs)."
+description: "Generate a self-contained HTML document or information report that explains a topic — inline CSS/JS/SVG, visual hierarchy, spatial diagrams, no external dependencies. Use when you want a shareable, scannable explainer or findings report instead of a wall of markdown. Do NOT use for quick answers or inline comments (respond directly) or markdown project docs (use $cmd-j-docs)."
 argument-hint: "<topic to explain, or file paths/sources to document; default: ask>"
 ---
 

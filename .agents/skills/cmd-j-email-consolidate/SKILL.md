@@ -1,6 +1,6 @@
 ---
 name: cmd-j-email-consolidate
-description: "Consolidate a directory of per-email AI newsletter analysis reports into a single unified weekly digest. Use when merging emails/*.md per-email reports. Do NOT use for processing a single email (use /j-email-analysis)."
+description: "Use when invoking the j-email-consolidate workflow."
 disable-model-invocation: true
 ---
 

@@ -10,12 +10,12 @@ Sources of inspiration and borrowed patterns behind this repo's dotfiles, config
 
 ## Agent knowledge base & tooling
 
-The agent KB (`.agents/` shared skills + references, mirrored across `.claude/`, `.codex/`, `.cursor/`, `.gemini/`) borrows patterns from the sources below, grouped by theme.
+The agent KB (`.agents/` skills and references shared by Codex and Gemini, plus tool-native Claude, Codex, and Gemini assets) borrows patterns from the sources below, grouped by theme.
 
 ### Skill system & authoring
 
 - **superpowers (obra / Jesse Vincent)** - https://github.com/obra/superpowers - skill-system conventions (`SKILL.md` structure, `superpowers:skill-name` cross-references) and the git-worktree workflow; plus spec-first-then-quality review ordering, the cannot-verify-from-diff reviewer flag, clean-baseline-before-work, and the junior-engineer plan-clarity bar in `subagent-driven-development`, `using-git-worktrees`, and `writing-plans`.
-- **Agent Skills specification (agentskills.io)** - https://agentskills.io/specification - the `.agents/` KB follows this spec (`SKILL.md` + YAML frontmatter, `agent-*`/`cmd-*` naming). Cited in `CLAUDE.md` and `.agents/README.md`.
+- **Agent Skills specification (agentskills.io)** - https://agentskills.io/specification - the `.agents/` KB follows this spec (`SKILL.md` + YAML frontmatter, `cmd-j-*` command skills, and reusable workflows). Cited in `CLAUDE.md` and `.agents/README.md`.
 - **ctx (stevesolun)** - https://github.com/stevesolun/ctx - per-session context budget, minimal-bundle skill selection, and skill-rot staleness detection in `skill-lookup-discipline` and `skill-audit`.
 - **Skilgen (skilgen)** - https://github.com/skilgen/skilgen - the 4-axis skill-system health rubric (Groundedness/Coverage/Freshness/Structure) and groundedness authoring rule in `skill-audit`.
 - **Agent SOP (strands-agents)** - https://github.com/strands-agents/agent-sop - RFC 2119 keyword discipline and the tiered artifact-output convention (summary/planning/tasks/scratchpad) in `writing-skills` and the harness configs.

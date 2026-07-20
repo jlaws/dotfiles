@@ -1,6 +1,6 @@
 ---
 name: j-email-consolidate
-description: "Consolidate a directory of per-email AI newsletter analysis reports into a single unified weekly digest. Use when merging emails/*.md per-email reports. Do NOT use for processing a single email (use /j-email-analysis)."
+description: "Consolidate a directory of per-email AI newsletter analysis reports into a single unified weekly digest. Use when merging emails/*.md per-email reports. Do NOT use for processing a single email (use $cmd-j-email-analysis)."
 argument-hint: "<emails-dir> <output-path>"
 ---
 

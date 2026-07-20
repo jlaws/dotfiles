@@ -1,6 +1,6 @@
 ---
 name: cmd-j-create-pr
-description: "Automate PR workflow — stage, commit, branch, push, and open a GitHub PR. Use when ready to submit changes for review. Do NOT use if changes are incomplete (finish implementation first)."
+description: "Use when invoking the j-create-pr workflow."
 disable-model-invocation: true
 ---
 

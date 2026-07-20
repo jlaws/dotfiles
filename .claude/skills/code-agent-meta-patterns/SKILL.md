@@ -1,6 +1,6 @@
 ---
 name: code-agent-meta-patterns
-description: "Code agent workflow optimization including CLAUDE.md design and hooks configuration. Use when optimizing Claude Code workflows, designing CLAUDE.md files, or configuring hooks. Do NOT use for skill creation or editing workflow (use writing-skills)."
+description: "Use when designing agent instructions, hooks, or workflows."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---

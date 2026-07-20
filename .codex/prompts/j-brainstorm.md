@@ -1,6 +1,6 @@
 ---
 name: j-brainstorm
-description: "Design-before-implementation workflow — explore intent, requirements, and design before writing code. Use when creating features, building components, or modifying behavior. Do NOT use after implementation is started (use /j-execute-plan instead)."
+description: "Design-before-implementation workflow — explore intent, requirements, and design before writing code. Use when creating features, building components, or modifying behavior. Do NOT use after implementation is started (use $cmd-j-execute-plan instead)."
 argument-hint: "<topic or feature description>"
 ---
 

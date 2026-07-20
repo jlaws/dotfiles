@@ -1,6 +1,6 @@
 ---
 name: finishing-branch
-description: "Structured 4-step process for completing a development branch — verify tests, determine base, present integration options, execute with cleanup. Use when implementation is complete and you need to decide how to integrate the work. Do NOT use mid-implementation or before tests pass."
+description: "Use when completed branch work needs integration."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 skills:

@@ -72,7 +72,7 @@ Craft description following the WHAT + WHEN + DO NOT pattern:
 
 | Rule | Constraint |
 |------|-----------|
-| Max length (skills) | 250 chars (truncated in skill listing beyond this) |
+| Max length (skills) | 64 characters |
 | Max length (commands/agents) | 1024 chars |
 | No XML characters | No `<` or `>` in frontmatter values |
 | Trigger-only for skills | NEVER summarize the workflow in the description |
@@ -261,7 +261,7 @@ After writing:
 1. Confirm the file was created at the correct path
 2. If skill: confirm the directory was created
 3. Suggest: "Run `/j-skill-audit {type}s` to verify full conformance"
-4. Register & document the new asset: update the CLAUDE.md Knowledge Base Structure section and MEMORY.md index (if the repo has one), add any cross-references, and create the `.agents` ↔ `.claude` mirror copy (body identical; `.claude` adds only `compatibility` + `allowed-tools`). See `documentation-validation`.
+4. Register and document the new asset. Commands require native Claude, Codex, and Gemini counterparts plus the shared `cmd-j-*` skill. Agents require native definitions in all three tool trees. Shared workflow skills require a `.agents/skills/` source with the same body. See `documentation-validation`.
 
 ---
 

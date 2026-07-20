@@ -1,6 +1,6 @@
 ---
 name: j-tdd
-description: "Autonomous TDD implementation loop — write tests first, run to confirm failure, implement until green, lint, commit. Use when adding a feature or fixing a bug with test-driven development. Do NOT use for debugging existing failures (use /j-debug)."
+description: "Autonomous TDD implementation loop — write tests first, run to confirm failure, implement until green, lint, commit. Use when adding a feature or fixing a bug with test-driven development. Do NOT use for debugging existing failures (use $cmd-j-debug)."
 argument-hint: "<feature or bug description>"
 ---
 

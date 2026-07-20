@@ -1,6 +1,6 @@
 ---
 name: github-issue-resolution
-description: "Systematic methodology for investigating, implementing, and resolving GitHub issues. Use when triaging bugs, implementing features from issues, or managing the full issue-to-PR lifecycle. Do NOT use for PR review comment resolution (use pr-comment-resolution)."
+description: "Use when resolving a GitHub issue through implementation."
 compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
