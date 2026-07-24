@@ -10,6 +10,8 @@ from tests.fakes import FakeRunner
 def _brew_ok(argv):
     if argv == ["brew", "--version"]:
         return CompletedResult(0, "Homebrew 4.0.0", "")
+    if argv == ["brew", "--prefix", "rustup"]:
+        return CompletedResult(0, "/opt/homebrew/opt/rustup\n", "")
     if argv == ["brew", "--prefix"]:
         return CompletedResult(0, "/opt/homebrew\n", "")
     return CompletedResult(0, "", "")
@@ -57,6 +59,38 @@ class InstallPackagesTests(unittest.TestCase):
 
         argvs = runner.argv_list()
         self.assertIn(["brew", "install", "fd"], argvs)
+
+    def test_installs_uv(self):
+        runner = FakeRunner(_brew_ok)
+        install_packages(runner)
+
+        self.assertIn(["brew", "install", "uv"], runner.argv_list())
+
+    def test_does_not_install_go_tooling(self):
+        runner = FakeRunner(_brew_ok)
+        install_packages(runner)
+
+        argvs = runner.argv_list()
+        self.assertNotIn(["brew", "install", "go"], argvs)
+        self.assertFalse(any(argv and argv[0] == "go" for argv in argvs))
+
+    def test_regression_rust_analyzer_uses_rustup_component_without_path_shadowing(self):
+        runner = FakeRunner(_brew_ok)
+        install_packages(runner)
+
+        argvs = runner.argv_list()
+        rustup = "/opt/homebrew/opt/rustup/bin/rustup"
+        self.assertNotIn(["brew", "install", "rust-analyzer"], argvs)
+        self.assertIn([rustup, "default", "stable"], argvs)
+        self.assertIn([rustup, "component", "add", "rust-analyzer"], argvs)
+        self.assertLess(
+            argvs.index(["brew", "install", "rustup"]),
+            argvs.index([rustup, "default", "stable"]),
+        )
+        self.assertLess(
+            argvs.index([rustup, "default", "stable"]),
+            argvs.index([rustup, "component", "add", "rust-analyzer"]),
+        )
 
     def test_install_logs_info_per_package(self):
         runner = FakeRunner(_brew_ok)
