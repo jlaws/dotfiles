@@ -36,9 +36,9 @@ BREW_PACKAGES = [
     "agent-browser",
     "rustup",
     "mold",
+    "uv",
     "node",
     "pyright",
-    "rust-analyzer",
 ]
 
 _ELAN_INSTALL = (
@@ -84,9 +84,16 @@ def install_packages(runner: Runner, *, dry_run: bool = False) -> None:
                 check=False,
             )
 
+    if dry_run:
+        rustup = "$(brew --prefix rustup)/bin/rustup"
+    else:
+        rustup_prefix = runner.run(["brew", "--prefix", "rustup"], capture=True).stdout.strip()
+        rustup = f"{rustup_prefix}/bin/rustup"
+    _run(runner, [rustup, "default", "stable"], dry_run=dry_run)
+    _run(runner, [rustup, "component", "add", "rust-analyzer"], dry_run=dry_run)
+
     _run(runner, ["agent-browser", "install"], dry_run=dry_run)
     _run(runner, ["npm", "install", "-g", "typescript-language-server", "typescript"], dry_run=dry_run)
-    _run(runner, ["go", "install", "golang.org/x/tools/gopls@latest"], dry_run=dry_run)
     _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
     _run(runner, ["bash", "-c", _CLAUDE_INSTALL], dry_run=dry_run)
     _run(runner, ["brew", "cleanup"], dry_run=dry_run)

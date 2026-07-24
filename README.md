@@ -90,7 +90,9 @@ be removed on uninstall.
 - **Updated tools**: `vim`, `grep`, `openssh`, `screen`, `wget`
 - **Git tools**: `git`, `git-lfs`, `gh`
 - **Shell utilities**: `autojump`, `mermaid-cli`
-- **Language servers**: `node`, `pyright`, `rust-analyzer`
+- **Language tools**: `uv`
+- **Rust tooling**: `rustup`, stable toolchain, `rust-analyzer` component
+- **Language servers**: `node`, `pyright`
 
 Homebrew packages are **not** removed on uninstall.
 
@@ -217,8 +219,7 @@ Skills and references are NOT duplicated under `.gemini/` — Gemini natively au
 | `pyright-lsp` | Python | `brew install pyright` (in setup.sh) |
 | `typescript-lsp` | TS/JS | `npm install -g typescript-language-server typescript` (in setup.sh) |
 | `swift-lsp` | Swift | Xcode (bundled) |
-| `gopls-lsp` | Go | `go install golang.org/x/tools/gopls@latest` (in setup.sh) |
-| `rust-analyzer-lsp` | Rust | `brew install rust-analyzer` (in setup.sh) |
+| `rust-analyzer-lsp` | Rust | `rustup component add rust-analyzer` (in setup.sh) |
 
 ## Credits
 
@@ -237,7 +238,6 @@ Install after running `setup.sh` launch claude and run:
 /plugin install typescript-lsp@claude-plugin-directory
 /plugin install swift-lsp@claude-plugin-directory
 /plugin install rust-analyzer-lsp@claude-plugin-directory
-/plugin install gopls-lsp@claude-plugin-directory
 /plugin install commit-commands@claude-plugin-directory
 /plugin install claude-md-management@claude-plugin-directory
 ```
