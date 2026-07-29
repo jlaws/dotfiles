@@ -48,6 +48,31 @@ yarn install --frozen-lockfile
 pip install --require-hashes -r requirements.txt
 ```
 
+## Supply Chain Attack Patterns
+
+| Attack | Description | Mitigation |
+|--------|-------------|------------|
+| **Typosquatting** | `lodsah` instead of `lodash` | Verify package name carefully, use lock files |
+| **Dependency confusion** | Public package name matches internal name | Scope private packages (`@company/pkg`), registry configuration |
+| **Maintainer compromise** | Legitimate maintainer account hijacked | Pin exact versions, review changelogs before upgrade |
+| **Malicious postinstall** | Package runs code on `npm install` | `--ignore-scripts`, review install scripts |
+| **Protestware** | Maintainer inserts destructive/political code | Pin versions, review diffs, monitor advisories |
+| **Star jacking** | Fake GitHub stars to build trust | Check actual download counts, contributor history |
+
+### Defensive Measures
+
+```bash
+# npm: disable install scripts by default
+npm config set ignore-scripts true
+# Explicitly allow for known packages
+npx --allow-scripts=node-gyp npm install
+
+# Use lock files (always commit them)
+npm ci          # Install from lock file exactly (not npm install)
+yarn install --frozen-lockfile
+pip install --require-hashes -r requirements.txt
+```
+
 ## Container & Secrets Scanning
 
 ### Trivy Container Image Scanning

@@ -183,7 +183,13 @@ class Audit:
         A supporting file named only by another supporting file is still reachable, so long as the
         chain starts at SKILL.md.
         """
-        extras = [p for p in sorted(folder.rglob("*")) if p.is_file() and p != skill]
+        extras = [
+            p
+            for p in sorted(folder.rglob("*"))
+            if p.is_file()
+            and p != skill
+            and not _is_generated(p)
+        ]
         reachable = {skill}
         frontier = [text]
         while frontier:
@@ -542,6 +548,13 @@ class Audit:
             for finding in sorted(group, key=lambda f: (str(f.path), f.check)):
                 print(f"[{finding.check}] {finding.path}: {finding.message}")
         return 1 if fails else 0
+
+
+def _is_generated(path: Path) -> bool:
+    """Report whether a path is a build artifact rather than authored content."""
+    if path.suffix in {".pyc", ".pyo"} or path.name.startswith("."):
+        return True
+    return "__pycache__" in path.parts
 
 
 def _slug(text: str) -> str:
