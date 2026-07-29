@@ -3,6 +3,7 @@ name: j-defrag
 description: "Scan the codebase for fragmentation — duplicated components, inconsistent patterns, files to consolidate, logic to share — and fix it in verified batches. Use to keep the codebase coherent on a regular cadence. Do NOT use for single-file cleanups (edit directly) or diff review before merge (use /j-diff-review)."
 argument-hint: "<optional path or subsystem to scope the scan; default whole repo>"
 model: opus
+effort: xhigh
 ---
 
 Load skills `refactoring-and-debt` and `code-quality` via the Skill tool before doing anything else. Defragment the codebase: scan for fragmentation and fix it in verified batches so the next thing built lands in a more coherent codebase.

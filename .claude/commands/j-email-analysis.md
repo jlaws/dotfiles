@@ -3,6 +3,7 @@ name: j-email-analysis
 description: "Process AI research newsletter emails (TLDR AI, The Batch, Import AI, etc.) -- extract links, categorize, download paper PDFs, and produce a structured summary. Use when processing research newsletters. Do NOT use for non-research emails (handle manually instead)."
 argument-hint: "<email-body-file>"
 model: sonnet
+effort: medium
 ---
 
 Process the AI research newsletter email at: $ARGUMENTS
@@ -13,8 +14,7 @@ If no arguments provided, ask for the path to the email body file.
 
 Load skills via the Skill tool, in order:
 
-1. `analysis-output-patterns` -- output structure rules
-2. `analysis-output-patterns` -- findings-first structure and data-versus-inference labeling
+1. `analysis-output-patterns` -- findings-first structure, data-versus-inference labeling, output rules
 
 ## Pre-processing (before producing output)
 

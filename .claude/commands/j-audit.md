@@ -3,6 +3,7 @@ name: j-audit
 description: "Security threat model and vulnerability scan — STRIDE analysis, SAST patterns, and compliance mapping. Use when reviewing code for vulnerabilities, conducting threat modeling, or mapping compliance controls. Do NOT use for quick security questions (ask directly instead)."
 argument-hint: "<target-path-or-scope>"
 model: opus
+effort: xhigh
 ---
 
 Load skill `analysis-output-patterns` for output structure rules.
