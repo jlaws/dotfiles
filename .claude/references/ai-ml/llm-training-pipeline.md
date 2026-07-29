@@ -41,7 +41,7 @@ def estimate_training_time(params_B: float, tokens_T: float, num_gpus: int,
             "total_pflops_days": flops_total / (1e15 * 86400), "mfu": mfu}
 ```
 
-For data mixing, tokenizer co-design, checkpoint management, and stability monitoring patterns, see `references/pretraining-patterns.md`.
+For data mixing, tokenizer co-design, checkpoint management, and stability monitoring patterns, see `ai-ml/llm-training-pipeline/pretraining-patterns.md`.
 
 ## Dataset Formatting
 

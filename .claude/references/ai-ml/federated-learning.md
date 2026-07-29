@@ -120,7 +120,7 @@ sample's contribution -- it yields no per-sample sensitivity bound and therefore
 `(epsilon, delta)` guarantee, however plausible the clip-then-noise code looks. Getting the
 guarantee requires materializing per-sample gradients (vectorized hooks) plus an accountant to
 compose epsilon over steps. Use Opacus, which does both: see
-`references/privacy-techniques.md` for the `make_private_with_epsilon` setup and the
+`ai-ml/federated-learning/privacy-techniques.md` for the `make_private_with_epsilon` setup and the
 `target_epsilon` / `max_grad_norm` parameter ranges.
 
 ### Privacy Budget Intuition
@@ -236,7 +236,7 @@ class SecureAggregator:
 
 ## References
 
-Extended code examples in `references/privacy-techniques.md`:
+Extended code examples in `ai-ml/federated-learning/privacy-techniques.md`:
 - DP-SGD with Opacus (full setup + parameters)
 - PII detection with Presidio (basic + custom recognizers + pipeline integration)
 - Model unlearning (exact + SISA)

@@ -131,7 +131,7 @@ helpers and the per-scale data/batch/LR table.
 
 Automate model design with differentiable search (DARTS), RL-based controllers (ENAS), one-shot supernets, and hardware-aware latency optimization (ProxylessNAS). Covers search space design, alternating optimization, weight sharing, and latency lookup tables.
 
-For NAS patterns, see `references/neural-architecture-search.md`.
+For NAS patterns, see `ai-ml/generative-model-architectures/neural-architecture-search.md`.
 
 ## Extended References
 

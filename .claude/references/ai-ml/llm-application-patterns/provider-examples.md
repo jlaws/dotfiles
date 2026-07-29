@@ -1,6 +1,6 @@
 # Provider Code Examples
 
-Extended code examples for each structured output provider. For method selection and quick-reference, see the [Structured Output section](../SKILL.md#structured-output) in the parent skill.
+Extended code examples for each structured output provider. For method selection and quick-reference, see the [Structured Output section](../llm-application-patterns.md#structured-output) in the parent reference.
 
 `OPENAI_MODEL` below stands in for whichever model alias you configure. Prefer undated
 aliases (Anthropic's `claude-sonnet-5`, `claude-opus-5`) over date-pinned snapshot IDs --

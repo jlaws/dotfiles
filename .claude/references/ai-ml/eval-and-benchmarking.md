@@ -233,7 +233,7 @@ def test_memorization(model, tokenizer, canary_prefix, full_canary):
 | Multi-method comparison | Captum library | Cross-validating attribution methods |
 | Regulatory/compliance | SHAP + LIME (multiple methods) | Auditable explanations, stakeholder trust |
 
-For detailed interpretability patterns, see `references/model-interpretability.md`.
+For detailed interpretability patterns, see `ai-ml/eval-and-benchmarking/model-interpretability.md`.
 
 ## Gotchas and Anti-Patterns
 

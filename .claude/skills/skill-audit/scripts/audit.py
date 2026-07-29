@@ -349,7 +349,11 @@ class Audit:
                 self.note_clean("References", str(path.relative_to(root)))
 
     def _indexed_stems(self) -> Set[str]:
-        """Collect every reference stem named anywhere outside the reference tree."""
+        """Collect every reference stem reachable from an agent, command, skill, or CLAUDE.md.
+
+        Reachability is transitive: agent indexes name top-level references, and those link on to
+        nested children. A child cited only by a reachable parent is reachable.
+        """
         seen: Set[str] = set()
         roots = [
             self.claude / "agents",
@@ -364,6 +368,15 @@ class Audit:
                 for stem in self.reference_stems:
                     if re.search(rf"\b{re.escape(stem)}\b", text):
                         seen.add(stem)
+        frontier = list(seen)
+        while frontier:
+            text = self.reference_stems[frontier.pop()].read_text()
+            for stem in self.reference_stems:
+                if stem in seen:
+                    continue
+                if re.search(rf"\b{re.escape(stem)}\b", text):
+                    seen.add(stem)
+                    frontier.append(stem)
         return seen
 
     def _check_relative_reference_paths(self, path: Path, text: str) -> None:

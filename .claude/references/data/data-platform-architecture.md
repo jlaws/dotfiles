@@ -207,7 +207,7 @@ changes = (
 
 ### Query Engine Integration
 
-DuckDB + Iceberg and Trino + Iceberg patterns -- see `references/query-engines.md`.
+DuckDB + Iceberg and Trino + Iceberg patterns -- see `data/data-platform-architecture/query-engines.md`.
 
 ### Compaction and Maintenance
 
@@ -356,7 +356,7 @@ def build_orders_suite() -> ExpectationSuite:
 
 ### dbt Data Tests
 
-Built-in + custom generic and singular tests -- see `references/dbt-quality-tests.md`.
+Built-in + custom generic and singular tests -- see `data/data-platform-architecture/dbt-quality-tests.md`.
 
 Key pattern: combine `unique`, `not_null`, `relationships`, `accepted_values` with custom `expression_is_true` and `recency` tests.
 

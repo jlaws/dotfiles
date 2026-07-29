@@ -283,7 +283,7 @@ completion = client.beta.chat.completions.parse(
 result = completion.choices[0].message.parsed  # CompanyInfo instance
 ```
 
-For Instructor, Outlines, nested schemas, and multi-entity extraction, see [references/provider-examples.md](references/provider-examples.md).
+For Instructor, Outlines, nested schemas, and multi-entity extraction, see [ai-ml/llm-application-patterns/provider-examples.md](ai-ml/llm-application-patterns/provider-examples.md).
 
 ### Schema Design Tips
 
@@ -295,7 +295,7 @@ For Instructor, Outlines, nested schemas, and multi-entity extraction, see [refe
 | Keep schemas under 15 fields | Accuracy drops with complex schemas |
 | Use nested objects for related fields | Groups logically, reduces confusion |
 
-For anti-patterns catalog and Pydantic validation strategies, see [references/schema-anti-patterns.md](references/schema-anti-patterns.md).
+For anti-patterns catalog and Pydantic validation strategies, see [ai-ml/llm-application-patterns/schema-anti-patterns.md](ai-ml/llm-application-patterns/schema-anti-patterns.md).
 
 ### Structured Output Gotchas
 
@@ -306,7 +306,7 @@ For anti-patterns catalog and Pydantic validation strategies, see [references/sc
 - **Pydantic V2 required**: Instructor and OpenAI SDK need V2. Key changes: `@field_validator` replaces `@validator`, `model_dump()` replaces `.dict()`.
 - **Long documents**: Chunk first, extract per chunk, merge/deduplicate. Don't rely on truncation.
 
-For retry strategies and provider fallback patterns, see [references/retry-and-fallback.md](references/retry-and-fallback.md).
+For retry strategies and provider fallback patterns, see [ai-ml/llm-application-patterns/retry-and-fallback.md](ai-ml/llm-application-patterns/retry-and-fallback.md).
 
 ## Cross-References
 

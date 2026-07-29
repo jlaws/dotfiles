@@ -1,6 +1,6 @@
 # Retry and Fallback Strategies
 
-Provider fallback and retry patterns for structured LLM output extraction. For method selection, see the [Structured Output section](../SKILL.md#structured-output) in the parent skill.
+Provider fallback and retry patterns for structured LLM output extraction. For method selection, see the [Structured Output section](../llm-application-patterns.md#structured-output) in the parent reference.
 
 ## Multi-Provider Fallback
 

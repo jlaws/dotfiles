@@ -160,4 +160,4 @@ Use `PARTITION BY RANGE` for large time-series tables. Queries auto-prune irrele
 - **Unused indexes**: `pg_stat_user_indexes` where `idx_scan = 0`
 - **Maintenance**: `ANALYZE` for stats, `VACUUM ANALYZE` for dead tuples
 
-> **Extended examples**: See `references/sql-optimization-examples.md` for full index creation patterns, batch operation templates, and monitoring queries.
+> **Extended examples**: See `data/analytics-and-transformations/sql-optimization-examples.md` for full index creation patterns, batch operation templates, and monitoring queries.
