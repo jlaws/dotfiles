@@ -26,7 +26,7 @@
 ```python
 import boto3
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from botocore.config import Config
 
 s3 = boto3.client("s3", config=Config(signature_version="s3v4"))
@@ -35,7 +35,7 @@ BUCKET = "my-app-uploads"
 def generate_upload_url(content_type: str, max_size_mb: int = 10,
                         prefix: str = "uploads", expires_in: int = 3600) -> dict:
     """Generate presigned PUT URL for direct browser upload."""
-    date_prefix = datetime.utcnow().strftime("%Y/%m/%d")
+    date_prefix = datetime.now(timezone.utc).strftime("%Y/%m/%d")
     file_key = f"{prefix}/{date_prefix}/{uuid.uuid4()}"
     url = s3.generate_presigned_url("put_object", Params={
         "Bucket": BUCKET, "Key": file_key, "ContentType": content_type,
@@ -45,7 +45,7 @@ def generate_upload_url(content_type: str, max_size_mb: int = 10,
 def generate_presigned_post(content_type: str, max_size_mb: int = 10,
                             prefix: str = "uploads", expires_in: int = 3600) -> dict:
     """POST-based upload with server-enforced size/type constraints."""
-    file_key = f"{prefix}/{datetime.utcnow():%Y/%m/%d}/{uuid.uuid4()}"
+    file_key = f"{prefix}/{datetime.now(timezone.utc):%Y/%m/%d}/{uuid.uuid4()}"
     return s3.generate_presigned_post(
         Bucket=BUCKET, Key=file_key,
         Fields={"Content-Type": content_type},
@@ -115,7 +115,7 @@ def create_cf_signer(key_id: str, private_key_pem: str):
 
 def signed_cf_url(domain: str, key: str, signer, expires_hours=24):
     url = f"https://{domain}/{key}"
-    expires = datetime.datetime.utcnow() + datetime.timedelta(hours=expires_hours)
+    expires = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=expires_hours)
     return signer.generate_presigned_url(url, date_less_than=expires)
 ```
 

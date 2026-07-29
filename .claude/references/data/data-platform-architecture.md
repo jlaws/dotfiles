@@ -479,7 +479,7 @@ Key concepts:
 
 ```python
 # feast_patterns.py -- Feature definitions, serving, and point-in-time joins
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 
 from feast import Entity, FeatureStore, Field, BatchFeatureView
 from feast.data_source import PushMode
@@ -571,7 +571,7 @@ training_df = store.get_historical_features(
 
 # --- Online Serving ---
 # Materialize: feast materialize-incremental $(date -u +"%Y-%m-%dT%H:%M:%S")
-# Or: store.materialize_incremental(end_date=datetime.utcnow())
+# Or: store.materialize_incremental(end_date=datetime.now(timezone.utc))
 
 features = store.get_online_features(
     features=[
@@ -592,7 +592,7 @@ store.push(
             "user_id": [42],
             "session_duration_sec": [340],
             "pages_viewed": [12],
-            "event_timestamp": [datetime.utcnow()],
+            "event_timestamp": [datetime.now(timezone.utc)],
         }
     ),
     to=PushMode.ONLINE,  # or ONLINE_AND_OFFLINE

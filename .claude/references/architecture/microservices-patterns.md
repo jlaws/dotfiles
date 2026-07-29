@@ -127,6 +127,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.success_threshold = success_threshold
         self.failure_count = 0
+        self.success_count = 0
         self.state = CircuitState.CLOSED
         self.opened_at = None
 
@@ -134,6 +135,7 @@ class CircuitBreaker:
         if self.state == CircuitState.OPEN:
             if self._should_attempt_reset():
                 self.state = CircuitState.HALF_OPEN
+                self.success_count = 0     # Fresh probe window
             else:
                 raise CircuitBreakerOpenError("Circuit breaker is open")
         try:
@@ -165,6 +167,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 class ServiceClient:
     def __init__(self, base_url):
+        self.base_url = base_url.rstrip("/")
         self.client = httpx.AsyncClient(
             timeout=httpx.Timeout(5.0, connect=2.0),
             limits=httpx.Limits(max_keepalive_connections=20))

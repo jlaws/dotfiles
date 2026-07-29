@@ -227,4 +227,4 @@ A decision is done when it has: **evidence** for the choice, the **criteria and 
 
 ## Architecture Patterns Reference
 
-Catalog of proven backend architecture patterns (Clean Architecture, Hexagonal Architecture, Domain-Driven Design) with implementation examples and pitfalls. For architecture pattern catalog, see `architecture-patterns.md`.
+Catalog of proven backend architecture patterns (Clean Architecture, Hexagonal Architecture, Domain-Driven Design), when not to reach for each, and their pitfalls. See `architecture-patterns.md`.
