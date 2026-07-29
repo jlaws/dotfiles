@@ -1,7 +1,6 @@
 ---
 name: session-handoff
 description: "Use when preserving work for another session or agent."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Write
 ---
 

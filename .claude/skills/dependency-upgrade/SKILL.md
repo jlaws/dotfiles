@@ -1,7 +1,6 @@
 ---
 name: dependency-upgrade
 description: "Use when upgrading dependencies or resolving version conflicts."
-compatibility: claude-code
 skills:
   - test-driven-development
   - verification-before-completion

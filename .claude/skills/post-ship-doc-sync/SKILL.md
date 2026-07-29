@@ -1,7 +1,6 @@
 ---
 name: post-ship-doc-sync
 description: "Use when shipped changes may have left documentation stale."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 

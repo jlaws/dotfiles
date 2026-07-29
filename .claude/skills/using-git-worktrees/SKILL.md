@@ -1,7 +1,6 @@
 ---
 name: using-git-worktrees
 description: "Use when isolated branches need separate working trees."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

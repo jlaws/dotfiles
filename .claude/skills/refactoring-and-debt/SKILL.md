@@ -1,7 +1,6 @@
 ---
 name: refactoring-and-debt
 description: "Use when refactoring code or reducing technical debt."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 

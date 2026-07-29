@@ -1,7 +1,6 @@
 ---
 name: verification-before-completion
 description: "Use when verifying evidence before claiming work complete."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

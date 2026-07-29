@@ -1,7 +1,6 @@
 ---
 name: design-first
 description: "Use when designing features or behavior before coding."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

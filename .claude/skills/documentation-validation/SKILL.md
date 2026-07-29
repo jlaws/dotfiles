@@ -1,7 +1,6 @@
 ---
 name: documentation-validation
 description: "Use when validating docs before shipping a change."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 

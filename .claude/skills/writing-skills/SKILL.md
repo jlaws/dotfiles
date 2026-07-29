@@ -1,251 +1,133 @@
 ---
 name: writing-skills
 description: "Use when creating, editing, or validating agent skills."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
 # Writing Skills
 
-**Writing skills IS Test-Driven Development applied to process documentation.**
+A skill exists to teach what a strong model does not already know. Everything else crowds out the
+task it was loaded to help with.
 
-**Codex and Gemini use `~/.agents/skills`; Claude uses `~/.claude/skills`.**
+**Codex and Gemini read `~/.agents/skills`; Claude reads `~/.claude/skills`.** The trees have
+diverged on purpose: `.claude/` is written for the Claude 5 generation, `.agents/` serves the other
+tools. `tests/test_agent_config.py` pins which skills exist in each, not what they say.
 
-You write test cases (pressure scenarios), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
+## What earns a place in a skill
 
-**Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill teaches the right thing.
+Keep a section only if it passes one of these:
 
-## When to Create a Skill
+- The model would get it wrong or vague from memory — version-gated behavior, a non-obvious default
+- It is a number or threshold with provenance, not a guess
+- It is an opinionated choice that closes a decision the model would otherwise re-litigate
+- It is specific to this repo: a real path, a real gotcha, a real convention
 
-**Create when:** Technique wasn't intuitively obvious, reusable across projects, pattern applies broadly, others would benefit.
+Cut what fails all four. Generic best practice, framework tours, and derivable taxonomies are the
+usual offenders. A skill that could apply to any repo teaches little about this one.
 
-**Don't create for:** One-off solutions, standard well-documented practices, project-specific conventions (use CLAUDE.md), mechanically enforceable constraints (automate instead).
+## The four shifts
 
-## Skill Types
+| Instead of | Write |
+|---|---|
+| A rule | The goal and the reason, so judgment covers cases you did not foresee |
+| Examples enumerating usage | An interface whose shape implies correct use |
+| Everything upfront | A pointer, with the detail in a file that loads when needed |
+| The same rule on three surfaces | One statement, in the place that owns it |
 
-- **Technique**: Concrete method with steps (condition-based-waiting)
-- **Pattern**: Way of thinking about problems (flatten-with-flags)
-- **Reference**: API docs, syntax guides, tool documentation
+Rigid prohibitions are usually wrong for some real situation, and the model cannot notice that if the
+skill also forbids noticing. Say what you want and why it matters.
 
-## Directory Structure
+## When to create a skill
+
+**Create when** the technique was not obvious, it is reusable, and someone else would benefit.
+
+**Do not create for** one-off solutions, well-documented standard practice, project conventions
+(those go in CLAUDE.md), or anything a script can enforce — automate those instead.
+
+## Structure
 
 ```
 skills/
   skill-name/
-    SKILL.md              # Main reference (required)
-    supporting-file.*     # Only if needed
+    SKILL.md              # required
+    scripts/              # mechanical steps; call these instead of describing them
+    references/           # heavy detail, loaded on demand
 ```
 
-Separate files for: heavy reference (100+ lines), reusable tools. Keep everything else inline.
+Split a file out when it is heavy reference or a reusable tool. Keep the rest inline, one level deep.
 
-## SKILL.md Structure
+**For mechanical steps — validation, formatting, deterministic checks — ship a script and call it.**
+Reserve the model for judgment. A prose checklist of things a script could verify is both longer and
+less reliable. List a script's dependencies; do not assume they are installed.
 
-**Frontmatter:** Only `name` (letters/numbers/hyphens) and `description` (at most 64 characters, third-person, starts with "Use when...")
+Where a choice exists, give one default with an escape hatch rather than a menu of equal options.
 
-**CRITICAL:** Description = triggering conditions ONLY. Never summarize the skill's workflow in description. Testing showed Claude follows description shortcuts instead of reading skill body.
+## Frontmatter
+
+`name` (letters, numbers, hyphens) and `description` are the essentials. Others worth knowing:
+
+| Field | Use |
+|---|---|
+| `allowed-tools` / `disallowed-tools` | Scope tool access for the turn |
+| `model`, `effort` | Override tier or reasoning depth; tier aliases float across model generations |
+| `paths` | Glob-gate the skill so it loads only for matching files |
+| `disable-model-invocation` | Keep it out of the always-loaded listing; user-invocable only |
+| `context: fork`, `agent` | Run in an isolated subagent context |
+| `argument-hint`, `arguments` | Autocomplete and `$name` substitution |
+
+`compatibility` is not a Claude Code field and does nothing.
+
+`paths` and `disable-model-invocation` are the progressive-disclosure levers: they decide whether a
+skill costs context on every turn or only when it is relevant.
+
+**Description = triggering conditions only.** Never summarize the workflow there; testing showed
+Claude follows a description shortcut instead of reading the body. Shared skills under `.agents/`
+also carry a hard 64-character budget and must start with "Use when", enforced by `tests/`.
 
 ```yaml
-# BAD: Summarizes workflow
-description: Use when executing plans - executes tasks sequentially with code review between tasks
+# BAD: summarizes the workflow
+description: Use when executing plans - executes tasks sequentially with review between tasks
 
-# GOOD: Just triggers
-description: Use when executing implementation plans with independent tasks in the current session
+# GOOD: just the trigger
+description: Use when executing implementation plans with independent tasks
 ```
 
-**Body structure:**
-```markdown
-# Skill Name
-## Overview (1-2 sentences, core principle)
-## When to Use (flowchart IF decision non-obvious, bullets with symptoms)
-## Core Pattern (before/after code)
-## Quick Reference (table/bullets)
-## Common Mistakes (what goes wrong + fixes)
-```
+## Discoverability
 
-## Keyword Discipline (RFC 2119)
+- Name by what you do: `condition-based-waiting`, not `async-test-helpers`. Gerunds read well.
+- Put searchable words in the description: symptoms, error text, tool names.
+- Prefer concrete triggers over language-specific ones.
 
-Use MUST / MUST NOT / SHOULD / MAY with their RFC 2119 meanings so a hard gate reads differently from a suggestion. Reserve MUST/MUST NOT for non-negotiable rules, SHOULD for strong defaults with an escape hatch, MAY for options. Letting "should" creep into a hard gate is how discipline erodes.
+**Cross-references:** name the skill in prose (`use the code-review-patterns skill`). Never use `@`
+links — they force-load and burn context.
 
-## Co-located Scripts
+## Flowcharts
 
-For mechanical steps (validation, formatting, deterministic checks), ship a `scripts/` file in the skill directory and call it, rather than describing the steps in prose. Reserve the LLM for judgment; let a script do what a script does better. Keep scripts one level deep and list any dependencies.
+Use one only for a non-obvious decision, a process loop, or "when to use A vs B". Never for reference
+material, code examples, or linear instructions. Conventions and rendering: `graphviz-conventions.dot`
+and `render-graphs.js` in this directory.
 
-## Claude Search Optimization (CSO)
+## Test it against a real agent
 
-- Use concrete triggers/symptoms in description, not language-specific symptoms
-- Include keywords Claude would search: error messages, symptoms, tool names
-- Name by what you DO: `condition-based-waiting` not `async-test-helpers`
-- Gerunds work well: `creating-skills`, `debugging-with-logs`
+A skill you have not watched an agent use is a guess. Run the task without the skill and note where
+the agent actually goes wrong; write the skill to address those specific failures; re-run.
 
-**Token Efficiency:**
-- Getting-started workflows: <150 words
-- Frequently-loaded skills: <200 words
-- Other skills: <500 words
-- Move details to `--help`, use cross-references, compress examples
+If the agent read the skill and still chose wrong, ask it why. "The skill was clear, I ignored it"
+means the principle is not doing any work. "It should have said X" is a direct edit. "I missed
+section Y" is a structure problem. Detailed methodology: `references/CLAUDE_MD_TESTING.md`.
 
-**Cross-References:** Use `**REQUIRED SUB-SKILL:** Use superpowers:skill-name`. Never use `@` links (force-loads, burns context).
+When wording shapes behavior, read it back cold a few times. If it supports several readings, rewrite
+until they converge.
 
-## Flowchart Usage
+Resist answering every failure with a stronger prohibition. When an agent skips a step, the usual
+cause is that the skill never said why the step mattered.
 
-Use ONLY for: non-obvious decisions, process loops, "when to use A vs B".
-Never for: reference material, code examples, linear instructions.
+## Before you ship
 
-Conventions and rendering: see `graphviz-conventions.dot` and `render-graphs.js` in this skill directory.
-
-## The Iron Law (Same as TDD)
-
-```
-NO SKILL WITHOUT A FAILING TEST FIRST
-```
-
-Applies to new skills AND edits. Write skill before testing? Delete it. Start over. No exceptions.
-
-## RED-GREEN-REFACTOR for Skills
-
-**RED:** Run pressure scenario WITHOUT skill. Document exact failures and rationalizations.
-
-**GREEN:** Write minimal skill addressing those specific failures. Re-test with skill.
-
-**REFACTOR:** Agent found new rationalization? Add explicit counter. Re-test until bulletproof.
-
-## Testing Skills
-
-For detailed testing methodology, see `references/CLAUDE_MD_TESTING.md`.
-
-Run scenarios without skill (RED), write skill addressing failures (GREEN), close loopholes (REFACTOR).
-
-### RED Phase: Baseline Testing
-
-Run pressure scenario WITHOUT skill. Document exact failures.
-
-**Process:**
-- [ ] Create pressure scenarios (3+ combined pressures)
-- [ ] Run WITHOUT skill
-- [ ] Document choices and rationalizations verbatim
-- [ ] Identify patterns
-
-### Pressure Types
-
-| Pressure | Example |
-|----------|---------|
-| Time | Emergency, deadline, deploy window |
-| Sunk cost | Hours of work, "waste" to delete |
-| Authority | Senior says skip it |
-| Exhaustion | End of day, want to go home |
-| Pragmatic | "Being pragmatic vs dogmatic" |
-
-**Best tests combine 3+ pressures.**
-
-### Key Elements
-1. Concrete A/B/C choices (not open-ended)
-2. Real constraints (specific times, consequences)
-3. Real file paths
-4. Make agent act ("What do you do?" not "What should you do?")
-
-### REFACTOR Phase: Close Loopholes
-
-Capture new rationalizations verbatim. For each, add:
-1. **Explicit negation** in rules
-2. **Rationalization table** entry
-3. **Red flag** entry
-4. **Updated description** with violation symptoms
-
-Re-test after each refactor. Continue until no new rationalizations.
-
-### Meta-Testing
-
-After agent chooses wrong: "You read the skill and chose wrong. How could it be clearer?"
-
-Three responses:
-1. "Skill WAS clear, I chose to ignore" -> Need stronger foundational principle
-2. "Skill should have said X" -> Add their suggestion
-3. "I didn't see section Y" -> Make it more prominent
-
-### Interpretation Test
-
-Before shipping behavior-shaping wording, run the same prompt about 5 times (or across 5 fresh contexts). Five different interpretations means the wording is ambiguous — rewrite until the readings converge.
-
-## Persuasion Principles for Skill Design
-
-LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) tested 7 principles with N=28,000 AI conversations. Persuasion techniques doubled compliance rates (33% -> 72%, p < .001).
-
-### Effective Principles
-
-- **Authority**: Imperative language ("YOU MUST", "Never", "Always"), non-negotiable framing. For discipline-enforcing skills.
-- **Commitment**: Require announcements, force explicit choices. For ensuring skills are followed.
-- **Scarcity**: Time-bound requirements ("Before proceeding"), sequential dependencies. For immediate verification.
-- **Social Proof**: Universal patterns ("Every time", "Always"), failure modes. For documenting universal practices.
-- **Unity**: Collaborative language ("our codebase", "we're colleagues"). For collaborative workflows.
-- **Reciprocity & Liking**: Use sparingly or avoid.
-
-| Skill Type | Use | Avoid |
-|------------|-----|-------|
-| Discipline-enforcing | Authority + Commitment + Social Proof | Liking, Reciprocity |
-| Guidance/technique | Moderate Authority + Unity | Heavy authority |
-| Collaborative | Unity + Commitment | Authority, Liking |
-| Reference | Clarity only | All persuasion |
-
-## Anthropic Best Practices
-
-### Skill Categories (from Anthropic's Guide)
-
-| Category | Description | Examples |
-|----------|-------------|---------|
-| 1. Document & Asset Creation | Generate files from templates/specs | Commit messages, PR descriptions, config files |
-| 2. Workflow Automation | Multi-step processes with tool use | Code review, deployment, refactoring |
-| 3. MCP Enhancement | Extend Claude with external tool integrations | API wrappers, database queries, service connectors |
-
-### Success Criteria Methodology
-1. Define what "good output" looks like before writing the skill
-2. Create 3+ concrete evaluation scenarios with expected outcomes
-3. Test against scenarios, measure pass rate
-4. Iterate until pass rate meets threshold (aim for >80%)
-
-### Core Principles
-- **Concise is key**: Only add what Claude doesn't already know. Challenge each piece: "Does Claude need this?"
-- **Degrees of freedom**: High (text instructions) for multiple valid approaches; Medium (pseudocode) for preferred patterns; Low (exact scripts) for fragile operations
-
-### Anti-Patterns
-- Offering too many library options (provide a default with escape hatch)
-- Assuming packages installed (list dependencies)
-- Deeply nested references (keep one level deep)
-- Time-sensitive information (use "old patterns" section)
-
-### Evaluation-Driven Development
-1. Run Claude on tasks without Skill, document failures
-2. Create 3+ evaluation scenarios
-3. Establish baseline performance
-4. Write minimal instructions to pass evaluations
-5. Iterate: evaluate, compare baseline, refine
-
-### Quick Checklist (from Anthropic's Reference A)
-- [ ] Frontmatter: `name`, `description` (with trigger phrases), `allowed-tools`
-- [ ] Description starts with "Use when..." and includes negative triggers
-- [ ] Body is concise (under 500 words for most skills)
-- [ ] At least one code example or concrete output
-- [ ] No redundant information Claude already knows
-- [ ] Cross-references use relative paths, not `@` links
-
-## Skill Creation Checklist
-
-**RED Phase:**
-- [ ] Create pressure scenarios (3+ combined pressures for discipline skills)
-- [ ] Run WITHOUT skill - document baseline failures verbatim
-- [ ] Identify rationalization patterns
-
-**GREEN Phase:**
-- [ ] YAML frontmatter: name (letters/numbers/hyphens), description (Use when..., third-person)
-- [ ] Address specific baseline failures
-- [ ] Keywords throughout for search
-- [ ] One excellent code example (not multi-language)
-- [ ] Run WITH skill - verify compliance
-
-**REFACTOR Phase:**
-- [ ] Add counters for new rationalizations
-- [ ] Build rationalization table and red flags list
-- [ ] Re-test until bulletproof
-
-**Deployment:**
-- [ ] Update KB self-docs: `description` frontmatter and cross-references current; CLAUDE.md KB-structure section and MEMORY.md index (if present) updated if the asset set changed (see `documentation-validation`)
-- [ ] Sync shared workflow bodies to `.claude`; ensure `cmd-j-*` skills have Claude, Codex, and Gemini command counterparts
-- [ ] Commit and push
+- [ ] Every section passes one of the four tests above
+- [ ] Mechanical steps live in a script, not in prose
+- [ ] `description` is a trigger, and any `.agents/` copy fits the 64-character budget
+- [ ] Supporting files are referenced from SKILL.md
+- [ ] KB self-docs current: CLAUDE.md Knowledge Base Structure, and MEMORY.md if the asset set changed
+- [ ] `cmd-j-*` skills have Claude, Codex, and Gemini command counterparts
+- [ ] `make test` and `make check` pass

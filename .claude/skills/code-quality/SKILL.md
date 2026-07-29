@@ -1,7 +1,6 @@
 ---
 name: code-quality
 description: "Use when assessing code smells, health, or style."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: skill-lookup-discipline
 description: "Use when starting a task that may match an existing skill."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob
 ---
 

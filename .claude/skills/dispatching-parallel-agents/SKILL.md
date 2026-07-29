@@ -1,7 +1,6 @@
 ---
 name: dispatching-parallel-agents
 description: "Use when independent tasks can run concurrently."
-compatibility: claude-code
 allowed-tools: Task, Read, Grep, Glob, Bash
 skills:
   - verification-before-completion

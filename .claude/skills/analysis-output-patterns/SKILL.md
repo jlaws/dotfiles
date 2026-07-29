@@ -1,7 +1,6 @@
 ---
 name: analysis-output-patterns
 description: "Use when presenting analysis, research, or report findings."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

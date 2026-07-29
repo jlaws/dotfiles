@@ -1,7 +1,6 @@
 ---
 name: code-review-patterns
 description: "Use when reviewing PRs or responding to review feedback."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 skills:
   - verification-before-completion

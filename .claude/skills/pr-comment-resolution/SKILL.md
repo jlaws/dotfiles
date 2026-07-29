@@ -1,7 +1,6 @@
 ---
 name: pr-comment-resolution
 description: "Use when resolving reviewer comments on an open PR."
-compatibility: claude-code
 skills:
   - verification-before-completion
   - code-review-patterns

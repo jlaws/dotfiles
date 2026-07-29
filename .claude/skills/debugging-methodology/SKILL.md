@@ -1,7 +1,6 @@
 ---
 name: debugging-methodology
 description: "Use when investigating bugs, failures, or odd behavior."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 skills:
   - verification-before-completion

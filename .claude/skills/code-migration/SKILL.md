@@ -1,7 +1,6 @@
 ---
 name: code-migration
 description: "Use when migrating code across frameworks or platforms."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
   - test-driven-development

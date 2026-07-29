@@ -1,7 +1,6 @@
 ---
 name: test-driven-development
 description: "Use when implementing changes with tests written first."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: html-report-authoring
 description: "Use when creating a self-contained interactive HTML report."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 

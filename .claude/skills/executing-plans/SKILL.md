@@ -1,7 +1,6 @@
 ---
 name: executing-plans
 description: "Use when executing a written plan in one working context."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

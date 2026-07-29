@@ -1,7 +1,6 @@
 ---
 name: language-testing-patterns
 description: "Use when designing Python or JavaScript test suites."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
