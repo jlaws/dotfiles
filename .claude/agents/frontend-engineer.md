@@ -5,7 +5,6 @@ model: sonnet
 tools: Read, Grep, Glob, Bash
 skills:
   - language-testing-patterns
-  - verification-before-completion
   - output-completeness
 ---
 You are a senior frontend engineer. Help with frontend frameworks, design systems,

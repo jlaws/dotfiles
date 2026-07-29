@@ -65,4 +65,4 @@ If a change genuinely needs no doc update, state it explicitly:
 ## Cross-References
 
 - **post-ship-doc-sync** — the heavy post-release sweep over a whole diff range; source of the Step 3 staleness heuristic this gate reuses. This skill is its lightweight per-change counterpart.
-- **verification-before-completion** — the universal completion gate; "Docs current" is one of its Common Failures rows. Run both before any done/PR claim.
+- **verification-before-completion** — verdict grammar and evidence hierarchy for reporting what you checked. "Docs current" means updated, or an explicit N/A with a reason.

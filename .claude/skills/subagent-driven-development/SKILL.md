@@ -4,7 +4,6 @@ description: "Use when executing a plan with isolated tasks delegated."
 allowed-tools: Task, Read, Grep, Glob, Bash
 skills:
   - executing-plans
-  - verification-before-completion
 ---
 
 # Subagent-Driven Development

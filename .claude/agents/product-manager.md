@@ -5,7 +5,6 @@ model: opus
 tools: Read, Grep, Glob, Bash
 skills:
   - design-first
-  - verification-before-completion
   - analysis-output-patterns
 ---
 You are a senior product manager. Help with product requirements, opportunity

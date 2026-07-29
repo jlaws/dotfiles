@@ -6,89 +6,46 @@ allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 
 # Output Completeness
 
-**Core principle:** A partial output is a broken output. Do not optimize for brevity — optimize for completeness.
+**A partial output is a broken output.** If you started it, finish it. When generating something
+large, completeness beats brevity — a half-written module or a report with a stubbed section costs the
+reader more than a longer answer would have.
 
-**Violating the letter of this rule is violating the spirit of this rule.**
+## What incompleteness looks like
 
-## The Iron Law
+The failure is rarely a decision to stop; it is drifting into a placeholder because the remaining work
+felt implied. In generated code that shows up as `// ...`, `/* rest of implementation */`, a function
+body left as `pass`, or a class whose later methods were never written. In prose it shows up as "as
+mentioned above", "similar to the above", a heading followed by "(Content TBD)", or a response that
+simply ends mid-list.
 
-```
-NEVER TRUNCATE. NEVER STUB. NEVER DEFER.
-If you started it, finish it.
-```
+None of these are wrong because the characters are forbidden. A `// TODO(#123)` marking work a plan
+explicitly put out of scope is correct and useful. The test is whether the reader can use what you
+produced, or has to come back for the rest.
 
-## Banned Code Patterns
+Before responding to a large request, re-read it and confirm every deliverable you named is actually
+present.
 
-These patterns are **never acceptable** in generated code:
+## When output genuinely will not fit
 
-| Pattern | Example | Status |
-|---------|---------|--------|
-| Ellipsis placeholder | `// ...` | BANNED |
-| TODO stub | `// TODO: implement this` | BANNED |
-| Comment placeholder | `/* rest of implementation */` | BANNED |
-| Skeleton function | `func foo() { pass }` | BANNED |
-| Deferred implementation | `// implement X here` | BANNED |
-| Partial class | Class with unimplemented methods | BANNED |
+Stop at a clean breakpoint — the end of a function or a section, never mid-sentence — and say what is
+left:
 
-## Banned Prose Patterns
-
-These patterns are **never acceptable** in generated text:
-
-| Pattern | Example | Status |
-|---------|---------|--------|
-| Backward reference | "as mentioned above" | BANNED |
-| Ellipsis substitution | "... (similar to above)" | BANNED |
-| Section stub | "### Section Title\n\n(Content TBD)" | BANNED |
-| Exercise deferral | "I'll leave X as an exercise" | BANNED |
-| Implicit truncation | Ending a response mid-list or mid-section | BANNED |
-
-## Required Process
-
-```
-1. SCOPE: Read the full request. Identify every deliverable.
-2. PLAN: List all sections/functions/files to generate.
-3. GENERATE: Produce each item completely before moving to the next.
-4. CROSS-CHECK: Re-read the original request. List every deliverable.
-         Confirm each one is present and complete.
-5. ONLY THEN: Respond.
-```
-
-## Token Management
-
-When a response genuinely cannot fit in one output:
-
-**DO:**
 ```
 [PAUSING — remaining sections: X, Y, Z. Reply "continue" to proceed.]
 ```
 
-**DO NOT:**
-- Silently truncate
-- Use `// ...` or similar placeholders
-- Emit the pause notice mid-sentence or mid-function
+That is a real handoff. Silent truncation and placeholder characters are not, because the reader
+cannot tell what is missing.
 
-The pause notice must appear at a clean breakpoint (end of a function, end of a section).
+## Load this when
 
-## Distinction From Verification-Before-Completion
+The task produces something substantial and "partially done" would block the reader: a feature
+spanning multiple files, full documentation sections, a multi-part refactor, a research analysis, or a
+test suite where skeleton tests would give false confidence.
 
-| Skill | Governs |
-|-------|---------|
-| `output-completeness` | Whether generated output is complete and untruncated |
-| `verification-before-completion` | Whether claims about work state are backed by evidence |
+## Related
 
-Both must be applied for large implementations. They are complementary, not redundant.
-
-## When To Load This Skill
-
-Load proactively when:
-- Implementing a complete feature (>1 file or >50 lines)
-- Writing full documentation sections (not summaries)
-- Executing a multi-part refactor
-- Writing a research analysis or technical report
-- Generating test suites (skeleton tests = broken tests)
-- Any task where "partially done" would block the user
-
-## Cross-References
-
-- **workflow:llm-output-completeness** — root cause research and parameter tuning for truncation
-- **workflow:completeness-principle** — project-level completeness standards
+- `verification-before-completion` — how to weigh and report evidence. This skill governs whether the
+  output is whole; that one governs how you characterize it.
+- `workflow:llm-output-completeness` — root-cause research and parameter tuning for truncation
+- `workflow:completeness-principle` — project-level completeness standards

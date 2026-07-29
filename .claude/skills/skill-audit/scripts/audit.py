@@ -178,15 +178,32 @@ class Audit:
                 self.add(WARN, "SK-F10", skill, f"unknown allowed-tools: {', '.join(unknown)}")
 
     def _check_supporting_files(self, skill: Path, folder: Path, text: str) -> None:
-        for extra in sorted(folder.rglob("*")):
-            if not extra.is_file() or extra == skill:
-                continue
-            if extra.name not in text and str(extra.relative_to(folder)) not in text:
+        """Flag bundled files unreachable from SKILL.md, following references transitively.
+
+        A supporting file named only by another supporting file is still reachable, so long as the
+        chain starts at SKILL.md.
+        """
+        extras = [p for p in sorted(folder.rglob("*")) if p.is_file() and p != skill]
+        reachable = {skill}
+        frontier = [text]
+        while frontier:
+            body = frontier.pop()
+            for extra in extras:
+                if extra in reachable:
+                    continue
+                if extra.name in body or str(extra.relative_to(folder)) in body:
+                    reachable.add(extra)
+                    try:
+                        frontier.append(extra.read_text())
+                    except UnicodeDecodeError:
+                        pass
+        for extra in extras:
+            if extra not in reachable:
                 self.add(
                     WARN,
                     "SK-C3",
                     extra,
-                    "supporting file is never referenced from SKILL.md",
+                    "supporting file is unreachable from SKILL.md",
                 )
 
     def check_shared_skill_budget(self) -> None:

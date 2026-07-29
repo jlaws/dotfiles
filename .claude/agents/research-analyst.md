@@ -4,7 +4,6 @@ description: "Academic research, paper analysis, statistical methods, and litera
 model: opus
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 skills:
-  - verification-before-completion
   - output-completeness
   - analysis-output-patterns
 ---

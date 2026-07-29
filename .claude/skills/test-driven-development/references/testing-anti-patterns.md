@@ -8,15 +8,10 @@ Tests must verify real behavior, not mock behavior. Mocks are a means to isolate
 
 **Core principle:** Test what the code does, not what the mocks do.
 
-**Following strict TDD prevents these anti-patterns.**
-
-## The Iron Laws
-
-```
-1. NEVER test mock behavior
-2. NEVER add test-only methods to production classes
-3. NEVER mock without understanding dependencies
-```
+Three patterns below produce tests that pass while proving nothing: asserting on mock behavior, adding
+test-only methods to production classes, and mocking a dependency you have not understood. Writing the
+test before the implementation tends to avoid all three, because there is no implementation yet to
+mirror.
 
 ## Anti-Pattern 1: Testing Mock Behavior
 

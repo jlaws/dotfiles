@@ -4,7 +4,6 @@ description: "Technical writing, API docs, changelogs, and developer documentati
 model: sonnet
 tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
-  - verification-before-completion
   - post-ship-doc-sync
   - output-completeness
 ---

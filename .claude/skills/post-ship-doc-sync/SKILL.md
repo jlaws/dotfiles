@@ -51,7 +51,7 @@ For each doc file, cross-reference its content against the changed files to iden
 - Wait for explicit approval before committing
 - Never auto-commit documentation changes
 
-## Red Flags — STOP
+## Red Flags
 
 - Rewriting entire documentation files
 - Speculative documentation (documenting unshipped features)

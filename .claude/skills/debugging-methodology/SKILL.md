@@ -2,30 +2,22 @@
 name: debugging-methodology
 description: "Use when investigating bugs, failures, or odd behavior."
 allowed-tools: Read, Grep, Glob, Bash
-skills:
-  - verification-before-completion
 ---
 
 # Debugging Methodology
 
-## The Iron Law
+Find the cause before changing anything. A fix aimed at a symptom you have not explained either does
+not hold or moves the bug somewhere else, and each speculative attempt makes the state harder to reason
+about. Finish Phase 1 before proposing a fix.
 
-```
-NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
-```
+Report what you found, where (`file:line`), and the fix — finding first, explanation after. Read the
+relevant code before forming a theory about it, and when the cause is still unclear, say so rather than
+offering a guess as an answer.
 
-Random fixes waste time and create new bugs. Complete Phase 1 before proposing fixes.
+## Stop after two attempts
 
-## Debugging Directness
-
-- Never speculate about a bug without reading the relevant code first.
-- State what you found, where (file:line), and the fix. One pass.
-- If the cause is unclear: say so explicitly. Do not guess.
-- No preamble, no hedging. Finding first, explanation after.
-
-## The Two-Attempt Rule
-
-After 2 failed fix attempts at the same problem, **STOP**:
+Two failed fixes at the same problem means the mental model is wrong, not that the next attempt needs to
+be bolder:
 
 | Attempts | Action |
 |----------|--------|
@@ -57,51 +49,17 @@ Before proposing any fix, decide where the fault actually lives:
 
 A harness, checker, or environment fault is **never** fixed by changing product code. Misclassifying the locus is the most common cause of thrashing.
 
-**1. Read Error Messages Carefully**
-- Read stack traces completely; note line numbers, file paths, error codes
-- The error message often tells you exactly what's wrong — don't skim
-
-**2. Reproduce Consistently**
+**1. Reproduce Consistently**
 - Can you trigger it reliably? Exact steps? Minimal reproduction?
 - If not reproducible, gather more data — don't guess
 - For intermittent issues: add logging with timestamps, stress test, look for race conditions
 
-**3. Check Recent Changes**
+**2. Check Recent Changes**
 ```bash
 git log --oneline -20                    # Recent commits
 git diff HEAD~5 -- src/                  # Recent code changes
 git log --all --oneline -- <file>        # History of specific file
 ```
-
-**4. Gather Evidence at Each Layer**
-
-For multi-component systems, trace at every boundary:
-
-```bash
-# Trace data flow through each layer
-echo "=== Layer: HTTP Request ==="    # What's coming in?
-echo "=== Layer: Middleware ==="      # What transforms it?
-echo "=== Layer: Business Logic ==="  # What processes it?
-echo "=== Layer: Database ==="        # What gets persisted?
-echo "=== Layer: Response ==="        # What goes out?
-```
-
-**5. Trace Data Flow** — Where does the bad value originate? Keep tracing upstream until you find the source.
-
-**6. Ask "Why Does It Work Locally?"**
-
-When bugs appear in production/CI but not locally:
-
-| Factor | Local | Production |
-|--------|-------|------------|
-| Concurrency | Single user, sequential | Many users, concurrent |
-| Data volume | Seed data, small | Real data, large |
-| Configuration | Dev defaults | Production settings (pool sizes, timeouts, caches) |
-| Network | localhost, fast | Real latency, DNS, proxies |
-| Dependencies | Mocked or local | Real services, rate limits |
-| Timing | Debugger pauses, slow | Full speed, race conditions |
-
-Map every environmental difference. The bug lives in one of these gaps.
 
 ### Phase 2: Pattern Analysis
 
@@ -160,7 +118,7 @@ Investigate each in turn:
 
 If the bug stems from invalid data flowing through multiple layers, read `references/defense-in-depth.md` to add validation at every layer and make it structurally impossible.
 
-**If 3+ Fixes Failed**: See Two-Attempt Rule above. STOP and discuss fundamentals.
+**If 3+ Fixes Failed**: see "Stop after two attempts" above — discuss fundamentals rather than retrying.
 
 ---
 
@@ -192,33 +150,6 @@ If the root cause traces through multiple upstream callers and you cannot isolat
 
 ---
 
-## Patterns by Issue Type
-
-| Issue Type | Investigation Approach |
-|-----------|----------------------|
-| **Intermittent** | Add logging with timing, look for race conditions, stress test under load |
-| **Performance** | Profile first — common culprits: N+1 queries, unnecessary re-renders, sync I/O in async paths |
-| **Production-only** | Gather evidence (Sentry/logs/metrics), map local vs prod differences, reproduce under equivalent conditions |
-| **Connection/resource exhaustion** | Monitor pool metrics, check for leaks in error paths, look for N+1 patterns, check if `finally`/`defer` cleanup runs |
-| **Data-dependent** | Identify which data triggers it, find the minimum failing dataset, check for encoding/null/edge cases |
-
-For language-specific debugging tools (breakpoints, profilers, stack traces), see the corresponding language reference files.
-
-## Red Flags — STOP and Return to Phase 1
-
-- "Quick fix for now, investigate later"
-- "Just try changing X and see"
-- "I don't fully understand but this might work"
-- "One more fix attempt" (when already tried 2+)
-
-| Excuse | Reality |
-|--------|---------|
-| "Issue is simple" | Simple issues have root causes too |
-| "Emergency, no time" | Systematic is FASTER than thrashing |
-| "Multiple fixes saves time" | Can't isolate what worked |
-| "I see the problem" | Seeing symptoms ≠ understanding root cause |
-| "Just increase the pool size" | Treating symptoms hides the leak |
-
 ## Never Mask Errors
 
 | Masking Pattern | Do Instead |
@@ -230,16 +161,3 @@ For language-specific debugging tools (breakpoints, profilers, stack traces), se
 | Defensive null checks hiding broken contracts | Fix the broken contract upstream |
 
 If unfixable now: log it, track it, surface it. Never silence it.
-
-## Quick Debugging Checklist
-
-- [ ] Spelling errors / typos
-- [ ] Case sensitivity
-- [ ] Null/undefined values
-- [ ] Off-by-one errors
-- [ ] Async timing / race conditions
-- [ ] Scope issues / type mismatches
-- [ ] Missing dependencies / env vars
-- [ ] Cache / stale state
-- [ ] Error path cleanup (connections, file handles, locks)
-- [ ] Environment differences (local vs CI vs prod)

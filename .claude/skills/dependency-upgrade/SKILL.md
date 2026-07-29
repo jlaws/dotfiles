@@ -3,7 +3,6 @@ name: dependency-upgrade
 description: "Use when upgrading dependencies or resolving version conflicts."
 skills:
   - test-driven-development
-  - verification-before-completion
 ---
 
 # Dependency Upgrade

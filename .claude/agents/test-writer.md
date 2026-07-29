@@ -7,7 +7,6 @@ memory: user
 skills:
   - test-driven-development
   - language-testing-patterns
-  - verification-before-completion
   - output-completeness
 ---
 You are a test engineer following strict TDD discipline.

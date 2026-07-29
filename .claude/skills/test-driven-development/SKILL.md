@@ -4,52 +4,28 @@ description: "Use when implementing changes with tests written first."
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
-# Test-Driven Development (TDD)
+# Test-Driven Development
 
-## Overview
+Write the test first. Watch it fail. Write the minimal code that passes.
 
-Write the test first. Watch it fail. Write minimal code to pass.
+**Why the order matters:** a test you never watched fail has not been shown to test anything. It may
+assert on the wrong path, be mocked away, or restate the implementation. Watching it fail for the
+expected reason is what proves it has teeth.
 
-**Core principle:** If you didn't watch the test fail, you don't know if it tests the right thing.
+## When it applies
 
-**Violating the letter of the rules is violating the spirit of the rules.**
+Default to TDD for new features, bug fixes, and behavior changes — anywhere you are deciding what the
+code should do.
 
-## When to Use
-
-**Always:**
-- New features
-- Bug fixes
-- Refactoring
-- Behavior changes
-
-**Exceptions (ask your human partner):**
-- Throwaway prototypes (but delete and TDD it properly after the spike)
-- Generated code
-- Configuration files
-
-Thinking "skip TDD just this once"? Stop. That's rationalization.
-
-## The Iron Law
-
-```
-NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
-```
-
-Write code before the test? Delete it. Start over.
-
-**No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
-
-Implement fresh from tests. Period.
+It buys less where there is no behavior to specify: generated code, configuration, and throwaway
+spikes. A pure rename or mechanical refactor is already covered by the existing tests; the useful
+question there is whether they still pass, not whether to write new ones.
 
 ## Red-Green-Refactor
 
-### RED - Write Failing Test
+### RED: write one failing test
 
-One minimal test showing what should happen.
+One behavior, a name that describes it, real code rather than mocks where possible.
 
 ```typescript
 test('retries failed operations 3 times', async () => {
@@ -67,167 +43,61 @@ test('retries failed operations 3 times', async () => {
 });
 ```
 
-Requirements: one behavior, clear name, real code (no mocks unless unavoidable).
+Run it, and read the failure. It should fail — not error — and fail because the behavior is missing,
+not because of a typo. Two failure modes to recognize:
 
-### Verify RED - Watch It Fail
+- **It passes.** You are describing behavior that already exists. The test is not about your change.
+- **It errors.** Fix the error and re-run until it fails for the right reason.
 
-**MANDATORY. Never skip.**
+### GREEN: make it pass, and stop
 
-```bash
-npm test path/to/test.test.ts
-```
+Write the simplest code that satisfies the test, complete in one pass rather than adding pieces and
+re-running. Do not add features, refactor neighbors, or improve beyond what the test asks.
 
-Confirm:
-- Test fails (not errors)
-- Failure message is expected
-- Fails because feature missing (not typos)
+Then confirm the new test passes, the rest still pass, and the output is clean. If the new test still
+fails, fix the code rather than the test.
 
-**Test passes?** You're testing existing behavior. Fix test.
-**Test errors?** Fix error, re-run until it fails correctly.
+**Passing tests mean stop.** Do not polish code that already passes unless asked.
 
-### GREEN - Minimal Code
+### REFACTOR: only once green
 
-Write simplest code to pass the test. Nothing more. Write the complete solution in one pass — not incrementally (partial code → test → add more → test again wastes cycles).
+Remove duplication, improve names, extract helpers. Keep tests green and add no behavior. Then write
+the next failing test.
 
-```typescript
-async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
-  for (let i = 0; i < 3; i++) {
-    try {
-      return await fn();
-    } catch (e) {
-      if (i === 2) throw e;
-    }
-  }
-  throw new Error('unreachable');
-}
-```
-
-Don't add features, refactor other code, or "improve" beyond the test.
-
-**Stop when green.** Once tests pass, you are done. Do not refactor, polish, or improve passing code unless explicitly asked. Passing tests = stop.
-
-### Verify GREEN - Watch It Pass
-
-**MANDATORY.**
-
-```bash
-npm test path/to/test.test.ts
-```
-
-Confirm: test passes, other tests still pass, output pristine (no errors/warnings).
-
-**Test fails?** Fix code, not test. **Other tests fail?** Fix now.
-
-### REFACTOR - Clean Up
-
-After green only: remove duplication, improve names, extract helpers.
-Keep tests green. Don't add behavior.
-
-Then: next failing test for next behavior.
-
-## Good Tests
+## What makes a test worth having
 
 | Quality | Good | Bad |
 |---------|------|-----|
-| **Minimal** | One thing. "and" in name? Split it. | `test('validates email and domain and whitespace')` |
-| **Clear** | Name describes behavior | `test('test1')` |
-| **Shows intent** | Demonstrates desired API | Obscures what code should do |
-| **Tests logic** | Exercises a decision, transformation, or path | `expect(config.timeout).toBe(5000)` -- restates source code |
-| **Targets production** | Tests real application code | Tests for test helpers, factories, or fixtures |
+| **Minimal** | One thing. An "and" in the name means split it. | `test('validates email and domain and whitespace')` |
+| **Clear** | The name describes the behavior | `test('test1')` |
+| **Shows intent** | Demonstrates the API you want | Obscures what the code should do |
+| **Tests logic** | Exercises a decision, transformation, or path | `expect(config.timeout).toBe(5000)` — restates the source |
+| **Targets production** | Tests real application code | Tests the helpers, factories, or fixtures |
 
-## Common Rationalizations
+## When stuck
 
-| Excuse | Reality |
-|--------|---------|
-| "I'll write tests after" | Tests passing immediately prove nothing. You never saw them catch the bug. |
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after with extra steps. Delete means delete. |
-| "Deleting X hours of work is wasteful" | Sunk cost fallacy. Keeping unverified code is technical debt you'll pay interest on. |
-| "TDD is dogmatic, I'm being pragmatic" | TDD IS pragmatic. "Pragmatic" shortcuts = debugging in production = slower. |
-| "Tests after achieve the same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" You test what you built, not what's required. |
+| Problem | What it usually means |
+|---------|----------------------|
+| Don't know how to test it | Write the API you wish existed, then the assertion. Ask if still unclear. |
+| Test is complicated | The design is complicated. Simplify the interface. |
+| Must mock everything | The code is too coupled. Inject dependencies. |
+| Setup is huge | Extract helpers; if it stays complex, simplify the design. |
+| Same failure twice | Stop after two attempts and rethink the approach. |
 
-## Red Flags - STOP and Start Over
+## Bugs
 
-- Code before test
-- Test after implementation
-- Test passes immediately
-- Can't explain why test failed
-- Tests added "later"
-- Rationalizing "just this once"
-- "I already manually tested it"
-- "Tests after achieve the same purpose"
-- "It's about spirit not ritual"
-- "Keep as reference" or "adapt existing code"
-- "Already spent X hours, deleting is wasteful"
-- "TDD is dogmatic, I'm being pragmatic"
-- "This is different because..."
+Reproduce the bug as a failing test before fixing it, so the fix is proven and the bug cannot come
+back silently. Name it for the scenario (`test_regression_null_user_concurrent_login`), fix minimally,
+then add boundary variants around the fix.
 
-**All of these mean: Delete code. Start over with TDD.**
+**The test must fail without the fix and pass with it.** If you cannot show both states, it is not
+testing the thing you think it is.
 
-## Verification Checklist
+## Related
 
-Before marking work complete:
+If you are unsure whether a mocking approach is sound — testing mock behavior instead of real
+behavior, test-only methods on production classes, tautology tests that assert configuration — read
+`references/testing-anti-patterns.md`.
 
-- [ ] Every new function/method has a test
-- [ ] Watched each test fail before implementing
-- [ ] Each test failed for expected reason (feature missing, not typo)
-- [ ] Wrote minimal code to pass each test
-- [ ] All tests pass
-- [ ] Output pristine (no errors, warnings)
-- [ ] Tests use real code (mocks only if unavoidable)
-- [ ] Edge cases and errors covered
-- [ ] Every test exercises a decision point, transformation, or behavior path (not config/settings)
-- [ ] All tests target production code (no tests for test helpers/fixtures/utilities)
-- [ ] Documentation validated — product docs (README/API/CHANGELOG) and any KB self-docs reflect the change, or N/A declared with a reason (see `documentation-validation`)
-
-Can't check all boxes? You skipped TDD. Start over.
-
-## When Stuck
-
-| Problem | Solution |
-|---------|----------|
-| Don't know how to test | Write wished-for API. Write assertion first. Ask your human partner. |
-| Test too complicated | Design too complicated. Simplify interface. |
-| Must mock everything | Code too coupled. Use dependency injection. |
-| Test setup huge | Extract helpers. Still complex? Simplify design. |
-| Same error twice | Max 2 fix attempts on the same failure. If still failing, rethink the approach entirely. |
-
-## Debugging Integration
-
-Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix and prevents regression. Never fix bugs without a test.
-
-### Regression Test Pattern
-
-Formalized workflow for bug-driven test creation:
-
-1. **Reproduce** — Write a failing test with the exact scenario that triggered the bug
-2. **Name it** — `test_regression_{description}_{scenario}` (e.g., `test_regression_null_user_concurrent_login`)
-3. **Fix** — Minimal code change to make the test pass
-4. **Harden** — Add boundary variants around the fix
-
-| Bug Type | Regression Test Pattern |
-|----------|----------------------|
-| Null/undefined crash | Test with null, empty, and boundary inputs |
-| Off-by-one | Test at boundary, boundary-1, boundary+1 |
-| Race condition | Test concurrent access with shared state |
-| State corruption | Test state transitions in exact failing sequence |
-| Parsing failure | Test with exact malformed input + similar variants |
-| Auth bypass | Test with each role/permission that should be denied |
-
-**Key rule:** The regression test must fail without the fix and pass with it. If you can't demonstrate both states, you're not testing the right thing.
-
-## Testing Anti-Patterns
-
-If you are unsure whether your mock approach introduces a known anti-pattern, read `references/testing-anti-patterns.md`:
-- Testing mock behavior instead of real behavior
-- Adding test-only methods to production classes
-- Mocking without understanding dependencies
-- Testing configuration instead of logic (tautology tests)
-
-## Final Rule
-
-```
-Production code -> test exists and failed first
-Otherwise -> not TDD
-```
-
-No exceptions without your human partner's permission.
+A shipped change also needs a documentation decision: updated, or N/A with a reason. See
+`documentation-validation`.
