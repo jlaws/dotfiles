@@ -56,6 +56,10 @@ def distillation_loss(student_logits, teacher_logits, labels, temperature=4.0, a
     return alpha * soft_loss + (1 - alpha) * hard_loss
 ```
 
+The `temperature ** 2` rescaling is the detail most implementations drop: softening the
+distributions shrinks the KL gradients by roughly `1 / temperature ** 2`, so without it the
+soft term silently stops contributing as temperature rises.
+
 ### Training Loop
 
 ```python
@@ -81,7 +85,7 @@ def train_distillation(teacher, student, train_loader, optimizer, epochs=10, dev
                 teacher_logits=teacher_out.logits,
                 labels=labels,
                 temperature=4.0,
-                alpha=0.7,
+                alpha=0.5,      # must match distillation_loss's default
             )
 
             optimizer.zero_grad()

@@ -39,13 +39,18 @@ import json
 import random
 from collections import Counter
 
+# Read model names from config rather than pinning them here -- a generator model
+# is a cost/quality knob you retune, and a pinned ID goes stale.
+GEN_MODEL = OPENAI_GEN_MODEL      # strong model for instruction + instance generation
+JUDGE_MODEL = OPENAI_JUDGE_MODEL  # cheaper model is usually sufficient for scoring
+
 SEED_TASKS = [
     {"instruction": "Summarize the key points of this article.", "input": "", "output": "..."},
     {"instruction": "Convert this Python function to use list comprehension.", "input": "def f(xs): ...", "output": "..."},
     # 50-175 seed tasks for diversity
 ]
 
-def generate_instructions(client, seed_pool, n=5, model="gpt-4o"):
+def generate_instructions(client, seed_pool, n=5, model=GEN_MODEL):
     """Generate new instructions from seed examples."""
     sampled = random.sample(seed_pool, min(8, len(seed_pool)))
     prompt = f"Generate {n} diverse task instructions. Each must be distinct from these examples:\n\n"
@@ -62,7 +67,7 @@ def generate_instructions(client, seed_pool, n=5, model="gpt-4o"):
     return json.loads(resp.choices[0].message.content)["instructions"]
 
 
-def generate_instance(client, instruction, model="gpt-4o"):
+def generate_instance(client, instruction, model=GEN_MODEL):
     """Generate input-output pair for an instruction."""
     resp = client.chat.completions.create(
         model=model,
@@ -108,7 +113,7 @@ EVOLUTION_STRATEGIES = [
     "Increase reasoning: require the response to explain its logic step by step.",
 ]
 
-def evolve_instruction(client, instruction, strategy, model="gpt-4o"):
+def evolve_instruction(client, instruction, strategy, model=GEN_MODEL):
     """Evolve an instruction using a specific strategy."""
     resp = client.chat.completions.create(
         model=model,
@@ -138,7 +143,7 @@ Output: {output}
 
 Return JSON: {{"clarity": int, "correctness": int, "completeness": int, "difficulty": int, "reject_reason": str|null}}"""
 
-def filter_with_judge(client, examples, min_score=3.5, model="gpt-4o-mini"):
+def filter_with_judge(client, examples, min_score=3.5, model=JUDGE_MODEL):
     """Filter examples using LLM-as-judge scoring."""
     passed = []
     for ex in examples:

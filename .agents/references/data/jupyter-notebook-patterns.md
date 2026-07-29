@@ -139,7 +139,7 @@ def test_cleaning_removes_nulls(tb):
 
 ## Notebook to Production
 
-Refactoring notebooks into production code. See `references/production-migration.md` for config management, scheduling, artifact management, and project structure.
+Refactoring notebooks into production code. See `data/jupyter-notebook-patterns/production-migration.md` for config management, scheduling, artifact management, and project structure.
 
 ### Refactoring Phases
 

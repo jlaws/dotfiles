@@ -166,7 +166,7 @@ def replay_dlq(dlq_url: str, main_queue_url: str):
 
 ```python
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid, hashlib
 
 @dataclass
@@ -175,7 +175,7 @@ class DomainEvent:
     aggregate_id: str
     data: dict
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     schema_version: int = 1
     correlation_id: str = ""
     idempotency_key: str = ""

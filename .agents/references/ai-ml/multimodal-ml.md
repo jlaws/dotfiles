@@ -33,7 +33,7 @@ with open("chart.png", "rb") as f:
     image_data = base64.standard_b64encode(f.read()).decode()
 
 response = client.messages.create(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-sonnet-5",
     max_tokens=1024,
     messages=[{
         "role": "user",
@@ -51,7 +51,7 @@ from openai import OpenAI
 
 client = OpenAI()
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model=OPENAI_MODEL,  # current OpenAI vision model alias, from config
     messages=[{
         "role": "user",
         "content": [

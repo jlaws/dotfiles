@@ -100,7 +100,7 @@ async def list_orders(
 
 ```python
 from sqlalchemy import event, text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 # --- Schema-per-tenant ---

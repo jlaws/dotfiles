@@ -1,6 +1,6 @@
 # Schema Design Anti-Patterns and Validation
 
-Detailed schema anti-patterns and validation strategies for structured LLM output. For the quick-reference tips table, see the [Structured Output section](../SKILL.md#structured-output) in the parent skill.
+Detailed schema anti-patterns and validation strategies for structured LLM output. For the quick-reference tips table, see the [Structured Output section](../llm-application-patterns.md#structured-output) in the parent reference.
 
 ## Schema Anti-Patterns
 

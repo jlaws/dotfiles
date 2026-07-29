@@ -13,7 +13,8 @@ Deployment strategies, CI/CD pipelines, health checks, secret management, and en
 
 ```bash
 # Rolling: gradually update replicas (k8s example)
-kubectl set image deployment/app app=image:v2 --record
+kubectl set image deployment/app app=image:v2
+kubectl annotate deployment/app kubernetes.io/change-cause="app=image:v2" --overwrite
 kubectl rollout status deployment/app
 
 # Blue-green: switch traffic after validation
@@ -22,7 +23,7 @@ kubectl patch svc app -p '{"spec":{"selector":{"version":"v2"}}}'
 
 # Canary: route 5% to new version, monitor
 kubectl apply -f app-canary.yaml
-kubectl patch virtual-service app --type merge -p '{"spec":{"hosts":[...weights: [95,5]...}]}}'
+kubectl patch virtualservice app --type merge -p '{"spec":{"http":[{"route":[{"destination":{"host":"app","subset":"stable"},"weight":95},{"destination":{"host":"app","subset":"canary"},"weight":5}]}]}}'
 ```
 
 ## CI/CD Pipeline Stages
@@ -77,6 +78,8 @@ spec:
 ### Health Check Endpoints
 
 ```python
+from fastapi.responses import JSONResponse
+
 # Liveness: Is the app running? (restart if false)
 @app.get("/health/live")
 def liveness():
@@ -87,8 +90,9 @@ def liveness():
 @app.get("/health/ready")
 def readiness():
     # Check dependencies: DB, cache, external APIs
+    # Returning a (body, status) tuple is Flask idiom; FastAPI needs a Response
     if not db.connected():
-        return {"status": "not_ready"}, 503
+        return JSONResponse(status_code=503, content={"status": "not_ready"})
     return {"status": "ready"}
 
 # Startup: Has the app finished initialization? (give it time)
@@ -96,7 +100,7 @@ def readiness():
 def startup():
     # Check warm caches, DB migrations, etc.
     if not app.initialized:
-        return {"status": "starting"}, 503
+        return JSONResponse(status_code=503, content={"status": "starting"})
     return {"status": "started"}
 ```
 

@@ -30,7 +30,7 @@ Models like text-embedding-3-large support dimension reduction: truncate vectors
 | Use case | Retrieval (first stage) | Reranking (second stage) |
 | Scaling | O(n) encode + O(1) compare | O(n) per query |
 
-Always use bi-encoder for retrieval, cross-encoder for reranking. See `references/embedding-fine-tuning.md` for the two-stage pipeline code.
+Always use bi-encoder for retrieval, cross-encoder for reranking. See `ai-ml/rag-and-vector-search/embedding-fine-tuning.md` for the two-stage pipeline code.
 
 ## Embedding Fine-Tuning
 
@@ -61,7 +61,7 @@ Always use bi-encoder for retrieval, cross-encoder for reranking. See `reference
 - **Index rebuild**: After fine-tuning, re-encode entire corpus and rebuild index. Old embeddings are incompatible.
 - **Dims vs quality**: 768-dim BGE often outperforms 3072-dim models on specific domains after fine-tuning. Evaluate on your data.
 
-Code examples for all patterns: `references/embedding-fine-tuning.md`
+Code examples for all patterns: `ai-ml/rag-and-vector-search/embedding-fine-tuning.md`
 
 ## Chunking Decisions
 

@@ -49,6 +49,8 @@ ALTER TABLE plans DISABLE ROW LEVEL SECURITY;
 
 ```python
 from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi.responses import JSONResponse
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextvars import ContextVar
 
@@ -87,7 +89,8 @@ async def list_orders(
     db: AsyncSession = Depends(get_db),
 ):
     """RLS handles filtering -- query is tenant-unaware."""
-    await db.execute(text("SET LOCAL app.current_tenant_id = :tid"),
+    # SET LOCAL takes no bind params; set_config(..., is_local=true) does
+    await db.execute(text("SELECT set_config('app.current_tenant_id', :tid, true)"),
                      {"tid": tenant_id})
     result = await db.execute(select(Order))  # RLS filters automatically
     return result.scalars().all()
@@ -97,7 +100,7 @@ async def list_orders(
 
 ```python
 from sqlalchemy import event, text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 # --- Schema-per-tenant ---
@@ -178,14 +181,14 @@ async def migrate_all_tenants():
 ## Billing and Metering Per Tenant
 
 ```python
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import redis
 
 r = redis.Redis(decode_responses=True)
 
 class TenantMeter:
     def record_api_call(self, tenant_id: str):
-        date_key = datetime.utcnow().strftime("%Y-%m-%d")
+        date_key = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         key = f"meter:{tenant_id}:api_calls:{date_key}"
         pipe = r.pipeline()
         pipe.incr(key)
@@ -197,7 +200,7 @@ class TenantMeter:
 
     def get_usage_summary(self, tenant_id: str, days: int = 30) -> dict:
         pipe = r.pipeline()
-        today = datetime.utcnow()
+        today = datetime.now(timezone.utc)
         for i in range(days):
             date_key = (today - timedelta(days=i)).strftime("%Y-%m-%d")
             pipe.get(f"meter:{tenant_id}:api_calls:{date_key}")

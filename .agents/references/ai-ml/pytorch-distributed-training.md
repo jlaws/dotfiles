@@ -123,7 +123,7 @@ def main():
 
 Use `SHARDED_STATE_DICT` during training. `FULL_STATE_DICT` only for final export to single-GPU inference.
 
-> See `references/fsdp-deepspeed-megatron.md` for full FSDP2, DeepSpeed ZeRO stage configs, Megatron-LM launch commands, and NCCL tuning.
+> See `ai-ml/pytorch-distributed-training/fsdp-deepspeed-megatron.md` for full FSDP2, DeepSpeed ZeRO stage configs, Megatron-LM launch commands, and NCCL tuning.
 
 ## Key Pitfalls Checklist
 

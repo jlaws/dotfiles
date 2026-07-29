@@ -39,7 +39,9 @@ df = (spark.read.parquet("s3://bucket/data/")
 ```python
 from pyspark.sql import functions as F
 
-# 1. Broadcast Join - Small table < 10MB
+# 1. Broadcast Join
+# Spark auto-broadcasts under spark.sql.autoBroadcastJoinThreshold (default 10MB);
+# F.broadcast() forces it regardless. See the cheat sheet for raising the threshold.
 result = large_df.join(F.broadcast(small_df), on="key", how="left")
 
 # 2. Bucket Join - Pre-sorted, no shuffle at join time
@@ -106,6 +108,7 @@ spark = (SparkSession.builder
     .config("spark.memory.fraction", "0.6")
     .config("spark.memory.storageFraction", "0.5")
     .config("spark.sql.shuffle.partitions", "200")
+    # Deliberate override of the 10MB default; needs executor memory to match
     .config("spark.sql.autoBroadcastJoinThreshold", "50MB")
     .config("spark.sql.files.maxPartitionBytes", "128MB")
     .getOrCreate())
@@ -196,7 +199,7 @@ spark_configs = {
     # Compression
     "spark.io.compression.codec": "lz4",
     "spark.shuffle.compress": "true",
-    # Broadcast
+    # Broadcast (default is 10MB; 50MB is a deliberate override for 8g executors)
     "spark.sql.autoBroadcastJoinThreshold": "50MB",
     # File handling
     "spark.sql.files.maxPartitionBytes": "128MB",

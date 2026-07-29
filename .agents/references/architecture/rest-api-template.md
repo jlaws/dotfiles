@@ -161,7 +161,14 @@ async def get_user(user_id: str = Path(..., description="User ID")):
     if user_id == "999":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail={"message": "User not found", "details": {"id": user_id}},
+            # details must be a list of ErrorDetail, matching ErrorResponse
+            detail={
+                "message": "User not found",
+                "details": [
+                    {"field": "id", "message": f"No user with id {user_id}",
+                     "code": "not_found"}
+                ],
+            },
         )
 
     return User(

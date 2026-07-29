@@ -169,7 +169,7 @@ Output ONLY a JSON object: {{"score": <1-5>, "reasoning": "<brief explanation>"}
 
 def llm_judge(client, question, reference, response):
     result = client.chat.completions.create(
-        model="gpt-4o",
+        model=JUDGE_MODEL,  # strong frontier model, from config -- not a pinned ID
         messages=[{"role": "user", "content": JUDGE_PROMPT.format(
             question=question, reference=reference, response=response
         )}],
@@ -233,7 +233,7 @@ def test_memorization(model, tokenizer, canary_prefix, full_canary):
 | Multi-method comparison | Captum library | Cross-validating attribution methods |
 | Regulatory/compliance | SHAP + LIME (multiple methods) | Auditable explanations, stakeholder trust |
 
-For detailed interpretability patterns, see `references/model-interpretability.md`.
+For detailed interpretability patterns, see `ai-ml/eval-and-benchmarking/model-interpretability.md`.
 
 ## Gotchas and Anti-Patterns
 

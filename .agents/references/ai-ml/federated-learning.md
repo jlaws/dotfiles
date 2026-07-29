@@ -113,7 +113,15 @@ class FedProxClient(FedClient):
 
 ```python
 class DPFedAvgClient(FedClient):
-    """Per-sample gradient clipping + Gaussian noise for (epsilon, delta)-DP."""
+    """Batch-gradient norm clipping + Gaussian noise.
+
+    NOT differentially private. This clips the already-batch-averaged `p.grad`
+    after `backward()`, so it bounds the *batch* gradient norm -- not per-sample
+    sensitivity -- and carries no formal (epsilon, delta)-DP guarantee. Shown
+    only to illustrate the clip-then-noise shape. For real DP-SGD you need
+    per-sample gradients: use Opacus (`PrivacyEngine`), which computes per-sample
+    grads and accounts epsilon via RDP.
+    """
     def __init__(self, model_fn, loader, lr=0.01, local_epochs=5,
                  max_grad_norm=1.0, noise_multiplier=1.1):
         super().__init__(model_fn, loader, lr, local_epochs)
@@ -121,6 +129,7 @@ class DPFedAvgClient(FedClient):
         self.noise_multiplier = noise_multiplier
 
     def clip_and_noise(self, batch_size: int):
+        # Batch-level norm: bounds this batch's gradient, not any one sample's.
         total_norm = torch.sqrt(sum(
             p.grad.norm(2) ** 2 for p in self.model.parameters() if p.grad is not None))
         clip_coef = min(1.0, self.max_grad_norm / (total_norm + 1e-6))
@@ -244,7 +253,7 @@ class SecureAggregator:
 
 ## References
 
-Extended code examples in `references/privacy-techniques.md`:
+Extended code examples in `ai-ml/federated-learning/privacy-techniques.md`:
 - DP-SGD with Opacus (full setup + parameters)
 - PII detection with Presidio (basic + custom recognizers + pipeline integration)
 - Model unlearning (exact + SISA)

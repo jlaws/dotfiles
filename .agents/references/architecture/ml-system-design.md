@@ -67,6 +67,7 @@ validated_df = schema.validate(raw_df)
 ```python
 # Shared feature transforms -- used in BOTH training and serving
 # This is the single most important thing for preventing skew
+import math
 
 class UserFeatures:
     """Feature definitions shared between training and serving."""
@@ -130,12 +131,17 @@ def train(config: TrainConfig):
     # 3. Transform with shared feature code
     features = UserFeatures()
     X_train = train.apply(features.transform, axis=1)
+    X_val = val.apply(features.transform, axis=1)
+    X_test = test.apply(features.transform, axis=1)
 
     # 4. Train
     model = fit_model(config.model_type, X_train, train.label, config.hyperparams)
 
-    # 5. Evaluate on test
-    metrics = evaluate(model, X_test, test.label)
+    # 5. Evaluate on validation (tuning) and test (final)
+    metrics = {
+        "val": evaluate(model, X_val, val.label),
+        "test": evaluate(model, X_test, test.label),
+    }
 
     # 6. Log everything
     log_experiment(config, metrics, model)

@@ -66,14 +66,10 @@ def logged_llm_call(client, messages: list, model: str, **kwargs) -> tuple:
 ## Token Counting and Cost Tracking
 
 ```python
-import tiktoken
-
-# Price per 1M tokens (input, output) -- update as pricing changes
-PRICE_TABLE: dict[str, tuple[float, float]] = {
-    "gpt-4o": (2.50, 10.00), "gpt-4o-mini": (0.15, 0.60),
-    "claude-3-opus": (15.00, 75.00), "claude-3-sonnet": (3.00, 15.00),
-    "claude-3-haiku": (0.25, 1.25),
-}
+# Price per 1M tokens (input, output). Populate from the provider's current
+# pricing page and keep it in config, not code -- rates and model lineups
+# change often enough that a table pinned in source goes stale silently.
+PRICE_TABLE: dict[str, tuple[float, float]] = load_price_table()
 
 @dataclass
 class CostTracker:
@@ -88,11 +84,17 @@ class CostTracker:
         entry["calls"] += 1; entry["cost"] += cost
         return cost
 
-def count_tokens(text: str, model: str = "gpt-4o") -> int:
+def count_tokens_openai(text: str, model: str) -> int:
+    """OpenAI models only -- tiktoken is OpenAI's tokenizer."""
+    import tiktoken
     try: enc = tiktoken.encoding_for_model(model)
     except KeyError: enc = tiktoken.get_encoding("cl100k_base")
     return len(enc.encode(text))
 ```
+
+For non-OpenAI models, use that provider's own token-counting endpoint (for Claude,
+`client.messages.count_tokens(model=..., messages=...)`). Do not reach for `tiktoken`
+as a cross-provider approximation -- see Gotchas.
 
 ## Latency Monitoring
 
@@ -241,5 +243,5 @@ class PromptExperiment:
 - **Drift detection cold start**: Need 500+ baseline samples for stable centroid; small baselines produce false positives
 - **Guardrail ordering matters**: Run injection detection before PII scrubbing; blocked requests should not be partially processed
 - **A/B test duration**: LLM output variance is high; need 1000+ samples per variant for statistical significance
-- **tiktoken model coverage**: Not all models have encodings; `cl100k_base` is a reasonable fallback but may miscount by 5-10%
+- **tiktoken is OpenAI-only, not a generic estimator**: `cl100k_base` is a reasonable fallback across OpenAI models (may miscount by 5-10%), but it is the wrong tokenizer for other providers -- it undercounts Claude tokens by ~15-20% on prose and far more on code. Use each provider's own count-tokens endpoint rather than a single cross-provider approximation
 - **Prometheus cardinality**: Do not use prompt_hash as a label; high-cardinality labels kill Prometheus -- aggregate by template name

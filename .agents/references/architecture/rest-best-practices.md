@@ -99,7 +99,7 @@ GET /api/users?fields=id,name,email
 ## Pagination Patterns
 
 ### Offset-Based Pagination
-```python
+```http
 GET /api/users?page=2&page_size=20
 
 Response:
@@ -113,7 +113,7 @@ Response:
 ```
 
 ### Cursor-Based Pagination (for large datasets)
-```python
+```http
 GET /api/users?limit=20&cursor=eyJpZCI6MTIzfQ
 
 Response:
@@ -285,7 +285,7 @@ If-None-Match: "33a64df551425fcc55e4d42a148795d9f25f89d4"
 ## Bulk Operations
 
 ### Batch Endpoints
-```python
+```http
 POST /api/users/batch
 {
   "items": [
@@ -337,7 +337,7 @@ app = FastAPI(
     title="My API",
     description="API for managing users",
     version="1.0.0",
-    docs_url="/j-docs",
+    docs_url="/docs",
     redoc_url="/redoc"
 )
 

@@ -57,7 +57,7 @@ Design decisions:
 | Document size | Fits in 16MB | Would exceed limit |
 | Data duplication OK? | Yes | No (single source of truth) |
 
-For schema design code and index strategies, see [references/mongodb-schema-examples.md](references/mongodb-schema-examples.md).
+For schema design code and index strategies, see [data/nosql-data-modeling/mongodb-schema-examples.md](data/nosql-data-modeling/mongodb-schema-examples.md).
 
 ## DynamoDB Patterns
 
@@ -70,7 +70,7 @@ For schema design code and index strategies, see [references/mongodb-schema-exam
 | High-write | `ITEM#{id}#SHARD#{0-9}` | Write sharding for hot keys |
 | Global config | `CONFIG#GLOBAL` | Single item, cache it |
 
-For single-table design examples and GSI overloading patterns, see [references/single-table-patterns.md](references/single-table-patterns.md).
+For single-table design examples and GSI overloading patterns, see [data/nosql-data-modeling/single-table-patterns.md](data/nosql-data-modeling/single-table-patterns.md).
 
 ## Redis Data Structures
 
@@ -83,7 +83,7 @@ For single-table design examples and GSI overloading patterns, see [references/s
 | Sorted Set | Ranked data, range queries | Leaderboards, rate limiting |
 | Stream | Event log, pub/sub with history | Activity feed, event sourcing |
 
-For Redis code examples (hashes, sorted sets, rate limiting, streams), see [references/redis-patterns.md](references/redis-patterns.md).
+For Redis code examples (hashes, sorted sets, rate limiting, streams), see [data/nosql-data-modeling/redis-patterns.md](data/nosql-data-modeling/redis-patterns.md).
 
 ## Consistency Patterns
 
@@ -149,7 +149,7 @@ collection_eventual = db.get_collection(
    - Remove SQL writes last
 ```
 
-For side-by-side SQL-to-NoSQL query comparisons, see [references/migration-examples.md](references/migration-examples.md).
+For side-by-side SQL-to-NoSQL query comparisons, see [data/nosql-data-modeling/migration-examples.md](data/nosql-data-modeling/migration-examples.md).
 
 ## Gotchas
 
