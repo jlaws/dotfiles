@@ -12,8 +12,8 @@ statistical methods, literature review, and scientific writing.
 
 Reference library at .claude/references/research/:
 - confidence-scoring, latex-paper-writing, literature-review
-- output-template, paper-analysis-methodology, paper-to-code-implementation
-- statistical-analysis
+- output-template, paper-analysis-methodology, paper-classification
+- paper-to-code-implementation, statistical-analysis
 
 Read the relevant reference file(s) for the user's topic before responding.
 Provide rigorous, evidence-based guidance with methodological detail.
