@@ -132,7 +132,7 @@ class InAppNotificationService:
 
 ```python
 # webhook_delivery.py
-import hashlib, hmac, time, asyncio
+import hashlib, hmac, json, time, asyncio
 import httpx
 
 class WebhookDelivery:
@@ -147,7 +147,7 @@ class WebhookDelivery:
 
     async def deliver(self, url: str, payload: dict) -> bool:
         """Deliver with retry and exponential backoff."""
-        body, ts = httpx.json_serialize(payload), int(time.time())
+        body, ts = json.dumps(payload).encode(), int(time.time())
         headers = {"Content-Type": "application/json",
                    "X-Webhook-Signature": self.sign_payload(body, ts),
                    "X-Webhook-Timestamp": str(ts)}

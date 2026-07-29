@@ -56,39 +56,11 @@ def distillation_loss(student_logits, teacher_logits, labels, temperature=4.0, a
     return alpha * soft_loss + (1 - alpha) * hard_loss
 ```
 
+The `temperature ** 2` rescaling is the detail most implementations drop: softening the
+distributions shrinks the KL gradients by roughly `1 / temperature ** 2`, so without it the
+soft term silently stops contributing as temperature rises.
+
 ### Training Loop
 
-```python
-def train_distillation(teacher, student, train_loader, optimizer, epochs=10, device="cuda"):
-    """Standard distillation training loop."""
-    teacher.eval().to(device)
-    student.train().to(device)
-
-    for epoch in range(epochs):
-        total_loss = 0
-        for batch in train_loader:
-            inputs = batch["input_ids"].to(device)
-            attention_mask = batch["attention_mask"].to(device)
-            labels = batch["labels"].to(device)
-
-            with torch.no_grad():
-                teacher_out = teacher(inputs, attention_mask=attention_mask)
-
-            student_out = student(inputs, attention_mask=attention_mask)
-
-            loss = distillation_loss(
-                student_logits=student_out.logits,
-                teacher_logits=teacher_out.logits,
-                labels=labels,
-                temperature=4.0,
-                alpha=0.7,
-            )
-
-            optimizer.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(student.parameters(), 1.0)
-            optimizer.step()
-            total_loss += loss.item()
-
-        print(f"Epoch {epoch+1}/{epochs} - Loss: {total_loss / len(train_loader):.4f}")
-```
+Standard supervised loop with the teacher in `eval()` under `torch.no_grad()`, the student in
+`train()`, and gradient clipping on the student's parameters.

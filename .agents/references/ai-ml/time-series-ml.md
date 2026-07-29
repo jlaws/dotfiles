@@ -35,8 +35,10 @@ class PatchEmbedding(nn.Module):
 
     def forward(self, x):
         B, L, C = x.shape                            # (batch, seq_len, channels)
+        # unfold appends the window dim: (B, num_patches, C, patch_len)
         x = x.unfold(dimension=1, size=self.patch_len, step=self.stride)
-        x = x.permute(0, 3, 1, 2).reshape(B * C, -1, self.patch_len)
+        # -> (B, C, num_patches, patch_len) so the flatten groups by batch then channel
+        x = x.permute(0, 2, 1, 3).reshape(B * C, -1, self.patch_len)
         return self.proj(x), C
 
 class PatchTSTBlock(nn.Module):

@@ -61,7 +61,7 @@ def prune_conv_channels(model, amount=0.3):
     return model
 ```
 
-See `references/pruning-and-distillation.md` for transformer head pruning and knowledge distillation.
+See `ai-ml/model-compression/pruning-and-distillation.md` for transformer head pruning and knowledge distillation.
 
 ## Quantization
 
@@ -89,7 +89,7 @@ from onnxruntime.quantization import quantize_dynamic, QuantType
 quantize_dynamic("model.onnx", "model_int8.onnx", weight_type=QuantType.QInt8)
 ```
 
-See `references/edge-deployment.md` for static ONNX quantization with calibration reader.
+See `ai-ml/model-compression/edge-deployment.md` for static ONNX quantization with calibration reader.
 
 ### Quantization-Aware Training (QAT)
 
@@ -168,5 +168,5 @@ def model_size_mb(model):
 
 ## References
 
-- `references/pruning-and-distillation.md` -- Transformer head pruning, knowledge distillation training loop
-- `references/edge-deployment.md` -- CoreML, TensorRT, browser ML, benchmarking, ONNX static quantization
+- `ai-ml/model-compression/pruning-and-distillation.md` -- Transformer head pruning, knowledge distillation training loop
+- `ai-ml/model-compression/edge-deployment.md` -- CoreML, TensorRT, browser ML, benchmarking, ONNX static quantization

@@ -82,6 +82,7 @@ def subscribe_invalidations(channel: str, local_cache: dict):
 ```python
 from functools import lru_cache
 from cachetools import TTLCache, cached
+from cachetools.keys import hashkey
 import threading
 
 # lru_cache: in-process, no TTL, cleared on deploy
@@ -103,7 +104,9 @@ def get_product(product_id: str) -> dict:
 def update_product(product_id: str, data: dict):
     db.query(Product).filter_by(id=product_id).update(data)
     db.commit()
-    _cache.pop(product_id, None)          # Invalidate immediately
+    # @cached keys entries by hashkey(*args) -- a bare product_id never matches
+    with _lock:
+        _cache.pop(hashkey(product_id), None)   # Invalidate immediately
 ```
 
 ## Cache Stampede Prevention
@@ -111,43 +114,51 @@ def update_product(product_id: str, data: dict):
 ### Probabilistic Early Expiry (XFetch)
 
 ```python
-import random, time
+import math, random, time
 
 def xfetch(key: str, ttl: int, beta: float, fetch_fn):
-    """Probabilistic early recomputation to prevent stampede.
+    """XFetch (Vattani et al.): recompute early with a probability that rises
+    as expiry nears, scaled by how long the recompute takes (delta).
     beta=1.0 is standard; higher = earlier refresh."""
     cached = r.get(key)
     if cached:
         data = json.loads(cached)
-        remaining_ttl = r.ttl(key)
-        if remaining_ttl > 0:
-            delta = ttl - remaining_ttl
-            if delta * beta * random.random() < remaining_ttl:
-                return data["value"]      # Still fresh enough
+        remaining_ttl = r.ttl(key)        # Seconds until expiry
+        # delta is the measured recompute duration, NOT elapsed age.
+        # Recompute when -delta * beta * ln(rand) >= remaining_ttl.
+        early = -data["delta"] * beta * math.log(random.random())
+        if remaining_ttl > 0 and early < remaining_ttl:
+            return data["value"]          # Still fresh enough
+    start = time.monotonic()
     value = fetch_fn()
-    r.setex(key, ttl, json.dumps({"value": value}))
+    delta = time.monotonic() - start      # Cost of this recompute, cached with it
+    r.setex(key, ttl, json.dumps({"value": value, "delta": delta}))
     return value
 ```
 
 ### Distributed Lock (Mutex)
 
 ```python
-def cache_with_lock(key: str, ttl: int, fetch_fn, lock_timeout: int = 5):
-    """Only one process recomputes on miss; others wait."""
-    cached = r.get(key)
-    if cached:
-        return json.loads(cached)
+def cache_with_lock(key: str, ttl: int, fetch_fn, lock_timeout: int = 5,
+                    max_wait: float = 3.0):
+    """Only one process recomputes on miss; others poll until the value lands.
+    Poll in a bounded loop -- recursion here can blow the stack under contention."""
     lock_key = f"lock:{key}"
-    if r.set(lock_key, "1", nx=True, ex=lock_timeout):
-        try:
-            value = fetch_fn()
-            r.setex(key, ttl, json.dumps(value))
-            return value
-        finally:
-            r.delete(lock_key)
-    else:
+    deadline = time.monotonic() + max_wait
+    while True:
+        cached = r.get(key)
+        if cached:
+            return json.loads(cached)
+        if r.set(lock_key, "1", nx=True, ex=lock_timeout):
+            try:
+                value = fetch_fn()
+                r.setex(key, ttl, json.dumps(value))
+                return value
+            finally:
+                r.delete(lock_key)
+        if time.monotonic() >= deadline:
+            raise TimeoutError(f"cache fill for {key} exceeded {max_wait}s")
         time.sleep(0.1)                   # Another process is computing
-        return cache_with_lock(key, ttl, fetch_fn, lock_timeout)
 ```
 
 ## CDN Cache Headers

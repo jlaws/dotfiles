@@ -137,7 +137,7 @@ def diff_in_diff(df, time_col, treat_col, outcome_col, pre_periods, post_periods
 
 ## Probabilistic Programming
 
-PPL frameworks, Bayesian modeling, MCMC inference. Extended patterns in `references/probabilistic-programming.md`.
+PPL frameworks, Bayesian modeling, MCMC inference. Extended patterns in `ai-ml/causal-inference-ml/probabilistic-programming.md`.
 
 ### PPL Decision Table
 

@@ -1,7 +1,6 @@
 ---
 name: finishing-branch
 description: "Use when completed branch work needs integration."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 skills:
   - documentation-validation

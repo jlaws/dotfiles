@@ -167,8 +167,8 @@ theme = gr.themes.Soft(
 )
 
 custom_css = """
-.gradio-container { max-width: 900px \!important; margin: auto; }
-footer { display: none \!important; }
+.gradio-container { max-width: 900px !important; margin: auto; }
+footer { display: none !important; }
 """
 
 with gr.Blocks(theme=theme, css=custom_css, title="Polished Demo") as demo:

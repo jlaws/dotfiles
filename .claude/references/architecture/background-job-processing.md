@@ -81,9 +81,7 @@ def call_external_api(endpoint: str, params: dict):
 
 ## BullMQ Patterns (Node.js)
 
-```python
-# BullMQ TypeScript reference:
-"""
+```typescript
 import { Queue, Worker } from 'bullmq';
 const queue = new Queue('email', { connection: { host: 'localhost' } });
 
@@ -99,7 +97,6 @@ const worker = new Worker('email', './processors/email.js', {
   limiter: { max: 100, duration: 60000 },     // 100/min rate limit
   sandboxedProcessors: true,                  // crash isolation
 });
-"""
 ```
 
 ## Job Idempotency
@@ -157,7 +154,7 @@ def sync_user_data(self, user_id: str):
 
 ```python
 from celery.signals import task_failure
-from datetime import datetime
+from datetime import datetime, timezone
 
 @task_failure.connect
 def on_task_failure(sender=None, task_id=None, exception=None,
@@ -167,7 +164,8 @@ def on_task_failure(sender=None, task_id=None, exception=None,
         redis_client.lpush("dlq", json.dumps({
             "task_name": sender.name, "task_id": task_id,
             "args": args, "kwargs": kwargs,
-            "exception": str(exception), "failed_at": datetime.utcnow().isoformat(),
+            "exception": str(exception),
+            "failed_at": datetime.now(timezone.utc).isoformat(),
         }))
 
 def replay_dead_letters(limit=100):

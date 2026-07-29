@@ -120,7 +120,7 @@ from plotly.subplots import make_subplots
 def interactive_eda(df: pd.DataFrame, target: str) -> go.Figure:
     """Build an interactive multi-panel EDA figure."""
     num_cols = df.select_dtypes(include="number").columns.tolist()
-    num_cols = [c for c in num_cols if c \!= target][:4]
+    num_cols = [c for c in num_cols if c != target][:4]
 
     fig = make_subplots(
         rows=2, cols=2,

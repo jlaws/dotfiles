@@ -189,13 +189,36 @@ ds_config = {
 ## Layer-wise Learning Rate Decay (LLRD)
 
 ```python
-def get_llrd_optimizer(model, base_lr=1e-4, layer_decay=0.9, weight_decay=0.01):
+import re
+
+def _layer_index(name: str, num_layers: int) -> int:
+    """Map a parameter name to its transformer block index.
+
+    Depth must come from the parameter *name*, not from enumerate() -- there are
+    far more parameters than blocks, so an enumerate index overshoots num_layers
+    and drives the decay exponent negative (lr above base_lr for late params).
+    Embeddings sit at depth 0; the head and final norm sit at the top.
+    """
+    if "embed" in name:
+        return 0
+    match = re.search(r"\.(?:layers|h|blocks|encoder\.layer)\.(\d+)\.", name)
+    if match:
+        return int(match.group(1)) + 1        # blocks occupy depths 1..num_layers
+    return num_layers + 1                     # head / final norm: no decay
+
+def get_llrd_optimizer(model, base_lr=1e-4, layer_decay=0.9, weight_decay=0.01,
+                       num_layers=None):
+    """num_layers = number of transformer blocks (e.g. model.config.num_hidden_layers)."""
     param_groups = []
-    num_layers = len(list(model.children()))
-    for layer_idx, (name, param) in enumerate(model.named_parameters()):
+    if num_layers is None:
+        num_layers = model.config.num_hidden_layers
+    max_depth = num_layers + 1                # depth of the top (undecayed) group
+    for name, param in model.named_parameters():
         if not param.requires_grad:
             continue
-        lr = base_lr * (layer_decay ** (num_layers - layer_idx - 1))
+        # Exponent is 0 at the top and grows toward the embeddings, so every
+        # group gets lr <= base_lr.
+        lr = base_lr * (layer_decay ** (max_depth - _layer_index(name, num_layers)))
         wd = 0.0 if "bias" in name or "norm" in name.lower() else weight_decay
         param_groups.append({"params": [param], "lr": lr, "weight_decay": wd})
     return torch.optim.AdamW(param_groups)
@@ -204,6 +227,8 @@ def get_llrd_optimizer(model, base_lr=1e-4, layer_decay=0.9, weight_decay=0.01):
 ## Warmup + Cosine Scheduler
 
 ```python
+from torch.optim.lr_scheduler import LambdaLR
+
 def get_warmup_cosine_scheduler(optimizer, warmup_steps, total_steps, min_lr_ratio=0.1):
     import math
     def lr_lambda(step):

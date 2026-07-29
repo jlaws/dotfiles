@@ -1,11 +1,9 @@
 ---
 name: subagent-driven-development
 description: "Use when executing a plan with isolated tasks delegated."
-compatibility: claude-code
 allowed-tools: Task, Read, Grep, Glob, Bash
 skills:
   - executing-plans
-  - verification-before-completion
 ---
 
 # Subagent-Driven Development

@@ -1,7 +1,6 @@
 ---
 name: design-first
 description: "Use when designing features or behavior before coding."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
@@ -17,9 +16,13 @@ action until you have presented a design and the user has approved it.
 This applies to EVERY feature regardless of perceived simplicity.
 ```
 
-## Anti-Pattern: "This Is Too Simple To Need A Design"
+## "This is too simple to need a design"
 
-Every feature goes through this process. A utility function, a config change, a single component — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple work), but you MUST present it and get approval.
+Simple-looking work is where unexamined assumptions cost the most, because nobody stops to check them. A
+utility function, a config change, or a single component still has a shape someone expects.
+
+Scale the design to the work — a few sentences is a complete design for something genuinely small. What
+matters is that the shape is agreed before it is built, not that the document is long.
 
 ## The Process
 

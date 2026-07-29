@@ -32,9 +32,12 @@ from airflow.decorators import dag, task
 )
 def taskflow_etl():
     @task()
-    def extract(source: str) -> dict:
+    def extract(source: str, ds: str = '') -> dict:
+        # ds is injected from the task context; @task bodies are NOT Jinja-rendered,
+        # so '{{ ds }}' inside an f-string would stay literal. Only an operator's
+        # template_fields (see the S3KeySensor bucket_key below) get Jinja treatment.
         import pandas as pd
-        df = pd.read_csv(f's3://bucket/{source}/{{ ds }}.csv')
+        df = pd.read_csv(f's3://bucket/{source}/{ds}.csv')
         return {'data': df.to_dict(), 'rows': len(df)}
 
     @task()
@@ -46,10 +49,10 @@ def taskflow_etl():
         return {'data': df.to_dict(), 'rows': len(df)}
 
     @task()
-    def load(transformed: dict, target: str):
+    def load(transformed: dict, target: str, ds: str = ''):
         import pandas as pd
         df = pd.DataFrame(transformed['data'])
-        df.to_parquet(f's3://bucket/{target}/{{ ds }}.parquet')
+        df.to_parquet(f's3://bucket/{target}/{ds}.parquet')
         return transformed['rows']
 
     extracted = extract(source='raw_data')
@@ -140,7 +143,7 @@ with DAG(dag_id='sensor_example', schedule='@daily', start_date=datetime(2024, 1
     wait_for_file = S3KeySensor(
         task_id='wait_for_s3_file',
         bucket_name='data-lake',
-        bucket_key='raw/{{ ds }}/j-data.parquet',
+        bucket_key='raw/{{ ds }}/data.parquet',
         aws_conn_id='aws_default',
         timeout=60 * 60 * 2,
         poke_interval=60 * 5,

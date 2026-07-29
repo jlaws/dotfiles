@@ -117,9 +117,10 @@ function correlationIdMiddleware(req, res, next) {
     next();
 }
 
-async function makeApiCall(url, data) {
+// The id has to be passed in; it is per-request state, not module state.
+async function makeApiCall(url, data, correlationId) {
     return axios.post(url, data, {
-        headers: { 'x-correlation-id': req.correlationId }
+        headers: { 'x-correlation-id': correlationId }
     });
 }
 ```
@@ -346,12 +347,13 @@ class ErrorBoundary extends Component<Props, State> {
 ## Prevention: Static Analysis Rules
 
 ```yaml
-# ESLint rules
+# ESLint rules -- plugin rules need the '@typescript-eslint/' prefix or the
+# config fails to load. The promise rules also need type-aware linting enabled.
 rules:
-  no-floating-promises: error
-  no-unhandled-error: error
-  require-await: error
-  no-unused-catch-bindings: error
+  '@typescript-eslint/no-floating-promises': error
+  '@typescript-eslint/no-misused-promises': error
+  '@typescript-eslint/require-await': error
+  no-useless-catch: error   # core rule: catch that only rethrows
 
 # TypeScript strict mode
 compilerOptions:

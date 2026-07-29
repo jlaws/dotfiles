@@ -1,11 +1,9 @@
 ---
 name: code-migration
 description: "Use when migrating code across frameworks or platforms."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
   - test-driven-development
-  - verification-before-completion
 ---
 
 # Code Migration
@@ -16,7 +14,7 @@ skills:
 ASSESS BEFORE PLANNING. PLAN BEFORE CODING. TEST BEFORE CUTTING OVER.
 ```
 
-Never start migrating code without completing the assessment phase. Skipping assessment leads to mid-migration surprises that blow timelines.
+Complete the assessment phase before migrating any code -- skipping it leads to mid-migration surprises that blow timelines.
 
 ## Phase 1: Migration Assessment
 
@@ -30,17 +28,17 @@ grep -r "import\|require" src/ | wc -l             # Dependency touchpoints
 find src/ -name "*.test.*" -o -name "*_test.*" | wc -l  # Test coverage proxy
 ```
 
-### Step 2 — Score Complexity (1–5 per factor)
+### Step 2 — Score Complexity (per factor: Low / Medium / High)
 
-| Factor | 1 (Low) | 3 (Medium) | 5 (High) |
-|--------|---------|------------|----------|
-| **Size** | <20 files, <2k LOC | 20-100 files, 2-20k LOC | >100 files, >20k LOC |
+| Factor | Low | Medium | High |
+|--------|-----|--------|------|
+| **Size** | Few files, fits in working memory | Spans several modules | Spans most of the codebase |
 | **Coupling** | Loose modules, clear interfaces | Some shared state, moderate coupling | Tight coupling, global state, circular deps |
 | **Dependencies** | Few third-party libs, all have equivalents | Some libs need replacement or adaptation | Core libs have no equivalent, custom forks |
 | **Business Logic** | Simple CRUD, straightforward rules | Moderate domain logic, some edge cases | Complex rules, financial calcs, compliance |
 | **Data** | Schema unchanged or trivial mapping | Schema changes needed, data transformable | Schema redesign, lossy transformations, large volumes |
 
-**Total score**: Sum ÷ 5 → complexity rating. <2 = simple, 2–3.5 = moderate, >3.5 = complex.
+Judge overall complexity from the worst factor, not an average -- one High on Data or Coupling can dominate effort even if everything else is Low. There's no valid formula that collapses five independent risk dimensions into a single number; naming the riskiest factor is more useful than a score.
 
 ### Step 3 — Identify Risk Patterns
 
@@ -59,7 +57,7 @@ Scan the codebase for patterns that cause migration failures:
 ```markdown
 ## Migration Assessment: [Source] → [Target]
 
-**Complexity Score**: X.X / 5.0
+**Complexity Rating**: Low / Medium / High (and which factor drove it)
 **Estimated Effort**: [range] person-weeks
 **Risk Level**: Low / Medium / High
 
@@ -106,22 +104,24 @@ Pick ONE strategy. Do not combine them.
 
 ## Phase 3: Migration Plan
 
-### Simple Migration (complexity < 2.5)
+### Simple Migration (low complexity)
 
-| Phase | Duration | Tasks |
-|-------|----------|-------|
-| Preparation | 1 week | Setup project, install deps, configure build, write comparison tests |
-| Core Migration | 2-3 weeks | Migrate module by module, run tests after each |
-| Validation | 1 week | Full test suite, performance comparison, edge cases |
+| Phase | Tasks |
+|-------|-------|
+| Preparation | Setup project, install deps, configure build, write comparison tests |
+| Core Migration | Migrate module by module, run tests after each |
+| Validation | Full test suite, performance comparison, edge cases |
 
-### Complex Migration (complexity ≥ 2.5)
+### Complex Migration (medium/high complexity)
 
-| Phase | Duration | Tasks |
-|-------|----------|-------|
-| Foundation | 2 weeks | Architecture design, PoC for riskiest component, tool selection |
-| Infrastructure | 2-3 weeks | Build pipeline, abstraction layers, dual runtime support |
-| Incremental | 6-12 weeks | Module-by-module migration with comparison tests after each |
-| Cutover | 2 weeks | Remove legacy code, optimize, final validation, rollback drill |
+| Phase | Tasks |
+|-------|-------|
+| Foundation | Architecture design, PoC for riskiest component, tool selection |
+| Infrastructure | Build pipeline, abstraction layers, dual runtime support |
+| Incremental | Module-by-module migration with comparison tests after each |
+| Cutover | Remove legacy code, optimize, final validation, rollback drill |
+
+Duration depends on team size, module count, and how much of the touched code already has tests -- estimate from the scope numbers gathered in Step 1, not from a calendar guess.
 
 ### Migration Order
 
@@ -169,18 +169,20 @@ This catches behavioral regressions that unit tests miss.
 | Condition | Threshold | Detection |
 |-----------|-----------|-----------|
 | Critical functionality broken | Any P0 feature fails | Automated smoke tests |
-| Performance degradation | >50% latency increase at p95 | APM dashboard |
+| Performance degradation | Set relative to your own measured pre-migration p95 baseline -- a guessed percentage has no provenance | APM dashboard |
 | Data corruption | Any integrity check failure | Validation job |
-| Error rate spike | >5% increase over baseline | Error tracking |
+| Error rate spike | Set relative to your own measured pre-migration baseline -- a guessed percentage has no provenance | Error tracking |
 
 ### Rollback Procedures by Strategy
 
-| Strategy | Rollback Method | Time to Rollback |
-|----------|----------------|------------------|
-| Strangler Fig | Route traffic back to old module | Seconds (config change) |
-| Branch by Abstraction | Swap implementation back | Minutes (deploy) |
-| Big Bang | Deploy previous version | Minutes (CI/CD rollback) |
-| Feature Flag | Toggle flag off | Seconds |
+| Strategy | Rollback Method |
+|----------|----------------|
+| Strangler Fig | Route traffic back to old module (config change) |
+| Branch by Abstraction | Swap implementation back (redeploy) |
+| Big Bang | Deploy previous version (CI/CD rollback) |
+| Feature Flag | Toggle flag off (config change) |
+
+The mechanism determines the speed: a config or flag change rolls back in the time it takes to propagate; a redeploy takes as long as your deploy pipeline does.
 
 ## Large-Scale Migration
 
@@ -193,7 +195,7 @@ For large codebases (>50 files affected), organize migration into independent mo
 
 ## Deliverables Checklist
 
-- [ ] Migration assessment with complexity score
+- [ ] Migration assessment with complexity rating
 - [ ] Strategy selection with rationale
 - [ ] Phased migration plan with timeline
 - [ ] Comparison tests for each module (written before migration)

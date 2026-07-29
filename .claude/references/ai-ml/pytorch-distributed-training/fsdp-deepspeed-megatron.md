@@ -188,28 +188,13 @@ ds_config = {
 
 ## Layer-wise Learning Rate Decay (LLRD)
 
-```python
-def get_llrd_optimizer(model, base_lr=1e-4, layer_decay=0.9, weight_decay=0.01):
-    param_groups = []
-    num_layers = len(list(model.children()))
-    for layer_idx, (name, param) in enumerate(model.named_parameters()):
-        if not param.requires_grad:
-            continue
-        lr = base_lr * (layer_decay ** (num_layers - layer_idx - 1))
-        wd = 0.0 if "bias" in name or "norm" in name.lower() else weight_decay
-        param_groups.append({"params": [param], "lr": lr, "weight_decay": wd})
-    return torch.optim.AdamW(param_groups)
-```
+Scale each layer's LR by `layer_decay ** (depth_from_top)` so early layers move least.
+Group by **layer depth**, not by position in `named_parameters()` -- the two are not the
+same, and indexing off the parameter enumeration produces negative exponents (and so LRs
+*above* `base_lr`) for every parameter past the module count. Exclude bias and norm
+parameters from weight decay.
 
 ## Warmup + Cosine Scheduler
 
-```python
-def get_warmup_cosine_scheduler(optimizer, warmup_steps, total_steps, min_lr_ratio=0.1):
-    import math
-    def lr_lambda(step):
-        if step < warmup_steps:
-            return float(step) / float(max(1, warmup_steps))
-        progress = float(step - warmup_steps) / float(max(1, total_steps - warmup_steps))
-        return max(min_lr_ratio, 0.5 * (1.0 + math.cos(math.pi * progress)))
-    return LambdaLR(optimizer, lr_lambda)
-```
+Linear warmup for `warmup_steps`, then cosine decay to `min_lr_ratio * base_lr` over the
+remaining steps, via `torch.optim.lr_scheduler.LambdaLR`.

@@ -74,7 +74,7 @@ class TrainFlow(FlowSpec):
         model = build_model()
         model.load_state_dict(self.model_state)
         self.metrics = evaluate(model, self.val_df)
-        print(f"Val accuracy: {self.metrics["accuracy"]:.4f}")
+        print(f"Val accuracy: {self.metrics['accuracy']:.4f}")
         self.next(self.register)
 
     @step
@@ -85,7 +85,7 @@ class TrainFlow(FlowSpec):
             self.model_uri = register_model(self.model_state, self.metrics)
             print(f"Registered: {self.model_uri}")
         else:
-            print(f"Accuracy {self.metrics["accuracy"]:.4f} below threshold")
+            print(f"Accuracy {self.metrics['accuracy']:.4f} below threshold")
             self.model_uri = None
         self.next(self.end)
 

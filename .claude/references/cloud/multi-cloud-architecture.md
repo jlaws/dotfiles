@@ -119,13 +119,6 @@ On-Premises Datacenter
 - **GCP:** Cost Management, Recommender
 - **Multi-cloud:** CloudHealth, Cloudability, Kubecost
 
-## Migration Strategy
-
-1. **Assessment** -- Inventory workloads, map dependencies, estimate costs, identify compliance constraints
-2. **Pilot** -- Select low-risk workload, implement, validate, document lessons
-3. **Migration** -- Incremental moves, dual-run period, automated testing, rollback plan per workload
-4. **Optimization** -- Right-size, adopt cloud-native services, implement cost governance
-
 ## Gotchas and Anti-Patterns
 
 - **Lift-and-shift everything** -- Re-platform or re-architect where ROI justifies it

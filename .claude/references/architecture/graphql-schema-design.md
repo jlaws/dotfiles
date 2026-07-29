@@ -36,18 +36,7 @@ extend type Query {
 
 ## Type Design Patterns
 
-### 1. Non-Null Types
-```graphql
-type User {
-  id: ID!              # Always required
-  email: String!       # Required
-  phone: String        # Optional (nullable)
-  posts: [Post!]!      # Non-null array of non-null posts
-  tags: [String!]      # Nullable array of non-null strings
-}
-```
-
-### 2. Interfaces for Polymorphism
+### 1. Interfaces for Polymorphism
 ```graphql
 interface Node {
   id: ID!
@@ -71,7 +60,7 @@ type Query {
 }
 ```
 
-### 3. Unions for Heterogeneous Results
+### 2. Unions for Heterogeneous Results
 ```graphql
 union SearchResult = User | Post | Comment
 
@@ -98,7 +87,7 @@ type Query {
 }
 ```
 
-### 4. Input Types
+### 3. Input Types
 ```graphql
 input CreateUserInput {
   email: String!
@@ -494,29 +483,63 @@ async def resolve_posts(user, info):
 
 ### Query Depth Limiting
 ```python
-from graphql import GraphQLError
+from graphql import GraphQLError, ValidationRule
+from graphql.language import OperationDefinitionNode
 
-def depth_limit_validator(max_depth: int):
-    def validate(context, node, ancestors):
-        depth = len(ancestors)
-        if depth > max_depth:
-            raise GraphQLError(
-                f"Query depth {depth} exceeds maximum {max_depth}"
-            )
-    return validate
+def depth_limit_validator(max_depth: int) -> type[ValidationRule]:
+    """Build a graphql-core validation rule that rejects over-deep queries."""
+
+    def node_depth(node, depth: int = 0) -> int:
+        # Inline selections only; fragment spreads need their definitions resolved
+        selection_set = getattr(node, "selection_set", None)
+        if selection_set is None:
+            return depth
+        return max((node_depth(child, depth + 1)
+                    for child in selection_set.selections), default=depth)
+
+    class DepthLimitRule(ValidationRule):
+        def enter_operation_definition(self, node: OperationDefinitionNode, *_args):
+            depth = node_depth(node)
+            if depth > max_depth:
+                self.report_error(GraphQLError(
+                    f"Query depth {depth} exceeds maximum {max_depth}", node))
+
+    return DepthLimitRule
+
+# Usage:
+# from graphql import parse, specified_rules, validate
+# errors = validate(schema, parse(query),
+#                   rules=[*specified_rules, depth_limit_validator(10)])
 ```
 
 ### Query Complexity Analysis
 ```python
-def complexity_limit_validator(max_complexity: int):
-    def calculate_complexity(node):
-        # Each field = 1, lists multiply
-        complexity = 1
-        if is_list_field(node):
-            complexity *= get_list_size_arg(node)
-        return complexity
+from graphql import GraphQLError, ValidationRule
+from graphql.language import FieldNode, IntValueNode, OperationDefinitionNode
 
-    return validate_complexity
+LIST_SIZE_ARGS = ("first", "last", "limit")
+
+def complexity_limit_validator(max_complexity: int) -> type[ValidationRule]:
+    """Cost = each field counts 1, multiplied by the list size it requests."""
+
+    def field_cost(node: FieldNode) -> int:
+        multiplier = 1
+        for arg in node.arguments:
+            if arg.name.value in LIST_SIZE_ARGS and isinstance(arg.value, IntValueNode):
+                multiplier = int(arg.value.value)
+        children = node.selection_set.selections if node.selection_set else []
+        return multiplier * (1 + sum(field_cost(c) for c in children
+                                     if isinstance(c, FieldNode)))
+
+    class ComplexityLimitRule(ValidationRule):
+        def enter_operation_definition(self, node: OperationDefinitionNode, *_args):
+            total = sum(field_cost(f) for f in node.selection_set.selections
+                        if isinstance(f, FieldNode))
+            if total > max_complexity:
+                self.report_error(GraphQLError(
+                    f"Query complexity {total} exceeds maximum {max_complexity}", node))
+
+    return ComplexityLimitRule
 ```
 
 ## Schema Versioning

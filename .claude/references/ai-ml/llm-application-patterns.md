@@ -69,6 +69,11 @@ See the dedicated [Structured Output](#structured-output) section below for meth
 import anthropic
 
 client = anthropic.Anthropic()
+
+# Undated aliases float across model generations -- prefer them over
+# date-pinned snapshot IDs, which go stale.
+MODEL = "claude-sonnet-5"
+
 tools = [
     {
         "name": "search_database",
@@ -95,7 +100,7 @@ def agent_loop(question: str, max_steps: int = 5) -> str:
 
     for _ in range(max_steps):
         response = client.messages.create(
-            model="claude-sonnet-4-5-20250929", max_tokens=1024,
+            model=MODEL, max_tokens=1024,
             tools=tools, messages=messages,
         )
 
@@ -206,7 +211,7 @@ Information in the middle of long contexts is retrieved less reliably. Put criti
 - Building complex chains when a single well-structured prompt suffices
 - Temperature=0 for creative tasks (deterministic != best quality)
 - Not testing adversarial/edge cases in prompt evaluation
-- Assuming a prompt that works on GPT-4 transfers to smaller models
+- Assuming a prompt that works on a frontier model transfers to smaller models
 - Storing entire conversation history without windowing (context overflow + cost explosion)
 - Generic tool descriptions (confuses agent tool selection)
 - No fallback for LLM failures (always handle rate limits and timeouts)
@@ -220,7 +225,7 @@ Information in the middle of long contexts is retrieved less reliably. Put criti
 
 | Method | Provider | Guarantees Schema? | Best For |
 |--------|----------|-------------------|----------|
-| **OpenAI Structured Outputs** | OpenAI | Yes (constrained decoding) | Production extraction with GPT-4o |
+| **OpenAI Structured Outputs** | OpenAI | Yes (constrained decoding) | Production extraction with OpenAI models |
 | **Anthropic tool_use** | Anthropic | Yes (schema-validated) | Extraction with Claude models |
 | **Instructor** | Any (wrapper) | Yes (retry + validation) | Multi-provider, complex validation |
 | **Outlines** | Local models | Yes (constrained decoding) | Open-source models, custom grammars |
@@ -237,7 +242,7 @@ import anthropic
 
 client = anthropic.Anthropic()
 response = client.messages.create(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-sonnet-5",
     max_tokens=1024,
     tools=[{
         "name": "extract_info",
@@ -271,14 +276,14 @@ class CompanyInfo(BaseModel):
 
 client = OpenAI()
 completion = client.beta.chat.completions.parse(
-    model="gpt-4o",
+    model=OPENAI_MODEL,  # current OpenAI model alias, from config
     messages=[{"role": "user", "content": f"Extract info from: {text}"}],
     response_format=CompanyInfo,
 )
 result = completion.choices[0].message.parsed  # CompanyInfo instance
 ```
 
-For Instructor, Outlines, nested schemas, and multi-entity extraction, see [references/provider-examples.md](references/provider-examples.md).
+For Instructor, Outlines, nested schemas, and multi-entity extraction, see [ai-ml/llm-application-patterns/provider-examples.md](ai-ml/llm-application-patterns/provider-examples.md).
 
 ### Schema Design Tips
 
@@ -290,7 +295,7 @@ For Instructor, Outlines, nested schemas, and multi-entity extraction, see [refe
 | Keep schemas under 15 fields | Accuracy drops with complex schemas |
 | Use nested objects for related fields | Groups logically, reduces confusion |
 
-For anti-patterns catalog and Pydantic validation strategies, see [references/schema-anti-patterns.md](references/schema-anti-patterns.md).
+For anti-patterns catalog and Pydantic validation strategies, see [ai-ml/llm-application-patterns/schema-anti-patterns.md](ai-ml/llm-application-patterns/schema-anti-patterns.md).
 
 ### Structured Output Gotchas
 
@@ -301,7 +306,7 @@ For anti-patterns catalog and Pydantic validation strategies, see [references/sc
 - **Pydantic V2 required**: Instructor and OpenAI SDK need V2. Key changes: `@field_validator` replaces `@validator`, `model_dump()` replaces `.dict()`.
 - **Long documents**: Chunk first, extract per chunk, merge/deduplicate. Don't rely on truncation.
 
-For retry strategies and provider fallback patterns, see [references/retry-and-fallback.md](references/retry-and-fallback.md).
+For retry strategies and provider fallback patterns, see [ai-ml/llm-application-patterns/retry-and-fallback.md](ai-ml/llm-application-patterns/retry-and-fallback.md).
 
 ## Cross-References
 

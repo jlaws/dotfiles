@@ -1,10 +1,8 @@
 ---
 name: github-issue-resolution
 description: "Use when resolving a GitHub issue through implementation."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
-  - verification-before-completion
   - test-driven-development
 ---
 

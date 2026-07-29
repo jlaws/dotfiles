@@ -109,18 +109,6 @@ GROUP BY 1, 2;
 
 ---
 
-## Performance Comparison
-
-| Operation | DuckDB | Trino | Spark SQL |
-|-----------|--------|-------|-----------|
-| Scan 10GB Parquet (local disk) | ~2s | N/A | ~5s |
-| Scan 10GB Iceberg (S3) | ~10s | ~30s | ~20s |
-| Join 5GB + 500MB | ~3s | ~8s | ~10s |
-| Aggregation (GROUP BY) | ~1s (memory) | ~5s | ~8s |
-| Concurrent queries (10 users) | No | Yes (via queue) | Limited (cluster-shared) |
-
----
-
 ## Gotchas and Gotcha Mitigation
 
 - **Catalog lock contention**: Trino/Presto may block on Iceberg metadata ops under high write concurrency; use per-partition staging tables

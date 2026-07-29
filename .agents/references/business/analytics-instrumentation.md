@@ -45,7 +45,7 @@ class AnalyticsClient implements AnalyticsProvider {
       ...properties,
       timestamp: new Date().toISOString(),
       session_id: this.getSessionId(),
-      page_url: typeof window \!== "undefined" ? window.location.href : null,
+      page_url: typeof window !== "undefined" ? window.location.href : null,
     };
     for (const p of this.providers) p.track(event, enriched);
   }

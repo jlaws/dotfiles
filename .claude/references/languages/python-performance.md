@@ -115,7 +115,6 @@ for result in read_file_fast("large.txt"):
 ```
 
 - Use `yield` for large datasets or streaming.
-- Pipelines: `gen1 | map(f) | filter(g)` -- each item processed once.
 
 ## Data Structure Selection
 

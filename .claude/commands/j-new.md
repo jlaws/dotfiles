@@ -5,7 +5,7 @@ argument-hint: "<type: command|skill|agent> [name]"
 model: sonnet
 ---
 
-Load skill `writing-skills` for asset-authoring methodology and `skill-audit` for the conformance rules applied in Phase 5, before scaffolding.
+Load skill `writing-skills` before scaffolding — it holds the authoring criteria this command applies.
 
 Create: $ARGUMENTS
 
@@ -13,292 +13,174 @@ If no arguments provided, ask which asset type to create (command, skill, or age
 
 ---
 
-## Phase 1: Parse Arguments
+## Phase 1: Parse and validate
 
-Extract from `$ARGUMENTS`:
-- **Type**: first word must be `command`, `skill`, or `agent`
-- **Name**: optional second word (kebab-case)
+From `$ARGUMENTS`, take the type (`command`, `skill`, or `agent`) and an optional kebab-case name. Ask
+if the type is missing or invalid.
 
-If type is missing or invalid, ask the user.
+A name must be lowercase letters, numbers, and single internal hyphens, and must not contain "claude" or
+"anthropic" (reserved). Commands take a `j-` prefix. If a name fails, explain why and ask for another.
 
-### Name Validation
+## Phase 2: Gather requirements
 
-If name provided, verify:
-- Lowercase letters, numbers, hyphens only
-- Max 64 characters
-- Does NOT contain "claude" or "anthropic" (reserved)
-- No leading/trailing hyphens, no double hyphens
+Ask for a one-line purpose for every type — it drives the description. Then, by type:
 
-If name fails validation, explain why and ask for a corrected name.
+**Command:** does it take arguments (and what should `argument-hint` say)? Which skills does it invoke,
+and which agents does it delegate to? List candidates with `Glob(".claude/skills/*/SKILL.md")` and
+`Glob(".claude/agents/*.md")`.
 
-## Phase 2: Gather Requirements
+**Skill:** which tools does it need without per-use approval? Does it depend on other skills? Should
+Claude invoke it automatically, or only the user (`disable-model-invocation: true`)? Does it apply only
+to certain files (`paths:`)?
 
-### 2A. Common (all types)
+**Agent:** which tools, which skills to preload, and which `.claude/references/` categories should it
+consult (`Glob(".claude/references/*/")`)? Persistent memory scope, if any?
 
-1. **Name** (if not provided in args)
-2. **One-line purpose**: What does this asset do? (used to craft description)
+Leave `model` unset so the asset inherits the session model. Set it only when a specific tier is
+genuinely required; tier aliases (`opus`, `sonnet`, `haiku`, `fable`) float across model generations, so
+prefer an alias over a pinned ID. Set `effort` when the work is reliably cheaper (`low`, `medium`) or
+reliably demanding (`xhigh`).
 
-### 2B. Type-Specific
+## Phase 3: Draft the description
 
-**For commands:**
-1. **Category**: List existing categories via `Glob(".claude/commands/*/")` and let user pick or create new
-2. **Takes arguments?** If yes, ask for argument-hint text
-3. **Invokes skills?** If yes, which ones? List available via `Glob(".claude/skills/*/")` and `Glob(".claude/skills/*/*/SKILL.md")`
-4. **Invokes agents?** If yes, which ones? List available via `Glob(".claude/agents/*.md")`
+A skill description is **triggering conditions only** — never a workflow summary, because Claude will
+follow the summary instead of reading the body. Commands and agents describe what they are and when to
+reach for them, and may scope out near-misses to keep routing clean.
 
-**For skills:**
-1. **Category**: List existing categories via `Glob(".claude/skills/*/")` and let user pick or create new
-2. **Skill type**: Technique (concrete steps), Pattern (mental model), or Reference (API/syntax docs)
-3. **Allowed tools**: Which tools should this skill use without per-use approval? Options: Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch
-4. **Dependencies**: Other skills this loads? List available skills
-5. **Auto-invocable?** Should Claude invoke this automatically based on description match, or manual-only (`disable-model-invocation: true`)?
+Descriptions are loaded on every turn, so keep them to what routing actually needs. Shared skills under
+`.agents/` additionally must fit 64 characters and start with "Use when"; `.claude/` skills have no such
+budget. No `<` or `>` anywhere in frontmatter.
 
-**For agents:**
-1. **Tools**: Which tools should this agent access? Options: Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch
-2. **Skills to preload**: Which skills should be injected into agent context? List available
-3. **Reference library**: Which `.claude/references/` paths should the agent consult? List available categories via `Glob(".claude/references/*/")` 
-4. **Model override?** Default (inherit), sonnet, opus, haiku
-5. **Persistent memory?** None, user, project, or local scope
+Present the draft for approval before writing.
 
-## Phase 3: Generate Description
+## Phase 4: Scaffold
 
-Craft description following the WHAT + WHEN + DO NOT pattern:
+Paths are flat. There are no category subdirectories:
 
-```
-"{What it does} -- {brief qualifier}. Use when {trigger conditions}. Do NOT use for {anti-patterns} ({alternative} instead)."
-```
+| Type | Path |
+|---|---|
+| Command | `.claude/commands/{name}.md` |
+| Skill | `.claude/skills/{name}/SKILL.md` |
+| Agent | `.claude/agents/{name}.md` |
 
-### Description Rules
-
-| Rule | Constraint |
-|------|-----------|
-| Max length (skills) | 64 characters |
-| Max length (commands/agents) | 1024 chars |
-| No XML characters | No `<` or `>` in frontmatter values |
-| Trigger-only for skills | NEVER summarize the workflow in the description |
-| Include negative triggers | "Do NOT use for..." with redirect to alternative |
-
-**Bad skill description** (summarizes workflow):
-```
-description: "Use when executing plans -- executes tasks sequentially with code review between tasks"
-```
-
-**Good skill description** (triggers only):
-```
-description: "Use when executing implementation plans with independent tasks in the current session"
-```
-
-Present the draft description to the user for approval before proceeding.
-
-## Phase 4: Scaffold the Asset
-
-Generate the file using the correct template for the asset type.
-
-### 4A. Command Template
-
-**File path:** `.claude/commands/{category}/{name}.md`
+**Command** — route, do not explain. Gather context, then invoke a skill or delegate to an agent. If you
+find yourself writing the methodology inline, it belongs in a skill instead:
 
 ```markdown
 ---
 name: {name}
-description: "{generated description}"
-argument-hint: "{hint}"  # only if takes arguments
+description: "{description}"
+argument-hint: "{hint}"        # only if it reads $ARGUMENTS
 ---
 
-{Purpose context}: $ARGUMENTS  # only if takes arguments
+Load skill `{skill}` before starting.
 
-If no arguments provided, {fallback behavior}.
+{Purpose}: $ARGUMENTS
 
----
+If no arguments provided, {fallback}.
 
-## Phase 1: {First Phase Name}
+## Phase 1: {name}
+{what to gather}
 
-{Instructions for gathering context, understanding the request}
-
-## Phase 2: {Second Phase Name}
-
-{Core methodology -- the main work}
-
-## Phase 3: {Third Phase Name}
-
-{Verification, output, or handoff}
-
----
-
-### Cross-References
-
-- **skill:{skill-path}** -- {why referenced}
-- **agent:{agent-name}** -- {why referenced}
+## Phase 2: {name}
+{the work, or the delegation}
 ```
 
-### 4B. Skill Template
-
-**File path:** `.claude/skills/{category}/{name}/SKILL.md`
-
-Create the directory first, then write SKILL.md:
+**Skill** — state the goal and why it matters, so judgment covers cases you did not foresee. Put
+mechanical steps in a `scripts/` file and call it; put heavy detail in `references/` so it loads on
+demand:
 
 ```markdown
 ---
 name: {name}
-description: "{generated description}"
-compatibility: claude-code
-allowed-tools: {tools list}
-skills:  # only if has dependencies
-  - {dependency-path}
+description: "{trigger}"
+allowed-tools: {tools}
 ---
 
-# {Skill Title}
+# {Title}
 
-## Overview
+{The core principle, and why it matters.}
 
-{One-two sentence core principle.}
+## When to use
+{Concrete symptoms or triggers.}
 
-## When to Use
+## {The method}
+{Steps or pattern. One worked example beats three.}
 
-- {Symptom or trigger condition 1}
-- {Symptom or trigger condition 2}
-- {Symptom or trigger condition 3}
-
-## Core Pattern
-
-{The main technique, method, or pattern with concrete steps.}
-
-```{language}
-# Example demonstrating the pattern
+## Gotchas
+- **{failure mode}**: {what happens} — {what to do instead}
 ```
 
-## Quick Reference
+Do not add rationalization tables, "Red Flags — STOP" lists, or an all-caps non-negotiable rule. Those
+narrow the model's judgment and are usually wrong for some real situation. State the goal and the
+consequence instead.
 
-| {Column 1} | {Column 2} |
-|-------------|-------------|
-| {Key point} | {Detail} |
-
-## Common Mistakes
-
-- **{Mistake 1}**: {What goes wrong} -- {Fix}
-- **{Mistake 2}**: {What goes wrong} -- {Fix}
-```
-
-For **workflow/procedural skills**, also add:
-
-```markdown
-## Red Flags
-
-- {Warning sign that the skill is being bypassed}
-
-## The Iron Law
-
-```
-{NON-NEGOTIABLE RULE IN CAPS}
-```
-```
-
-### 4C. Agent Template
-
-**File path:** `.claude/agents/{name}.md`
+**Agent** — a role statement plus pointers. Delegate methodology to skills:
 
 ```markdown
 ---
 name: {name}
-description: "{generated description}"
-tools: {tools list}
+description: "{description}"
+tools: {tools}
 skills:
-  - {skill-name}
-  - verification-before-completion
-model: {model}  # only if overridden
-memory: {scope}  # only if enabled
+  - {skill}
 ---
 
-You are a {role description}. {One sentence about approach/expertise.}
+You are a {role}. {One sentence on approach.}
 
 Reference library at .claude/references/{category}/:
-- {reference-1}, {reference-2}, {reference-3}
+- {reference}, {reference}, {reference}
 
 Read the relevant reference file(s) for the user's topic before responding.
-{Additional role-specific instructions.}
 ```
 
-## Phase 5: Inline Validation
+Every reference stem listed must exist — the audit script fails on a dangling index entry.
 
-Before writing, validate the generated content against skill-audit rules:
+## Phase 5: Validate
 
-### All Types
-- [ ] Frontmatter has `---` delimiters
-- [ ] `name` field exists and is kebab-case
-- [ ] `name` matches filename (commands/agents) or folder name (skills)
-- [ ] `description` field exists and is under length limit
-- [ ] Description has WHAT + WHEN trigger pattern
-- [ ] No `<`/`>` in frontmatter values
-- [ ] No "claude"/"anthropic" in name
+Run the mechanical checks rather than reviewing by hand:
 
-### Commands Only
-- [ ] File lives in a category subdirectory
-- [ ] If body uses `$ARGUMENTS`, frontmatter has `argument-hint`
-- [ ] If body invokes a skill, that skill exists
-- [ ] If body invokes an agent, that agent exists
-- [ ] Body has 10+ words
+```bash
+python3 .claude/skills/skill-audit/scripts/audit.py . --type {type}s
+```
 
-### Skills Only
-- [ ] SKILL.md is the filename (exact casing)
-- [ ] No README.md in the folder
-- [ ] Body has 50+ words
-- [ ] At least one code block or example
-- [ ] Description is trigger-only (no workflow summary)
+Fix what it reports. Then confirm by judgment: does every section teach something a strong model would
+otherwise get wrong or vague? Cut what does not.
 
-### Agents Only
-- [ ] File is flat in agents/ (no subdirectory)
-- [ ] `tools` field exists with valid tool names
-- [ ] If `skills:` references skills, each resolves to existing SKILL.md
-- [ ] Body has 20+ words
+## Phase 6: Present and register
 
-Report any WARN or FAIL findings. Auto-fix where possible (e.g., truncate description, fix casing).
+Show the file, get approval, write it, and confirm the path.
 
-## Phase 6: Present & Confirm
+Then register it. A new command needs its Codex and Gemini counterparts plus the shared `cmd-j-*` skill;
+a new agent needs native definitions in all three tool trees; a shared workflow skill needs an
+`.agents/skills/` source. `.claude/` skill and reference *bodies* have intentionally diverged from
+`.agents/` and are not kept in sync — only the asset sets are, which
+`tests/test_agent_config.py` enforces. Declare any single-tree asset in its exception list there.
 
-Show the complete generated file to the user. Ask for approval before writing.
+Update the CLAUDE.md Knowledge Base Structure section if the asset set changed, then run `make test` and
+`make check`. See `documentation-validation`.
 
-After writing:
-1. Confirm the file was created at the correct path
-2. If skill: confirm the directory was created
-3. Suggest: "Run `/j-skill-audit {type}s` to verify full conformance"
-4. Register and document the new asset. Commands require native Claude, Codex, and Gemini counterparts plus the shared `cmd-j-*` skill. Agents require native definitions in all three tool trees. Shared workflow skills require a `.agents/skills/` source with the same body. See `documentation-validation`.
-
----
-
-### Frontmatter Quick Reference
+### Frontmatter reference
 
 | Field | Command | Skill | Agent |
 |-------|---------|-------|-------|
-| name | Required | Required | Required |
-| description | Required | Required | Required |
-| argument-hint | If $ARGUMENTS | Optional | N/A |
-| compatibility | N/A | "claude-code" | N/A |
-| allowed-tools | N/A | Recommended | N/A |
-| tools | N/A | N/A | Recommended |
-| skills | N/A | Optional (deps) | Optional (preload) |
-| model | N/A | Optional | Optional |
-| memory | N/A | N/A | Optional (user/project/local) |
-| disable-model-invocation | N/A | Optional | N/A |
-| user-invocable | N/A | Optional | N/A |
-| context | N/A | Optional (fork) | N/A |
-| effort | N/A | Optional | Optional |
-| color | N/A | N/A | Optional |
-| maxTurns | N/A | N/A | Optional |
-| permissionMode | N/A | N/A | Optional |
+| `name`, `description` | Required | Required | Required |
+| `argument-hint` | If `$ARGUMENTS` | Optional | N/A |
+| `allowed-tools` / `disallowed-tools` | N/A | Recommended | N/A |
+| `tools` | N/A | N/A | Recommended |
+| `skills` | N/A | Optional (deps) | Optional (preload) |
+| `model`, `effort` | Optional | Optional | Optional |
+| `paths` | N/A | Optional | N/A |
+| `disable-model-invocation`, `user-invocable` | N/A | Optional | N/A |
+| `context: fork`, `agent` | N/A | Optional | N/A |
+| `memory` | N/A | N/A | Optional (user/project/local) |
+| `color`, `maxTurns`, `permissionMode` | N/A | N/A | Optional |
 
-### Valid Tool Names
+Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Task, Skill.
 
-Read, Write, Edit, Grep, Glob, Bash, LSP, WebFetch, WebSearch, NotebookEdit, Skill
-
-### Body Conventions
-
-| Type | Convention |
-|------|-----------|
-| Command | `$ARGUMENTS` substitution, `---` divider, phased methodology, cross-references section |
-| Skill | Overview, When to Use, Core Pattern (with code example), Quick Reference table, Common Mistakes |
-| Agent | Role statement (1-2 sentences), reference library pointers, delegate methodology to skills |
+`compatibility` is not a Claude Code field and does nothing — do not emit it.
 
 ### Cross-References
 
-- **skill:writing-skills** -- skill authoring TDD methodology, CSO, persuasion principles
-- **skill:skill-audit** -- validation rules for all asset types
+- **skill:writing-skills** — authoring criteria, frontmatter spec, discoverability
+- **skill:skill-audit** — the validation script and the judgment axes

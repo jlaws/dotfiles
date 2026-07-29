@@ -34,6 +34,20 @@ PR opened -> lint -> test -> dependency audit -> SBOM -> build -> deploy
 | Medium | Info only | Track in backlog |
 | Low | Silent | Quarterly review |
 
+## Defensive Measures
+
+```bash
+# npm: disable install scripts by default
+npm config set ignore-scripts true
+# Explicitly allow for known packages
+npx --allow-scripts=node-gyp npm install
+
+# Use lock files (always commit them)
+npm ci          # Install from lock file exactly (not npm install)
+yarn install --frozen-lockfile
+pip install --require-hashes -r requirements.txt
+```
+
 ## Supply Chain Attack Patterns
 
 | Attack | Description | Mitigation |

@@ -77,7 +77,7 @@ const mvpConfig: MVPConfig = {
 
 function canAccess(feature: string, userId: string): boolean {
   const flag = mvpConfig.flags[feature];
-  if (\!flag || \!flag.enabled) return false;
+  if (!flag || !flag.enabled) return false;
   if (flag.allowList.length === 0) return true;
   return flag.allowList.includes(userId);
 }
@@ -133,7 +133,7 @@ export class CoreService {
 
   async processItem(userId: string, item: Item): Promise<Result> {
     const canProcess = await this.billing.checkQuota(userId);
-    if (\!canProcess) throw new QuotaExceededError(userId);
+    if (!canProcess) throw new QuotaExceededError(userId);
     const result = await this.doWork(item);
     await this.billing.recordUsage(userId, 1);
     return result;

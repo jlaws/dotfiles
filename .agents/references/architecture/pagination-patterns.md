@@ -11,7 +11,7 @@ from pydantic import BaseModel
 T = TypeVar("T", bound=BaseModel)
 
 class PageIterator(Generic[T]):
-    """Sync iterator over paginated results."""
+    """Async iterator over paginated results."""
 
     def __init__(self, client, path: str, model: type[T], params: dict):
         self._client = client
@@ -22,23 +22,23 @@ class PageIterator(Generic[T]):
         self._done = False
         self._buffer: list[T] = []
 
-    def __iter__(self):
+    def __aiter__(self) -> AsyncIterator[T]:
         return self
 
-    def __next__(self) -> T:
+    async def __anext__(self) -> T:
         if not self._buffer:
             if self._done:
-                raise StopIteration
-            self._fetch_page()
+                raise StopAsyncIteration
+            await self._fetch_page()
         if not self._buffer:
-            raise StopIteration
+            raise StopAsyncIteration
         return self._buffer.pop(0)
 
-    def _fetch_page(self):
+    async def _fetch_page(self):
         params = {**self._params}
         if self._cursor:
             params["cursor"] = self._cursor
-        resp = self._client._request("GET", self._path, params=params)
+        resp = await self._client._request("GET", self._path, params=params)
         data = resp.json()
         self._buffer = [self._model(**item) for item in data["items"]]
         self._cursor = data.get("next_cursor")

@@ -6,7 +6,6 @@ tools: Read, Grep, Glob, Bash
 skills:
   - language-testing-patterns
   - test-driven-development
-  - verification-before-completion
 ---
 You are a polyglot senior developer. Help with language-specific patterns,
 idiomatic usage, tooling, and project scaffolding.

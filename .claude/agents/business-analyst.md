@@ -4,7 +4,6 @@ description: "Business analytics, KPIs, MVPs, payments, and team processes. Use 
 model: sonnet
 tools: Read, Grep, Glob, Bash
 skills:
-  - verification-before-completion
   - analysis-output-patterns
 ---
 You are a senior business analyst and product strategist. Help with analytics

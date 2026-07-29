@@ -1,10 +1,7 @@
 ---
 name: dispatching-parallel-agents
 description: "Use when independent tasks can run concurrently."
-compatibility: claude-code
 allowed-tools: Task, Read, Grep, Glob, Bash
-skills:
-  - verification-before-completion
 ---
 
 # Dispatching Parallel Agents
@@ -43,7 +40,7 @@ Hand large inputs over as files (see `subagent-driven-development` handoffs), no
 Parallel agents finishing is not the end. After they return:
 
 1. **Check for conflicting edits** — did two agents touch the same file? Reconcile.
-2. **Review each summary against source** — a subagent reporting success is not proof (`verification-before-completion`). Spot-check the diff.
+2. **Review each summary against the diff** — treat a subagent's report as peer input, not proof. Its summary describes what it meant to do; the diff shows what it did.
 3. **Run the full suite** — parallel fixes that each pass in isolation can still break in combination.
 
 ## Red Flags
@@ -78,5 +75,5 @@ Reach for a workflow when control flow should be deterministic (loops, fan-out, 
 ## Integration
 
 **Pairs with:** `subagent-driven-development` (run independent plan tasks concurrently)
-**Uses:** `verification-before-completion` to validate each agent's output
+**Uses:** `verification-before-completion` for the evidence hierarchy when weighing what an agent reports
 **See also:** `.claude/CLAUDE.md` Execution Model

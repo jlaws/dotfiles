@@ -72,54 +72,6 @@ Insert + F7  Link list    Insert + F6  Heading list
 5. **Interactive elements** - Each announces role + state? Activates with Enter/Space?
 6. **Dynamic content** - Updates announced? Modal traps focus? Focus returns on close?
 
-### Common Screen Reader Fixes
-
-```html
-<!-- Button without visible text -->
-<button aria-label="Close dialog"><svg aria-hidden="true">...</svg></button>
-
-<!-- Dynamic content not announced -->
-<div role="status" aria-live="polite">New results loaded</div>
-
-<!-- Form error not read -->
-<input type="email" aria-invalid="true" aria-describedby="email-error">
-<span id="email-error" role="alert">Invalid email</span>
-```
-
-## WCAG 2.2 Audit Checklist
-
-### Critical Violations (Blockers)
-
-- [ ] All functional images have alt text; decorative images `alt=""`
-- [ ] All interactive elements keyboard accessible (no traps)
-- [ ] All form inputs have associated labels
-- [ ] Color contrast: 4.5:1 text, 3:1 large text/UI components
-- [ ] No auto-playing media without controls
-
-### Serious Violations
-
-- [ ] Skip to main content link present
-- [ ] Page titles unique and descriptive
-- [ ] Heading hierarchy logical (no skipped levels)
-- [ ] ARIA landmarks defined (main, nav, etc.)
-- [ ] Focus indicator visible on all elements (3:1 contrast)
-- [ ] `<html lang="en">` attribute set
-
-### Forms & Interaction
-
-- [ ] Error messages identify field and describe problem
-- [ ] Required fields indicated (not color-only)
-- [ ] `aria-invalid="true"` + `aria-describedby` on error fields
-- [ ] Live regions: `role="status"` (polite) / `role="alert"` (assertive)
-- [ ] Modal dialogs: `role="dialog"`, `aria-modal="true"`, focus trap, Esc to close
-
-### Responsive & Motion
-
-- [ ] Content reflows at 320px (no horizontal scroll)
-- [ ] Text resizes to 200% without loss
-- [ ] `@media (prefers-reduced-motion: reduce)` disables animations
-- [ ] `@media (prefers-contrast: high)` increases contrast
-
 ## Remediation Patterns
 
 **Keyboard nav widgets**: Custom interactive widgets need: `tabindex="0"`, `role`, `aria-expanded`, and keydown handler for Enter/Space (activate), Escape (close), Arrow keys (navigate).

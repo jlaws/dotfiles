@@ -30,12 +30,6 @@
 6. Create GitHub release (if applicable)
 7. Verify CI/CD publishes artifacts
 
-## Pre-Release Conventions
-
-- **Alpha** (`x.y.z-alpha.N`): unstable, breaking changes expected
-- **Beta** (`x.y.z-beta.N`): feature-complete, bugs expected
-- **RC** (`x.y.z-rc.N`): release candidate, only critical fixes
-
 ## Monorepo Considerations
 
 - Independent versioning per package (recommended)

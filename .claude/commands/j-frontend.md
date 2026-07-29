@@ -3,6 +3,7 @@ name: j-frontend
 description: "Frontend consultation — frameworks, design systems, and web patterns. Use when building with React, Next.js, Svelte, Tailwind, or solving frontend challenges. Do NOT use for backend API design (use /j-arch instead)."
 argument-hint: "<question-or-task>"
 model: sonnet
+effort: medium
 ---
 
 Load skill `analysis-output-patterns` for output structure rules.

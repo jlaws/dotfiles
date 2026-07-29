@@ -215,18 +215,3 @@ redocly lint openapi.yaml
 redocly bundle openapi.yaml -o bundled.yaml
 redocly preview-docs openapi.yaml
 ```
-
-## SDK Generation
-
-```bash
-npm install -g @openapitools/openapi-generator-cli
-
-# TypeScript client
-openapi-generator-cli generate -i openapi.yaml -g typescript-fetch -o ./generated/ts-client
-
-# Python client
-openapi-generator-cli generate -i openapi.yaml -g python -o ./generated/py-client
-
-# Go client
-openapi-generator-cli generate -i openapi.yaml -g go -o ./generated/go-client
-```

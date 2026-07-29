@@ -33,6 +33,7 @@ def _request_with_retry(
 ) -> httpx.Response:
     last_exc = None
     for attempt in range(max_retries + 1):
+        resp = None       # Reset each attempt: never read Retry-After off a stale response
         try:
             resp = http.request(method, path, **kwargs)
             if resp.status_code not in RETRYABLE_STATUS:
@@ -43,7 +44,7 @@ def _request_with_retry(
             last_exc = ConnectionError(str(exc))
 
         if attempt < max_retries:
-            sleep = _backoff_delay(attempt, resp if 'resp' in dir() else None)
+            sleep = _backoff_delay(attempt, resp)
             time.sleep(sleep)
 
     raise last_exc

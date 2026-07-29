@@ -135,9 +135,12 @@ def build_alibi_bias(n_heads: int, seq_len: int, device: torch.device) -> torch.
 ## Scaling Laws
 
 ```python
+import math
+
 def chinchilla_optimal(compute_flops: float) -> dict:
-    """Compute-optimal N (params) and D (tokens). C ~ 6*N*D."""
-    n_opt = int(0.6 * math.sqrt(compute_flops / 6))
+    """Compute-optimal N (params) and D (tokens). C ~ 6*N*D with D ~ 20*N,
+    so C = 120*N**2 and N = sqrt(C/120) -- about 20 tokens per parameter."""
+    n_opt = int(math.sqrt(compute_flops / 120))
     d_opt = int(compute_flops / (6 * n_opt))
     return {"params": n_opt, "tokens": d_opt, "tokens_per_param": round(d_opt / n_opt, 1)}
 ```
@@ -166,7 +169,7 @@ def chinchilla_optimal(compute_flops: float) -> dict:
 
 Automate model design with differentiable search (DARTS), RL-based controllers (ENAS), one-shot supernets, and hardware-aware latency optimization (ProxylessNAS). Covers search space design, alternating optimization, weight sharing, and latency lookup tables.
 
-For NAS patterns, see `references/neural-architecture-search.md`.
+For NAS patterns, see `ai-ml/generative-model-architectures/neural-architecture-search.md`.
 
 ## Extended References
 

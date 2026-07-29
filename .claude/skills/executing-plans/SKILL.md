@@ -1,7 +1,6 @@
 ---
 name: executing-plans
 description: "Use when executing a written plan in one working context."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
@@ -26,7 +25,8 @@ For each task in the batch:
 1. Announce which task you're starting
 2. Follow each step exactly as written in the plan
 3. Run all verification commands specified
-4. Apply `verification-before-completion` — confirm each step passes before moving on
+4. Run the task's stated verification command and read the result before moving on — a step whose check
+   never ran is not done
 5. Commit after each task (or as the plan specifies)
 
 #### Living Document Maintenance
@@ -131,5 +131,5 @@ Starting Task 4 (Write API endpoints)...
 
 **Receives plans from:** `writing-plans`
 **Hands off to:** `finishing-branch` when all tasks complete
-**Uses:** `verification-before-completion` for each verification step
+**Uses:** `verification-before-completion` for verdict grammar when reporting step outcomes
 **Alternative mode:** `subagent-driven-development` — dispatches a fresh subagent per task instead of executing inline. Prefer it for large plans, mostly-independent tasks, or when inline execution would exhaust context; prefer this skill (inline) for small or tightly-coupled plans. Both share the same living-document ledger.

@@ -225,7 +225,7 @@ project.import_tasks(tasks)
 | Real data abundant and clean | No | Synthetic adds noise, not signal |
 | High-stakes domain (medical, legal) | Carefully | Must validate against domain experts |
 
-For detailed synthetic data patterns (Self-Instruct, Evol-Instruct, quality filtering, back-translation, diversity sampling), see `references/synthetic-data-generation.md`.
+For detailed synthetic data patterns (Self-Instruct, Evol-Instruct, quality filtering, back-translation, diversity sampling), see `ai-ml/dataset-management/synthetic-data-generation.md`.
 
 ## Gotchas and Anti-Patterns
 

@@ -198,7 +198,7 @@ kto_config = KTOConfig(
     desirable_weight=1.0,
     undesirable_weight=1.0,
 )
-trainer = KTOTrainer(model=model, config=kto_config, ...)
+trainer = KTOTrainer(model=model, config=kto_config)  # plus dataset, tokenizer, etc.
 ```
 
 ```python
@@ -215,7 +215,7 @@ orpo_config = ORPOConfig(
     bf16=True,
     beta=0.1,  # Weight of the odds ratio loss
 )
-trainer = ORPOTrainer(model=model, config=orpo_config, ...)
+trainer = ORPOTrainer(model=model, config=orpo_config)  # plus dataset, tokenizer, etc.
 ```
 
 ```python
@@ -233,7 +233,7 @@ cpo_config = CPOConfig(
     cpo_alpha=1.0,           # NLL loss weight (SimPO uses this)
     simpo_gamma=0.5,         # Reward margin (SimPO-specific)
 )
-trainer = CPOTrainer(model=model, config=cpo_config, ...)
+trainer = CPOTrainer(model=model, config=cpo_config)  # plus dataset, tokenizer, etc.
 ```
 
 ### When to Use Which

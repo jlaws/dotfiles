@@ -6,7 +6,7 @@ Extended code examples for MongoDB schema patterns and index strategies.
 
 ```python
 from pymongo import MongoClient
-from datetime import datetime
+from datetime import datetime, timezone
 
 db = MongoClient()["ecommerce"]
 
@@ -15,7 +15,7 @@ order = {
     "_id": "ord_abc123",
     "user_id": "usr_456",
     "user_name": "Alice",          # Denormalized from users collection
-    "created_at": datetime.utcnow(),
+    "created_at": datetime.now(timezone.utc),
     "status": "shipped",
     "items": [                     # Embedded -- always fetched with order
         {"sku": "WIDGET-1", "name": "Blue Widget", "qty": 2, "price": 9.99},
@@ -39,7 +39,7 @@ comment = {
     "post_id": "post_789",    # Reference to parent
     "author": "Bob",
     "text": "Great post!",
-    "created_at": datetime.utcnow(),
+    "created_at": datetime.now(timezone.utc),
 }
 
 # Pattern 3: Bucket pattern (time-series, IoT)

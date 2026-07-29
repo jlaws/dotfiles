@@ -48,26 +48,9 @@
 
 ### Multi-Head Attention (MHA)
 
-```python
-class MultiHeadAttention(nn.Module):
-    def __init__(self, d_model: int, n_heads: int, dropout: float = 0.0):
-        super().__init__()
-        assert d_model % n_heads == 0
-        self.n_heads = n_heads
-        self.head_dim = d_model // n_heads
-        self.qkv_proj = nn.Linear(d_model, 3 * d_model, bias=False)
-        self.out_proj = nn.Linear(d_model, d_model, bias=False)
-        self.dropout = dropout
-
-    def forward(self, x: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
-        B, T, _ = x.shape
-        qkv = self.qkv_proj(x).reshape(B, T, 3, self.n_heads, self.head_dim)
-        q, k, v = qkv.permute(2, 0, 3, 1, 4).unbind(0)
-        out = F.scaled_dot_product_attention(
-            q, k, v, attn_mask=mask, dropout_p=self.dropout if self.training else 0.0
-        )
-        return self.out_proj(out.transpose(1, 2).reshape(B, T, -1))
-```
+Fused `qkv_proj` to `3 * d_model`, reshape to `(B, T, 3, n_heads, head_dim)`, then delegate to
+`F.scaled_dot_product_attention` -- it dispatches to FlashAttention where the shapes and dtype
+allow, so a hand-rolled `softmax(qk^T / sqrt(d))` is both slower and more memory-hungry.
 
 ### Grouped Query Attention (GQA)
 
@@ -102,24 +85,10 @@ class GroupedQueryAttention(nn.Module):
 
 ### RoPE
 
-```python
-class RotaryEmbedding(nn.Module):
-    def __init__(self, dim: int, base: float = 10000.0):
-        super().__init__()
-        inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
-        self.register_buffer("inv_freq", inv_freq)
-
-    def forward(self, seq_len: int, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
-        t = torch.arange(seq_len, device=device).float()
-        freqs = torch.outer(t, self.inv_freq)
-        emb = torch.cat([freqs, freqs], dim=-1)
-        return emb.cos(), emb.sin()
-
-def apply_rope(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
-    d_half = x.shape[-1] // 2
-    x1, x2 = x[..., :d_half], x[..., d_half:]
-    return torch.cat([x1 * cos - x2 * sin, x2 * cos + x1 * sin], dim=-1)
-```
+Standard rotary embedding with `inv_freq = 1 / base ** (arange(0, dim, 2) / dim)`, `base=10000`.
+The two knobs that actually matter in practice: raising `base` (NTK scaling) or applying YaRN to
+extend context past the training length, and applying the rotation to **q and k only**, never to
+v. See the Transformer gotchas below on extrapolation limits.
 
 ### ALiBi
 
@@ -134,13 +103,9 @@ def build_alibi_bias(n_heads: int, seq_len: int, device: torch.device) -> torch.
 
 ## Scaling Laws
 
-```python
-def chinchilla_optimal(compute_flops: float) -> dict:
-    """Compute-optimal N (params) and D (tokens). C ~ 6*N*D."""
-    n_opt = int(0.6 * math.sqrt(compute_flops / 6))
-    d_opt = int(compute_flops / (6 * n_opt))
-    return {"params": n_opt, "tokens": d_opt, "tokens_per_param": round(d_opt / n_opt, 1)}
-```
+Compute-optimal sizing follows `C ~ 6*N*D` with `D ~ 20*N`, so `N = sqrt(C / 120)`. See
+`ai-ml:llm-training-pipeline` for the `chinchilla_optimal` and `estimate_training_time`
+helpers and the per-scale data/batch/LR table.
 
 ## Gotchas
 
@@ -166,7 +131,7 @@ def chinchilla_optimal(compute_flops: float) -> dict:
 
 Automate model design with differentiable search (DARTS), RL-based controllers (ENAS), one-shot supernets, and hardware-aware latency optimization (ProxylessNAS). Covers search space design, alternating optimization, weight sharing, and latency lookup tables.
 
-For NAS patterns, see `references/neural-architecture-search.md`.
+For NAS patterns, see `ai-ml/generative-model-architectures/neural-architecture-search.md`.
 
 ## Extended References
 

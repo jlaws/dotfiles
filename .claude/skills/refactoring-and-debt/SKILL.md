@@ -1,7 +1,6 @@
 ---
 name: refactoring-and-debt
 description: "Use when refactoring code or reducing technical debt."
-compatibility: claude-code
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
@@ -11,8 +10,9 @@ allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 
 ```
 TEST -> REFACTOR -> VERIFY -> COMMIT
-Never skip a step. Never combine refactoring with behavior changes.
 ```
+
+Follow the cadence in order -- skipping a step removes the safety net that makes refactoring reversible. Keep refactoring and behavior changes in separate commits: mixing them makes the diff unreviewable and any regression unattributable.
 
 A refactoring changes structure without changing behavior. If you're adding features or fixing bugs at the same time, you're not refactoring -- you're gambling.
 
@@ -78,8 +78,8 @@ Gradually replace a legacy system by routing new functionality to a new implemen
 4. Monitor both paths (correctness + performance)
 5. Remove old implementation when 100% migrated
 
-**Progressive rollout:** 5% -> 25% -> 50% -> 100% (24h observation between increases)
-**Rollback triggers:** Error rate >1%, latency >2x baseline
+**Progressive rollout:** increase traffic in stages, observing after each increase long enough to catch delayed failures (at least a full daily traffic cycle)
+**Rollback triggers:** set error-rate and latency thresholds from your own pre-migration baseline before rolling out -- a guessed percentage has no provenance
 
 ### Branch by Abstraction
 
@@ -149,7 +149,7 @@ ci_pipeline:
 
 - **Canonical run scripts**: Provide scripts for running services locally. If setup is broken, someone finds out immediately
 - **Encode standards in tooling**: Linters, formatters, pre-commit hooks, coding agent prompts -- not just wikis
-- **Tickets over TODOs**: File tickets with deadlines rather than adding `// TODO` comments that rot
+- **Tickets over bare TODOs**: Prefer filing a ticket with a deadline. A `// TODO` that stays in code must carry a ticket reference -- see `code-quality`'s TODO policy
 - **Continuous releases**: If deployment is painful, that pain surfaces immediately and gets fixed
 
 ## Boy Scout Rule
@@ -209,5 +209,4 @@ After analyzing all perspectives, synthesize findings: deduplicate, resolve cont
 ## Cross-References
 
 - **workflow:code-quality** -- code smells, style conventions
-- **workflow:verification-before-completion** -- ensuring refactoring is verified before claiming done
 - **workflow:documentation-validation** -- when a rename or interface change touches public surface, confirm docs (README, API reference) still match

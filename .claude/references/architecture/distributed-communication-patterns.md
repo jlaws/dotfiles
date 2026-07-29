@@ -75,7 +75,8 @@
 | Pattern | Implementation |
 |---------|---------------|
 | **At-least-once** | Default everywhere; design consumers idempotent |
-| **Exactly-once (Kafka)** | `enable.idempotence=True` + `acks=all` |
+| **Idempotent produce (Kafka)** | `enable.idempotence=True` + `acks=all` -- kills producer-retry duplicates only |
+| **Exactly-once (Kafka)** | Idempotent produce + transactions (`transactional.id`, `send_offsets_to_transaction`) + `isolation.level=read_committed` consumers |
 | **Manual commit** | `enable.auto.commit=False`; commit after processing |
 | **Publisher confirms** | RabbitMQ `confirm_delivery()` before publish |
 | **Late ack** | Celery `task_acks_late=True`; ack after completion |
@@ -176,13 +177,18 @@
 Standard envelope for all domains:
 
 ```python
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+import uuid
+
 @dataclass
 class DomainEvent:
     event_type: str
     aggregate_id: str
     data: dict
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat())
     schema_version: int = 1
     correlation_id: str = ""
     idempotency_key: str = ""

@@ -35,7 +35,7 @@ def react_agent(question: str, tools: list[dict], max_steps: int = 10) -> str:
 
     for step in range(max_steps):
         response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-5",
             max_tokens=4096,
             system=system,
             tools=tools,
@@ -71,7 +71,7 @@ Separate planning from execution. Model generates a plan upfront, then executes 
 def plan_and_execute(question: str, tools: list[dict]) -> str:
     # Phase 1: Generate plan
     plan_response = client.messages.create(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-5",
         max_tokens=2048,
         messages=[{"role": "user", "content": f"""Create a step-by-step plan to answer this question.
 Return a numbered list of steps. Each step should be a single action.
@@ -92,7 +92,7 @@ Question: {question}"""}],
 
     # Phase 3: Synthesize
     synthesis = client.messages.create(
-        model="claude-sonnet-4-5-20250929",
+        model="claude-sonnet-5",
         max_tokens=2048,
         messages=[{"role": "user", "content": f"""Original question: {question}
 Execution results:
@@ -111,7 +111,7 @@ Generate multiple reasoning paths, evaluate each, expand the most promising.
 def tree_of_thought(problem: str, breadth: int = 3, depth: int = 3) -> str:
     def generate_thoughts(state: str, n: int) -> list[str]:
         response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-5",
             max_tokens=2048,
             messages=[{"role": "user", "content": f"""Problem: {problem}
 Current reasoning: {state}
@@ -122,7 +122,7 @@ Generate {n} distinct next reasoning steps. Return each on a new line prefixed w
 
     def evaluate_thought(state: str) -> float:
         response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-5",
             max_tokens=256,
             messages=[{"role": "user", "content": f"""Rate this reasoning path from 0.0 to 1.0 for correctness and progress toward solving: {problem}
 
@@ -224,7 +224,7 @@ def supervisor_agent(question: str, specialists: dict[str, callable]) -> str:
     messages = [{"role": "user", "content": question}]
     for _ in range(10):
         response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-5",
             max_tokens=4096,
             system="You are a supervisor. Break the task into sub-tasks and delegate to specialists. Synthesize results.",
             tools=router_tools,
@@ -257,14 +257,14 @@ def debate_agents(question: str, rounds: int = 2) -> str:
 
     for r in range(rounds):
         pro = client.messages.create(
-            model="claude-sonnet-4-5-20250929", max_tokens=1024,
+            model="claude-sonnet-5", max_tokens=1024,
             system="You argue FOR the proposition. Be specific and cite evidence.",
             messages=[{"role": "user", "content": f"Question: {question}\nRound {r+1}. Previous debate:\n{format_debate(pro_history, con_history)}"}],
         ).content[0].text
         pro_history.append(pro)
 
         con = client.messages.create(
-            model="claude-sonnet-4-5-20250929", max_tokens=1024,
+            model="claude-sonnet-5", max_tokens=1024,
             system="You argue AGAINST the proposition. Counter the pro arguments specifically.",
             messages=[{"role": "user", "content": f"Question: {question}\nRound {r+1}. Previous debate:\n{format_debate(pro_history, con_history)}"}],
         ).content[0].text
@@ -272,7 +272,7 @@ def debate_agents(question: str, rounds: int = 2) -> str:
 
     # Judge synthesizes
     verdict = client.messages.create(
-        model="claude-sonnet-4-5-20250929", max_tokens=1024,
+        model="claude-sonnet-5", max_tokens=1024,
         system="You are an impartial judge. Evaluate both sides and give a final verdict with reasoning.",
         messages=[{"role": "user", "content": f"Question: {question}\n\nFull debate:\n{format_debate(pro_history, con_history)}"}],
     )

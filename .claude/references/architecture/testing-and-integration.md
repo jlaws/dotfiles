@@ -10,35 +10,6 @@ Testing pyramid, integration patterns, test isolation, CI design, MCP testing, a
 | **Integration** | 30-40% | ~100ms | Medium (real DB/services) | Components work together, DB transactions, API contracts |
 | **End-to-End** | 5-10% | ~1-5s | High (full stack) | Happy path workflows, user scenarios, cross-system flows |
 
-```python
-# Unit: Test logic in isolation
-def test_calculate_total():
-    assert calculate_total([10, 20, 30]) == 60
-
-# Integration: Test with real database
-@pytest.mark.integration
-def test_save_and_retrieve_user(db):
-    user = User(name="Alice", email="alice@example.com")
-    db.session.add(user)
-    db.session.commit()
-
-    fetched = db.session.query(User).filter_by(email="alice@example.com").first()
-    assert fetched.name == "Alice"
-
-# E2E: Test full flow
-@pytest.mark.e2e
-async def test_user_registration_flow(client):
-    response = await client.post("/register", json={
-        "name": "Bob", "email": "bob@example.com", "password": "secret"
-    })
-    assert response.status_code == 201
-
-    login = await client.post("/login", json={
-        "email": "bob@example.com", "password": "secret"
-    })
-    assert login.status_code == 200
-```
-
 **Rule**: Most tests should be unit; use integration for tricky boundaries; E2E sparingly.
 
 ## Integration Testing Patterns

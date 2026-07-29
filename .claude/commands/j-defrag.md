@@ -3,6 +3,7 @@ name: j-defrag
 description: "Scan the codebase for fragmentation — duplicated components, inconsistent patterns, files to consolidate, logic to share — and fix it in verified batches. Use to keep the codebase coherent on a regular cadence. Do NOT use for single-file cleanups (edit directly) or diff review before merge (use /j-diff-review)."
 argument-hint: "<optional path or subsystem to scope the scan; default whole repo>"
 model: opus
+effort: xhigh
 ---
 
 Load skills `refactoring-and-debt` and `code-quality` via the Skill tool before doing anything else. Defragment the codebase: scan for fragmentation and fix it in verified batches so the next thing built lands in a more coherent codebase.
@@ -33,7 +34,7 @@ Output the ranked clusters as a table: class, files, proposed fix, risk. This is
 For each cluster, highest value first:
 1. Confirm tests green (baseline).
 2. Apply the consolidation/extraction/dedup using `refactoring-and-debt` safe sequences.
-3. Re-run tests; they must stay green (`verification-before-completion`).
+3. Re-run tests. A batch that leaves them red is not a consolidation — revert it rather than carrying the failure into the next batch.
 4. One atomic commit per cluster (imperative subject, <72 chars).
 5. If a cluster renamed or moved public surface (exported names, CLI flags, config keys, or KB asset names/paths), apply the `documentation-validation` gate before the commit — update docs and any required native or mirror copies, or declare N/A.
 
@@ -47,6 +48,6 @@ Report clusters fixed, clusters deferred (with reason), and residual fragmentati
 
 - **skill:refactoring-and-debt** — fix mechanics, smell→refactoring map, safe refactoring sequences.
 - **skill:code-quality** — DRY and code-smell detection for the scan phase.
-- **skill:verification-before-completion** — the green-tests gate between batches.
+- **skill:refactoring-and-debt** — batch cadence and smell-to-refactoring mapping.
 - **/j-diff-review** — use instead when reviewing a single diff before merge.
 - **skill:documentation-validation** — doc gate when a cluster renames or moves public surface.

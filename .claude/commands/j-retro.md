@@ -3,6 +3,7 @@ name: j-retro
 description: "Engineering retrospective from git history — metrics, patterns, and insights for a time window. Use when reviewing what shipped, what blocked, and high-churn areas. Do NOT use for team retrospectives (single-person focused)."
 argument-hint: "<time-window, e.g. '14d', '30d', 'since v1.2.0'>"
 model: sonnet
+effort: medium
 ---
 
 Time window: $ARGUMENTS (default: 14 days)

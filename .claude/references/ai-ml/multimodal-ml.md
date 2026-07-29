@@ -16,11 +16,14 @@ Default recommendation: Late fusion (contrastive) for retrieval/matching. Early 
 
 ### Model Selection
 
-| Model | Strength | Best For |
+| Provider | Strength | Best For |
 |-------|----------|----------|
-| Claude (Anthropic) | Best document/chart understanding, long context | Document analysis, structured extraction, multi-image reasoning |
-| GPT-4V/4o (OpenAI) | Strong general vision, function calling | General VQA, tool use with images |
-| Gemini 1.5 Pro | Longest context (1M tokens), video support | Video understanding, many-image tasks |
+| Claude (Anthropic) | Strongest document/chart understanding; high-resolution vision | Document analysis, structured extraction, multi-image reasoning |
+| GPT (OpenAI) | Strong general vision, function calling | General VQA, tool use with images |
+| Gemini (Google) | Native video support | Video understanding, many-image tasks |
+
+Check each provider's current model list rather than pinning a specific version -- the
+frontier tiers all now offer long context and vision, so capability gaps close fast.
 
 ### SDK Examples
 
@@ -33,7 +36,7 @@ with open("chart.png", "rb") as f:
     image_data = base64.standard_b64encode(f.read()).decode()
 
 response = client.messages.create(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-sonnet-5",
     max_tokens=1024,
     messages=[{
         "role": "user",
@@ -51,7 +54,7 @@ from openai import OpenAI
 
 client = OpenAI()
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model=OPENAI_MODEL,  # current OpenAI vision model alias, from config
     messages=[{
         "role": "user",
         "content": [
@@ -73,34 +76,11 @@ response = client.chat.completions.create(
 
 ## CLIP-Style Contrastive Training
 
-```python
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-class CLIPModel(nn.Module):
-    def __init__(self, vision_encoder, text_encoder, embed_dim=512):
-        super().__init__()
-        self.vision_encoder = vision_encoder
-        self.text_encoder = text_encoder
-        self.vision_proj = nn.Linear(vision_encoder.output_dim, embed_dim)
-        self.text_proj = nn.Linear(text_encoder.output_dim, embed_dim)
-        self.logit_scale = nn.Parameter(torch.ones([]) * 2.6592)  # ln(1/0.07)
-
-    def forward(self, images, input_ids, attention_mask):
-        img_emb = F.normalize(self.vision_proj(self.vision_encoder(images)), dim=-1)
-        txt_emb = F.normalize(self.text_proj(
-            self.text_encoder(input_ids, attention_mask).pooler_output
-        ), dim=-1)
-
-        logit_scale = self.logit_scale.exp().clamp(max=100.0)
-        logits = logit_scale * img_emb @ txt_emb.T
-
-        labels = torch.arange(len(images), device=images.device)
-        loss_i2t = F.cross_entropy(logits, labels)
-        loss_t2i = F.cross_entropy(logits.T, labels)
-        return (loss_i2t + loss_t2i) / 2
-```
+Project both encoders to a shared `embed_dim`, L2-normalize, and compute a symmetric
+cross-entropy over the scaled `img @ txt.T` similarity matrix (in-batch negatives, so the
+labels are just `arange(batch)`). Two details matter: keep `logit_scale` a learnable
+parameter and clamp its exponential (a runaway scale is a common divergence cause), and
+normalize before the matmul -- skipping it diverges immediately.
 
 ### Contrastive Training Tips
 

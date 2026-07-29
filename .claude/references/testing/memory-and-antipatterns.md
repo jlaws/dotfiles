@@ -1,12 +1,5 @@
 # Memory Profiling and Performance Anti-Patterns
 
-## Heap Snapshot Comparison (Leak Detection)
-
-1. Take baseline snapshot after warmup
-2. Run suspected leaking operation N times
-3. Take second snapshot
-4. Diff: objects in snapshot 2 but not 1 = likely leaks
-
 ## Common Leak Patterns
 
 | Pattern | Language | Fix |

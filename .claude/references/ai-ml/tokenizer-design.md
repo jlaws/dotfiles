@@ -67,7 +67,7 @@ tokenizer = train_bpe_tokenizer(
 )
 
 # Verify
-encoded = tokenizer.encode("Hello, world\! This is a test.")
+encoded = tokenizer.encode("Hello, world! This is a test.")
 print(f"Tokens: {encoded.tokens}")
 print(f"IDs: {encoded.ids}")
 print(f"Decoded: {tokenizer.decode(encoded.ids)}")

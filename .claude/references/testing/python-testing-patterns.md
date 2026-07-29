@@ -34,7 +34,6 @@ def user(db_session):
 
 - Chain fixtures via dependency injection, not class inheritance
 - Always `yield` + cleanup, not just `return`
-- DB sessions should `rollback()` not `commit()` -- faster, auto-cleans
 
 ## `autouse` Sparingly
 - Only for truly universal setup (e.g., resetting a global clock)
@@ -59,7 +58,6 @@ def test_api_call(monkeypatch):
 ## When to Use `MagicMock` vs `Mock`
 - `MagicMock`: when code uses dunder methods (`__len__`, `__iter__`)
 - `Mock`: default choice, simpler, fewer implicit behaviors
-- `spec=True`: always set when mocking classes -- catches typos in attribute access
 
 ## Parametrize Decisions
 - **Use when**: Same logic, different inputs (validation rules, edge cases, matrix testing)
@@ -103,10 +101,3 @@ addopts = "--strict-markers --tb=short -q --cov-fail-under=80"
 
 - Use `--strict-markers` to catch typos
 - Run `pytest -m "not integration"` in pre-commit, full suite in CI
-
-## Gotchas
-- Fixture scope leaks: module/session fixtures with mutable state
-- `autouse` fixtures create invisible dependencies
-- Patching at wrong location (where defined vs. where used)
-- Missing `yield` in fixtures (cleanup never runs)
-- High coverage on `tests/` directory (meaningless, exclude it)

@@ -172,9 +172,6 @@ kubectl describe networkpolicy default-deny-all -n production
 - **RBAC wildcard drift**: `verbs: ["*"]` grants current AND future verbs. Enumerate explicitly.
 - **automountServiceAccountToken**: Default is `true` — every pod gets a token. Set `false` on SA and opt-in per pod.
 - **NetworkPolicy is additive**: Multiple policies on the same pod are OR'd for ingress/egress. You can't override a permissive policy with a restrictive one.
-- **Drift between environments**: Use overlays/values files per env, never manual edits. Diff configs across envs in CI.
-- **Hot-reload pitfalls**: Validate new config before applying. If validation fails in prod, keep current config and alert — never crash.
-- **Config migration**: Version your config schema. When schema changes, write explicit up/down migrations. Never silently ignore unknown fields.
 - **Sensitive values**: Validate that secrets are references (ESO, Vault paths), not plaintext. Regex-scan values files for high-entropy strings.
 
 ## Cross-References

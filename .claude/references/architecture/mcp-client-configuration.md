@@ -11,7 +11,7 @@ Servers are declared in config; scope sets precedence (most specific wins):
 | Local / project | `.mcp.json` or project settings | This repo |
 | User / global | user settings (`~`) | All projects |
 
-Precedence: local > project > user. Keep secrets out of committed project config.
+Precedence: local/project > user. Keep secrets out of committed project config.
 
 ## Transport
 

@@ -95,7 +95,7 @@ def agent_loop(question: str, max_steps: int = 5) -> str:
 
     for _ in range(max_steps):
         response = client.messages.create(
-            model="claude-sonnet-4-5-20250929", max_tokens=1024,
+            model="claude-sonnet-5", max_tokens=1024,
             tools=tools, messages=messages,
         )
 
@@ -237,7 +237,7 @@ import anthropic
 
 client = anthropic.Anthropic()
 response = client.messages.create(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-sonnet-5",
     max_tokens=1024,
     tools=[{
         "name": "extract_info",
@@ -271,14 +271,14 @@ class CompanyInfo(BaseModel):
 
 client = OpenAI()
 completion = client.beta.chat.completions.parse(
-    model="gpt-4o",
+    model=OPENAI_MODEL,  # current OpenAI model alias, from config
     messages=[{"role": "user", "content": f"Extract info from: {text}"}],
     response_format=CompanyInfo,
 )
 result = completion.choices[0].message.parsed  # CompanyInfo instance
 ```
 
-For Instructor, Outlines, nested schemas, and multi-entity extraction, see [references/provider-examples.md](references/provider-examples.md).
+For Instructor, Outlines, nested schemas, and multi-entity extraction, see [ai-ml/llm-application-patterns/provider-examples.md](ai-ml/llm-application-patterns/provider-examples.md).
 
 ### Schema Design Tips
 
@@ -290,7 +290,7 @@ For Instructor, Outlines, nested schemas, and multi-entity extraction, see [refe
 | Keep schemas under 15 fields | Accuracy drops with complex schemas |
 | Use nested objects for related fields | Groups logically, reduces confusion |
 
-For anti-patterns catalog and Pydantic validation strategies, see [references/schema-anti-patterns.md](references/schema-anti-patterns.md).
+For anti-patterns catalog and Pydantic validation strategies, see [ai-ml/llm-application-patterns/schema-anti-patterns.md](ai-ml/llm-application-patterns/schema-anti-patterns.md).
 
 ### Structured Output Gotchas
 
@@ -301,7 +301,7 @@ For anti-patterns catalog and Pydantic validation strategies, see [references/sc
 - **Pydantic V2 required**: Instructor and OpenAI SDK need V2. Key changes: `@field_validator` replaces `@validator`, `model_dump()` replaces `.dict()`.
 - **Long documents**: Chunk first, extract per chunk, merge/deduplicate. Don't rely on truncation.
 
-For retry strategies and provider fallback patterns, see [references/retry-and-fallback.md](references/retry-and-fallback.md).
+For retry strategies and provider fallback patterns, see [ai-ml/llm-application-patterns/retry-and-fallback.md](ai-ml/llm-application-patterns/retry-and-fallback.md).
 
 ## Cross-References
 
