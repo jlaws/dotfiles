@@ -14,8 +14,10 @@ If no arguments provided, ask what the user wants to do (init a new paper, edit 
 Load skills via the Skill tool, in order:
 
 1. `analysis-output-patterns` -- output structure rules
-2. `verification-before-completion` -- required before claiming "compiles cleanly" or "no errors"
-3. `output-completeness` -- for any generated section, template, or table (no truncation)
+2. `output-completeness` -- for any generated section, template, or table (no truncation)
+
+"Compiles cleanly" means the build log shows it. LaTeX exits zero on plenty of broken output, so read the
+log for errors, undefined references, and overfull boxes rather than trusting the exit code.
 
 Read the canonical reference before responding: `.claude/references/research/latex-paper-writing.md` (venue specs, preamble template, gotchas).
 
@@ -97,5 +99,4 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 - **references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
 - **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate via the Task tool (it loads `references/research/`); verify its output
 - **skill:analysis-output-patterns** -- output structure rules
-- **skill:verification-before-completion** -- required before claiming compile-clean / submission-ready
 - **skill:output-completeness** -- required when generating templates, sections, or tables

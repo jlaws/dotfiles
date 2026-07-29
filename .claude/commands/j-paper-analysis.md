@@ -14,8 +14,7 @@ If no arguments provided, ask for the paper URL, arxiv ID, or local file path.
 Load skills via the Skill tool, in order:
 
 1. `analysis-output-patterns` -- output structure rules
-2. `verification-before-completion` -- required before claiming a resource link resolves or a finding is supported
-3. `output-completeness` -- the full analysis template must be emitted without truncated sections
+2. `output-completeness` -- the full analysis must be emitted without truncated sections
 
 ## Fetch and gather resources
 
@@ -31,7 +30,7 @@ Before analyzing, resolve and fetch the paper, then gather its resources in para
    | Videos, talks, blog posts, explainers | `research-analyst` | Conference/author talk URLs, blog/Distill/explainer URLs |
    | Supplementary materials, BibTeX citation | `research-analyst` | Project page, appendix, and dataset URLs; BibTeX from arxiv, Semantic Scholar, or publisher |
 
-**Integrate**: collect the subagent results, dedupe, and populate the Resources & Links section. A subagent reporting "found it" is not proof -- confirm each link resolves before you write it (see `verification-before-completion`). Use "Not available" for expected resources such as official code, and "None found" for optional ones such as blogs or videos.
+**Integrate**: collect the subagent results, dedupe, and populate the Resources & Links section. A subagent reporting "found it" is not proof -- resolve each link yourself and confirm it actually loads before writing it down as resolved. Use "Not available" for expected resources such as official code, and "None found" for optional ones such as blogs or videos.
 
 For small or well-known papers, run these searches inline instead of delegating.
 
@@ -114,179 +113,28 @@ Virtually re-implement the paper mentally. Challenge everything.
 
 ---
 
-### Output Template
+### Output
 
-Create a file named `{paper-short-title}.md`. Use this template:
+Write the analysis to a file named `{paper-short-title}.md`. Produce these sections, in order; each row lists the fields the section must cover -- write the content in whatever prose or table form fits the paper, not a form to fill in.
 
-`````markdown
-# {Full Paper Title}
+| Section | Required content |
+|---|---|
+| Header | Full title, authors, venue and year, DOI if available, one-sentence TL;DR of the core contribution and result |
+| Resources & Links | Paper page, PDF, official code ("Not available" if none), PapersWithCode, community implementations (with framework noted), video/talk, blog/explainer, supplementary materials -- each a URL, or "Not available"/"None found"; BibTeX citation |
+| Five Cs (first-pass) | Category, Context, Correctness, Contributions, Clarity |
+| Problem Statement | The problem this paper addresses and why it matters |
+| Motivation & Gap | The gap in existing work this paper fills |
+| Proposed Method | High-level overview; architecture/algorithm components; key equations with what each computes; training/optimization (objective function, optimizer, schedule, key hyperparameters); computational cost (parameters, FLOPs, training cost/hardware, inference time, memory, how cost scales) |
+| Experimental Setup | Datasets (size, task, split); baselines; metrics; hardware and training time; whether baselines get equal compute/tuning/data |
+| Key Results | Main results by method and metric; ablation studies and their effect; statistical rigor (runs/seeds, variance reporting, significance tests) |
+| Critical Analysis | Novelty vs. closest prior work; strengths and weaknesses with reasoning; limitations (acknowledged by authors vs. unacknowledged); failure modes and edge cases; ethical considerations and broader impact (omit entirely if genuinely N/A); missing references; reproducibility assessment (code/data availability, hyperparameters specified, implementation complexity, overall reproducibility) |
+| Connections & Context | Papers this work builds on with the relationship; potential impact on the field |
+| Future Work & Open Questions | Extensions, improvements, unresolved questions |
+| Reviewer Assessment | Overall score 1-10 with 2-3 sentence justification (see calibration table below); confidence 1-5; recommendation (Accept / Weak Accept / Borderline / Weak Reject / Reject); questions for authors |
+| Key Takeaways | 3-5 bullets |
+| Glossary | Term/definition table for unfamiliar terms and acronyms |
 
-**Authors:** {Author list}
-**Published:** {Venue, year}
-**DOI:** {DOI if available}
-
-> **TL;DR:** {One-sentence summary of the paper's core contribution and result.}
-
----
-
-## Resources & Links
-
-| Resource | Link |
-|----------|------|
-| Paper page | {arxiv abs, conference page, or publisher URL} |
-| PDF | {direct PDF link} |
-| Official code | {repository URL -- or "Not available"} |
-| PapersWithCode | {PapersWithCode URL -- or "None found"} |
-| Community implementations | {URLs with framework noted -- or "None found"} |
-| Video / Talk | {URL -- or "None found"} |
-| Blog post / Explainer | {URL -- or "None found"} |
-| Supplementary materials | {URL -- or "None found"} |
-
-### Citation
-
-```bibtex
-{BibTeX entry}
-```
-
----
-
-## Five Cs (First-Pass Assessment)
-
-| Dimension | Assessment |
-|-----------|------------|
-| **Category** | {Paper type} |
-| **Context** | {Key prior work and foundations} |
-| **Correctness** | {Validity of assumptions} |
-| **Contributions** | {Numbered list of contributions} |
-| **Clarity** | {Writing quality assessment} |
-
----
-
-## Problem Statement
-
-{What problem does this paper address? Why does it matter?}
-
-## Motivation & Gap
-
-{What gap in existing work does this paper fill?}
-
----
-
-## Proposed Method
-
-### Overview
-{High-level description in 3-5 sentences.}
-
-### Architecture / Algorithm
-- {Component 1}: {description}
-- {Component N}: {description}
-
-### Key Equations
-1. {Equation name}: `{equation}` -- {what it computes}
-
-### Training / Optimization
-- **Objective function:** {loss}
-- **Optimizer:** {optimizer and hyperparameters}
-- **Schedule:** {learning rate schedule}
-- **Key hyperparameters:** {list with values}
-
-### Computational Cost
-- **Parameters:** {total parameter count}
-- **FLOPs:** {training/inference FLOPs if reported}
-- **Training cost:** {GPU hours, hardware, estimated cost}
-- **Inference time:** {latency per sample/batch}
-- **Memory:** {peak GPU memory}
-- **Scalability notes:** {how cost scales with data/model size}
-
----
-
-## Experimental Setup
-
-### Datasets
-| Dataset | Size | Task | Split |
-|---------|------|------|-------|
-
-### Baselines
-{Comparison methods}
-
-### Metrics
-{Evaluation metrics}
-
-### Hardware & Budget
-- **Hardware:** {GPUs/TPUs, count, type}
-- **Training time:** {wall-clock time}
-- **Comparison fairness:** {Do baselines get equal compute/tuning/data?}
-
----
-
-## Key Results
-
-### Main Findings
-| Method | {Metric 1} | {Metric 2} |
-|--------|-----------|-----------|
-
-### Ablation Studies
-- {Component}: {effect on performance}
-
-### Statistical Rigor
-- **Runs/seeds:** {number of independent runs}
-- **Variance reporting:** {std dev, CI, IQR -- what's reported?}
-- **Significance tests:** {statistical tests used, if any}
-
----
-
-## Critical Analysis
-
-### Novelty Assessment
-- **What is genuinely new:** {novel contributions vs. incremental improvements}
-- **Closest prior work:** {most similar existing method and key differences}
-
-### Strengths
-1. {Strength with reasoning}
-
-### Weaknesses
-1. {Weakness with reasoning}
-
-### Limitations
-- **Acknowledged by authors:** {limitations the authors explicitly discuss}
-- **Unacknowledged:** {limitations not discussed but apparent from analysis}
-
-### Failure Modes & Edge Cases
-{Where would this approach break? Distribution shifts, adversarial inputs, scaling limits, etc.}
-
-### Ethical Considerations & Broader Impact
-{Bias, fairness, environmental cost, dual-use potential, societal implications. Omit this section entirely if genuinely N/A.}
-
-### Missing References
-{Important related work not cited by the paper.}
-
-### Reproducibility Assessment
-- **Code available:** {Yes/No -- see Resources & Links}
-- **Data available:** {Yes/No -- public datasets vs. proprietary}
-- **Hyperparameters specified:** {Yes/Partially/No}
-- **Implementation complexity:** {Low/Medium/High -- effort to reimplement}
-- **Overall reproducibility:** {High/Medium/Low}
-
----
-
-## Connections & Context
-
-### Builds On
-- [{Paper}]({url}): {relationship}
-
-### Potential Impact
-{How might this work influence the field?}
-
----
-
-## Future Work & Open Questions
-{Extensions, improvements, unresolved questions}
-
----
-
-## Reviewer Assessment
-
-### Overall Score
+### Score Calibration
 
 | Score | Meaning |
 |-------|---------|
@@ -297,10 +145,7 @@ Create a file named `{paper-short-title}.md`. Use this template:
 | 8 | Strong paper; clear contribution, well-executed |
 | 9-10 | Exceptional; significant advance for the field |
 
-**Score: {X}/10**
-**Justification:** {2-3 sentences explaining the score}
-
-### Confidence
+### Confidence Calibration
 
 | Score | Meaning |
 |-------|---------|
@@ -309,28 +154,6 @@ Create a file named `{paper-short-title}.md`. Use this template:
 | 3 | Fairly confident |
 | 4 | Confident -- checked key details |
 | 5 | Very confident -- deeply familiar with area |
-
-**Confidence: {X}/5**
-
-### Recommendation
-**{Accept / Weak Accept / Borderline / Weak Reject / Reject}**
-
-### Questions for Authors
-1. {Key question that would affect the assessment}
-
----
-
-## Key Takeaways
-- {3-5 bullet points}
-
----
-
-## Glossary
-| Term | Definition |
-|------|------------|
-
-*Analysis generated using the three-pass method (Keshav, 2016).*
-`````
 
 ### Process Guidelines
 

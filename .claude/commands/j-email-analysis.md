@@ -14,7 +14,7 @@ If no arguments provided, ask for the path to the email body file.
 Load skills via the Skill tool, in order:
 
 1. `analysis-output-patterns` -- output structure rules
-2. `verification-before-completion` -- required before claiming a PDF downloaded or a link resolves
+2. `analysis-output-patterns` -- findings-first structure and data-versus-inference labeling
 
 ## Pre-processing (before producing output)
 

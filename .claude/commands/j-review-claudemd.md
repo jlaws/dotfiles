@@ -14,7 +14,7 @@ If no arguments provided, analyzes both global and local CLAUDE.md against last 
 Load these before analyzing:
 - Load skill `analysis-output-patterns` for output structure rules
 - Load skill `code-agent-meta-patterns` — CLAUDE.md design patterns, context budget rules
-- Load skill `verification-before-completion` — evidence-before-claims methodology
+- Load skill `code-agent-meta-patterns` — what belongs in CLAUDE.md, layering, and progressive disclosure
 - Load skill `writing-skills` — skill creation and testing methodology
 - Read `references/workflow/context-efficiency` — context management patterns
 - Read `references/workflow/task-execution-checklists` — implementation and review checklists
