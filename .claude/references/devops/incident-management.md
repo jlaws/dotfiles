@@ -25,8 +25,6 @@
 
 ## Runbook Structure
 
-Every runbook needs: Overview, Detection, Triage, Mitigation, Root Cause, Resolution, Verification, Escalation.
-
 ### Triage Decision Table
 
 | Symptom | Likely Cause | Action |
@@ -73,18 +71,6 @@ Every runbook needs: Overview, Detection, Triage, Mitigation, Root Cause, Resolu
 
 30 min overlap: outgoing writes handoff (15 min) + sync call (15 min). Incoming reviews + verifies alerting.
 
-### Pre-Shift Checklist
-
-- [ ] VPN, kubectl, database, log aggregator access
-- [ ] PagerDuty shows you as primary
-- [ ] Phone notifications enabled
-- [ ] Test alert received
-- [ ] Review recent incidents (past 2 weeks)
-
-### Mid-Incident Handoff (Critical)
-
-Must transfer: current state + metrics, what's been tried, root cause theories, next steps with escalation triggers, key people involved.
-
 ## Postmortem Writing
 
 ### Blameless Culture
@@ -115,36 +101,3 @@ Quarterly: Review patterns
 5. **Response** -- what worked, what could improve
 6. **Lessons Learned** -- went well, went wrong, got lucky
 7. **Action Items** -- priority, owner, due date, ticket (always concrete)
-
-### Meeting Structure (60 min)
-
-1. Opening (5 min) -- remind blameless culture
-2. Timeline review (15 min)
-3. Analysis (20 min) -- what failed, why, prevention
-4. Action items (15 min) -- prioritize, assign owners
-5. Closing (5 min) -- confirm owners
-
-### Postmortem Anti-Patterns
-
-- Blame game instead of systems focus
-- Shallow analysis (ask "why" 5 times)
-- No action items or unrealistic ones
-- No follow-up -- track in ticketing system
-
-## Communication Templates
-
-**Initial:**
-```
-INCIDENT: [Service] Degradation
-Severity: [SEV] | Status: Investigating | Impact: [description]
-Start Time: [TIME] | Incident Commander: [NAME]
-Updates in [channel]
-```
-
-**Resolution:**
-```
-RESOLVED: [Service] Incident
-Duration: [X] minutes | Impact: [affected users/transactions]
-Root Cause: [brief] | Resolution: [what was done]
-Follow-up: Postmortem scheduled [DATE]
-```

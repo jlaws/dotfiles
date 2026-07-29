@@ -15,18 +15,6 @@
 
 ## What to E2E Test
 
-**Do test:**
-- Critical user journeys (login, checkout, signup, payment)
-- Flows crossing multiple services/pages
-- Auth flows (OAuth, MFA, session expiry)
-- Cross-browser rendering of critical pages
-
-**Do NOT test:**
-- Every edge case (too slow -- use unit tests)
-- API contracts (use integration tests)
-- Visual styling details (use visual regression separately)
-- Internal state management
-
 **Rule of thumb**: If it's in the "happy path" a user follows to give you money, E2E test it.
 
 ## Test Design Patterns
@@ -44,12 +32,6 @@
 4. `getByTestId` -- last resort
 
 **Never use**: CSS classes, nth-child, complex XPath, DOM structure
-
-### Test Data Management
-- Each test creates its own data (API calls in `beforeEach` or fixtures)
-- Never depend on data from another test
-- Clean up after yourself -- or use isolated test accounts
-- Use unique identifiers (timestamps, UUIDs) to avoid collisions in parallel runs
 
 ## Flaky Test Prevention
 

@@ -169,7 +169,7 @@ Output ONLY a JSON object: {{"score": <1-5>, "reasoning": "<brief explanation>"}
 
 def llm_judge(client, question, reference, response):
     result = client.chat.completions.create(
-        model="gpt-4o",
+        model=JUDGE_MODEL,  # strong frontier model, from config -- not a pinned ID
         messages=[{"role": "user", "content": JUDGE_PROMPT.format(
             question=question, reference=reference, response=response
         )}],

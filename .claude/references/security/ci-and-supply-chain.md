@@ -34,18 +34,7 @@ PR opened -> lint -> test -> dependency audit -> SBOM -> build -> deploy
 | Medium | Info only | Track in backlog |
 | Low | Silent | Quarterly review |
 
-## Supply Chain Attack Patterns
-
-| Attack | Description | Mitigation |
-|--------|-------------|------------|
-| **Typosquatting** | `lodsah` instead of `lodash` | Verify package name carefully, use lock files |
-| **Dependency confusion** | Public package name matches internal name | Scope private packages (`@company/pkg`), registry configuration |
-| **Maintainer compromise** | Legitimate maintainer account hijacked | Pin exact versions, review changelogs before upgrade |
-| **Malicious postinstall** | Package runs code on `npm install` | `--ignore-scripts`, review install scripts |
-| **Protestware** | Maintainer inserts destructive/political code | Pin versions, review diffs, monitor advisories |
-| **Star jacking** | Fake GitHub stars to build trust | Check actual download counts, contributor history |
-
-### Defensive Measures
+## Defensive Measures
 
 ```bash
 # npm: disable install scripts by default

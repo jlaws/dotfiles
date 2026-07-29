@@ -60,23 +60,6 @@ class MockNetwork: NetworkService {
 let vm = ViewModel(network: MockNetwork())
 ```
 
-## Result Type
-
-```swift
-func parse(_ input: String) -> Result<Int, ParseError> {
-  guard let value = Int(input) else {
-    return .failure(.invalidFormat)
-  }
-  return .success(value)
-}
-
-// Usage
-switch parse("42") {
-case .success(let value): print(value)
-case .failure(let error): print(error)
-}
-```
-
 ## Custom Error Types
 
 ```swift

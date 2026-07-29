@@ -56,8 +56,6 @@ External content (web pages, logs, API responses) carries significant bloat. Cle
 
 **HTML to Markdown conversion reduces tokens 2-3x.** WebFetch does this automatically; when processing raw HTML, strip tags before reasoning.
 
-**Fetch-tool selection (cheapest first):** WebFetch for public/static pages (does HTML to Markdown for free); the agent-browser CLI when a page is JS-rendered or behind an auth wall; `pdftotext` for PDFs rather than the Read tool, which spends vision tokens on document pages.
-
 ## Command Output Shaping
 
 Shape tool and command output before it enters context — most of it is noise.
@@ -70,7 +68,7 @@ Shape tool and command output before it enters context — most of it is noise.
 | Cap large output | Write big output to a scratch file, then Grep it — do not inline megabytes |
 | Prefer compact flags | `git status --porcelain`, `git log --oneline`, `ls -1`, `--quiet` |
 
-**Hard constraint:** preserve failures, exit codes, and error strings **verbatim**. Shaping is for noise, never for evidence — `verification-before-completion` depends on the real output.
+**Hard constraint:** preserve failures, exit codes, and error strings **verbatim**. Shaping is for noise, never for evidence — `verification-before-completion`'s evidence hierarchy ranks a reproduced run as the strongest support for a claim, so the real output has to survive intact to be cited.
 
 ## Context Budget
 
@@ -95,21 +93,6 @@ When a task involves heavy research that could bloat the main context, consider 
 | Single-pass analysis | Complete each analysis phase fully before starting the next |
 
 **Reversible summarization:** before you summarize or drop large output, persist the full original to a scratch file and cite its path — detail stays recoverable. Only summarize (or delegate to a subagent for context savings) when the estimated tokens saved exceed the overhead; scale compression intensity up as the window fills.
-
-## Parallel Tool Calls
-
-Each sequential tool call is a round trip. Batch independent operations to reduce turns.
-
-```markdown
-# Bad: 3 sequential turns
-Read file A → Read file B → Read file C
-
-# Good: 1 turn
-Read file A + Read file B + Read file C (parallel)
-```
-
-**When to parallelize**: operations with no data dependencies between them.
-**When NOT to**: one result informs the next call's parameters.
 
 ## CLAUDE.md as Stable Prefix
 

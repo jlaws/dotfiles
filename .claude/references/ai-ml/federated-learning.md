@@ -111,25 +111,17 @@ class FedProxClient(FedClient):
 
 ## Differential Privacy Integration
 
-```python
-class DPFedAvgClient(FedClient):
-    """Per-sample gradient clipping + Gaussian noise for (epsilon, delta)-DP."""
-    def __init__(self, model_fn, loader, lr=0.01, local_epochs=5,
-                 max_grad_norm=1.0, noise_multiplier=1.1):
-        super().__init__(model_fn, loader, lr, local_epochs)
-        self.max_grad_norm = max_grad_norm
-        self.noise_multiplier = noise_multiplier
+DP-SGD clips **per-sample** gradients to `max_grad_norm`, then adds Gaussian noise scaled by
+`noise_multiplier * max_grad_norm` to the summed batch gradient.
 
-    def clip_and_noise(self, batch_size: int):
-        total_norm = torch.sqrt(sum(
-            p.grad.norm(2) ** 2 for p in self.model.parameters() if p.grad is not None))
-        clip_coef = min(1.0, self.max_grad_norm / (total_norm + 1e-6))
-        for p in self.model.parameters():
-            if p.grad is not None:
-                p.grad.mul_(clip_coef)
-                p.grad.add_(torch.randn_like(p.grad) * (
-                    self.noise_multiplier * self.max_grad_norm / batch_size))
-```
+**Do not hand-roll this.** After `loss.backward()` PyTorch has already reduced gradients across
+the batch, so clipping `p.grad` at that point bounds the *batch* norm, not any individual
+sample's contribution -- it yields no per-sample sensitivity bound and therefore no
+`(epsilon, delta)` guarantee, however plausible the clip-then-noise code looks. Getting the
+guarantee requires materializing per-sample gradients (vectorized hooks) plus an accountant to
+compose epsilon over steps. Use Opacus, which does both: see
+`references/privacy-techniques.md` for the `make_private_with_epsilon` setup and the
+`target_epsilon` / `max_grad_norm` parameter ranges.
 
 ### Privacy Budget Intuition
 - epsilon < 1: Strong privacy, significant accuracy cost

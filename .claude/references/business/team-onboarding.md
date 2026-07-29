@@ -1,27 +1,5 @@
 # Team Onboarding
 
-## Pre-Onboarding
-
-- Create accounts (email, Slack, GitHub, AWS, etc.) with SSO/2FA
-- Prepare hardware, temporary credentials, password manager guide
-- Compile role-specific docs, update org charts
-- Configure calendar with initial meetings
-
-## Week 1: Orientation & Immersion
-
-**Day 1:** Manager welcome, team intros, role expectations, IT setup, HR paperwork
-
-**Codebase:**
-- Architecture overview and system diagrams
-- Main repos walkthrough with tech lead
-- Dev workflow, branching strategy, code style
-- CI/CD, deployment, monitoring tour
-
-**First Contributions:**
-- "Good first issues" tasks
-- Pair programming on simple fix
-- Submit first PR with buddy guidance
-
 ## Dev Environment Setup
 
 - IDE + extensions, linters, formatters, debugger, git config

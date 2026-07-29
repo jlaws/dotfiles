@@ -44,26 +44,11 @@ def extract_with_fallback(
 
 ## Exponential Backoff with Jitter
 
-```python
-import random
-import time
-
-def retry_with_backoff(
-    fn,
-    max_retries: int = 3,
-    base_delay: float = 0.5,
-    max_delay: float = 30.0,
-):
-    for attempt in range(max_retries):
-        try:
-            return fn()
-        except Exception as e:
-            if attempt == max_retries - 1:
-                raise
-            delay = min(base_delay * (2 ** attempt), max_delay)
-            jitter = random.uniform(0, delay * 0.1)
-            time.sleep(delay + jitter)
-```
+Cap `base_delay * 2 ** attempt` at a `max_delay` and add proportional jitter so concurrent
+clients don't retry in lockstep. Before writing this yourself, check the provider SDK --
+both the OpenAI and Anthropic clients already retry 429/5xx with backoff internally
+(`max_retries`, default 2), so a hand-rolled wrapper around them multiplies attempts:
+`max_retries` outer x SDK retries inner.
 
 ## Chunked Extraction for Long Documents
 
@@ -104,17 +89,19 @@ class ExtractionResult:
     is_partial: bool
     error: str | None
 
-def extract_graceful(text: str, schema_cls) -> ExtractionResult:
+def extract_graceful(text: str, schema_cls, fallback_schema_cls=None) -> ExtractionResult:
     """Extract with full fallback chain, always returns a result."""
     # Try full extraction
     result = extract_with_fallback(text, schema_cls)
     if result:
         return ExtractionResult(data=result, provider="auto", is_partial=False, error=None)
 
-    # Try simplified schema
-    simple_result = extract_with_fallback(text, schema_cls.simplified())
-    if simple_result:
-        return ExtractionResult(data=simple_result, provider="auto", is_partial=True, error=None)
+    # Try a smaller hand-written schema: required fields only, no nesting.
+    # Define it as its own model -- Pydantic has no built-in "simplify" operation.
+    if fallback_schema_cls is not None:
+        simple_result = extract_with_fallback(text, fallback_schema_cls)
+        if simple_result:
+            return ExtractionResult(data=simple_result, provider="auto", is_partial=True, error=None)
 
     # Return empty with error
     return ExtractionResult(data=None, provider=None, is_partial=False, error="All extraction attempts failed")

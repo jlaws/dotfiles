@@ -44,80 +44,9 @@ Level 4 (Product):       Polished, scalable, monitored
 
 Ship Level 2. Iterate to Level 3 only after validation. Most features never need Level 4.
 
-## Feature Flag Gated MVP
-
-```typescript
-interface MVPConfig {
-  flags: Record<string, {
-    enabled: boolean;
-    allowList: string[];  // Early access user IDs
-    level: 0 | 1 | 2 | 3 | 4;
-  }>;
-}
-
-const mvpConfig: MVPConfig = {
-  flags: {
-    "ai-summary": {
-      enabled: true,
-      allowList: ["user_alpha1", "user_alpha2"],
-      level: 2,  // Duct tape: works but slow, no caching
-    },
-    "team-sharing": {
-      enabled: false,
-      allowList: [],
-      level: 0,  // Wizard of Oz: founder manually shares via email
-    },
-    "export-pdf": {
-      enabled: true,
-      allowList: [],
-      level: 1,  // Concierge: queues request, team generates manually
-    },
-  },
-};
-
-function canAccess(feature: string, userId: string): boolean {
-  const flag = mvpConfig.flags[feature];
-  if (\!flag || \!flag.enabled) return false;
-  if (flag.allowList.length === 0) return true;
-  return flag.allowList.includes(userId);
-}
-```
-
 ## Analytics-First Architecture
 
-Instrument before you build. Every MVP feature should emit events from day one.
-
-```typescript
-class Analytics {
-  private providers: AnalyticsProvider[] = [];
-  constructor(providers: AnalyticsProvider[]) { this.providers = providers; }
-
-  track(event: { name: string; properties: Record<string, string | number | boolean> }): void {
-    const enriched = {
-      ...event,
-      timestamp: new Date(),
-      properties: {
-        ...event.properties,
-        app_version: process.env.APP_VERSION ?? "unknown",
-        environment: process.env.NODE_ENV ?? "development",
-      },
-    };
-    for (const p of this.providers) p.send(enriched).catch(console.error);
-  }
-
-  trackMVPFunnel(step: string, userId: string, meta?: Record<string, string>): void {
-    this.track({ name: `mvp_funnel_${step}`, properties: { userId, step, ...meta } });
-  }
-}
-
-// Validate your hypothesis with data
-analytics.trackMVPFunnel("landed", userId);
-analytics.trackMVPFunnel("signed_up", userId, { source: "google" });
-analytics.trackMVPFunnel("completed_onboarding", userId);
-analytics.trackMVPFunnel("first_value_moment", userId);
-analytics.trackMVPFunnel("returned_day1", userId);
-analytics.trackMVPFunnel("converted_paid", userId, { plan: "pro" });
-```
+Instrument before you build. Every MVP feature should emit events from day one: track the funnel steps (landed, signed up, completed onboarding, first value moment, returned day 1, converted to paid) so pivot/persevere/kill decisions are based on data, not gut feel.
 
 ## Modular Monolith Starter
 
@@ -133,7 +62,7 @@ export class CoreService {
 
   async processItem(userId: string, item: Item): Promise<Result> {
     const canProcess = await this.billing.checkQuota(userId);
-    if (\!canProcess) throw new QuotaExceededError(userId);
+    if (!canProcess) throw new QuotaExceededError(userId);
     const result = await this.doWork(item);
     await this.billing.recordUsage(userId, 1);
     return result;

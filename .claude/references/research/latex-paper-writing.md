@@ -82,8 +82,8 @@ Your abstract (NeurIPS: max 250 words).
 \REQUIRE Learning rate $\eta$, momentum $\beta$, initial params $\param_0$
 \ENSURE Trained parameters $\param_T$
 \STATE $\mathbf{v}_0 \leftarrow \mathbf{0}$
-\FOR{ = 1$ \TO $}
-    \STATE Sample mini-batch  \sim \dataset$
+\FOR{$t = 1$ \TO $T$}
+    \STATE Sample mini-batch $B_t \sim \dataset$
     \STATE $\mathbf{g}_t \leftarrow \nabla_{\param} \loss(\param_{t-1}; B_t)$
     \STATE $\mathbf{v}_t \leftarrow \beta \mathbf{v}_{t-1} + \mathbf{g}_t$
     \STATE $\param_t \leftarrow \param_{t-1} - \eta \mathbf{v}_t$

@@ -43,29 +43,9 @@ See references/changelog-patterns.md for Keep a Changelog format, styles, and ru
 | "You can override the default" (second person) | "One can override the default" |
 | "This method throws if..." (direct) | "It should be noted that this method..." |
 
-### Document the Why, Not the What
-- In code: comments explain the **why** (reasoning, constraints, tradeoffs) -- the code already shows the what
-- In READMEs: explain purpose and concepts before diving into API details
-- Don't comment obvious code (`i += 1  # increment i`); do comment surprising decisions (`# Using POST not GET because payload exceeds URL length limits`)
-
-### Code-First Principle
-- Show code before explaining it
-- Prefer a 3-line example over a 3-paragraph explanation
-- Annotate code with inline comments, not surrounding prose
-- Every concept gets a runnable example
-
 ### Sentence Structure
-- Lead with the action or outcome
-- One idea per sentence
 - Max 25 words per sentence for instructional content
 - Use "Note:" sparingly; if everything is a note, nothing is
-
-### Word Choice (Hemingway)
-- Prefer simple, common words; a 10-year-old should follow
-- Positive over negative: state what is, not what isn't
-- Cut -ly adverbs and filler modifiers
-- Plain verbs: "use" not "utilize", "looked" not "gazed"
-- Short sentences carry weight; a rare vivid word is fine, used sparingly
 
 ## Information Architecture
 

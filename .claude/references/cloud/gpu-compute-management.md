@@ -40,7 +40,7 @@ def setup_device(gpu_id: int = 0) -> torch.device:
 ### Multi-GPU Launch Script
 
 ```bash
-#\!/bin/bash
+#!/bin/bash
 # launch_distributed.sh -- torchrun wrapper with defaults
 
 NUM_GPUS=${1:-$(nvidia-smi -L | wc -l)}
@@ -58,7 +58,7 @@ torchrun \
 ### Multi-Node Launch (SLURM)
 
 ```bash
-#\!/bin/bash
+#!/bin/bash
 #SBATCH --job-name=train
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=1
@@ -131,13 +131,13 @@ class SpotCheckpointer:
 ### AWS Spot Termination Detection
 
 ```bash
-#\!/bin/bash
+#!/bin/bash
 # Poll EC2 metadata for spot termination notice
 while true; do
     RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
         http://169.254.169.254/latest/meta-data/spot/instance-action)
     if [ "$RESPONSE" -eq 200 ]; then
-        echo "Spot termination notice received\!"
+        echo "Spot termination notice received!"
         kill -SIGTERM $(pgrep -f train.py)
         break
     fi

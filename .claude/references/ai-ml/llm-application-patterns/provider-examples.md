@@ -2,6 +2,10 @@
 
 Extended code examples for each structured output provider. For method selection and quick-reference, see the [Structured Output section](../SKILL.md#structured-output) in the parent skill.
 
+`OPENAI_MODEL` below stands in for whichever model alias you configure. Prefer undated
+aliases (Anthropic's `claude-sonnet-5`, `claude-opus-5`) over date-pinned snapshot IDs --
+aliases float across model generations, pinned snapshots go stale and eventually 404.
+
 ## OpenAI Structured Outputs
 
 ### Nested Schemas
@@ -26,7 +30,7 @@ class PersonExtraction(BaseModel):
 
 # Works with nested models -- OpenAI generates valid nested JSON
 completion = client.beta.chat.completions.parse(
-    model="gpt-4o",
+    model=OPENAI_MODEL,
     messages=[{"role": "user", "content": f"Extract person info: {text}"}],
     response_format=PersonExtraction,
 )
@@ -116,7 +120,7 @@ class UserInfo(BaseModel):
         return v.lower()
 
 user = client.chat.completions.create(
-    model="gpt-4o",
+    model=OPENAI_MODEL,
     response_model=UserInfo,
     messages=[{"role": "user", "content": f"Extract user info: {text}"}],
 )
@@ -132,7 +136,7 @@ import anthropic
 client = instructor.from_anthropic(anthropic.Anthropic())
 
 user = client.messages.create(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-sonnet-5",
     max_tokens=1024,
     response_model=UserInfo,
     messages=[{"role": "user", "content": f"Extract user info: {text}"}],
@@ -145,7 +149,7 @@ user = client.messages.create(
 # Instructor automatically retries when validation fails, feeding
 # the validation error back to the model (up to max_retries)
 user = client.chat.completions.create(
-    model="gpt-4o",
+    model=OPENAI_MODEL,
     response_model=UserInfo,
     max_retries=3,  # Retries with validation error context
     messages=[{"role": "user", "content": f"Extract: {text}"}],
@@ -157,7 +161,7 @@ user = client.chat.completions.create(
 ```python
 # Stream partial results as they're generated
 for partial_user in client.chat.completions.create_partial(
-    model="gpt-4o",
+    model=OPENAI_MODEL,
     response_model=UserInfo,
     messages=[{"role": "user", "content": f"Extract: {text}"}],
 ):
@@ -184,7 +188,7 @@ class TicketClassification(BaseModel):
     reasoning: str = Field(description="Brief explanation of classification")
 
 result = client.chat.completions.create(
-    model="gpt-4o",
+    model=OPENAI_MODEL,
     response_model=TicketClassification,
     messages=[
         {"role": "system", "content": "Classify support tickets accurately."},

@@ -18,135 +18,15 @@
 
 ### ReAct (Reasoning + Acting)
 
-The default pattern. Model alternates between reasoning (think) and acting (tool call).
-
-```python
-import anthropic
-
-client = anthropic.Anthropic()
-
-def react_agent(question: str, tools: list[dict], max_steps: int = 10) -> str:
-    system = """You are a helpful agent. For each step:
-1. Think about what you need to do next
-2. Use a tool if needed
-3. When you have enough information, provide the final answer"""
-
-    messages = [{"role": "user", "content": question}]
-
-    for step in range(max_steps):
-        response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=4096,
-            system=system,
-            tools=tools,
-            messages=messages,
-        )
-
-        if response.stop_reason == "end_turn":
-            text_blocks = [b.text for b in response.content if b.type == "text"]
-            return "\n".join(text_blocks)
-
-        # Process tool calls
-        tool_results = []
-        for block in response.content:
-            if block.type == "tool_use":
-                result = execute_tool(block.name, block.input)
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": str(result),
-                })
-
-        messages.append({"role": "assistant", "content": response.content})
-        messages.append({"role": "user", "content": tool_results})
-
-    return "Max steps reached without resolution"
-```
+The default pattern. Model alternates between reasoning (think) and acting (tool call). Loop until `stop_reason == "end_turn"`, appending the full `response.content` each turn so `tool_use` blocks are preserved.
 
 ### Plan-and-Execute
 
-Separate planning from execution. Model generates a plan upfront, then executes steps sequentially.
-
-```python
-def plan_and_execute(question: str, tools: list[dict]) -> str:
-    # Phase 1: Generate plan
-    plan_response = client.messages.create(
-        model="claude-sonnet-4-5-20250929",
-        max_tokens=2048,
-        messages=[{"role": "user", "content": f"""Create a step-by-step plan to answer this question.
-Return a numbered list of steps. Each step should be a single action.
-
-Question: {question}"""}],
-    )
-    plan = plan_response.content[0].text
-
-    # Phase 2: Execute each step
-    context = []
-    for step in parse_plan_steps(plan):
-        step_result = react_agent(
-            f"Execute this step: {step}\n\nContext from previous steps:\n{chr(10).join(context)}",
-            tools=tools,
-            max_steps=3,
-        )
-        context.append(f"Step: {step}\nResult: {step_result}")
-
-    # Phase 3: Synthesize
-    synthesis = client.messages.create(
-        model="claude-sonnet-4-5-20250929",
-        max_tokens=2048,
-        messages=[{"role": "user", "content": f"""Original question: {question}
-Execution results:
-{chr(10).join(context)}
-
-Synthesize a final answer."""}],
-    )
-    return synthesis.content[0].text
-```
+Separate planning from execution. Model generates a plan upfront, then executes steps sequentially, then synthesizes a final answer from the accumulated step results.
 
 ### Tree-of-Thought
 
-Generate multiple reasoning paths, evaluate each, expand the most promising.
-
-```python
-def tree_of_thought(problem: str, breadth: int = 3, depth: int = 3) -> str:
-    def generate_thoughts(state: str, n: int) -> list[str]:
-        response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=2048,
-            messages=[{"role": "user", "content": f"""Problem: {problem}
-Current reasoning: {state}
-
-Generate {n} distinct next reasoning steps. Return each on a new line prefixed with [THOUGHT]."""}],
-        )
-        return parse_thoughts(response.content[0].text)
-
-    def evaluate_thought(state: str) -> float:
-        response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=256,
-            messages=[{"role": "user", "content": f"""Rate this reasoning path from 0.0 to 1.0 for correctness and progress toward solving: {problem}
-
-Reasoning: {state}
-
-Return only a number."""}],
-        )
-        return float(response.content[0].text.strip())
-
-    # BFS with pruning
-    current_states = [""]
-    for _ in range(depth):
-        candidates = []
-        for state in current_states:
-            thoughts = generate_thoughts(state, breadth)
-            for thought in thoughts:
-                new_state = f"{state}\n{thought}" if state else thought
-                score = evaluate_thought(new_state)
-                candidates.append((score, new_state))
-        candidates.sort(reverse=True, key=lambda x: x[0])
-        current_states = [s for _, s in candidates[:breadth]]
-
-    return current_states[0]
-```
+Generate multiple reasoning paths, evaluate each, expand the most promising. BFS over reasoning states, scoring each candidate and keeping the top `breadth` per level.
 
 ## Tool Design Principles
 
@@ -198,86 +78,11 @@ Always return structured errors. Models recover better from `{"status": "error",
 
 ### Supervisor Pattern
 
-One orchestrator agent delegates to specialist agents.
-
-```python
-def supervisor_agent(question: str, specialists: dict[str, callable]) -> str:
-    router_tools = [
-        {
-            "name": "delegate",
-            "description": "Delegate a sub-task to a specialist agent.",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "specialist": {
-                        "type": "string",
-                        "enum": list(specialists.keys()),
-                        "description": "Which specialist to delegate to",
-                    },
-                    "task": {"type": "string", "description": "The sub-task description"},
-                },
-                "required": ["specialist", "task"],
-            },
-        }
-    ]
-
-    messages = [{"role": "user", "content": question}]
-    for _ in range(10):
-        response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=4096,
-            system="You are a supervisor. Break the task into sub-tasks and delegate to specialists. Synthesize results.",
-            tools=router_tools,
-            messages=messages,
-        )
-        if response.stop_reason == "end_turn":
-            return response.content[0].text
-
-        tool_results = []
-        for block in response.content:
-            if block.type == "tool_use":
-                specialist_fn = specialists[block.input["specialist"]]
-                result = specialist_fn(block.input["task"])
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": result,
-                })
-        messages.append({"role": "assistant", "content": response.content})
-        messages.append({"role": "user", "content": tool_results})
-```
+One orchestrator agent delegates to specialist agents. Expose delegation as a single `delegate` tool whose `specialist` property is an `enum` of the available specialist names -- this constrains routing to real specialists instead of letting the model invent one.
 
 ### Debate Pattern
 
 Two agents argue for/against, a judge decides.
-
-```python
-def debate_agents(question: str, rounds: int = 2) -> str:
-    pro_history, con_history = [], []
-
-    for r in range(rounds):
-        pro = client.messages.create(
-            model="claude-sonnet-4-5-20250929", max_tokens=1024,
-            system="You argue FOR the proposition. Be specific and cite evidence.",
-            messages=[{"role": "user", "content": f"Question: {question}\nRound {r+1}. Previous debate:\n{format_debate(pro_history, con_history)}"}],
-        ).content[0].text
-        pro_history.append(pro)
-
-        con = client.messages.create(
-            model="claude-sonnet-4-5-20250929", max_tokens=1024,
-            system="You argue AGAINST the proposition. Counter the pro arguments specifically.",
-            messages=[{"role": "user", "content": f"Question: {question}\nRound {r+1}. Previous debate:\n{format_debate(pro_history, con_history)}"}],
-        ).content[0].text
-        con_history.append(con)
-
-    # Judge synthesizes
-    verdict = client.messages.create(
-        model="claude-sonnet-4-5-20250929", max_tokens=1024,
-        system="You are an impartial judge. Evaluate both sides and give a final verdict with reasoning.",
-        messages=[{"role": "user", "content": f"Question: {question}\n\nFull debate:\n{format_debate(pro_history, con_history)}"}],
-    )
-    return verdict.content[0].text
-```
 
 ## Agent Evaluation
 
@@ -289,30 +94,6 @@ def debate_agents(question: str, rounds: int = 2) -> str:
 | **Cost** | Total tokens consumed | Sum input + output tokens across all turns |
 | **Hallucination rate** | Did it fabricate tool results or facts? | Check claims against tool outputs |
 
-```python
-def evaluate_agent(agent_fn, test_cases: list[dict]) -> dict:
-    results = []
-    for case in test_cases:
-        trace = []
-        result = agent_fn(case["question"], trace_callback=trace.append)
-        results.append({
-            "question": case["question"],
-            "expected": case["expected_answer"],
-            "actual": result,
-            "correct": check_answer(result, case["expected_answer"]),
-            "num_steps": len(trace),
-            "tools_used": [t["name"] for t in trace],
-            "expected_tools": case.get("expected_tools", []),
-            "tool_accuracy": compute_tool_accuracy(trace, case.get("expected_tools", [])),
-        })
-    return {
-        "task_completion": sum(r["correct"] for r in results) / len(results),
-        "avg_steps": sum(r["num_steps"] for r in results) / len(results),
-        "tool_accuracy": sum(r["tool_accuracy"] for r in results) / len(results),
-        "results": results,
-    }
-```
-
 ## Guardrails
 
 | Guardrail | Default | Why |
@@ -323,32 +104,6 @@ def evaluate_agent(agent_fn, test_cases: list[dict]) -> dict:
 | **Human-in-the-loop** | On destructive actions | Prevents irreversible damage |
 | **Tool allowlist** | Explicit per agent | Limits blast radius |
 | **Output validation** | Schema check on final output | Ensures usable result |
-
-```python
-import time
-from dataclasses import dataclass
-
-@dataclass
-class AgentBudget:
-    max_steps: int = 15
-    max_tokens: int = 100_000
-    timeout_seconds: float = 120.0
-    require_approval_for: list[str] | None = None  # Tool names needing human approval
-
-    def check(self, steps: int, tokens: int, start_time: float):
-        if steps >= self.max_steps:
-            raise BudgetExceeded(f"Max steps ({self.max_steps}) exceeded")
-        if tokens >= self.max_tokens:
-            raise BudgetExceeded(f"Token budget ({self.max_tokens}) exceeded")
-        elapsed = time.time() - start_time
-        if elapsed >= self.timeout_seconds:
-            raise BudgetExceeded(f"Timeout ({self.timeout_seconds}s) exceeded")
-
-    def needs_approval(self, tool_name: str) -> bool:
-        if self.require_approval_for is None:
-            return False
-        return tool_name in self.require_approval_for
-```
 
 ## Gotchas
 
