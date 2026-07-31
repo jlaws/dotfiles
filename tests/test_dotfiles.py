@@ -15,6 +15,7 @@ from macos_setup.dotfiles import (
     revert_files,
     sha256_file,
     sync_agents,
+    sync_dotfiles,
 )
 
 
@@ -139,6 +140,38 @@ class RemovePathTests(unittest.TestCase):
 
         self.assertEqual(original.read_text(), "state")
         self.assertIn(str(original), summary.restored)
+
+
+class SyncDotfilesTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.repo = self.tmp / "repo"
+        self.home = self.tmp / "home"
+        self.archive = Archive.create(self.tmp / "arch", "ts")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_syncs_vim_runtime_files(self):
+        colorscheme = self.repo / ".vim" / "colors" / "solarized.vim"
+        colorscheme.parent.mkdir(parents=True)
+        colorscheme.write_text("solarized")
+
+        sync_dotfiles(self.repo, self.home, self.archive)
+
+        installed = self.home / ".vim" / "colors" / "solarized.vim"
+        self.assertEqual(installed.read_text(), "solarized")
+
+    def test_creates_vim_state_directories(self):
+        for name in ("backup", "undo", "swap"):
+            marker = self.repo / ".vim" / name / ".gitkeep"
+            marker.parent.mkdir(parents=True)
+            marker.touch()
+
+        sync_dotfiles(self.repo, self.home, self.archive)
+
+        for name in ("backup", "undo", "swap"):
+            self.assertTrue((self.home / ".vim" / name).is_dir())
 
 
 class SyncAgentsTests(unittest.TestCase):
