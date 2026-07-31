@@ -27,7 +27,7 @@ make test     # stdlib unittest suite (python -m unittest)
 ```
 
 ### What setup.sh does:
-1. **Syncs dotfiles** to `~` (root dotfiles + agent configs), archiving replaced files first
+1. **Syncs dotfiles** to `~` (root dotfiles, `.vim/` runtime, and agent configs), archiving replaced files first
 2. **Installs Homebrew packages**: coreutils, findutils, fd, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump, mermaid-cli, poppler, rustup, mold, uv, node, pyright; initializes the stable Rust toolchain and `rust-analyzer` component through rustup
 3. **Configures macOS**: ~200 `defaults` settings for Finder, Dock, Safari, security, etc., snapshotting each domain first
 
@@ -41,6 +41,7 @@ Homebrew packages are not uninstalled.
 ```
 dotfiles/
 ├── Root dotfiles (.zshrc, .extra, .gitconfig, .vimrc, .editorconfig, etc.)
+├── .vim/               # Solarized colorscheme, syntax files, and state directories
 ├── ghosty_config.txt  # Ghostty terminal configuration reference
 ├── setup.sh           # Entry-point shim → python3 -m macos_setup
 ├── macos_setup/       # Python package: install + archive + uninstall/reset
@@ -68,7 +69,8 @@ dotfiles/
 | `.zshrc` | Loads Oh My Zsh, sources `.extra` |
 | `.extra` | 60+ aliases, functions, PATH setup (234 lines) |
 | `.gitconfig` | Git aliases (`l`, `s`, `d`, `go`, `dm`, `amend`) |
-| `.vimrc` | Solarized Dark, relative line numbers, centralized backups |
+| `.vimrc` | Solarized Dark, relative line numbers, centralized backup/undo/swap files |
+| `.vim/` | Solarized colorscheme, syntax files, and state directories |
 | `setup.sh` | Shim that execs `python3 -m macos_setup` |
 | `macos_setup/` | Install/archive/uninstall package (stdlib only) |
 | `ghosty_config.txt` | Ghostty terminal configuration reference |

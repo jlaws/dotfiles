@@ -78,12 +78,14 @@ Or skip confirmation prompts:
 
 `setup.sh` is a thin shim that runs the `macos_setup` Python package (Python 3.12+, standard
 library only — no virtualenv or pip installs at runtime). It performs three main tasks and
-**archives everything it changes** so a run can be undone later (see [Uninstall / Reset](#uninstall--reset)).
+**archives every file and setting it changes** so a run can be undone later (see
+[Uninstall / Reset](#uninstall--reset)).
 
 ### 1. Sync Dotfiles
 Copies the dotfiles and agent configs to your home directory. Before overwriting any existing
 file, the original is saved into the run's archive; newly created files are tracked so they can
-be removed on uninstall.
+be removed on uninstall. The Vim runtime tree includes the Solarized colorscheme and creates
+`~/.vim/backup`, `~/.vim/undo`, and `~/.vim/swap`.
 
 ### 2. Install Packages (via Homebrew)
 - **GNU utilities**: `coreutils`, `findutils`, `gnu-sed`, `moreutils`
@@ -126,7 +128,8 @@ matches what setup applied. If you changed it afterward, it is left untouched an
 `user-modified, left as-is`. Files that setup replaced are restored from the archive; files it
 newly added are removed. System-level settings (`pmset`, `nvram`, `systemsetup`, firewall) are
 reverted on a best-effort basis — readable values are restored, and anything that can't be read
-back precisely is returned to a known macOS default and logged.
+back precisely is returned to a known macOS default and logged. Empty parent directories created
+while installing managed files are retained.
 
 ## Manual Configuration
 
@@ -151,6 +154,7 @@ Some settings can't be automated and require manual setup:
 | `.gitignore` | Global gitignore patterns |
 | `.editorconfig` | Editor settings (indent style, charset, etc.) |
 | `.vimrc` | Vim configuration |
+| `.vim/` | Vim Solarized colorscheme, syntax files, and state directories |
 | `.hushlogin` | Suppress "Last login" message in terminal |
 | `.gitattributes` | Git file handling attributes |
 | `.wgetrc` | Wget configuration |

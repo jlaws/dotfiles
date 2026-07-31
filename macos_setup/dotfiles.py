@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 _LOG = logging.getLogger(__name__)
 
-# Root dotfiles synced into the home directory (matches the original rsync allowlist).
+# Root dotfile paths synced into the home directory. Files and directories are both allowed.
 ROOT_DOTFILES = [
     ".editorconfig",
     ".extra",
@@ -29,6 +29,7 @@ ROOT_DOTFILES = [
     ".gitignore",
     ".hushlogin",
     ".python-version",
+    ".vim",
     ".vimrc",
     ".wgetrc",
     ".zshrc",
@@ -192,17 +193,14 @@ def _iter_pairs(src: Path, dest: Path) -> Iterator[tuple[Path, Path]]:
 
 def sync_dotfiles(repo: Path, home: Path, archive: Archive, *, dry_run: bool = False) -> None:
     """Sync the root dotfile allowlist from ``repo`` into ``home``."""
-    _LOG.info("Syncing %d dotfiles to %s", len(ROOT_DOTFILES), home)
+    _LOG.info("Syncing dotfiles to %s", home)
     for name in ROOT_DOTFILES:
-        src = repo / name
-        if not src.exists():
-            continue
-        dest = home / name
-        if dry_run:
-            _LOG.info("would sync %s", dest)
-            continue
-        apply_file(src, dest, archive)
-        _LOG.debug("sync %s", dest)
+        for src, dest in _iter_pairs(repo / name, home / name):
+            if dry_run:
+                _LOG.info("would sync %s", dest)
+                continue
+            apply_file(src, dest, archive)
+            _LOG.debug("sync %s", dest)
 
 
 def _agent_removal_paths(repo: Path, target: Path) -> Iterator[Path]:
