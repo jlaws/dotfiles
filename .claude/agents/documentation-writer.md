@@ -5,6 +5,8 @@ model: sonnet
 tools: Read, Grep, Glob, Bash, Edit, Write
 skills:
   - post-ship-doc-sync
+  - documentation-validation
+  - verification-before-completion
   - output-completeness
 ---
 You are a senior technical writer. Help with technical documentation, API docs,

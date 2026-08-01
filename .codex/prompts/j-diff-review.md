@@ -1,6 +1,6 @@
 ---
 name: j-diff-review
-description: "Deep multi-perspective diff review — code quality, security, testing gaps, and language-specific gotchas. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
+description: "Deep multi-perspective diff review — code quality, security, testing gaps, documentation drift, observability gaps, and language-specific gotchas. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
 argument-hint: "<diff-ref-or-branch>"
 ---
 
@@ -127,6 +127,10 @@ Analyze the diff from each perspective independently, then merge findings.
 
 **4.5 Language-Specific Gotchas** — Apply auto-detected language patterns. See Language-Specific Review Gotchas subsection below.
 
+**4.6 Documentation** — Cross-reference `workflow:documentation-validation`: does the diff change public surface (API, CLI, config) or documented behavior without updating README/API docs/CHANGELOG? Flag stale docs as a finding.
+
+**4.7 Observability** — New code paths with no logging, metrics, or tracing; errors swallowed without a log; new endpoints or jobs with no SLO or alert; analytics events absent from the tracking plan.
+
 #### Step 5 — Structured Findings Report
 
 ```markdown
@@ -144,21 +148,32 @@ Analyze the diff from each perspective independently, then merge findings.
 ### Test Gaps
 - {description of missing coverage}
 
+### Doc Gaps
+- {doc that no longer matches the code, or public surface with no doc}
+
+### Observability Gaps
+- {code path with no instrumentation, or error path with no signal}
+
 ### What Looks Good
 - {positive observation}
 ```
 
 Omit empty severity sections. Always include "What Looks Good".
 
-#### Step 6 — Decision Gate
+#### Step 6 — Disposition Ladder
 
-**Default: report only.** Do NOT automatically implement fixes.
+The agents reported; none of them changed anything. Every finding is now yours to dispose of. For each one, take the first rung that applies — do not skip ahead:
 
-After presenting findings, ask:
-1. Implement fixes for findings above
-2. Nothing — review complete
+1. **Fix it** — if the fix is reasonably scoped: clear defect, inside the diff's boundary, verifiable. Apply it, run the project's checks, commit atomically.
+2. **Add it to the active plan** — if a plan-mode plan is open, append the finding there as a future phase. **Never create a new plan file.**
+3. **Add it to the repository's future-work mechanism** — if the repo has one, follow its convention (`TODO.md`, `docs/plans/`, GitHub issues, a tracker named in AGENTS.md or CONTRIBUTING.md). Detect it; do not invent one.
+4. **Ask** — nothing above applied. Ask the user, carrying a recommendation and the research behind it.
 
-If implementing, follow PR Comment Resolution Step 4 (scope guard, atomic commits, verify before push).
+Read the code a finding touches before deciding. Reaching rung 4 without having researched is the failure mode; so is skipping rung 1 for something you could simply have fixed.
+
+**Handing back a findings list with no disposition is a failed run.** State the rung for every finding.
+
+Scope guard: fixing a finding does not license unrelated refactors. A fix that grows past the diff's boundary drops to rung 2. Follow PR Comment Resolution Step 4 (scope guard, atomic commits, verify before push).
 
 ---
 
@@ -220,29 +235,35 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 ### Multi-Perspective Review
 
-For thorough coverage, analyze the diff from each perspective below. Delegate them to specialist agents in parallel when the diff is large (the perspectives are independent):
+Analyze the diff from all six perspectives below. They are independent:
 
 1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection — covers Step 4.3
 2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY — covers Steps 4.1, 4.2
 3. **Testing** — Coverage gaps, test quality, missing integration tests — covers Step 4.4
 4. **Language-Specific** — Language-specific gotchas, idiom violations — covers Step 4.5
+5. **Documentation** — Stale docs, undocumented public surface, drifted paths and counts — covers Step 4.6
+6. **Observability** — Missing instrumentation, silent error paths, absent SLOs and alerts — covers Step 4.7
 
 #### Workflow
 1. Execute Steps 1-3 (identify changes, gather context, detect scope)
-2. Analyze the full diff from each perspective above — inline for small diffs, or delegate to the agents below in parallel for large ones
+2. Dispatch all six agents below in parallel, in a single message, on every review. Give each the same frozen packet: the diff, the changed-file list, and the branch name
 3. Deduplicate findings across perspectives, resolve contradictions; verify each agent's findings against the diff
-4. Produce Step 5 structured report + Step 6 decision gate
+4. Produce Step 5 structured report + Step 6 disposition ladder
 
 #### Agent per Perspective
 
-Delegate each perspective to its specialist agent (each loads the listed skills + references):
+Delegate each perspective to its specialist agent (each loads the listed skills + references).
+
+Every dispatched agent **reports only** — it returns findings and edits nothing. The report-only default in Code Review Patterns governs the agents that load it; disposition is the outer agent's job (Step 6). An agent whose lens does not apply to this diff returns "no findings — surface not present" rather than manufacturing material.
 
 | Perspective | Agent | Loads |
 |---|---|---|
 | Security | `security-reviewer` | code-review-patterns + `.agents/references/security/` (security-analysis, auth-implementation-patterns, secrets-management) |
 | Code Quality | `code-reviewer` | code-review-patterns, output-completeness + `.agents/references/workflow/`; apply `code-quality` for smell detection |
 | Testing | `test-writer` | test-driven-development, language-testing-patterns + `.agents/references/testing/` |
-| Language-Specific | (inline) | auto-detected `.agents/references/languages/*-patterns` by file extension |
+| Language-Specific | `language-specialist` | language-testing-patterns, test-driven-development + `.agents/references/languages/` for the languages the diff touches |
+| Documentation | `documentation-writer` | documentation-validation, post-ship-doc-sync + `.agents/references/documentation/` |
+| Observability | `devops-engineer` | `.agents/references/devops/` (observability, sre-practices, incident-management) + `.agents/references/architecture/error-handling-patterns` |
 
 ---
 
@@ -268,6 +289,9 @@ Every finding cites `file:line`. Conclude with a **PASS / CONCERNS / FAIL / BLOC
 - Verification before completion: See Verification Before Completion section below
 - PR comment resolution: Comment response patterns, inline reply workflow
 - Language-specific patterns: Auto-detected language-specific review lenses
+- Documentation validation: Per-change docs gate and change-type matrix
+- Post-ship doc sync: Staleness heuristic behind the documentation perspective
+- Observability: Golden signals, metric design, tracing strategy, alerting
 - Existing code discipline: See Existing Code Discipline section below
 
 ### Existing Code Discipline
