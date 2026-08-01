@@ -15,7 +15,7 @@ FRONTMATTER_DESCRIPTION = re.compile(r'^description:\s*["\']?(.*?)["\']?$', re.M
 # silently, so an accidental deletion still fails.
 
 # Claude-native commands with no shared `cmd-j-*` workflow behind them.
-CLAUDE_ONLY_COMMANDS = frozenset({"j-finalize-pr"})
+CLAUDE_ONLY_COMMANDS: frozenset[str] = frozenset()
 
 # Shared workflows deliberately absent from `.claude/skills/`.
 SHARED_ONLY_SKILLS: frozenset[str] = frozenset()

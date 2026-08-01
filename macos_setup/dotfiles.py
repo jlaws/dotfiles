@@ -67,6 +67,7 @@ AGENT_REMOVALS = [
     ".claude/hooks/lessons-learned.sh",
     ".codex/hooks/lessons-learned.sh",
     ".gemini/hooks/lessons-learned.sh",
+    ".claude/commands/j-finalize-pr.md",
 ]
 
 AGENT_REMOVAL_GLOBS = [
