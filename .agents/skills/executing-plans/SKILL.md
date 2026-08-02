@@ -60,7 +60,7 @@ For each task in the batch:
 After each batch, present evidence artifacts — not summaries:
 
 - **Paste terminal output** as code blocks. Don't paraphrase test results or build output.
-- **Run behavioral acceptance checks** from the plan (milestone acceptance tests, task behavioral checks) and paste results.
+- **Run behavioral acceptance checks** from the plan (phase acceptance checks, task behavioral checks) and paste results.
 - **Include Decision Log entries** made during this batch.
 - **Include Surprises & Discoveries** from this batch.
 - Say: **"Batch complete. Ready for feedback."**

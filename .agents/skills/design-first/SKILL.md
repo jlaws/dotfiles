@@ -53,9 +53,8 @@ Every feature goes through this process. A utility function, a config change, a 
 
 ### Phase 5: Document
 
-- Save validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
-- **Self-review before committing** — scan the written design for placeholders, internal contradictions, and scope creep (features beyond what was agreed). Fix or flag anything you find.
-- Commit the design document
+- Save the validated design to the harness's plan storage, not the repository. Keep it in context, or offer a temp or gitignored path if the user wants it durable. Never commit it unless the user asks.
+- **Self-review before handing off** — scan the written design for placeholders, internal contradictions, and scope creep (features beyond what was agreed). Fix or flag anything you find.
 - Skip file output only if user explicitly says no
 - Design docs are not user docs — when the feature ships, keep README/API/usage docs current too (see `documentation-validation`)
 
@@ -89,8 +88,8 @@ Scale the process to the task's complexity:
 |-----------|-----------|------------|-----------------|
 | Tiny (utility function, config) | 1-2 quick questions | 1-2 sentences each | Skip — inline approval is fine |
 | Small (single component, endpoint) | 2-3 questions | 2-3 brief approaches | Optional — user's choice |
-| Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes — save to docs/plans/ |
-| Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes — save and commit before proceeding |
+| Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes — save to the harness plan file |
+| Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes — save to the harness plan file before proceeding |
 
 The process is the same regardless of size — the depth scales, not the steps. Even tiny tasks get clarifying questions.
 
