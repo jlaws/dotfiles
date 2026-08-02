@@ -14,4 +14,4 @@ Default to inline unless the plan is large or the tasks are clearly independent;
 
 Plan file: $ARGUMENTS
 
-If no path provided, use the plan file plan mode assigned this session. Outside plan mode, check `~/.claude/plans/` for entries prefixed with this repo's name — that directory is shared across every project, so a plan from another repo is not a candidate. Ask if more than one fits.
+If no path provided, use the plan file that plan mode assigned this session. Outside plan mode, check `~/.claude/plans/` for entries prefixed with this repo's name — that directory is shared across every project, so a plan from another repo is not a candidate. Ask if more than one fits.
