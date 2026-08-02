@@ -13,6 +13,8 @@ Read the plan file below and review it critically for gaps or contradictions bef
 
 Default to inline unless the plan is large or the tasks are clearly independent; state which mode you chose and why, then follow that skill exactly (maintain the plan's living-document ledger, verify each step, stop and ask on blockers).
 
+Each PR boundary ends by opening the PR — that is `finishing-branch`'s default and needs no prompting. Where the plan spans several PRs, stop after each one and wait for review; `$cmd-j-next` resumes at the next boundary.
+
 Plan file: the user's provided input
 
 If no path provided, use the plan held in this session's context. If the plan was saved, it is at a temp or gitignored path the user named — ask which plan to execute rather than guessing.

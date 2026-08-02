@@ -80,8 +80,11 @@ Based on feedback:
 After all tasks are done and verified:
 - Run full test suite one final time
 - Validate documentation with the `documentation-validation` skill — product docs and KB self-docs current, or N/A with reason
-- Load `finishing-branch` skill to wrap up the branch
-- Follow that skill's process (verify → present options → execute choice)
+- Load `finishing-branch` skill and follow it (verify → validate docs → open the PR)
+
+A completed unit of plan work ends in a pull request, opened without being asked. For a plan with PR
+boundaries, that is the end of each boundary, not just the last one — push the PR, then wait for review
+before the next boundary rather than running on.
 
 ## When to Stop and Ask
 
@@ -130,6 +133,6 @@ Starting Task 4 (Write API endpoints)...
 ## Integration
 
 **Receives plans from:** `writing-plans`
-**Hands off to:** `finishing-branch` when all tasks complete
+**Hands off to:** `finishing-branch` when all tasks complete — which opens the PR, it does not ask whether to
 **Uses:** `verification-before-completion` for verdict grammar when reporting step outcomes
 **Alternative mode:** `subagent-driven-development` — dispatches a fresh subagent per task instead of executing inline. Prefer it for large plans, mostly-independent tasks, or when inline execution would exhaust context; prefer this skill (inline) for small or tightly-coupled plans. Both share the same living-document ledger.

@@ -46,7 +46,7 @@ For each task in order:
 
 ### Step 2: Final Whole-Branch Review
 
-After all tasks: dispatch one reviewer on the **most capable model** over the entire branch diff (`git diff main...HEAD`) for cross-cutting concerns no single-task review can see — architecture drift, integration gaps, inconsistent patterns, and stale documentation (apply `documentation-validation`). Resolve findings, then hand off to `finishing-branch`.
+After all tasks: dispatch one reviewer on the **most capable model** over the entire branch diff (`git diff main...HEAD`) for cross-cutting concerns no single-task review can see — architecture drift, integration gaps, inconsistent patterns, and stale documentation (apply `documentation-validation`). Resolve findings, then hand off to `finishing-branch`, which opens the PR without being asked.
 
 ## File-Based Handoffs
 
@@ -101,4 +101,4 @@ Maintain the same living-document sections as `executing-plans`, in the plan fil
 **Receives plans from:** `writing-plans`
 **Alternative to:** `executing-plans` (inline mode) — same ledger, different dispatch
 **Uses:** `verification-before-completion` for every verdict; `dispatching-parallel-agents` when independent tasks can run concurrently
-**Hands off to:** `finishing-branch` after the final review
+**Hands off to:** `finishing-branch` after the final review — which opens the PR, it does not ask whether to
