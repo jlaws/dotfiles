@@ -13,4 +13,4 @@ Default to inline unless the plan is large or the tasks are clearly independent;
 
 Plan file: $ARGUMENTS
 
-If no path provided, ask which plan to execute (or check `docs/plans/`).
+If no path provided, use the plan held in this session's context. If the plan was saved, it is at a temp or gitignored path the user named — ask which plan to execute rather than guessing.

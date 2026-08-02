@@ -33,7 +33,7 @@ Read the whole plan once before Task 1. Flag internal contradictions, inconsiste
 
 For each task in order:
 
-1. **Extract the task brief.** Write the single task's requirements (behavioral check, files, steps, acceptance) to a scratch file, e.g. `docs/plans/.briefs/task-NN.md`. Do NOT paste the whole plan into the dispatch prompt.
+1. **Extract the task brief.** Write the single task's requirements (behavioral check, files, steps, acceptance) to a scratch file, e.g. `scratchpad/briefs/task-NN.md`. Do NOT paste the whole plan into the dispatch prompt.
 2. **Dispatch the implementer subagent** (via the Task tool) with: the brief file path, the model for this task (see Model Selection), explicit constraints (what NOT to touch), and the deliverable (code + passing tests + one commit). Answer clarifying questions if the implementer asks.
 3. **Implementer self-reviews and commits.** It follows TDD (failing test -> implement -> pass), commits, and reports the commit range.
 4. **Generate the review package.** `git diff <task-base>..<task-head>` — capture to a scratch file rather than pasting a large diff into the reviewer prompt.
@@ -52,11 +52,13 @@ After all tasks: dispatch one reviewer on the **most capable model** over the en
 
 Everything you paste into a dispatch prompt stays resident in your context. Hand artifacts over **as files**:
 
-- **Task brief** -> `docs/plans/.briefs/task-NN.md` (extracted from the plan).
+- **Task brief** -> `scratchpad/briefs/task-NN.md` (extracted from the plan).
 - **Review package** -> `git diff <base>..<head>` captured to a scratch file; pass the path.
 - **Findings** -> reviewer writes findings to a file; fix subagent reads it.
 
 No helper scripts required — `git diff` + a scratch file is the whole mechanism.
+
+`scratchpad/` is gitignored working space and must never be committed. If the repo does not ignore it yet, add it to `.gitignore` before writing the first brief.
 
 ## Model Selection
 
