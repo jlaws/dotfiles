@@ -124,7 +124,7 @@ When working in a git worktree:
 - Prefer delegation for well-scoped, independent subtasks (run in parallel when they don't depend on each other); keep tightly-coupled or sequential work in a single context.
 - A subagent reporting "success" is not proof — verify its output against source evidence before trusting it.
 - Parallel dispatch: for concurrent independent work, load the `dispatching-parallel-agents` skill.
-- Plan execution modes: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) — choose by plan size/coupling; both via `/j-execute-plan`.
+- Plan execution modes: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) — choose by plan size/coupling; both via `/j-execute-plan`. Once a multi-PR plan's earlier PR merges, `/j-next` branches off the updated main and runs the next part.
 
 ## Task Delegation
 
