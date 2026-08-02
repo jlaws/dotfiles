@@ -7,7 +7,11 @@ skills:
 
 # Finishing a Development Branch
 
-**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+**Core principle:** Verify tests → Validate docs → Open the PR.
+
+Completed work ends in a pull request. That is the default and it does not need to be asked for — a
+finished branch sitting unpushed is work the reviewer cannot see. Merging locally, parking the branch,
+or discarding it are things the user asks for by name; see Other Outcomes below.
 
 ## The Process
 
@@ -26,7 +30,7 @@ When integrating multiple worktree branches:
 
 ### Step 1: Verify Tests
 
-Run the project's full test suite before presenting any options.
+Run the project's full test suite before pushing anything.
 
 ```bash
 # Use project-appropriate test command
@@ -48,7 +52,7 @@ STOP. Do not proceed to Step 2. Fix tests first.
 
 ### Step 1b: Validate Documentation
 
-Before presenting options, run the `documentation-validation` gate: confirm product docs (README/API/CHANGELOG) and any KB self-docs reflect what this branch changed, or declare N/A with a reason. Stale docs block completion just like failing tests.
+Before pushing, run the `documentation-validation` gate: confirm product docs (README/API/CHANGELOG) and any KB self-docs reflect what this branch changed, or declare N/A with a reason. Stale docs block completion just like failing tests.
 
 ### Step 2: Determine Base Branch
 
@@ -56,40 +60,11 @@ Before presenting options, run the `documentation-validation` gate: confirm prod
 git merge-base HEAD main
 ```
 
-Confirm with user: "This branch split from `main` — is that correct?"
+Report which branch this split from. Only stop to ask if the answer is not `main`/`master` — an unexpected base usually means the branch was cut from other in-flight work, and the PR target matters.
 
-### Step 3: Present Options
+### Step 3: Open the PR
 
-Present exactly these 4 options:
-
-```
-Implementation complete. All tests pass. What would you like to do?
-
-1. Merge back to <base-branch> locally
-2. Push and create a Pull Request
-3. Keep the branch as-is (I'll handle it later)
-4. Discard this work
-```
-
-Don't add explanation — keep options concise.
-
-### Step 4: Execute Choice
-
-#### Option 1: Merge Locally
-
-```bash
-git checkout <base-branch>
-git pull
-git merge <feature-branch>
-# Verify tests on merged result
-<test command>
-# If tests pass
-git branch -d <feature-branch>
-```
-
-If in a worktree, clean it up after merge.
-
-#### Option 2: Push and Create PR
+If the repo already has an open PR for this branch, push to it rather than opening a second one.
 
 ```bash
 git push -u origin <feature-branch>
@@ -99,22 +74,35 @@ gh pr create --title "<title>" --body "$(cat <<'EOF'
 <2-3 bullets of what changed>
 
 ## Test Plan
-- [ ] <verification steps>
+- [x] <verification that ran, and its result>
 EOF
 )"
 ```
 
-Report the PR URL. If in a worktree, keep it (user may need it for PR revisions).
+Write a real body — never `--fill`. Report the PR URL. If in a worktree, keep it; the user may need it for PR revisions.
 
-#### Option 3: Keep As-Is
+Then stop. Do not merge the PR, and do not start the next work item — the branch is now waiting on review.
 
-Report: "Keeping branch `<name>`. You can return to it later."
+## Other Outcomes
 
-No cleanup. No worktree removal.
+These replace Step 3 only when the user names one. Do not offer them as a menu.
 
-#### Option 4: Discard
+**Merge locally** — for work that genuinely does not need review:
 
-**Require typed confirmation:**
+```bash
+git checkout <base-branch>
+git pull
+git merge <feature-branch>
+<test command>          # verify tests on the merged result
+git branch -d <feature-branch>
+```
+
+Clean up the worktree afterward if there is one.
+
+**Keep as-is** — report `Keeping branch <name>.` and stop. No cleanup, no worktree removal.
+
+**Discard** — destructive and unrecoverable, so require typed confirmation:
+
 ```
 This will permanently delete:
 - Branch <name>
@@ -124,35 +112,21 @@ This will permanently delete:
 Type 'discard' to confirm.
 ```
 
-Wait for exact confirmation. Then:
-```bash
-git checkout <base-branch>
-git branch -D <feature-branch>
-```
-
-Clean up worktree if applicable.
-
-## Quick Reference
-
-| Option | Merge | Push | Keep Worktree | Delete Branch |
-|--------|-------|------|---------------|---------------|
-| 1. Merge locally | yes | - | no | yes (safe) |
-| 2. Create PR | - | yes | yes | - |
-| 3. Keep as-is | - | - | yes | - |
-| 4. Discard | - | - | no | yes (force) |
+Wait for that exact word, then `git checkout <base-branch>` and `git branch -D <feature-branch>`.
 
 ## Red Flags
 
 - Proceeding with failing tests
+- Asking what to do with a finished branch instead of opening the PR
+- Opening a second PR when the branch already has one
 - Merging without verifying tests on the merged result
 - Deleting work without typed confirmation
 - Force-pushing without explicit user request
-- Offering fewer or more than 4 options
-- Cleaning up worktree when user chose "keep as-is"
-- Presenting integration options with documentation that doesn't match the branch's changes (run `documentation-validation` first)
+- Cleaning up the worktree when the user asked to keep the branch as-is
+- Pushing with documentation that doesn't match the branch's changes (run `documentation-validation` first)
 
 ## Integration
 
-**Called by:** `executing-plans` (Step 5) after all tasks complete
-**Pairs with:** `using-git-worktrees` for worktree cleanup
-**Uses:** `documentation-validation` before presenting options
+**Called by:** `executing-plans` (Step 5) and `subagent-driven-development` after the final review
+**Pairs with:** `using-git-worktrees` for worktree cleanup — note that worktree agents return on-branch and never call this skill
+**Uses:** `documentation-validation` before pushing

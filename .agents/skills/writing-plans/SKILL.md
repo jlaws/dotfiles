@@ -112,7 +112,7 @@ Extend an existing benchmark where one covers the surface; add a new one where n
 
 ### PR Boundaries
 
-Commit after every phase. Open a PR at the end, when the work is ready for review.
+Commit after every phase. Every unit of plan work ends in a pull request, opened automatically once its phases pass their gates — the executor does not stop to ask whether to open one.
 
 **Split into multiple PRs when the change is substantial.** Each PR must land the tree in a valid state: its doc updates and its code updates ship together, so `post-ship-doc-sync` and a diff review find nothing stale. After each PR, **wait for review** before starting the next.
 
@@ -242,6 +242,9 @@ Plan saved to `<plan-file-path>`. Execution options:
 
 Which approach?
 ```
+
+Options 1-3 all end the same way: each PR boundary's phases run to green, then the PR opens. Where a
+plan spans several PRs, `/j-next` picks up the next boundary once the previous one merges.
 
 ## Common Mistakes
 

@@ -80,6 +80,7 @@
 - Always verify changes with `git diff` before committing
 - Never force push to main/master
 - Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
+- Completed work ends in a PR, opened without being asked. When a plan's unit of work passes its gates, open the PR and stop there -- for a multi-PR plan that is every PR boundary, not just the last.
 - When a PR is already open for the current work, push follow-up fixes to that same PR/branch. Do not open a new PR unless the user asks.
 - After opening a PR, stop and wait for the user to review/merge before starting the next work item, unless told to keep going.
 - After a squash or rebase, diff against the pre-squash tree (and confirm the branch) to verify no file or config was dropped before force-pushing.
@@ -124,7 +125,7 @@ When working in a git worktree:
 - Prefer delegation for well-scoped, independent subtasks (run in parallel when they don't depend on each other); keep tightly-coupled or sequential work in a single context.
 - A subagent reporting "success" is not proof — verify its output against source evidence before trusting it.
 - Parallel dispatch: for concurrent independent work, load the `dispatching-parallel-agents` skill.
-- Plan execution modes: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) — choose by plan size/coupling; both via `/j-execute-plan`.
+- Plan execution modes: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) — choose by plan size/coupling; both via `/j-execute-plan`. Once a multi-PR plan's earlier PR merges, `/j-next` branches off the updated main and runs the next part.
 
 ## Task Delegation
 

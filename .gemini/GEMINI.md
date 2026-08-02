@@ -66,6 +66,7 @@ Full methodology: load skill `verification-before-completion` (read `~/.agents/s
 - Always verify changes with `git diff` before committing
 - Never force push to main/master
 - Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
+- Completed work ends in a PR, opened without being asked. When a plan's unit of work passes its gates, open the PR and stop there -- for a multi-PR plan that is every PR boundary, not just the last.
 - When a PR is already open for the current work, push follow-up fixes to that same PR/branch. Do not open a new PR unless the user asks.
 - After opening a PR, stop and wait for the user to review/merge before starting the next work item, unless told to keep going.
 - After a squash or rebase, diff against the pre-squash tree (and confirm the branch) to verify no file or config was dropped before force-pushing.
@@ -93,7 +94,7 @@ This rule applies to `run_shell_command` calls only -- not to Dockerfile `RUN` l
 Use subagents to parallelize independent work and to delegate to specialist agents (`~/.gemini/agents/`, invoked via `@agent-<name>`) when a task matches their domain — commands gather context, then invoke the matching agent. Prefer delegation for well-scoped, independent subtasks and run them in parallel when they don't depend on each other; keep tightly-coupled or sequential work in a single context. A subagent reporting "success" is not proof — verify its output against source evidence (see `verification-before-completion`).
 
 - **Parallel dispatch**: for concurrent independent work, load the `dispatching-parallel-agents` skill (`~/.agents/skills/dispatching-parallel-agents/SKILL.md`).
-- **Plan execution modes**: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) -- choose by plan size/coupling; both via `/j-execute-plan`.
+- **Plan execution modes**: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) -- choose by plan size/coupling; both via `/j-execute-plan`. Once a multi-PR plan's earlier PR merges, `/j-next` branches off the updated main and runs the next part.
 
 ## Task Delegation
 
