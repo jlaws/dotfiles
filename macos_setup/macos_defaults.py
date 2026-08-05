@@ -367,7 +367,9 @@ SETTINGS: list[Setting] = [
     Setting("com.apple.finder", "FXPreferredViewStyle", "string", "Nlsv"),
     Setting("com.apple.finder", "WarnOnEmptyTrash", "bool", False),
     Setting("com.apple.NetworkBrowser", "BrowseAllInterfaces", "bool", True),
-    Setting("com.apple.sharingd", "DiscoverableMode", "int", 1),
+    # AirDrop discoverability. `sharingd` expects the named mode the AirDrop pane
+    # writes ("Off", "Contacts Only", "Everyone"), not an enum index.
+    Setting("com.apple.sharingd", "DiscoverableMode", "string", "Contacts Only"),
     Setting(
         "com.apple.finder",
         "FXInfoPanesExpanded",
