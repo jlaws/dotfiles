@@ -28,12 +28,12 @@ Proposed -> Accepted -> Deprecated
 Proposed -> Rejected
 ```
 
-Status-header conventions:
+Status values:
 - `status: proposed` — under discussion, not yet decided.
 - `status: accepted` — the decision is in force.
 - `status: rejected` — considered and declined (kept for the record).
 - `status: deprecated` — no longer applies, with no direct replacement (add a dated Amendment Log row explaining why).
-- `status: superseded` — replaced by a newer decision. The replaced ADR carries `superseded-by: <id>`; the replacing ADR carries `supersedes: [<id>]`. Both link the other from Related Decisions.
+- `status: superseded` — replaced by a newer decision. The replaced ADR carries `superseded-by: <id>`; the replacing ADR carries `supersedes: [<id>]`. Frontmatter is the binding link; add a Related Decisions entry too in formats that have that section.
 
 ## When to Write an ADR
 
@@ -62,9 +62,10 @@ superseded-by: null     # ADR id, or null
 ---
 ```
 
-Two invariants:
+Three invariants:
 - **`created` never changes.** It records when the decision was made, not when the file was last touched.
 - **`updated` always equals the newest Amendment Log row's date.** A new ADR with an empty log has `updated` equal to `created`.
+- **The path is authoritative for `topic`.** The field mirrors the containing directory so a reader holding only the frontmatter still knows the topic. On mismatch the directory wins; fix the field.
 
 ## Amendments & Status Transitions
 
@@ -97,7 +98,7 @@ Recognized ADR formats include Nygard (the 2011 original), MADR (most widely ado
 
 ```markdown
 ---
-status: accepted
+status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -153,7 +154,7 @@ We will use **[choice]**.
 
 ```markdown
 ---
-status: accepted
+status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -174,6 +175,9 @@ superseded-by: null
 **Bad**: [costs]
 **Mitigations**: [how to address the bad]
 
+## Related Decisions
+- [title](../[topic]/[slug].md)
+
 ## Amendment Log
 | Date | Change | Reason | By |
 |------|--------|--------|-----|
@@ -182,6 +186,15 @@ superseded-by: null
 ### Y-Statement Format
 
 ```markdown
+---
+status: proposed
+topic: [topic]
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+deciders: ["@name"]
+supersedes: []
+superseded-by: null
+---
 In the context of **[situation]**,
 facing **[problem]**,
 we decided for **[choice]**
@@ -196,7 +209,7 @@ accepting that **[tradeoff]**.
 
 ```markdown
 ---
-status: accepted
+status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -243,10 +256,18 @@ docs/adr/
 - **No sequence counter anywhere.** Ordering comes from `created`.
 - **Adding an ADR creates exactly one file and edits none.** That is the point of the scheme: a shared counter or a hand-maintained index turns every concurrent ADR write into a merge conflict, because both writers claim the same next number or edit the same index lines.
 
+Three cases still touch shared state, all rarer than writing an ADR:
+
+- **Superseding** edits the predecessor's frontmatter. Two writers superseding the same ADR collide there.
+- **A new topic** adds a line to `docs/adr/README.md`. Adding an ADR to an existing topic does not.
+- **The same topic and slug** chosen twice is an add/add conflict. It means two writers recorded the same decision; merge the records rather than renaming one.
+
 Two scaffold files sit beside the topic directories:
 
 - `docs/adr/README.md` — the repo's topic list with one line on what each covers, the slug rule, and the amend-vs-supersede rule. It states explicitly that there is no index: discover ADRs with `docs/adr/**/*.md` and read frontmatter.
 - `docs/adr/template.md` — the Standard ADR template above, verbatim, ready to copy.
+
+Both scaffold files match `docs/adr/**/*.md` and neither is an ADR. Exclude `README.md` and `template.md` by name whenever that glob is used to enumerate decisions.
 
 ## Review Checklist
 

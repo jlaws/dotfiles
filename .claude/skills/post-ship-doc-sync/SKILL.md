@@ -11,7 +11,7 @@ allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 Search for documentation files in the project:
 - README*, ARCHITECTURE*, CONTRIBUTING*, CLAUDE.md, CHANGELOG*
 - `docs/` directory (all .md files)
-- `docs/adr/**/*.md` (the decision log)
+- `docs/adr/**/*.md` (the decision log; `README.md` and `template.md` there are scaffolding, not ADRs)
 - Any *.md files in project root
 
 ## Step 2 — Diff Scope
