@@ -20,7 +20,7 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 **Step 1 -- Scan for candidate documentation:**
 1. Glob for common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
 2. Glob for root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
-3. Glob for design doc patterns: `**/ADR-*.md`, `**/design-*.md`, `**/RFC-*.md`
+3. Glob for design doc patterns: `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`
 4. Include any file or directory paths found inline in `$ARGUMENTS`
 
 **Step 2 -- Filter by relevance to the system description:**

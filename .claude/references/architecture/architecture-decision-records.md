@@ -8,6 +8,7 @@
 | **Architecturally Significant Requirement (ASR)** | A requirement important enough that the decision it drives warrants a record. |
 | **Architecture Decision Record (ADR)** | A document capturing a single AD and its rationale — context, options, decision, consequences. |
 | **Decision Log** | The full collection of ADRs kept for a project (the `docs/adr/` set). |
+| **ADR id** | An ADR's path under `docs/adr/` minus the extension — `data/postgres-primary-store`. There are no ADR numbers. |
 
 ### Architectural Significance Test
 
@@ -23,16 +24,16 @@ If none apply, skip the ADR (see the table below).
 
 ```
 Proposed -> Accepted -> Deprecated
-                     -> Superseded (by ADR-NNNN)
+                     -> Superseded (by <topic>/<slug>)
 Proposed -> Rejected
 ```
 
 Status-header conventions:
-- `Status: Proposed` — under discussion, not yet decided.
-- `Status: Accepted` — the decision is in force.
-- `Status: Rejected` — considered and declined (kept for the record).
-- `Status: Deprecated` — no longer applies, with no direct replacement (add a dated note explaining why).
-- `Status: Superseded by ADR-NNNN` — replaced by a newer decision. The replacing ADR carries `Supersedes ADR-NNNN` in its Status and Related Decisions.
+- `status: proposed` — under discussion, not yet decided.
+- `status: accepted` — the decision is in force.
+- `status: rejected` — considered and declined (kept for the record).
+- `status: deprecated` — no longer applies, with no direct replacement (add a dated Amendment Log row explaining why).
+- `status: superseded` — replaced by a newer decision. The replaced ADR carries `superseded-by: <id>`; the replacing ADR carries `supersedes: [<id>]`. Both link the other from Related Decisions.
 
 ## When to Write an ADR
 
@@ -44,15 +45,36 @@ Status-header conventions:
 | Security architecture | Routine maintenance |
 | Integration patterns | Configuration changes |
 
+## Frontmatter
+
+Every ADR opens with a YAML frontmatter block. It is the machine-readable half of the record — status
+and dates are read by globbing, not by parsing prose.
+
+```yaml
+---
+status: accepted        # proposed | accepted | rejected | deprecated | superseded
+topic: data
+created: 2026-03-01     # first written; immutable
+updated: 2026-03-01     # date of the newest Amendment Log row; equals created when new
+deciders: ["@name"]
+supersedes: []          # ADR ids, e.g. ["data/mongodb-profiles"]
+superseded-by: null     # ADR id, or null
+---
+```
+
+Two invariants:
+- **`created` never changes.** It records when the decision was made, not when the file was last touched.
+- **`updated` always equals the newest Amendment Log row's date.** A new ADR with an empty log has `updated` equal to `created`.
+
 ## Amendments & Status Transitions
 
 An Accepted ADR's **Decision is immutable**. The record changes only through one of these paths:
 
-| Situation | Action | Status |
+| Situation | Action | Result |
 |-----------|--------|--------|
-| Clarification, corrected detail, or added consequence that does **not** reverse the decision | Add a dated row to the ADR's **Amendment Log**; leave the Decision text untouched | stays `Accepted` |
-| The decision itself changes (reversal or material change) | Write a **new ADR** that supersedes the old one; cross-link both | old -> `Superseded by ADR-NNNN`, new -> `Supersedes ADR-NNNN` |
-| Decision no longer relevant, no replacement | Mark deprecated with a dated note | `Deprecated` |
+| Clarification, corrected detail, or added consequence that does **not** reverse the decision | Add a dated row to the ADR's **Amendment Log** and bump `updated`; leave the Decision text untouched | stays `accepted` |
+| The decision itself changes (reversal or material change) | Write a **new ADR** that supersedes the old one; cross-link both | old -> `status: superseded` + `superseded-by: <id>`, new -> `supersedes: [<id>]` |
+| Decision no longer relevant, no replacement | Add a dated Amendment Log row explaining why, bump `updated` | `status: deprecated` |
 
 The boundary is simple: **any reversal or material change gets a new ADR** (use the Deprecation ADR template). Minor clarifications get an Amendment Log row. Never rewrite an accepted Decision in place. Superseded and deprecated ADRs stay in the log; they are immutable history, not deletions.
 
@@ -65,6 +87,8 @@ The **Amendment Log** is a fixed section in every ADR (see templates). It starts
 | YYYY-MM-DD | Clarified retry-budget wording | Ambiguous in review | @name |
 ```
 
+Every row is paired with bumping `updated` in frontmatter. A row without the bump is an incomplete amendment.
+
 ## Templates
 
 Recognized ADR formats include Nygard (the 2011 original), MADR (most widely adopted), the Y-Statement (one-sentence), and ISO/IEC/IEEE 42010. The templates below cover the common ones.
@@ -72,10 +96,16 @@ Recognized ADR formats include Nygard (the 2011 original), MADR (most widely ado
 ### Standard ADR (MADR Format)
 
 ```markdown
-# ADR-NNNN: [Title]
-
-## Status
-Accepted
+---
+status: accepted
+topic: [topic]
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+deciders: ["@name"]
+supersedes: []
+superseded-by: null
+---
+# [Title]
 
 ## Context
 [Why we needed to decide. Include constraints, requirements, team experience.]
@@ -112,7 +142,7 @@ We will use **[choice]**.
 - [specific guidance]
 
 ## Related Decisions
-- ADR-NNNN: [title]
+- [title](../[topic]/[slug].md)
 
 ## Amendment Log
 | Date | Change | Reason | By |
@@ -122,9 +152,16 @@ We will use **[choice]**.
 ### Lightweight ADR
 
 ```markdown
-# ADR-NNNN: [Title]
-
-**Status**: Accepted | **Date**: YYYY-MM-DD | **Deciders**: @names
+---
+status: accepted
+topic: [topic]
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+deciders: ["@name"]
+supersedes: []
+superseded-by: null
+---
+# [Title]
 
 ## Context
 [1-2 paragraphs on the problem]
@@ -153,15 +190,21 @@ to achieve **[goals]**,
 accepting that **[tradeoff]**.
 ```
 
-(Single-sentence format — no Amendment Log; amend by superseding.)
+(Single-sentence format — keeps the frontmatter, drops the Amendment Log; amend by superseding.)
 
 ### Deprecation ADR
 
 ```markdown
-# ADR-NNNN: Deprecate X in Favor of Y
-
-## Status
-Accepted (Supersedes ADR-NNNN)
+---
+status: accepted
+topic: [topic]
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+deciders: ["@name"]
+supersedes: ["[topic]/[slug]"]
+superseded-by: null
+---
+# Deprecate X in Favor of Y
 
 ## Context
 [Why the original decision no longer serves us]
@@ -180,17 +223,30 @@ Accepted (Supersedes ADR-NNNN)
 |------|--------|--------|-----|
 ```
 
-## Directory Structure
+## Naming and Grouping
 
 ```
 docs/adr/
-  README.md              # Index and guidelines
-  template.md            # Team's ADR template
-  0001-use-postgresql.md
-  0002-caching-strategy.md
-  0003-mongodb-profiles.md  # [DEPRECATED]
-  0020-deprecate-mongodb.md # Supersedes 0003
+  README.md            # conventions and this repo's topic list -- not an index
+  template.md          # copy this to start an ADR
+  data/
+    postgres-primary-store.md
+    redis-session-cache.md
+  api/
+    rest-versioning.md
+  security/
+    oidc-service-auth.md
 ```
+
+- **Topic** is a single directory level naming the area the decision constrains. Pick names from the repo's own boundaries and record the list in `docs/adr/README.md`. There is no prescribed taxonomy.
+- **Slug** is a kebab-case noun phrase naming the decision, unique within its topic. No number, no date, no author.
+- **No sequence counter anywhere.** Ordering comes from `created`.
+- **Adding an ADR creates exactly one file and edits none.** That is the point of the scheme: a shared counter or a hand-maintained index turns every concurrent ADR write into a merge conflict, because both writers claim the same next number or edit the same index lines.
+
+Two scaffold files sit beside the topic directories:
+
+- `docs/adr/README.md` — the repo's topic list with one line on what each covers, the slug rule, and the amend-vs-supersede rule. It states explicitly that there is no index: discover ADRs with `docs/adr/**/*.md` and read frontmatter.
+- `docs/adr/template.md` — the Standard ADR template above, verbatim, ready to copy.
 
 ## Review Checklist
 
@@ -207,7 +263,8 @@ docs/adr/
 - [ ] Reversibility assessed
 
 ### After Acceptance
-- [ ] ADR index updated
+- [ ] frontmatter status/created/updated set
+- [ ] related ADRs cross-linked both ways
 - [ ] Team notified
 - [ ] Implementation tickets created
 
@@ -220,6 +277,8 @@ A decision is done when it has: **evidence** for the choice, the **criteria and 
 - **Write early** - before implementation starts
 - **Keep short** - 1-2 pages max
 - **Be honest about trade-offs** - include real cons
+- **Don't number ADRs** - concurrent writers collide on the next number
+- **Don't maintain a hand-edited index** - glob `docs/adr/**/*.md` and read frontmatter
 - **Don't change accepted ADRs** - write new ones to supersede
 - **Record minor clarifications in the Amendment Log** - not by editing the Decision
 - **Don't hide failures** - rejected decisions are valuable

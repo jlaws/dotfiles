@@ -45,7 +45,7 @@ depends on it, so this does not run in parallel with Step 2.
   services, serverless); API patterns from route definitions, `openapi.yaml`, `swagger`, or GraphQL
   schemas.
 - **Prior art** — Glob `docs/`, `doc/`, `design/`, `adr/`, `adrs/`, `architecture/`, root `*.md`, and
-  `**/ADR-*.md`, `**/design-*.md`, `**/RFC-*.md`. Filter in two passes: by filename and path first,
+  `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`. Filter in two passes: by filename and path first,
   then by grepping contents for spec keywords for the ambiguous ones. Discard the clearly unrelated.
   Planning against a spec whose decisions were already settled in an ADR is the failure this prevents.
 - **Docs surface** — README, API docs, CHANGELOG, usage docs the change would obligate.
@@ -118,7 +118,7 @@ plan file.
 **Persist significant decisions as ADRs.** For each decision the plan settles, record the chosen
 approach, the alternatives rejected, the trade-offs accepted, and the conditions that would reverse
 it — the four fields of an ADR. Where a decision is significant and not easily reversible, add a
-*task* to the plan that writes `docs/adr/NNNN-title.md` during execution, following
+*task* to the plan that writes `docs/adr/<topic>/<slug>.md` during execution, following
 `.claude/references/architecture/architecture-decision-records.md`. The ADR is a repo artifact
 written at implementation time; the plan is not. Skip minor or easily reversible choices and note
 them inline instead.
