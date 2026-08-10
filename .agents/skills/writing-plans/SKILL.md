@@ -207,7 +207,7 @@ git commit -m "feat: add specific feature"
 - **Stated validation gate** — the benchmark and gate command, or an explicit N/A with a reason.
 - **Stated PR boundaries** — one PR, or which phases map to which PR with a review wait between.
 - **Risk-first vertical slices** — hardest or least-certain phase first; each phase testable end to end rather than a horizontal layer.
-- **Decisions persisted** — every significant, not-easily-reversible decision has an ADR task (`docs/adr/NNNN-title.md`); minor ones are noted inline. See `.claude/references/architecture/architecture-decision-records.md`.
+- **Decisions persisted** — every significant, not-easily-reversible decision has an ADR task (`docs/adr/<topic>/<slug>.md`); minor ones are noted inline. See `.agents/references/architecture/architecture-decision-records.md`.
 
 ## Self-Review (before handoff)
 

@@ -20,7 +20,7 @@ Parse the user's provided input: it is a freeform system description that may co
 **Step 1 -- Scan for candidate documentation:**
 1. Glob for common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
 2. Glob for root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
-3. Glob for design doc patterns: `**/ADR-*.md`, `**/design-*.md`, `**/RFC-*.md`
+3. Glob for design doc patterns: `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`
 4. Include any file or directory paths found inline in the user's provided input
 
 **Step 2 -- Filter by relevance to the system description:**
@@ -95,7 +95,7 @@ For cross-cutting issues, trace the full path:
 Combine findings into a unified architecture document:
 - System overview diagram (describe in text/mermaid)
 - Component catalog with responsibilities
-- Key design decisions and trade-offs (record each significant decision as an ADR in `docs/adr/`, per the `architecture-decision-records` reference)
+- Key design decisions and trade-offs (record each significant decision as an ADR at `docs/adr/<topic>/<slug>.md`, per the `architecture-decision-records` reference)
 - Risks and open questions
 - Implementation priority order (what to build first and why)
 
@@ -137,7 +137,7 @@ For each significant design decision:
 - **Trade-offs accepted**
 - **Conditions that would change this decision**
 
-These four fields map one-to-one onto an ADR; persist each significant decision as an ADR in `docs/adr/` following the `architecture-decision-records` reference.
+These four fields map one-to-one onto an ADR; persist each significant decision as an ADR at `docs/adr/<topic>/<slug>.md` following the `architecture-decision-records` reference.
 
 ### Red Flags — Redesign Before Implementing
 - Component has multiple unrelated responsibilities
