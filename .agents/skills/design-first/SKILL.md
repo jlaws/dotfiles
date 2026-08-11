@@ -53,7 +53,11 @@ Every feature goes through this process. A utility function, a config change, a 
 
 ### Phase 5: Document
 
-- Save the validated design to the harness's plan storage, not the repository. Keep it in context, or offer a temp or gitignored path if the user wants it durable. Never commit it unless the user asks.
+- When called by `j-plan`, save the validated design into that workflow's existing plan file. Otherwise
+  use `scratchpad/plans/<topic>-design.md` only after `git check-ignore -q scratchpad/` confirms that
+  directory is ignored. If it does not, follow `writing-plans`' private
+  `${TMPDIR:-/tmp}/j-plan/<repo-id>/` fallback. Never keep the only copy in context or commit it
+  unless the user asks.
 - **Self-review before handing off** — scan the written design for placeholders, internal contradictions, and scope creep (features beyond what was agreed). Fix or flag anything you find.
 - Skip file output only if user explicitly says no
 - Design docs are not user docs — when the feature ships, keep README/API/usage docs current too (see `documentation-validation`)

@@ -12,10 +12,19 @@ Write comprehensive implementation plans assuming the engineer has zero codebase
 
 Target audience: skilled developer unfamiliar with your codebase and toolset.
 
-**Where the plan lives:** the harness's native plan storage, not the repository. A plan is working state for the session that implements it — it is not a shipped artifact and is not committed.
+**Where the plan lives:** every plan is a disk-backed working artifact, never conversation-only state.
 
-- **Claude Code:** the plan file assigned by plan mode. Outside plan mode, create `~/.claude/plans/<repo-name>-<feature>.md` — that directory is flat and shared across every project, so the repo name is what keeps plans distinguishable.
-- **Other harnesses:** keep the plan in context. Offer to save it to a temp path or a gitignored location if the user wants it durable. Never commit it unless the user asks.
+- Prefer `scratchpad/plans/<feature-slug>.md` after confirming `scratchpad/` is ignored with
+  `git check-ignore -q scratchpad/`.
+- If the ignore check fails or there is no repository, use
+  `${TMPDIR:-/tmp}/j-plan/<repo-id>/<feature-slug>.md`, where `<repo-id>` is a stable SHA-256 digest
+  of the absolute repository root or working directory. The `j-plan` and `<repo-id>` directories MUST
+  be owned by the current user, not symlinks, and mode `0700`; the file MUST be mode `0600`.
+- Create the file as soon as planning starts with an exclusive, no-clobber operation, choose a
+  non-colliding name, and update it after each research or decision step. The file is the source of
+  truth.
+- **MUST NOT keep the only copy in context.** Never use a tracked path such as `planning/`, and never
+  commit the plan unless the user asks.
 
 ## Plan Document Header
 

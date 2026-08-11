@@ -24,6 +24,36 @@ SHARED_ONLY_SKILLS: frozenset[str] = frozenset()
 CLAUDE_ONLY_SKILLS: frozenset[str] = frozenset()
 CLAUDE_ONLY_AGENTS: frozenset[str] = frozenset()
 
+J_PLAN_COMMANDS = (
+    REPO / ".agents" / "skills" / "cmd-j-plan" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-plan.md",
+    REPO / ".claude" / "commands" / "j-plan.md",
+    REPO / ".gemini" / "commands" / "j-plan.toml",
+)
+
+PLAN_STORAGE_SKILLS = (
+    REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md",
+    REPO / ".claude" / "skills" / "writing-plans" / "SKILL.md",
+)
+
+PLAN_EXECUTION_CONSUMERS = (
+    REPO / ".agents" / "skills" / "cmd-j-execute-plan" / "SKILL.md",
+    REPO / ".agents" / "skills" / "cmd-j-next" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-execute-plan.md",
+    REPO / ".codex" / "prompts" / "j-next.md",
+    REPO / ".claude" / "commands" / "j-execute-plan.md",
+    REPO / ".claude" / "commands" / "j-next.md",
+    REPO / ".gemini" / "commands" / "j-execute-plan.toml",
+    REPO / ".gemini" / "commands" / "j-next.toml",
+)
+
+ACTIVE_PLAN_CONSUMERS = (
+    REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-diff-review.md",
+    REPO / ".claude" / "commands" / "j-diff-review.md",
+    REPO / ".gemini" / "commands" / "j-diff-review.toml",
+)
+
 
 def skill_directories(root: Path) -> set[str]:
     return {path.parent.name for path in root.glob("*/SKILL.md")}
@@ -118,6 +148,66 @@ class AgentConfigArchitectureTests(unittest.TestCase):
     def test_cursor_configuration_is_not_tracked(self):
         cursor = REPO / ".cursor"
         self.assertFalse(cursor.exists() and any(path.is_file() for path in cursor.rglob("*")))
+
+    def test_j_plan_commands_persist_the_plan_outside_git(self):
+        ignore_patterns = {
+            line.strip()
+            for line in (REPO / ".gitignore").read_text().splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        }
+        self.assertIn("scratchpad/", ignore_patterns)
+
+        for path in J_PLAN_COMMANDS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("scratchpad/plans/", content)
+                self.assertIn("git check-ignore -q scratchpad/", content)
+                self.assertIn("${TMPDIR:-/tmp}/j-plan/<repo-id>/", content)
+                self.assertIn("stable SHA-256 digest", content)
+                self.assertIn("Create the parent directory and file immediately", content)
+                self.assertIn("0700", content)
+                self.assertIn("0600", content)
+                self.assertRegex(content, r"exclusive,\s+no-clobber")
+                self.assertIn("numeric suffix", content)
+                self.assertRegex(content, r"owned by (?:the )?current user")
+                self.assertIn("not symlinks", content)
+                self.assertIn("Status: Researching", content)
+                self.assertIn("## Planning Notes", content)
+                self.assertRegex(content, r"source\s+of truth")
+                self.assertIn("MUST NOT keep the only copy in context", content)
+
+    def test_plan_storage_skills_forbid_context_only_plans(self):
+        for path in PLAN_STORAGE_SKILLS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("scratchpad/plans/", content)
+                self.assertIn("git check-ignore -q scratchpad/", content)
+                self.assertIn("${TMPDIR:-/tmp}/j-plan/<repo-id>/", content)
+                self.assertIn("0700", content)
+                self.assertIn("0600", content)
+                self.assertRegex(content, r"exclusive,\s+no-clobber")
+                self.assertRegex(content, r"owned by (?:the )?current user")
+                self.assertIn("not symlinks", content)
+                self.assertIn("MUST NOT keep the only copy in context", content)
+
+    def test_plan_execution_commands_confirm_discovered_files(self):
+        for path in PLAN_EXECUTION_CONSUMERS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("scratchpad/plans/", content)
+                self.assertIn("${TMPDIR:-/tmp}/j-plan/<repo-id>/", content)
+                self.assertIn("regular, non-symlink plan files", content)
+                self.assertIn("full paths", content)
+                self.assertIn("modification times", content)
+                self.assertIn("even when there is only one", content)
+                self.assertIn("MUST NOT execute a discovered plan without confirmation", content)
+
+    def test_active_plan_commands_use_the_persisted_locations(self):
+        for path in ACTIVE_PLAN_CONSUMERS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("scratchpad/plans/", content)
+                self.assertIn("${TMPDIR:-/tmp}/j-plan/<repo-id>/", content)
 
 
 if __name__ == "__main__":

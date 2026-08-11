@@ -201,6 +201,11 @@ The `.claude/` directory is self-contained with `/j-*` commands, specialist agen
 
 The `.codex/` directory contains Codex-native agents, prompts, hooks, and command rules. Reusable workflows and `$cmd-j-*` command skills live under `.agents/`, which Codex discovers directly. For example, invoke `$cmd-j-tdd` or `$cmd-j-plan` in Codex. The files under `.codex/prompts/` remain available through `/prompts:j-tdd` style slash commands.
 
+Across Claude, Codex, and Gemini, `j-plan` saves its working plan under the gitignored
+`scratchpad/plans/` directory. It falls back to a private
+`${TMPDIR:-/tmp}/j-plan/<repo-id>/` directory when the repository does not ignore `scratchpad/`; the
+plan is never kept only in conversation context.
+
 ### Gemini
 
 The `.gemini/` directory contains a parallel configuration optimized for the Gemini CLI:

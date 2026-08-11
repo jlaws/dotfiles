@@ -22,5 +22,5 @@ __pycache__/
 .ruff_cache/
 .venv/
 
-# Agent working space (task briefs, review packages, findings)
+# Agent working space (plans, task briefs, review packages, findings)
 scratchpad/
