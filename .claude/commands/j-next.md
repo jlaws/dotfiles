@@ -8,11 +8,7 @@ Advance a multi-PR plan to its next part: confirm the previous part landed on `o
 
 Plan file: $ARGUMENTS
 
-If no path is provided, discover regular, non-symlink plan files in `scratchpad/plans/`, then
-`${TMPDIR:-/tmp}/j-plan/<repo-id>/` (under `/tmp/j-plan/` when `TMPDIR` is unset). Show the full paths
-and modification times, then ask the user to confirm the chosen path even when there is only one
-candidate. **MUST NOT execute a discovered plan without confirmation.** If there are none, ask for a
-path. Conversation context is not a plan-file substitute.
+If no path provided, use the plan file that plan mode assigned this session. Outside plan mode, check `~/.claude/plans/` for entries prefixed with this repo's name — that directory is shared across every project, so a plan from another repo is not a candidate. Ask if more than one fits.
 
 ## Phase 1: Read the plan, find the next part
 

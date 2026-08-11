@@ -27,13 +27,11 @@ CLAUDE_ONLY_AGENTS: frozenset[str] = frozenset()
 J_PLAN_COMMANDS = (
     REPO / ".agents" / "skills" / "cmd-j-plan" / "SKILL.md",
     REPO / ".codex" / "prompts" / "j-plan.md",
-    REPO / ".claude" / "commands" / "j-plan.md",
     REPO / ".gemini" / "commands" / "j-plan.toml",
 )
 
 PLAN_STORAGE_SKILLS = (
     REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md",
-    REPO / ".claude" / "skills" / "writing-plans" / "SKILL.md",
 )
 
 PLAN_EXECUTION_CONSUMERS = (
@@ -41,8 +39,6 @@ PLAN_EXECUTION_CONSUMERS = (
     REPO / ".agents" / "skills" / "cmd-j-next" / "SKILL.md",
     REPO / ".codex" / "prompts" / "j-execute-plan.md",
     REPO / ".codex" / "prompts" / "j-next.md",
-    REPO / ".claude" / "commands" / "j-execute-plan.md",
-    REPO / ".claude" / "commands" / "j-next.md",
     REPO / ".gemini" / "commands" / "j-execute-plan.toml",
     REPO / ".gemini" / "commands" / "j-next.toml",
 )
@@ -50,7 +46,6 @@ PLAN_EXECUTION_CONSUMERS = (
 ACTIVE_PLAN_CONSUMERS = (
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
     REPO / ".codex" / "prompts" / "j-diff-review.md",
-    REPO / ".claude" / "commands" / "j-diff-review.md",
     REPO / ".gemini" / "commands" / "j-diff-review.toml",
 )
 
