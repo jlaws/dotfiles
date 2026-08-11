@@ -36,6 +36,7 @@ Full methodology: load skill `verification-before-completion` (read `~/.agents/s
 - For multi-step investigations: write findings to files progressively; don't accumulate everything in conversation.
 - Handoff files follow the `session-handoff` schema (decisions, files, tests, open issues, rejected approaches); write at fill milestones, not only at the limit.
 - Artifact tiers: `summary/` and `planning/` are commit-worthy; `tasks/` optional; `scratchpad/` is gitignored working space.
+- `/j-plan` plans are working artifacts, not the commit-worthy `planning/` tier. Persist them in ignored `scratchpad/plans/`, or a private `${TMPDIR:-/tmp}/j-plan/<repo-id>/` directory when that ignore cannot be verified. The plan file, not conversation context, is the source of truth.
 
 ## Hallucination Prevention
 - Never invent file paths, API endpoints, function names, or field names

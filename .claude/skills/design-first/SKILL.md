@@ -58,7 +58,11 @@ matters is that the shape is agreed before it is built, not that the document is
 
 ### Phase 5: Document
 
-- Save the validated design to the harness's plan storage, not the repository — Claude Code: the plan file assigned by plan mode, or `~/.claude/plans/<repo-name>-<topic>-design.md` outside it; other harnesses: keep it in context, or offer a temp or gitignored path. Never commit it unless the user asks.
+- When called by `j-plan`, save the validated design into that workflow's existing plan file. Otherwise
+  use `scratchpad/plans/<topic>-design.md` only after `git check-ignore -q scratchpad/` confirms that
+  directory is ignored. If it does not, follow `writing-plans`' private
+  `${TMPDIR:-/tmp}/j-plan/<repo-id>/` fallback. Never keep the only copy in context or commit it
+  unless the user asks.
 - **Self-review before handing off** — scan the written design for placeholders, internal contradictions, and scope creep (features beyond what was agreed). Fix or flag anything you find.
 - Skip file output only if user explicitly says no
 - Design docs are not user docs — when the feature ships, keep README/API/usage docs current too (see `documentation-validation`)

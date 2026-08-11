@@ -15,4 +15,8 @@ Each PR boundary ends by opening the PR — that is `finishing-branch`'s default
 
 Plan file: $ARGUMENTS
 
-If no path provided, use the plan held in this session's context. If the plan was saved, it is at a temp or gitignored path the user named — ask which plan to execute rather than guessing.
+If no path is provided, discover regular, non-symlink plan files in `scratchpad/plans/`, then
+`${TMPDIR:-/tmp}/j-plan/<repo-id>/` (under `/tmp/j-plan/` when `TMPDIR` is unset). Show the full paths
+and modification times, then ask the user to confirm the chosen path even when there is only one
+candidate. **MUST NOT execute a discovered plan without confirmation.** If there are none, ask for a
+path. Conversation context is not a plan-file substitute.

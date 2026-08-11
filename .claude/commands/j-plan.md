@@ -22,12 +22,26 @@ Read `.claude/references/workflow/existing-code-discipline.md` when the spec tou
 
 ---
 
-## Step 0: Enter plan mode and parse the spec
+## Step 0: Create the plan file and parse the spec
 
-Call `EnterPlanMode` unless the session is already in plan mode. It takes no arguments and requires
-the user's consent, so expect an approval prompt. Plan mode's file is where the plan goes — **never
-write a plan into the repository.** From here through Step 5 everything is read-only apart from that
-one file.
+The plan MUST be disk-backed from the start:
+
+1. Prefer `scratchpad/plans/<feature-slug>.md`, but only after
+   `git check-ignore -q scratchpad/` confirms that `scratchpad/` is ignored.
+2. If that check fails or there is no repository, use
+   `${TMPDIR:-/tmp}/j-plan/<repo-id>/<feature-slug>.md`, where `<repo-id>` is a stable SHA-256 digest
+   of the absolute repository root (or absolute working directory when there is no repository). This
+   resolves under `/tmp/j-plan/` when `TMPDIR` is unset.
+3. Create the parent directory and file immediately. For the temp fallback, verify that the `j-plan`
+   and `<repo-id>` directories are owned by the current user and are not symlinks; use mode `0700`
+   for both directories and `0600` for the file. Create either plan path with an exclusive,
+   no-clobber operation. If the path exists, add a numeric suffix instead of overwriting it.
+4. Seed the file with the title, the full spec, and `Status: Researching`. The plan file is the source
+   of truth. **MUST NOT keep the only copy in context.**
+
+Do not call `EnterPlanMode`; its tool-managed path does not satisfy this workflow's ignored-or-temp
+storage contract. Never use the tracked `planning/` artifact tier, and never commit the plan unless
+the user asks. From here through Step 5 everything is read-only apart from the plan file.
 
 `$ARGUMENTS` is freeform and may carry paths inline (commonly a design doc from /j-brainstorm). The
 whole string is the spec — do not strip paths from it. Scan for path-like tokens (containing `/`, or
@@ -51,6 +65,8 @@ depends on it, so this does not run in parallel with Step 2.
 - **Docs surface** — README, API docs, CHANGELOG, usage docs the change would obligate.
 - **Reusable patterns** — existing functions, utilities, and conventions the spec should reuse instead
   of reimplementing.
+
+Write the frozen recon packet into the plan file under `## Planning Notes` before fan-out.
 
 ## Step 2: Fan out the research
 
@@ -95,6 +111,9 @@ Conditional lenses, dispatched when Step 1 shows the surface is present:
 game — dispatch it with the same frozen packet. Report which agents ran and why, and which you
 deliberately skipped.
 
+Persist each returned lens result in `## Planning Notes` before synthesis. Do not leave research that
+the final plan depends on only in conversation context.
+
 ## Step 3: Synthesize and draft
 
 Deduplicate across lenses and resolve contradictions. Check each delegated claim against the code — a
@@ -112,8 +131,8 @@ Before writing, run the **redesign gate**. Any of these means fix the design, no
 - The design optimizes for hypothetical future requirements over current ones.
 - "It depends" answers most questions about the design.
 
-Then write the plan per `writing-plans`, including its Mandatory Phase Skeleton, into the plan-mode
-plan file.
+Then replace the working notes with the complete plan per `writing-plans`, including its Mandatory
+Phase Skeleton. Write the draft directly to the plan file.
 
 **Persist significant decisions as ADRs.** For each decision the plan settles, record the chosen
 approach, the alternatives rejected, the trade-offs accepted, and the conditions that would reverse
@@ -143,11 +162,11 @@ git log --oneline HEAD..origin/main
 Re-check the plan against anything that landed — a plan written against a stale tree names paths that
 moved. Then research every open question the codebase can answer; per `design-first`, only ask what
 the code cannot tell you. Ask the rest with `AskUserQuestion`, each carrying a recommended answer,
-ordered so the ones that unlock others come first. Fold the answers into the plan file. **The
-finalized plan has no open-questions section.**
+ordered so the ones that unlock others come first. Fold every answer into the plan file before asking
+the next question. **The finalized plan has no open-questions section.**
 
 ## Step 6: Hand off
 
-Call `ExitPlanMode` for approval. Alongside it, summarize which lenses ran, what each surfaced, and
-the plan's PR boundaries. Once approved, `writing-plans`' Execution Handoff options apply — inline
-via /j-execute-plan, subagents, a new session, or manual.
+Report `Plan saved to <plan-file-path>` first. Present the plan for approval, and summarize which
+lenses ran, what each surfaced, and the plan's PR boundaries. Once approved, `writing-plans`'
+Execution Handoff options apply — inline via /j-execute-plan, subagents, a new session, or manual.

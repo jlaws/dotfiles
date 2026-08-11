@@ -72,6 +72,9 @@
 - From a non-TTY context, close stdin (`</dev/null`) to avoid hangs and redirect noisy output; scale a command's timeout to expected task depth for silent long jobs.
 - When context is constrained, preserve progress in a HANDOFF.md using the `session-handoff` schema (decisions, files, tests, open issues, rejected approaches) before context degrades.
 - Artifact tiers: `summary/` and `planning/` are commit-worthy; `tasks/` optional; `scratchpad/` is gitignored working space.
+- `$cmd-j-plan` plans are working artifacts, not the commit-worthy `planning/` tier. Persist them in
+  ignored `scratchpad/plans/`, or a private `${TMPDIR:-/tmp}/j-plan/<repo-id>/` directory when that
+  ignore cannot be verified. The plan file, not conversation context, is the source of truth.
 
 ## Git Workflow
 

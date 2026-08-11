@@ -114,10 +114,11 @@ one, take the first rung that applies — do not skip ahead:
 
 1. **Fix it** — if the fix is reasonably scoped: clear defect, inside the diff's boundary, verifiable.
    Apply it, run the project's checks, commit atomically.
-2. **Add it to the plan for this session** — if this session has an active plan file under
-   `~/.claude/plans/`, append the finding there as a future phase. That directory holds plans from every
-   project, so match the plan this session is actually running; a stale plan from another repo is not a
-   destination. If no plan is active, fall to rung 3. **Never create a new plan file.**
+2. **Add it to the plan for this session** — if this session is working from a plan under
+   `scratchpad/plans/` or `${TMPDIR:-/tmp}/j-plan/<repo-id>/`, append the finding there as a future
+   phase.
+   Match the active plan, not any plan that happens to exist. If none is active, fall to rung 3.
+   **Never create a new plan file.**
 3. **Add it to the repository's future-work mechanism** — if the repo has one, follow its convention
    (`TODO.md`, `docs/plans/`, GitHub issues, a tracker named in CLAUDE.md or CONTRIBUTING.md). Detect it;
    do not invent one.
