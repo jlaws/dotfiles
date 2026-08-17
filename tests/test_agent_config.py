@@ -82,6 +82,19 @@ DIFF_REVIEW_DISPATCHERS = (
     REPO / ".gemini" / "commands" / "j-diff-review.toml",
 )
 
+# Local `main` can trail the remote, which makes a squash absorb commits that already landed.
+# Every branch workflow resolves its base through `origin/main` instead.
+BRANCH_BASE_REF_DOCS = (
+    REPO / ".claude" / "skills" / "using-git-worktrees" / "SKILL.md",
+    REPO / ".agents" / "skills" / "using-git-worktrees" / "SKILL.md",
+    REPO / ".claude" / "skills" / "finishing-branch" / "SKILL.md",
+    REPO / ".agents" / "skills" / "finishing-branch" / "SKILL.md",
+    REPO / ".claude" / "commands" / "j-rebase.md",
+    REPO / ".agents" / "skills" / "cmd-j-rebase" / "SKILL.md",
+    REPO / ".codex" / "AGENTS.md",
+    REPO / ".gemini" / "GEMINI.md",
+)
+
 
 def skill_directories(root: Path) -> set[str]:
     return {path.parent.name for path in root.glob("*/SKILL.md")}
@@ -211,6 +224,29 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("git rev-parse HEAD", content)
                 self.assertIn("HEAD SHA", content)
                 self.assertIn("do not create or request a worktree", content)
+
+    def test_branch_workflows_resolve_their_base_through_the_remote(self):
+        for path in BRANCH_BASE_REF_DOCS:
+            lines = path.read_text().splitlines()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(
+                    any("git merge-base HEAD origin/main" in line for line in lines),
+                    f"{path.name}: no origin/main merge-base found",
+                )
+                stale = [line.strip() for line in lines if "git merge-base HEAD main" in line]
+                self.assertEqual(stale, [], f"{path.name}: merge-base against local main")
+
+    def test_shared_skills_carry_no_upstream_superpowers_paths(self):
+        """`.agents/` was seeded from obra/superpowers; its paths and cross-reference
+        syntax are ours now. REFERENCES.md keeps the upstream attribution."""
+        for path in sorted((REPO / ".agents" / "skills").glob("*/SKILL.md")):
+            leftovers = [
+                line.strip()
+                for line in path.read_text().splitlines()
+                if "superpowers" in line
+            ]
+            with self.subTest(skill=path.parent.name):
+                self.assertEqual(leftovers, [], f"{path.parent.name}: upstream leftover")
 
     def test_worktree_base_ref_is_pinned_to_local_head(self):
         """`fresh`, the harness default, branches agent-isolation worktrees off origin/<default>."""

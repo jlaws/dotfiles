@@ -57,7 +57,7 @@ Before pushing, run the `documentation-validation` gate: confirm product docs (R
 ### Step 2: Determine Base Branch
 
 ```bash
-git merge-base HEAD main
+git merge-base HEAD origin/main
 ```
 
 Report which branch this split from. Only stop to ask if the answer is not `main`/`master` — an unexpected base usually means the branch was cut from other in-flight work, and the PR target matters.

@@ -84,7 +84,7 @@ Prohibited operators: `&&`, `||`, `;`, `|` (piping to another command that could
 - `docker ps -q | xargs -r docker rm -f; pgrep -f ... | xargs kill` -> separate calls per cleanup step
 - `sleep 25; tail ...` -> use a single background-poll loop, never chained sleeps
 
-**Allowed within one call:** output redirects (`>`, `2>`, `</dev/null`), `$(...)` command substitution (e.g., `git reset --soft $(git merge-base HEAD main)`), heredocs (`$(cat <<EOF ...)`), and a single background-poll loop (`until <cond>; do sleep N; done`).
+**Allowed within one call:** output redirects (`>`, `2>`, `</dev/null`), `$(...)` command substitution (e.g., `git reset --soft $(git merge-base HEAD origin/main)`), heredocs (`$(cat <<EOF ...)`), and a single background-poll loop (`until <cond>; do sleep N; done`).
 
 This rule applies to `run_shell_command` calls only -- not to Dockerfile `RUN` layers, CI/CD `run:` blocks, or executable shell scripts (hooks, etc.).
 
@@ -126,7 +126,7 @@ When working in a git worktree:
   git add -A
   ```
   ```bash
-  git reset --soft $(git merge-base HEAD main)
+  git reset --soft $(git merge-base HEAD origin/main)
   ```
   ```bash
   git commit -m "<summary>"

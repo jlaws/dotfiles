@@ -104,7 +104,7 @@ loses work silently.
    git add -A
    ```
    ```bash
-   git reset --soft $(git merge-base HEAD main)
+   git reset --soft $(git merge-base HEAD origin/main)
    ```
    ```bash
    git commit -m "<summary of changes>"

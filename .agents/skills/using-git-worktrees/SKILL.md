@@ -26,7 +26,7 @@ If preference specified, use it.
 ```
 No worktree directory found. Where should I create worktrees?
 1. .worktrees/ (project-local, hidden)
-2. ~/.config/superpowers/worktrees/<project-name>/ (global)
+2. ~/.worktrees/<project-name>/ (outside the repo)
 ```
 
 ## Safety Verification
@@ -39,7 +39,7 @@ git check-ignore -q .worktrees 2>/dev/null
 
 **If NOT ignored:** Add to .gitignore, commit, then proceed.
 
-**For global directory (~/.config/superpowers/worktrees):** No verification needed.
+**For a directory outside the repo:** No verification needed.
 
 ## Base Commit
 
@@ -89,23 +89,27 @@ git log -1 --oneline
 
 ## Completing Work in a Worktree
 
-Before returning or signaling completion:
+This is the contract between a worktree agent and its caller. Each step exists because skipping it
+loses work silently.
 
-1. **Stage and commit** all changes (nothing untracked or modified)
-2. **Squash** into a single commit (three separate Bash tool calls):
+1. **Commit everything.** Uncommitted changes are invisible to `git merge`, so anything left staged or
+   modified is thrown away when the caller integrates.
+2. **Squash into one commit**, as three separate Bash tool calls:
    ```bash
    git add -A
    ```
    ```bash
-   git reset --soft $(git merge-base HEAD main)
+   git reset --soft $(git merge-base HEAD origin/main)
    ```
    ```bash
    git commit -m "<summary of changes>"
    ```
-3. **Report** your branch name and worktree path to the parent/caller
-4. Do NOT remove the worktree, merge to main, or invoke `finishing-branch`
-
-> The parent agent is responsible for `git merge` and `git worktree remove`.
+3. **Report** your branch name and worktree path back to the caller.
+4. **Integrate with `git merge`, never by copying files.** `cp` or `rsync` out of a worktree loses
+   history and silently overwrites concurrent work in the destination.
+5. **Leave the worktree in place.** The caller owns `git merge` and `git worktree remove`, and cannot
+   integrate a tree you already deleted. For the same reason, do not invoke `finishing-branch` --
+   return the work on its branch.
 
 ## Quick Reference
 
