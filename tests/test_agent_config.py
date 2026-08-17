@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
@@ -47,6 +48,51 @@ ACTIVE_PLAN_CONSUMERS = (
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
     REPO / ".codex" / "prompts" / "j-diff-review.md",
     REPO / ".gemini" / "commands" / "j-diff-review.toml",
+)
+
+# A worktree carries no uncommitted changes and branches from a start point the agent did not pick,
+# so a review run in one silently reviews the wrong commit. Each statement below has one owner --
+# repeating it across surfaces is what `writing-skills` warns against -- and the owners are pinned so
+# the guidance cannot quietly disappear from a tree.
+
+# Owns "which workspace does a dispatched agent get".
+WORKSPACE_SELECTION_OWNERS = (
+    REPO / ".claude" / "skills" / "dispatching-parallel-agents" / "SKILL.md",
+    REPO / ".agents" / "skills" / "dispatching-parallel-agents" / "SKILL.md",
+)
+
+# Owns "which commit does a worktree start from, and how do you confirm it".
+WORKTREE_BASE_OWNERS = (
+    REPO / ".claude" / "skills" / "using-git-worktrees" / "SKILL.md",
+    REPO / ".agents" / "skills" / "using-git-worktrees" / "SKILL.md",
+)
+
+# Always-loaded configs carry a pointer, not a restatement.
+WORKTREE_POINTERS = (
+    REPO / ".claude" / "CLAUDE.md",
+    REPO / ".codex" / "AGENTS.md",
+    REPO / ".gemini" / "GEMINI.md",
+)
+
+# Review dispatch hands each agent the HEAD SHA it should be sitting on.
+DIFF_REVIEW_DISPATCHERS = (
+    REPO / ".claude" / "commands" / "j-diff-review.md",
+    REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-diff-review.md",
+    REPO / ".gemini" / "commands" / "j-diff-review.toml",
+)
+
+# Local `main` can trail the remote, which makes a squash absorb commits that already landed.
+# Every branch workflow resolves its base through `origin/main` instead.
+BRANCH_BASE_REF_DOCS = (
+    REPO / ".claude" / "skills" / "using-git-worktrees" / "SKILL.md",
+    REPO / ".agents" / "skills" / "using-git-worktrees" / "SKILL.md",
+    REPO / ".claude" / "skills" / "finishing-branch" / "SKILL.md",
+    REPO / ".agents" / "skills" / "finishing-branch" / "SKILL.md",
+    REPO / ".claude" / "commands" / "j-rebase.md",
+    REPO / ".agents" / "skills" / "cmd-j-rebase" / "SKILL.md",
+    REPO / ".codex" / "AGENTS.md",
+    REPO / ".gemini" / "GEMINI.md",
 )
 
 
@@ -139,6 +185,73 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for name in CLAUDE_ONLY_AGENTS:
             with self.subTest(agent=name):
                 self.assertTrue((REPO / ".claude" / "agents" / f"{name}.md").is_file())
+
+    def test_workspace_selection_is_documented_where_dispatch_is_decided(self):
+        for path in WORKSPACE_SELECTION_OWNERS:
+            content = path.read_text().lower()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("## workspace selection", content)
+                self.assertIn("uncommitted", content)
+                self.assertIn("git worktree list", content)
+
+    def test_worktree_skills_pin_a_start_point_and_verify_on_entry(self):
+        for path in WORKTREE_BASE_OWNERS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("start point", content.lower())
+                self.assertIn("git rev-parse HEAD", content)
+                # `git worktree add <path> -b <branch>` with no trailing ref uses the current HEAD.
+                bare = [
+                    line
+                    for line in content.splitlines()
+                    if line.strip().startswith("git worktree add")
+                    and len(line.split("-b", 1)[1].split()) < 2
+                ]
+                self.assertEqual(bare, [], f"{path.name}: `git worktree add` with no start point")
+
+    def test_always_loaded_configs_point_at_the_workspace_rule(self):
+        for path in WORKTREE_POINTERS:
+            content = path.read_text().lower()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("worktree", content)
+                self.assertIn("uncommitted", content)
+                self.assertIn("dispatching-parallel-agents", content)
+
+    def test_diff_review_hands_reviewers_the_head_sha(self):
+        for path in DIFF_REVIEW_DISPATCHERS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("git rev-parse HEAD", content)
+                self.assertIn("HEAD SHA", content)
+                self.assertIn("do not create or request a worktree", content)
+
+    def test_branch_workflows_resolve_their_base_through_the_remote(self):
+        for path in BRANCH_BASE_REF_DOCS:
+            lines = path.read_text().splitlines()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(
+                    any("git merge-base HEAD origin/main" in line for line in lines),
+                    f"{path.name}: no origin/main merge-base found",
+                )
+                stale = [line.strip() for line in lines if "git merge-base HEAD main" in line]
+                self.assertEqual(stale, [], f"{path.name}: merge-base against local main")
+
+    def test_shared_skills_carry_no_upstream_superpowers_paths(self):
+        """`.agents/` was seeded from obra/superpowers; its paths and cross-reference
+        syntax are ours now. REFERENCES.md keeps the upstream attribution."""
+        for path in sorted((REPO / ".agents" / "skills").glob("*/SKILL.md")):
+            leftovers = [
+                line.strip()
+                for line in path.read_text().splitlines()
+                if "superpowers" in line
+            ]
+            with self.subTest(skill=path.parent.name):
+                self.assertEqual(leftovers, [], f"{path.parent.name}: upstream leftover")
+
+    def test_worktree_base_ref_is_pinned_to_local_head(self):
+        """`fresh`, the harness default, branches agent-isolation worktrees off origin/<default>."""
+        settings = json.loads((REPO / ".claude" / "settings.json").read_text())
+        self.assertEqual(settings.get("worktree", {}).get("baseRef"), "head")
 
     def test_cursor_configuration_is_not_tracked(self):
         cursor = REPO / ".cursor"

@@ -84,7 +84,7 @@ Prohibited operators: `&&`, `||`, `;`, `|` (piping to another command that could
 - `docker ps -q | xargs -r docker rm -f; pgrep -f ... | xargs kill` -> separate calls per cleanup step
 - `sleep 25; tail ...` -> use a single background-poll loop, never chained sleeps
 
-**Allowed within one call:** output redirects (`>`, `2>`, `</dev/null`), `$(...)` command substitution (e.g., `git reset --soft $(git merge-base HEAD main)`), heredocs (`$(cat <<EOF ...)`), and a single background-poll loop (`until <cond>; do sleep N; done`).
+**Allowed within one call:** output redirects (`>`, `2>`, `</dev/null`), `$(...)` command substitution (e.g., `git reset --soft $(git merge-base HEAD origin/main)`), heredocs (`$(cat <<EOF ...)`), and a single background-poll loop (`until <cond>; do sleep N; done`).
 
 This rule applies to `run_shell_command` calls only -- not to Dockerfile `RUN` layers, CI/CD `run:` blocks, or executable shell scripts (hooks, etc.).
 
@@ -111,6 +111,14 @@ If a subagent realizes it needs a smarter model, it returns to the parent instea
 
 ## Worktree Rules
 
+Before creating one:
+- A worktree holds only committed work, at whatever start point created it -- no uncommitted changes,
+  and your HEAD only if someone named it. Read-only agents (review, audit, search) belong in the
+  caller's tree; see the `dispatching-parallel-agents` skill, Workspace Selection.
+- Name the start point: `git worktree add <path> -b <branch> <start-point>`. Omitting it silently
+  uses the current HEAD.
+- On entry, run `git rev-parse HEAD` and check it against the commit you were told to work on.
+
 When working in a git worktree:
 - **Commit ALL changes** before returning -- uncommitted work is invisible to `git merge`
 - **Squash into one commit** (three separate `run_shell_command` calls):
@@ -118,7 +126,7 @@ When working in a git worktree:
   git add -A
   ```
   ```bash
-  git reset --soft $(git merge-base HEAD main)
+  git reset --soft $(git merge-base HEAD origin/main)
   ```
   ```bash
   git commit -m "<summary>"

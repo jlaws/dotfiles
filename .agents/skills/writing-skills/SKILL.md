@@ -81,7 +81,7 @@ For mechanical steps (validation, formatting, deterministic checks), ship a `scr
 - Other skills: <500 words
 - Move details to `--help`, use cross-references, compress examples
 
-**Cross-References:** Use `**REQUIRED SUB-SKILL:** Use superpowers:skill-name`. Never use `@` links (force-loads, burns context).
+**Cross-References:** Name the skill in prose (`use the code-review-patterns skill`). Never use `@` links (force-loads, burns context).
 
 ## Flowchart Usage
 
