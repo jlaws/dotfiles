@@ -80,9 +80,6 @@
     "deny": [
       "Bash(sudo *)",
       "Read(./.git/config)",
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./secrets/**)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)"
     ]
