@@ -253,7 +253,7 @@ Conclude every review with one standard verdict — **PASS / CONCERNS / FAIL / B
 
 For risky changes, run reviewers as a debate instead of a single pass:
 
-1. **Freeze a shared packet** — the diff plus context, identical for every reviewer.
+1. **Freeze a shared packet** — the diff, the HEAD SHA, and context, identical for every reviewer.
 2. **Fan out 2+ independent reviewers, one lens each** (e.g. correctness, security, tests, performance). Keep them **blind to each other** on the first pass. Scale the count to change risk.
 3. **Cross-critique, 1-2 rounds** — broadcast round-1 findings; each reviewer may revise. Any change of position **must state a technical reason** — "good point" is banned.
 4. **Report survivors and disputes** — findings that survive cross-critique are high-confidence; flag unresolved disputes for the human rather than forcing consensus.

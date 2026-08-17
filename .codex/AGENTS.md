@@ -106,6 +106,14 @@ This rule applies to shell tool calls only -- not to Dockerfile `RUN` layers, CI
 
 ## Worktree Rules
 
+Before creating one:
+- A worktree holds only committed work, at whatever start point created it -- no uncommitted changes,
+  and your HEAD only if someone named it. Read-only agents (review, audit, search) belong in the
+  caller's tree; see the `dispatching-parallel-agents` skill, Workspace Selection.
+- Name the start point: `git worktree add <path> -b <branch> <start-point>`. Omitting it silently
+  uses the current HEAD.
+- On entry, run `git rev-parse HEAD` and check it against the commit you were told to work on.
+
 When working in a git worktree:
 - **Commit ALL changes** before returning -- uncommitted work is invisible to `git merge`
 - **Squash into one commit** (three separate shell calls):

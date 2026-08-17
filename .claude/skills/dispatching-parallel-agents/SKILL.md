@@ -35,6 +35,22 @@ Each brief must be:
 
 Hand large inputs over as files (see `subagent-driven-development` handoffs), not inline text.
 
+## Workspace Selection
+
+Say where each agent works, in its brief. The caller's working tree is almost always right: it is the
+only tree holding your uncommitted changes, so anything that reads your work — review, audit, search,
+analysis — belongs there. A separate worktree earns its cost only when agents write to the same files
+at once.
+
+A worktree is a fresh checkout, not a copy of your workspace. It carries no uncommitted changes, and
+its base commit comes from the `worktree.baseRef` setting, whose default (`fresh`) branches from
+`origin/<default-branch>`. That setting governs the Agent tool's `isolation: "worktree"` the same way
+it governs `--worktree` and `EnterWorktree`. An agent handed one reads a different commit and reports
+on code you did not write, with no error to warn you.
+
+Symptom: findings that describe the pre-change code, or a clean verdict on a diff you know is risky.
+`git worktree list` settles it — a listed commit that is not your HEAD means those runs are worthless.
+
 ## Post-Run Integration
 
 Parallel agents finishing is not the end. After they return:
@@ -58,7 +74,7 @@ For large or automated fan-outs (e.g. the harness Workflow tool), apply these:
 - **Concurrency cap** — run about 16 agents at once (or fewer); excess should queue, not all launch together.
 - **Total-spawn ceiling** — bound the total agents a run may create; a runaway loop is a bug.
 - **Gauge cost on a slice first** — run one representative unit before fanning out the whole set; extrapolate cost and fix the brief before committing to N.
-- **Isolated copy per parallel edit** — if agents mutate files concurrently, give each its own worktree/copy so they cannot corrupt each other (see `using-git-worktrees`).
+- **Isolated copy per parallel edit** — agents mutating the same files concurrently each need their own worktree (see Workspace Selection above and `using-git-worktrees`).
 - **Adversarial cross-check** — route each finding to an independent verifier and report only survivors (see `code-review-patterns` debate mode). A finding one agent produced and the same agent confirmed is not verified.
 
 ### Choosing an execution mode
@@ -76,4 +92,4 @@ Reach for a workflow when control flow should be deterministic (loops, fan-out, 
 
 **Pairs with:** `subagent-driven-development` (run independent plan tasks concurrently)
 **Uses:** `verification-before-completion` for the evidence hierarchy when weighing what an agent reports
-**See also:** `.claude/CLAUDE.md` Execution Model
+**See also:** `.claude/CLAUDE.md` Delegation

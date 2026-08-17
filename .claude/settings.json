@@ -87,6 +87,9 @@
       "Read(~/.aws/**)"
     ]
   },
+  "worktree": {
+    "baseRef": "head"
+  },
   "attribution": {
     "commit": "",
     "pr": ""

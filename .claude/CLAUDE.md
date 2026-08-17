@@ -82,6 +82,9 @@ double-check your own work.
 - A subagent doing bulk mechanical work should not spawn further subagents. If it needs to, the task was
   wrong-sized.
 - A subagent that realizes it needs more capability returns to the parent instead of escalating itself.
+- Say where each subagent works. Read-only agents belong in your working tree — a worktree holds no
+  uncommitted changes and branches from wherever `worktree.baseRef` points, so a review run in one
+  reviews the wrong code (`dispatching-parallel-agents`, Workspace Selection).
 
 Do not use ScheduleWakeup to re-trigger a prompt. When a long-running task finishes, stop and wait for
 input rather than re-injecting the original request.
