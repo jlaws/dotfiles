@@ -34,7 +34,9 @@ export HSTR_CONFIG=hicolor
 [ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
 
 # Lean (elan)
-[ -f "$HOME/.elan/env" ] && source "$HOME/.elan/env"
+[ -f "$HOME/.elan/env" ] && . "$HOME/.elan/env"
+# Cargo
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 # Claude
 alias dclaude="docker sandbox run claude ./"

@@ -20,25 +20,18 @@ BREW_PACKAGES = [
     "moreutils",
     "findutils",
     "fd",
-    "gnu-sed",
     "wget",
     "just",
     "vim",
     "grep",
     "openssh",
-    "screen",
     "git",
-    "git-lfs",
     "gh",
     "autojump",
     "mermaid-cli",
     "poppler",
-    "agent-browser",
-    "rustup",
-    "mold",
     "uv",
     "node",
-    "pyright",
 ]
 
 _ELAN_INSTALL = (
@@ -46,6 +39,7 @@ _ELAN_INSTALL = (
     "| sh -s -- -y --default-toolchain none"
 )
 _CLAUDE_INSTALL = "curl -fsSL https://claude.ai/install.sh | bash"
+_RUST_INSTALL = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
 
 def _run(runner: Runner, argv: list[str], *, dry_run: bool, check: bool = True) -> None:
@@ -84,15 +78,9 @@ def install_packages(runner: Runner, *, dry_run: bool = False) -> None:
                 check=False,
             )
 
-    if dry_run:
-        rustup = "$(brew --prefix rustup)/bin/rustup"
-    else:
-        rustup_prefix = runner.run(["brew", "--prefix", "rustup"], capture=True).stdout.strip()
-        rustup = f"{rustup_prefix}/bin/rustup"
-    _run(runner, [rustup, "default", "stable"], dry_run=dry_run)
-    _run(runner, [rustup, "component", "add", "rust-analyzer"], dry_run=dry_run)
-
-    _run(runner, ["agent-browser", "install"], dry_run=dry_run)
+    _run(runner, ["bash", "-c", _RUST_INSTALL], dry_run=dry_run)
+    _run(runner, ["rustup", "default", "stable"], dry_run=dry_run)
+    _run(runner, ["rustup", "component", "add", "rust-analyzer"], dry_run=dry_run)
     _run(runner, ["npm", "install", "-g", "typescript-language-server", "typescript"], dry_run=dry_run)
     _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
     _run(runner, ["bash", "-c", _CLAUDE_INSTALL], dry_run=dry_run)
