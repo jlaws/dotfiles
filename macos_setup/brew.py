@@ -32,6 +32,7 @@ BREW_PACKAGES = [
     "poppler",
     "uv",
     "node",
+    "rg",
 ]
 
 _ELAN_INSTALL = (
