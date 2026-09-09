@@ -124,12 +124,14 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         claude = {
             path.stem for path in (REPO / ".claude" / "commands").glob("j-*.md")
         }
-        gemini = {
-            path.stem for path in (REPO / ".gemini" / "commands").glob("j-*.toml")
+        antigravity = {
+            name
+            for name in skill_directories(REPO / ".gemini" / "antigravity-cli" / "skills")
+            if name.startswith("j-")
         }
 
         self.assertLessEqual(command_skills, codex)
-        self.assertLessEqual(command_skills, gemini)
+        self.assertEqual(antigravity, claude - CLAUDE_ONLY_COMMANDS)
         # Claude is compared exactly so a deleted command fails instead of passing as a subset.
         self.assertEqual(command_skills, claude - CLAUDE_ONLY_COMMANDS)
 
@@ -140,12 +142,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         claude = {
             path.stem for path in (REPO / ".claude" / "agents").glob("*.md")
         }
-        gemini = {
-            path.stem for path in (REPO / ".gemini" / "agents").glob("*.md")
+        antigravity = {
+            path.stem for path in (REPO / ".gemini" / "config" / "agents").glob("*.md")
         }
 
         self.assertEqual(codex, claude - CLAUDE_ONLY_AGENTS)
-        self.assertEqual(codex, gemini)
+        self.assertEqual(codex, antigravity)
 
     def test_shared_skill_descriptions_fit_codex_budget(self):
         for skill in (REPO / ".agents" / "skills").glob("*/SKILL.md"):
@@ -324,7 +326,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             for name in skill_directories(REPO / ".agents" / "skills")
             if not name.startswith("cmd-j-")
         }
-        gemini = skill_directories(REPO / ".gemini" / "antigravity-cli" / "skills")
+        gemini = {
+            name
+            for name in skill_directories(REPO / ".gemini" / "antigravity-cli" / "skills")
+            if not name.startswith("j-")
+        }
 
         self.assertEqual(shared, gemini)
 
@@ -334,6 +340,16 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         commands = sorted(gemini_root.glob("cmd-*/SKILL.md"))
         self.assertEqual(wrappers, [])
         self.assertEqual(commands, [])
+
+    def test_antigravity_agents_have_valid_frontmatter(self):
+        """All Antigravity agents in .gemini/config/agents/ must declare subagent: true and mainAgent: true."""
+        agents_dir = REPO / ".gemini" / "config" / "agents"
+        agents = sorted(agents_dir.glob("*.md"))
+        self.assertGreater(len(agents), 0, "must have Antigravity agents in .gemini/config/agents")
+        for agent_file in agents:
+            content = agent_file.read_text()
+            self.assertIn("subagent: true", content, f"{agent_file.name} missing subagent: true")
+            self.assertIn("mainAgent: true", content, f"{agent_file.name} missing mainAgent: true")
 
     def test_antigravity_permissions_cover_claude_baseline(self):
         """Antigravity settings.json permissions must cover all Claude allowed commands and denied paths."""
@@ -365,10 +381,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn(expected, agy_deny, f"Missing denied read_file: {expected}")
 
     def test_legacy_gemini_artifacts_are_not_tracked(self):
-        """Legacy Gemini CLI policy engine and hooks must not be present in .gemini/."""
+        """Legacy Gemini CLI policy engine, hooks, commands, and agents must not be present in .gemini/."""
         self.assertFalse((REPO / ".gemini" / "policies").exists(), "legacy policies/ must not exist")
         self.assertFalse((REPO / ".gemini" / "hooks").exists(), "legacy hooks/ must not exist")
         self.assertFalse((REPO / ".gemini" / "settings.json").exists(), "root .gemini/settings.json must not exist")
+        self.assertFalse((REPO / ".gemini" / "commands").exists(), "legacy commands/ must not exist")
+        self.assertFalse((REPO / ".gemini" / "agents").exists(), "legacy agents/ must not exist")
 
 
 if __name__ == "__main__":

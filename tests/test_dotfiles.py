@@ -231,29 +231,42 @@ class SyncAgentsTests(unittest.TestCase):
         legacy_hook = self._write_target(".gemini/hooks/log-prompt.sh", "#!/bin/sh")
         legacy_policy = self._write_target(".gemini/policies/default.toml", "deny = []")
         legacy_settings = self._write_target(".gemini/settings.json", "{}")
+        legacy_command = self._write_target(".gemini/commands/j-plan.toml", "description = 'plan'")
+        legacy_agent = self._write_target(".gemini/agents/code-reviewer.md", "# Agent")
 
         ag_settings = self.repo / ".gemini" / "antigravity-cli" / "settings.json"
         ag_settings.parent.mkdir(parents=True)
         ag_settings.write_text('{"permissions": {}}')
 
-        ag_skill = self.repo / ".gemini" / "antigravity-cli" / "skills" / "foo" / "SKILL.md"
+        ag_skill = self.repo / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md"
         ag_skill.parent.mkdir(parents=True)
-        ag_skill.write_text("---\nname: foo\ndescription: foo\n---\n")
+        ag_skill.write_text("---\nname: j-plan\ndescription: plan\n---\n")
+
+        ag_agent = self.repo / ".gemini" / "config" / "agents" / "code-reviewer.md"
+        ag_agent.parent.mkdir(parents=True)
+        ag_agent.write_text("---\nname: code-reviewer\nsubagent: true\nmainAgent: true\n---\n")
 
         sync_agents(self.repo, self.target, self.archive)
 
         self.assertFalse(legacy_hook.exists())
         self.assertFalse(legacy_policy.exists())
         self.assertFalse(legacy_settings.exists())
+        self.assertFalse(legacy_command.exists())
+        self.assertFalse(legacy_agent.exists())
         self.assertFalse((self.target / ".gemini" / "hooks").exists())
         self.assertFalse((self.target / ".gemini" / "policies").exists())
+        self.assertFalse((self.target / ".gemini" / "commands").exists())
+        self.assertFalse((self.target / ".gemini" / "agents").exists())
 
         installed_settings = self.target / ".gemini" / "antigravity-cli" / "settings.json"
-        installed_skill = self.target / ".gemini" / "antigravity-cli" / "skills" / "foo" / "SKILL.md"
+        installed_skill = self.target / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md"
+        installed_agent = self.target / ".gemini" / "config" / "agents" / "code-reviewer.md"
         self.assertTrue(installed_settings.exists())
         self.assertEqual(installed_settings.read_text(), '{"permissions": {}}')
         self.assertTrue(installed_skill.exists())
-        self.assertIn("name: foo", installed_skill.read_text())
+        self.assertIn("name: j-plan", installed_skill.read_text())
+        self.assertTrue(installed_agent.exists())
+        self.assertIn("subagent: true", installed_agent.read_text())
 
 
 class RevertFilesTests(unittest.TestCase):
