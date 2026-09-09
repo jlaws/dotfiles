@@ -54,11 +54,10 @@ AGENT_SYNC = [
     (".codex/hooks", ".codex/hooks"),
     (".codex/rules", ".codex/rules"),
     (".gemini/GEMINI.md", ".gemini/GEMINI.md"),
-    (".gemini/settings.json", ".gemini/settings.json"),
-    (".gemini/policies", ".gemini/policies"),
+    (".gemini/antigravity-cli/settings.json", ".gemini/antigravity-cli/settings.json"),
+    (".gemini/antigravity-cli/skills", ".gemini/antigravity-cli/skills"),
     (".gemini/agents", ".gemini/agents"),
     (".gemini/commands", ".gemini/commands"),
-    (".gemini/hooks", ".gemini/hooks"),
 ]
 
 # Stale files removed from the target after syncing (archived first so uninstall can restore).
@@ -68,6 +67,9 @@ AGENT_REMOVALS = [
     ".codex/hooks/lessons-learned.sh",
     ".gemini/hooks/lessons-learned.sh",
     ".claude/commands/j-finalize-pr.md",
+    ".gemini/hooks",
+    ".gemini/policies",
+    ".gemini/settings.json",
 ]
 
 AGENT_REMOVAL_GLOBS = [
@@ -241,13 +243,4 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
             remove_path(removal, archive)
     if dry_run:
         return
-    _make_hooks_executable(target / ".gemini" / "hooks")
     _LOG.info("Synced %d agent config files to %s", synced, target)
-
-
-def _make_hooks_executable(hooks_dir: Path) -> None:
-    """Mark Gemini hook scripts executable (mirrors the original chmod +x)."""
-    if not hooks_dir.is_dir():
-        return
-    for script in hooks_dir.glob("*.sh"):
-        script.chmod(script.stat().st_mode | 0o111)

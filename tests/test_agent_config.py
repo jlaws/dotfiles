@@ -317,6 +317,59 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("scratchpad/plans/", content)
                 self.assertIn("${TMPDIR:-/tmp}/j-plan/<repo-id>/", content)
 
+    def test_workflow_skill_sets_match_gemini_antigravity(self):
+        """Shared workflows and their Gemini/Antigravity counterparts must cover the same set of names."""
+        shared = {
+            name
+            for name in skill_directories(REPO / ".agents" / "skills")
+            if not name.startswith("cmd-j-")
+        }
+        gemini = skill_directories(REPO / ".gemini" / "antigravity-cli" / "skills")
+
+        self.assertEqual(shared, gemini)
+
+    def test_gemini_skills_do_not_contain_agent_wrappers_or_commands(self):
+        gemini_root = REPO / ".gemini" / "antigravity-cli" / "skills"
+        wrappers = sorted(gemini_root.glob("agent-*/SKILL.md"))
+        commands = sorted(gemini_root.glob("cmd-*/SKILL.md"))
+        self.assertEqual(wrappers, [])
+        self.assertEqual(commands, [])
+
+    def test_antigravity_permissions_cover_claude_baseline(self):
+        """Antigravity settings.json permissions must cover all Claude allowed commands and denied paths."""
+        claude_settings = json.loads((REPO / ".claude" / "settings.json").read_text())
+        agy_settings_path = REPO / ".gemini" / "antigravity-cli" / "settings.json"
+        self.assertTrue(agy_settings_path.is_file(), "antigravity-cli/settings.json must exist")
+        agy_settings = json.loads(agy_settings_path.read_text())
+
+        claude_allow = set(claude_settings.get("permissions", {}).get("allow", []))
+        agy_allow = set(agy_settings.get("permissions", {}).get("allow", []))
+        claude_deny = set(claude_settings.get("permissions", {}).get("deny", []))
+        agy_deny = set(agy_settings.get("permissions", {}).get("deny", []))
+
+        # Check command translations: Bash(cmd) -> command(cmd)
+        for rule in claude_allow:
+            if rule.startswith("Bash(") and rule.endswith(")"):
+                cmd = rule[len("Bash("):-1]
+                expected = f"command({cmd})"
+                self.assertIn(expected, agy_allow, f"Missing allowed command: {expected}")
+
+        for rule in claude_deny:
+            if rule.startswith("Bash(") and rule.endswith(")"):
+                cmd = rule[len("Bash("):-1]
+                expected = f"command({cmd})"
+                self.assertIn(expected, agy_deny, f"Missing denied command: {expected}")
+            elif rule.startswith("Read(") and rule.endswith(")"):
+                path = rule[len("Read("):-1]
+                expected = f"read_file({path})"
+                self.assertIn(expected, agy_deny, f"Missing denied read_file: {expected}")
+
+    def test_legacy_gemini_artifacts_are_not_tracked(self):
+        """Legacy Gemini CLI policy engine and hooks must not be present in .gemini/."""
+        self.assertFalse((REPO / ".gemini" / "policies").exists(), "legacy policies/ must not exist")
+        self.assertFalse((REPO / ".gemini" / "hooks").exists(), "legacy hooks/ must not exist")
+        self.assertFalse((REPO / ".gemini" / "settings.json").exists(), "root .gemini/settings.json must not exist")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -227,6 +227,34 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertTrue(any("would remove" in line for line in captured.output))
         self.assertEqual(self.archive.manifest["files"], [])
 
+    def test_removes_legacy_gemini_artifacts_and_syncs_antigravity(self):
+        legacy_hook = self._write_target(".gemini/hooks/log-prompt.sh", "#!/bin/sh")
+        legacy_policy = self._write_target(".gemini/policies/default.toml", "deny = []")
+        legacy_settings = self._write_target(".gemini/settings.json", "{}")
+
+        ag_settings = self.repo / ".gemini" / "antigravity-cli" / "settings.json"
+        ag_settings.parent.mkdir(parents=True)
+        ag_settings.write_text('{"permissions": {}}')
+
+        ag_skill = self.repo / ".gemini" / "antigravity-cli" / "skills" / "foo" / "SKILL.md"
+        ag_skill.parent.mkdir(parents=True)
+        ag_skill.write_text("---\nname: foo\ndescription: foo\n---\n")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(legacy_hook.exists())
+        self.assertFalse(legacy_policy.exists())
+        self.assertFalse(legacy_settings.exists())
+        self.assertFalse((self.target / ".gemini" / "hooks").exists())
+        self.assertFalse((self.target / ".gemini" / "policies").exists())
+
+        installed_settings = self.target / ".gemini" / "antigravity-cli" / "settings.json"
+        installed_skill = self.target / ".gemini" / "antigravity-cli" / "skills" / "foo" / "SKILL.md"
+        self.assertTrue(installed_settings.exists())
+        self.assertEqual(installed_settings.read_text(), '{"permissions": {}}')
+        self.assertTrue(installed_skill.exists())
+        self.assertIn("name: foo", installed_skill.read_text())
+
 
 class RevertFilesTests(unittest.TestCase):
     def setUp(self):

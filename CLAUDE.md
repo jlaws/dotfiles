@@ -57,9 +57,9 @@ dotfiles/
 ├── .codex/            # Codex config + native agents/prompts
 │   ├── AGENTS.md, config.toml
 │   ├── agents/, prompts/, hooks/, rules/
-└── .gemini/           # Gemini CLI (skills/refs reused from .agents/)
-    ├── GEMINI.md, settings.json
-    ├── agents/, commands/, hooks/, policies/
+└── .gemini/           # Gemini CLI & Antigravity (global skills and settings under antigravity-cli/)
+    ├── GEMINI.md
+    ├── agents/, commands/, antigravity-cli/
 ```
 
 ## Key Files

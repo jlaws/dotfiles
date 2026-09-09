@@ -206,18 +206,17 @@ directory. It falls back to a private
 `${TMPDIR:-/tmp}/j-plan/<repo-id>/` directory when the repository does not ignore `scratchpad/`; the
 plan is never kept only in conversation context.
 
-### Gemini
+### Gemini & Antigravity
 
-The `.gemini/` directory contains a parallel configuration optimized for the Gemini CLI:
+The `.gemini/` directory contains a configuration optimized for Google Antigravity and the Gemini CLI:
 
-- **`GEMINI.md`** — persistent instructions (auto-loaded by Gemini)
+- **`GEMINI.md`** — persistent instructions (auto-loaded by Antigravity / Gemini)
 - **`commands/*.toml`** — `/j-*` slash commands (TOML format, not Markdown)
 - **`agents/*.md`** — specialist subagents invoked via `@agent-<name>`
-- **`hooks/*.sh`** — lifecycle scripts (JSON stdout protocol)
-- **`policies/default.toml`** — fine-grained shell command allow/deny rules
-- **`settings.json`** — Gemini-schema config (model, hooks, policy path)
+- **`antigravity-cli/settings.json`** — Antigravity permissions matching Claude and Codex
+- **`antigravity-cli/skills/`** — global skills auto-discovered by Antigravity CLI at `~/.gemini/antigravity-cli/skills/`
 
-Skills and references are NOT duplicated under `.gemini/` — Gemini natively auto-discovers them at `~/.agents/skills/` and reads `~/.agents/references/` by path. The existing `setup.sh -c` sync covers everything.
+Skills are synchronized to `~/.gemini/antigravity-cli/skills/` to match Antigravity's global skill discovery location. Permissions in `~/.gemini/antigravity-cli/settings.json` enforce parity with Claude and Codex allow/deny rules. References remain shared at `~/.agents/references/`. Legacy Gemini CLI artifacts (`.gemini/policies/`, `.gemini/hooks/`, and root `.gemini/settings.json`) have been removed. The existing `setup.sh -c` sync covers everything.
 
 #### Recommended Plugins
 
