@@ -1,12 +1,12 @@
 # Gemini CLI & Antigravity Configuration
 
 ## Gemini / Antigravity Conventions
-- Slash commands: `~/.gemini/commands/*.toml` (TOML, not Markdown)
-- Subagents: `~/.gemini/agents/*.md` invoked via `@agent-<name>`
+- Slash commands: `~/.gemini/antigravity-cli/skills/j-*/SKILL.md` (skills provide `/j-*` slash commands)
+- Subagents: `~/.gemini/config/agents/*.md` with `subagent: true` YAML frontmatter
 - Skills: `~/.gemini/antigravity-cli/skills/<name>/SKILL.md` (global skills)
 - Permissions: `~/.gemini/antigravity-cli/settings.json` (fine-grained allow/deny rules)
 - References: `~/.agents/references/` (read directly via `read_file`)
-- Prefer Gemini's native `/j-*` commands; shared `$cmd-j-*` skills remain for Codex compatibility
+- Native `/j-*` slash commands are skills under `antigravity-cli/skills/j-*/`; shared `$cmd-j-*` skills remain in `.agents/skills/` for Codex compatibility
 - Tool names use snake_case: `read_file`, `run_shell_command`, `grep_search`, `glob`, `replace`, `write_file`, `web_fetch`, `google_web_search`
 
 ## #1 Rule: Verify Before Claiming
