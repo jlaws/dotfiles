@@ -28,7 +28,7 @@ CLAUDE_ONLY_AGENTS: frozenset[str] = frozenset()
 J_PLAN_COMMANDS = (
     REPO / ".agents" / "skills" / "cmd-j-plan" / "SKILL.md",
     REPO / ".codex" / "prompts" / "j-plan.md",
-    REPO / ".gemini" / "commands" / "j-plan.toml",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md",
 )
 
 PLAN_STORAGE_SKILLS = (
@@ -40,14 +40,14 @@ PLAN_EXECUTION_CONSUMERS = (
     REPO / ".agents" / "skills" / "cmd-j-next" / "SKILL.md",
     REPO / ".codex" / "prompts" / "j-execute-plan.md",
     REPO / ".codex" / "prompts" / "j-next.md",
-    REPO / ".gemini" / "commands" / "j-execute-plan.toml",
-    REPO / ".gemini" / "commands" / "j-next.toml",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-execute-plan" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-next" / "SKILL.md",
 )
 
 ACTIVE_PLAN_CONSUMERS = (
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
     REPO / ".codex" / "prompts" / "j-diff-review.md",
-    REPO / ".gemini" / "commands" / "j-diff-review.toml",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
 )
 
 # A worktree carries no uncommitted changes and branches from a start point the agent did not pick,
@@ -79,7 +79,7 @@ DIFF_REVIEW_DISPATCHERS = (
     REPO / ".claude" / "commands" / "j-diff-review.md",
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
     REPO / ".codex" / "prompts" / "j-diff-review.md",
-    REPO / ".gemini" / "commands" / "j-diff-review.toml",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
 )
 
 # Local `main` can trail the remote, which makes a squash absorb commits that already landed.
