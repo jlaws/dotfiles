@@ -56,8 +56,7 @@ AGENT_SYNC = [
     (".gemini/GEMINI.md", ".gemini/GEMINI.md"),
     (".gemini/antigravity-cli/settings.json", ".gemini/antigravity-cli/settings.json"),
     (".gemini/antigravity-cli/skills", ".gemini/antigravity-cli/skills"),
-    (".gemini/agents", ".gemini/agents"),
-    (".gemini/commands", ".gemini/commands"),
+    (".gemini/config/agents", ".gemini/config/agents"),
 ]
 
 # Stale files removed from the target after syncing (archived first so uninstall can restore).
@@ -70,6 +69,8 @@ AGENT_REMOVALS = [
     ".gemini/hooks",
     ".gemini/policies",
     ".gemini/settings.json",
+    ".gemini/commands",
+    ".gemini/agents",
 ]
 
 AGENT_REMOVAL_GLOBS = [
