@@ -7,7 +7,7 @@ description: "Use when creating, editing, or validating agent skills."
 
 **Writing skills IS Test-Driven Development applied to process documentation.**
 
-**Codex and Gemini use `~/.agents/skills`; Claude uses `~/.claude/skills`.**
+**Codex uses `~/.agents/skills`; Gemini/Antigravity uses `~/.gemini/antigravity-cli/skills`; Claude uses `~/.claude/skills`.**
 
 You write test cases (pressure scenarios), watch them fail (baseline behavior), write the skill (documentation), watch tests pass (agents comply), and refactor (close loopholes).
 

@@ -9,7 +9,7 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 A skill exists to teach what a strong model does not already know. Everything else crowds out the
 task it was loaded to help with.
 
-**Codex and Gemini read `~/.agents/skills`; Claude reads `~/.claude/skills`.** The trees have
+**Codex reads `~/.agents/skills`, Gemini/Antigravity reads `~/.gemini/antigravity-cli/skills`, and Claude reads `~/.claude/skills`.** The trees have
 diverged on purpose: `.claude/` is written for the Claude 5 generation, `.agents/` serves the other
 tools. `tests/test_agent_config.py` pins which skills exist in each, not what they say.
 
