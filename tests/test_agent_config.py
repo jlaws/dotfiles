@@ -363,20 +363,35 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         claude_deny = set(claude_settings.get("permissions", {}).get("deny", []))
         agy_deny = set(agy_settings.get("permissions", {}).get("deny", []))
 
-        # Check command translations: Bash(cmd) -> command(cmd)
+        # Antigravity uses literal word-by-word prefix matching without trailing ' *'
+        for rule in agy_allow | agy_deny:
+            self.assertFalse(
+                rule.endswith(" *)"),
+                f"Antigravity rule {rule} has trailing ' *' which is invalid prefix syntax",
+            )
+            self.assertFalse(
+                "/**)" in rule,
+                f"Antigravity rule {rule} has trailing '/**' which is invalid path syntax",
+            )
+
+        # Check command translations: Bash(cmd) -> command(prefix)
         for rule in claude_allow:
             if rule.startswith("Bash(") and rule.endswith(")"):
-                cmd = rule[len("Bash("):-1]
+                cmd = rule[len("Bash("):-1].removesuffix(" *")
+                if cmd == "grep:*":
+                    cmd = "grep"
                 expected = f"command({cmd})"
                 self.assertIn(expected, agy_allow, f"Missing allowed command: {expected}")
 
         for rule in claude_deny:
             if rule.startswith("Bash(") and rule.endswith(")"):
-                cmd = rule[len("Bash("):-1]
+                cmd = rule[len("Bash("):-1].removesuffix(" *")
                 expected = f"command({cmd})"
                 self.assertIn(expected, agy_deny, f"Missing denied command: {expected}")
             elif rule.startswith("Read(") and rule.endswith(")"):
-                path = rule[len("Read("):-1]
+                path = rule[len("Read("):-1].removesuffix("/**")
+                if path.startswith("./"):
+                    continue  # non-absolute paths are rejected by the Antigravity sandbox
                 expected = f"read_file({path})"
                 self.assertIn(expected, agy_deny, f"Missing denied read_file: {expected}")
 
