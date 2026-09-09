@@ -208,15 +208,14 @@ plan is never kept only in conversation context.
 
 ### Gemini & Antigravity
 
-The `.gemini/` directory contains a configuration optimized for Google Antigravity and the Gemini CLI:
+The `.gemini/` directory contains a configuration optimized for Google Antigravity:
 
-- **`GEMINI.md`** — persistent instructions (auto-loaded by Antigravity / Gemini)
-- **`commands/*.toml`** — `/j-*` slash commands (TOML format, not Markdown)
-- **`agents/*.md`** — specialist subagents invoked via `@agent-<name>`
+- **`GEMINI.md`** — persistent instructions (auto-loaded by Antigravity)
+- **`config/agents/*.md`** — specialist subagents with `subagent: true` YAML frontmatter
 - **`antigravity-cli/settings.json`** — Antigravity permissions matching Claude and Codex
-- **`antigravity-cli/skills/`** — global skills auto-discovered by Antigravity CLI at `~/.gemini/antigravity-cli/skills/`
+- **`antigravity-cli/skills/`** — global workflow and command skills (`j-*/SKILL.md`) auto-discovered by Antigravity at `~/.gemini/antigravity-cli/skills/`
 
-Skills are synchronized to `~/.gemini/antigravity-cli/skills/` to match Antigravity's global skill discovery location. Permissions in `~/.gemini/antigravity-cli/settings.json` enforce parity with Claude and Codex allow/deny rules. References remain shared at `~/.agents/references/`. Legacy Gemini CLI artifacts (`.gemini/policies/`, `.gemini/hooks/`, and root `.gemini/settings.json`) have been removed. The existing `setup.sh -c` sync covers everything.
+Skills are synchronized to `~/.gemini/antigravity-cli/skills/` to match Antigravity's global skill discovery location. Slash commands (`/j-*`) are implemented as native Antigravity skills. Specialist subagents reside in `~/.gemini/config/agents/`. Permissions in `~/.gemini/antigravity-cli/settings.json` enforce parity with Claude and Codex allow/deny rules. References remain shared at `~/.agents/references/`. Legacy Gemini CLI artifacts (`.gemini/commands/`, `.gemini/agents/`, `.gemini/policies/`, `.gemini/hooks/`, and root `.gemini/settings.json`) have been removed. The existing `setup.sh -c` sync covers everything.
 
 #### Recommended Plugins
 
