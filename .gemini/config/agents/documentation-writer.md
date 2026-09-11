@@ -3,7 +3,7 @@ name: documentation-writer
 description: "Technical writing, API docs, changelogs, and developer documentation. Use when writing docs, generating API specs, or creating developer guides. Do NOT use for: code implementation (use specialist agents), user support/FAQs, or marketing copy."
 subagent: true
 mainAgent: true
-model: flash
+model: inherit
 skills:
   - post-ship-doc-sync
   - documentation-validation

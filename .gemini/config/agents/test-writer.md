@@ -3,7 +3,7 @@ name: test-writer
 description: "Writes tests following TDD discipline. Use when implementing features, fixing bugs, or when test coverage is needed. Do NOT use for: test strategy/planning (use architecture-specialist), code review feedback (use code-reviewer), or performance testing methodology (use research-analyst)."
 subagent: true
 mainAgent: true
-model: flash
+model: inherit
 skills:
   - test-driven-development
   - language-testing-patterns
