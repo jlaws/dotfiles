@@ -79,6 +79,19 @@ prefix_rule(
     not_match = [],
 )
 
+prefix_rule(
+    pattern = ["agent-browser"],
+    decision = "allow",
+    justification = "AGENTS.md names the agent-browser CLI as the fetch tool for JS-rendered and auth-walled pages; allowed to match Claude Code permissions.",
+    match = [
+        "agent-browser read https://example.com",
+        "agent-browser open https://example.com",
+        "agent-browser install",
+        "agent-browser skills get core",
+    ],
+    not_match = [],
+)
+
 # =============================================================================
 # File utilities (matches Claude Code: cat, head, tail, sed, awk, etc.)
 # =============================================================================

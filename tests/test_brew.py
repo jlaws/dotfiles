@@ -38,22 +38,27 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertLess(argvs.index(["brew", "update"]), argvs.index(["brew", "install", "coreutils"]))
         self.assertLess(argvs.index(["brew", "install", "coreutils"]), argvs.index(["brew", "cleanup"]))
 
-    def test_installs_poppler_for_cheap_pdf_reads(self):
-        """poppler supplies `pdftotext`, which the always-loaded configs name as the cheapest way
-        to read a PDF (it avoids vision-token cost).
+    def test_installs_fetch_tool_clis(self):
+        """The always-loaded configs name a fetch-tool ladder -- WebFetch, then the agent-browser
+        CLI for JS-rendered or auth-walled pages, then `pdftotext` for PDFs. Setup has to install
+        the two that are not built in, or the guidance points at missing binaries.
 
-        This test also used to require `brew install agent-browser` plus `agent-browser install`.
-        Commit f15fcf5 removed both from `install_packages` deliberately, alongside gnu-sed,
-        screen, git-lfs, mold, and pyright; `agent-browser` is still a valid formula, so the
-        removal was a slim-down rather than a fix. The guidance in CLAUDE.md/AGENTS.md/GEMINI.md
-        still names the agent-browser CLI, so either that guidance or BREW_PACKAGES is wrong --
-        this test no longer asserts either way.
+        `agent-browser` needs a second step: the brew formula ships the CLI, and
+        `agent-browser install` downloads the Chrome binary it drives ("Download Chrome (first
+        time)" in its own help). Commit f15fcf5 dropped both, leaving the guidance dangling on a
+        fresh Mac; this pins them back.
         """
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
 
         argvs = runner.argv_list()
         self.assertIn(["brew", "install", "poppler"], argvs)
+        self.assertIn(["brew", "install", "agent-browser"], argvs)
+        self.assertIn(["agent-browser", "install"], argvs)
+        self.assertLess(
+            argvs.index(["brew", "install", "agent-browser"]),
+            argvs.index(["agent-browser", "install"]),
+        )
 
     def test_installs_search_tools(self):
         runner = FakeRunner(_brew_ok)
