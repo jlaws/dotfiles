@@ -10,8 +10,6 @@ from tests.fakes import FakeRunner
 def _brew_ok(argv):
     if argv == ["brew", "--version"]:
         return CompletedResult(0, "Homebrew 4.0.0", "")
-    if argv == ["brew", "--prefix", "rustup"]:
-        return CompletedResult(0, "/opt/homebrew/opt/rustup\n", "")
     if argv == ["brew", "--prefix"]:
         return CompletedResult(0, "/opt/homebrew\n", "")
     return CompletedResult(0, "", "")
@@ -40,18 +38,22 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertLess(argvs.index(["brew", "update"]), argvs.index(["brew", "install", "coreutils"]))
         self.assertLess(argvs.index(["brew", "install", "coreutils"]), argvs.index(["brew", "cleanup"]))
 
-    def test_installs_fetch_tool_clis(self):
+    def test_installs_poppler_for_cheap_pdf_reads(self):
+        """poppler supplies `pdftotext`, which the always-loaded configs name as the cheapest way
+        to read a PDF (it avoids vision-token cost).
+
+        This test also used to require `brew install agent-browser` plus `agent-browser install`.
+        Commit f15fcf5 removed both from `install_packages` deliberately, alongside gnu-sed,
+        screen, git-lfs, mold, and pyright; `agent-browser` is still a valid formula, so the
+        removal was a slim-down rather than a fix. The guidance in CLAUDE.md/AGENTS.md/GEMINI.md
+        still names the agent-browser CLI, so either that guidance or BREW_PACKAGES is wrong --
+        this test no longer asserts either way.
+        """
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
 
         argvs = runner.argv_list()
         self.assertIn(["brew", "install", "poppler"], argvs)
-        self.assertIn(["brew", "install", "agent-browser"], argvs)
-        self.assertIn(["agent-browser", "install"], argvs)
-        self.assertLess(
-            argvs.index(["brew", "install", "agent-browser"]),
-            argvs.index(["agent-browser", "install"]),
-        )
 
     def test_installs_search_tools(self):
         runner = FakeRunner(_brew_ok)
@@ -74,22 +76,35 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertNotIn(["brew", "install", "go"], argvs)
         self.assertFalse(any(argv and argv[0] == "go" for argv in argvs))
 
-    def test_regression_rust_analyzer_uses_rustup_component_without_path_shadowing(self):
+    def test_regression_rust_analyzer_comes_from_rustup_not_brew(self):
+        """rust-analyzer must come from `rustup component add`, never `brew install rust-analyzer`.
+
+        A brew-installed rust-analyzer shadows the toolchain's own copy on PATH and then drifts
+        from the active toolchain. That is the original regression and it still applies.
+
+        The mechanism changed in f15fcf5: rustup used to be a brew formula, invoked through an
+        absolute `$(brew --prefix rustup)/bin/rustup` path, and is now the official installer from
+        sh.rustup.rs followed by a bare `rustup`. The bare call resolves through PATH
+        (`~/.cargo/bin`), so this no longer guards against shadowing -- only against the wrong
+        source for rust-analyzer, plus the ordering the install depends on.
+        """
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
 
         argvs = runner.argv_list()
-        rustup = "/opt/homebrew/opt/rustup/bin/rustup"
+        rust_install = ["bash", "-c", "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"]
         self.assertNotIn(["brew", "install", "rust-analyzer"], argvs)
-        self.assertIn([rustup, "default", "stable"], argvs)
-        self.assertIn([rustup, "component", "add", "rust-analyzer"], argvs)
+        self.assertNotIn(["brew", "install", "rustup"], argvs)
+        self.assertIn(rust_install, argvs)
+        self.assertIn(["rustup", "default", "stable"], argvs)
+        self.assertIn(["rustup", "component", "add", "rust-analyzer"], argvs)
         self.assertLess(
-            argvs.index(["brew", "install", "rustup"]),
-            argvs.index([rustup, "default", "stable"]),
+            argvs.index(rust_install),
+            argvs.index(["rustup", "default", "stable"]),
         )
         self.assertLess(
-            argvs.index([rustup, "default", "stable"]),
-            argvs.index([rustup, "component", "add", "rust-analyzer"]),
+            argvs.index(["rustup", "default", "stable"]),
+            argvs.index(["rustup", "component", "add", "rust-analyzer"]),
         )
 
     def test_install_logs_info_per_package(self):
