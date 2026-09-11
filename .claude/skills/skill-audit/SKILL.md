@@ -66,8 +66,8 @@ agents and commands.
 
 **`.claude/` has intentionally diverged.** Its skill and reference bodies are written for the Claude 5
 generation and no longer mirror `.agents/`. Body and description differences between the two trees are
-expected and are not findings. `tests/test_agent_config.py` pins only which assets exist in each tree,
-with single-tree assets declared explicitly.
+expected and are not findings. A parity test, named in the repo's own CLAUDE.md where one exists, pins
+only which assets exist in each tree, with single-tree assets declared explicitly.
 
 Still worth checking by hand, because no test covers it:
 
