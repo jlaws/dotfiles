@@ -92,4 +92,6 @@ dotfiles/
 - `macos_setup` is stdlib-only (no runtime pip deps) so it runs on a fresh Mac; keep the subprocess boundary behind the `Runner` seam for testability
 - Follow TDD for `macos_setup` changes; add/adjust `tests/` and keep `make test` + `make check` green
 - Agent skills follow the [agentskills.io](https://agentskills.io/specification) spec (SKILL.md with YAML frontmatter)
+- `.claude/` is written for the Claude 5 generation and has intentionally diverged from `.agents/`, which serves Codex and Gemini. Only the asset sets are kept in parity, enforced by `tests/test_agent_config.py`. Declare any single-tree asset in that file's exception lists
+- `.claude/CLAUDE.md`, `.codex/AGENTS.md`, and `.gemini/GEMINI.md` are synced to `~` and loaded in every repo. Keep guidance that only applies to this repo in this file instead
 - Do not hardcode counts of KB assets (agents, commands, references, skills) — they go stale

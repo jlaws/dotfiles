@@ -68,9 +68,11 @@ Full methodology: load skill `verification-before-completion` (read `~/.agents/s
 - Always verify changes with `git diff` before committing
 - Never force push to main/master
 - Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
-- Completed work ends in a PR, opened without being asked. When a plan's unit of work passes its gates, open the PR and stop there -- for a multi-PR plan that is every PR boundary, not just the last.
+- Completed work ends in a PR, opened without being asked. When a plan's unit of work passes its gates, open the PR -- for a multi-PR plan that is every PR boundary, not just the last.
+- **Then carry it to done without checking in.** Do not stop at the PR and do not ask the user to review it. Run the loop: open the PR -> `/j-diff-review` it -> fix every finding -> wait for CI -> merge when green -> `/j-next` for the following chunk -> repeat. Report at the end of a chunk, not to get permission to continue.
+- Merge only on green. A failing or pending required check is the next thing you fix, not a gate to wait out or route around -- never force-merge, never merge past a red check, never weaken or skip a check to get through one.
+- Break the loop and come to the user for: a conflict you cannot resolve mechanically, a failure whose cause is outside the repo, a finding that needs a product decision, or a plan with no scoped work left. "Two readings of the instruction would produce different work" is worth one question. "Is this ready?" is not.
 - When a PR is already open for the current work, push follow-up fixes to that same PR/branch. Do not open a new PR unless the user asks.
-- After opening a PR, stop and wait for the user to review/merge before starting the next work item, unless told to keep going.
 - After a squash or rebase, diff against the pre-squash tree (and confirm the branch) to verify no file or config was dropped before force-pushing.
 
 ## Shell Commands
