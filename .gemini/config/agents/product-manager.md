@@ -3,7 +3,7 @@ name: product-manager
 description: "Product management -- PRDs, roadmaps, opportunity assessment, and launch planning. Use when evaluating what to build, writing PRDs, prioritizing features, or planning launches. Do NOT use for: technical architecture (use architecture-specialist), business metrics/KPIs (use business-analyst), or implementation (use appropriate specialist agent)."
 subagent: true
 mainAgent: true
-model: flash
+model: inherit
 skills:
   - design-first
   - analysis-output-patterns
