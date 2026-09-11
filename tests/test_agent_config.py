@@ -67,6 +67,28 @@ WORKTREE_BASE_OWNERS = (
     REPO / ".agents" / "skills" / "using-git-worktrees" / "SKILL.md",
 )
 
+# Owns "what a dispatched agent returns". A subagent's report is injected into the caller's context
+# verbatim AND is the only artifact -- nothing is persisted, so the contract compresses prose and
+# never substance. One owner, preloaded into agents via `skills:`; the alternative was restating it
+# in ~51 agent bodies, which is what :53-56 forbids.
+REPORT_CONTRACT_OWNERS = (
+    REPO / ".claude" / "skills" / "subagent-report-contract" / "SKILL.md",
+    REPO / ".agents" / "skills" / "subagent-report-contract" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "subagent-report-contract" / "SKILL.md",
+)
+
+# Persisting reports to disk was considered and cut. These markers keep it cut: reintroducing it
+# would need the Write tool on 15 read-only agents, or a permissionMode that punches through plan
+# mode. Neither is worth an archive that may never be opened.
+DISK_PERSISTENCE_MARKERS = ("scratchpad/agent-reports/", "permissionMode", "j-agent-reports")
+
+# Always-loaded configs carry a pointer, not a restatement.
+REPORT_POINTERS = (
+    REPO / ".claude" / "CLAUDE.md",
+    REPO / ".codex" / "AGENTS.md",
+    REPO / ".gemini" / "GEMINI.md",
+)
+
 # Always-loaded configs carry a pointer, not a restatement.
 WORKTREE_POINTERS = (
     REPO / ".claude" / "CLAUDE.md",
@@ -218,6 +240,31 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("worktree", content)
                 self.assertIn("uncommitted", content)
                 self.assertIn("dispatching-parallel-agents", content)
+
+    def test_report_contract_forbids_disk_persistence(self):
+        """A dispatched agent's report is its only artifact, so the contract trades prose for
+        brevity but never findings. Persisting reports to disk was considered and cut; the
+        negative assertions keep it cut, because reintroducing it would need the Write tool on
+        15 read-only agents or a permissionMode that punches through plan mode."""
+        for path in REPORT_CONTRACT_OWNERS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                # The completeness half -- the report is all there is, so it must not drop findings.
+                self.assertIn("no length budget", content)
+                self.assertIn("prose, never substance", content)
+                self.assertIn("byte-for-byte", content)
+                self.assertIn("`file:line`", content)
+                # The cut half.
+                for marker in DISK_PERSISTENCE_MARKERS:
+                    self.assertNotIn(marker, content)
+
+    def test_always_loaded_configs_point_at_the_report_contract(self):
+        """Always-loaded configs carry a pointer, not a restatement -- same convention as
+        WORKTREE_POINTERS, so a refactor cannot silently drop the guidance from a tree."""
+        for path in REPORT_POINTERS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("subagent-report-contract", content)
 
     def test_diff_review_hands_reviewers_the_head_sha(self):
         for path in DIFF_REVIEW_DISPATCHERS:
