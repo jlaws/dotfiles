@@ -2,7 +2,7 @@
 
 Reference for Claude Code hook configuration patterns. Hooks run shell commands at specific lifecycle points, enabling automated validation, formatting, and guardrails.
 
-> **Note:** Hook `"hook"` values are shell commands executed outside the Bash tool — they run as regular shell scripts. The "no compound commands" rule applies to Bash tool calls only, not to hook shell commands. However, prefer simple, focused hook commands where possible.
+> **Note:** Hook `"command"` values are shell commands executed outside the Bash tool — they run as regular shell scripts. The "no compound commands" rule applies to Bash tool calls only, not to hook shell commands. However, prefer simple, focused hook commands where possible.
 
 ## Hook Lifecycle Points
 
@@ -25,7 +25,9 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
     "<lifecycle>": [
       {
         "matcher": "<tool-pattern>",
-        "hook": "<shell-command>"
+        "hooks": [
+          { "type": "command", "command": "<shell-command>", "timeout": 5 }
+        ]
       }
     ]
   }
@@ -42,6 +44,34 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
 | `Bash(npm *)` | Any Bash call starting with "npm" |
 | (empty) | All calls of that tool |
 
+## Per-Harness Support
+
+Not every harness has a hook surface, and two that do disagree on the output shape. Each row below
+was checked against that harness's own documentation, not inferred from another repo.
+
+| Tree | Tier | Config | Advisory output field |
+|------|------|--------|-----------------------|
+| `.claude/` | **hook** | `hooks.PreToolUse[]` in `settings.json`, `matcher: "Bash"` | top-level `systemMessage` |
+| `.codex/` | **hook** | `[[hooks.PreToolUse]]` in `config.toml` or `hooks.json`, `matcher = "^Bash$"` | `hookSpecificOutput.additionalContext` |
+| `.gemini/` | **absent** | none | none |
+
+`.gemini/hooks/` is forbidden by `tests/test_agent_config.py` and deleted on sync
+(`macos_setup/dotfiles.py`); `antigravity-cli/settings.json` carries only `permissions`. State a
+harness as absent rather than claiming a hook it cannot honor.
+
+### Exit codes and output
+
+| Signal | Effect |
+|--------|--------|
+| exit 0, no `permissionDecision` | Advisory only. Normal permission flow applies, the command runs unchanged |
+| exit 0 + `systemMessage` / `additionalContext` | The model sees the message; the command still runs |
+| `permissionDecision: "deny"` + `permissionDecisionReason` | Blocks the call, reason shown to the model |
+| exit 2 | Blocks the call regardless of JSON — this is why the blocking examples below `exit 2`, not `exit 1` |
+| `updatedInput` | Rewrites the tool input. Avoid: it puts a lossy layer between the agent and its evidence |
+
+A hook that only ever emits a message and exits 0 is advisory by construction — see the Fail-Open
+Principle below.
+
 ## Common Patterns
 
 ### Pre-Commit Validation
@@ -52,7 +82,9 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
     "PreToolUse": [
       {
         "matcher": "Bash(git commit)",
-        "hook": "lint-staged && npm test"
+        "hooks": [
+          { "type": "command", "command": "lint-staged && npm test", "timeout": 60 }
+        ]
       }
     ]
   }
@@ -67,7 +99,9 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "hook": "eslint --fix ${file} && prettier --write ${file}"
+        "hooks": [
+          { "type": "command", "command": "eslint --fix ${file} && prettier --write ${file}", "timeout": 30 }
+        ]
       }
     ]
   }
@@ -82,11 +116,15 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
     "PreToolUse": [
       {
         "matcher": "Bash(rm -rf)",
-        "hook": "echo 'Blocked: rm -rf is denied by project hooks' && exit 1"
+        "hooks": [
+          { "type": "command", "command": "echo 'Blocked: rm -rf is denied by project hooks' && exit 2", "timeout": 5 }
+        ]
       },
       {
         "matcher": "Bash(git push --force)",
-        "hook": "echo 'Blocked: force push denied' && exit 1"
+        "hooks": [
+          { "type": "command", "command": "echo 'Blocked: force push denied' && exit 2", "timeout": 5 }
+        ]
       }
     ]
   }
@@ -101,7 +139,9 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
     "PostToolUse": [
       {
         "matcher": "Write(src/**/*.ts)|Edit(src/**/*.ts)",
-        "hook": "npx tsc --noEmit --pretty 2>&1 | head -20"
+        "hooks": [
+          { "type": "command", "command": "npx tsc --noEmit --pretty 2>&1 | head -20", "timeout": 120 }
+        ]
       }
     ]
   }
@@ -115,7 +155,9 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
   "hooks": {
     "Stop": [
       {
-        "hook": "npm test -- --bail 2>&1 | tail -5"
+        "hooks": [
+          { "type": "command", "command": "npm test -- --bail 2>&1 | tail -5", "timeout": 300 }
+        ]
       }
     ]
   }
