@@ -4,6 +4,8 @@ description: "CI/CD, containers, infrastructure as code, and observability. Use 
 subagent: true
 mainAgent: true
 model: inherit
+skills:
+  - subagent-report-contract
 ---
 
 # DevOps Engineer

@@ -7,6 +7,7 @@ model: inherit
 skills:
   - test-driven-development
   - analysis-output-patterns
+  - subagent-report-contract
 ---
 
 # Data Engineer
@@ -17,6 +18,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - test-driven-development
 - verification-before-completion
 - analysis-output-patterns
+- subagent-report-contract
 
 Reference library at `~/.agents/references/data/`:
 - airflow-dag-patterns, analytics-and-transformations, data-platform-architecture

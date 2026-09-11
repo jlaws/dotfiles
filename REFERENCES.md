@@ -35,7 +35,7 @@ The agent KB (`.agents/` skills and references shared by Codex and Gemini, plus 
 
 ### Context & token efficiency
 
-- **Caveman (juliusbrussee)** - https://github.com/juliusbrussee/caveman - the "compress speech not thought" framing, byte-for-byte code/command/error preservation, and no-invented-abbreviations rule in the harness Output Formatting.
+- **Caveman (juliusbrussee)** - https://github.com/juliusbrussee/caveman - the "compress speech not thought" framing, byte-for-byte code/command/error preservation, and no-invented-abbreviations rule in the harness Output Formatting; plus the per-agent output-contract pattern (a published digest shape the caller can rely on, and the cost model behind it: a subagent's report is injected into the caller's context verbatim) in `subagent-report-contract` and `dispatching-parallel-agents`. Not taken: caveman pairs its contracts with byte-exact recovery handles backed by SQLite. This repo has no equivalent - reports are not persisted, so the contract carries a completeness rule instead of a recovery path.
 - **RTK Rust Token Killer (rtk-ai)** - https://github.com/rtk-ai/rtk - the command-output-shaping strategies (noise removal, grouping, truncation, dedup) and verbose-to-compact command mapping in `references/workflow/context-efficiency.md`.
 - **squeez (claudioemmanuel)** - https://github.com/claudioemmanuel/squeez - the reversible-summarization (persist full output, cite path) and net-win compression gate in `references/workflow/context-efficiency.md`.
 - **context-mode (mksglu)** - https://github.com/mksglu/context-mode - the fixed HANDOFF/compaction snapshot schema and progressive-checkpoint cadence in `session-handoff`.

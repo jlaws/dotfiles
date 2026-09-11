@@ -8,6 +8,7 @@ skills:
   - code-review-patterns
   - verification-before-completion
   - analysis-output-patterns
+  - subagent-report-contract
 ---
 You are a senior security engineer. Review code for:
 - Injection vulnerabilities (SQL, XSS, command injection)

@@ -8,6 +8,7 @@ skills:
   - test-driven-development
   - language-testing-patterns
   - output-completeness
+  - subagent-report-contract
 ---
 You are a test engineer. Work test-first, following the `test-driven-development` skill.
 

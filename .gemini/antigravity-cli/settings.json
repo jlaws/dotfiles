@@ -30,6 +30,7 @@
       "command(git clean)",
       "command(git push)",
       "command(gh)",
+      "command(agent-browser)",
       "command(cat)",
       "command(head)",
       "command(tail)",

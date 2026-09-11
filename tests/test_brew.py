@@ -10,8 +10,6 @@ from tests.fakes import FakeRunner
 def _brew_ok(argv):
     if argv == ["brew", "--version"]:
         return CompletedResult(0, "Homebrew 4.0.0", "")
-    if argv == ["brew", "--prefix", "rustup"]:
-        return CompletedResult(0, "/opt/homebrew/opt/rustup\n", "")
     if argv == ["brew", "--prefix"]:
         return CompletedResult(0, "/opt/homebrew\n", "")
     return CompletedResult(0, "", "")
@@ -41,6 +39,15 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertLess(argvs.index(["brew", "install", "coreutils"]), argvs.index(["brew", "cleanup"]))
 
     def test_installs_fetch_tool_clis(self):
+        """The always-loaded configs name a fetch-tool ladder -- WebFetch, then the agent-browser
+        CLI for JS-rendered or auth-walled pages, then `pdftotext` for PDFs. Setup has to install
+        the two that are not built in, or the guidance points at missing binaries.
+
+        `agent-browser` needs a second step: the brew formula ships the CLI, and
+        `agent-browser install` downloads the Chrome binary it drives ("Download Chrome (first
+        time)" in its own help). Commit f15fcf5 dropped both, leaving the guidance dangling on a
+        fresh Mac; this pins them back.
+        """
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
 
@@ -74,22 +81,35 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertNotIn(["brew", "install", "go"], argvs)
         self.assertFalse(any(argv and argv[0] == "go" for argv in argvs))
 
-    def test_regression_rust_analyzer_uses_rustup_component_without_path_shadowing(self):
+    def test_regression_rust_analyzer_comes_from_rustup_not_brew(self):
+        """rust-analyzer must come from `rustup component add`, never `brew install rust-analyzer`.
+
+        A brew-installed rust-analyzer shadows the toolchain's own copy on PATH and then drifts
+        from the active toolchain. That is the original regression and it still applies.
+
+        The mechanism changed in f15fcf5: rustup used to be a brew formula, invoked through an
+        absolute `$(brew --prefix rustup)/bin/rustup` path, and is now the official installer from
+        sh.rustup.rs followed by a bare `rustup`. The bare call resolves through PATH
+        (`~/.cargo/bin`), so this no longer guards against shadowing -- only against the wrong
+        source for rust-analyzer, plus the ordering the install depends on.
+        """
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
 
         argvs = runner.argv_list()
-        rustup = "/opt/homebrew/opt/rustup/bin/rustup"
+        rust_install = ["bash", "-c", "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"]
         self.assertNotIn(["brew", "install", "rust-analyzer"], argvs)
-        self.assertIn([rustup, "default", "stable"], argvs)
-        self.assertIn([rustup, "component", "add", "rust-analyzer"], argvs)
+        self.assertNotIn(["brew", "install", "rustup"], argvs)
+        self.assertIn(rust_install, argvs)
+        self.assertIn(["rustup", "default", "stable"], argvs)
+        self.assertIn(["rustup", "component", "add", "rust-analyzer"], argvs)
         self.assertLess(
-            argvs.index(["brew", "install", "rustup"]),
-            argvs.index([rustup, "default", "stable"]),
+            argvs.index(rust_install),
+            argvs.index(["rustup", "default", "stable"]),
         )
         self.assertLess(
-            argvs.index([rustup, "default", "stable"]),
-            argvs.index([rustup, "component", "add", "rust-analyzer"]),
+            argvs.index(["rustup", "default", "stable"]),
+            argvs.index(["rustup", "component", "add", "rust-analyzer"]),
         )
 
     def test_install_logs_info_per_package(self):

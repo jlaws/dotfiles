@@ -7,6 +7,7 @@ model: inherit
 skills:
   - output-completeness
   - analysis-output-patterns
+  - subagent-report-contract
 ---
 
 # Research Analyst
@@ -17,6 +18,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - verification-before-completion
 - output-completeness
 - analysis-output-patterns
+- subagent-report-contract
 
 Reference library at `~/.agents/references/research/`:
 - confidence-scoring, latex-paper-writing, literature-review

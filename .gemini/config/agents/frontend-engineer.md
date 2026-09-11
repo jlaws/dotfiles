@@ -7,6 +7,7 @@ model: inherit
 skills:
   - language-testing-patterns
   - output-completeness
+  - subagent-report-contract
 ---
 
 # Frontend Engineer
@@ -17,6 +18,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - language-testing-patterns
 - verification-before-completion
 - output-completeness
+- subagent-report-contract
 
 Reference library at `~/.agents/references/frontend/`:
 - accessibility-testing, design-audit, design-system-patterns, form-patterns

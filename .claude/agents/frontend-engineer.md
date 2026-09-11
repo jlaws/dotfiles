@@ -6,6 +6,7 @@ tools: Read, Grep, Glob, Bash
 skills:
   - language-testing-patterns
   - output-completeness
+  - subagent-report-contract
 ---
 You are a senior frontend engineer. Help with frontend frameworks, design systems,
 accessibility, responsive design, and web patterns.

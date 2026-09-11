@@ -8,6 +8,7 @@ skills:
   - code-review-patterns
   - verification-before-completion
   - output-completeness
+  - subagent-report-contract
 ---
 
 # Code Reviewer
@@ -22,6 +23,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - code-review-patterns
 - verification-before-completion
 - output-completeness
+- subagent-report-contract
 
 Reference library at `~/.agents/references/workflow/`:
 - existing-code-discipline

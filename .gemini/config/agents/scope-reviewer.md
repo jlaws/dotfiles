@@ -8,6 +8,7 @@ skills:
   - design-first
   - analysis-output-patterns
   - verification-before-completion
+  - subagent-report-contract
 ---
 
 # Scope Reviewer
@@ -18,6 +19,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - design-first
 - analysis-output-patterns
 - verification-before-completion
+- subagent-report-contract
 
 Reference library at `~/.agents/references/product/`:
 - scope-review-methodology

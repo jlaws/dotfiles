@@ -31,6 +31,7 @@
       "Bash(git clean *)",
       "Bash(git push *)",
       "Bash(gh *)",
+      "Bash(agent-browser *)",
       "Bash(cat *)",
       "Bash(head *)",
       "Bash(tail *)",

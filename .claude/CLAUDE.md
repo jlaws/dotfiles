@@ -85,6 +85,8 @@ double-check your own work.
 - Say where each subagent works. Read-only agents belong in your working tree — a worktree holds no
   uncommitted changes and branches from wherever `worktree.baseRef` points, so a review run in one
   reviews the wrong code (`dispatching-parallel-agents`, Workspace Selection).
+- A dispatched agent returns one concise report — prose cut, findings and evidence intact
+  (`subagent-report-contract`). Nothing is archived, so re-dispatch when a report is too thin.
 
 Do not use ScheduleWakeup to re-trigger a prompt. When a long-running task finishes, stop and wait for
 input rather than re-injecting the original request.

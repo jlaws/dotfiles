@@ -28,7 +28,7 @@ make test     # stdlib unittest suite (python -m unittest)
 
 ### What setup.sh does:
 1. **Syncs dotfiles** to `~` (root dotfiles, `.vim/` runtime, and agent configs), archiving replaced files first
-2. **Installs Homebrew packages**: coreutils, findutils, fd, gnu-sed, moreutils, vim, grep, openssh, screen, wget, git, git-lfs, gh, autojump, mermaid-cli, poppler, rustup, mold, uv, node, pyright; initializes the stable Rust toolchain and `rust-analyzer` component through rustup
+2. **Installs Homebrew packages**: coreutils, moreutils, findutils, fd, wget, just, vim, grep, openssh, git, gh, autojump, mermaid-cli, poppler, agent-browser, uv, node, rg; then downloads the Chrome binary `agent-browser` drives, installs the stable Rust toolchain and `rust-analyzer` through the official rustup installer, `typescript-language-server` via npm, and the elan and Claude Code CLIs
 3. **Configures macOS**: ~200 `defaults` settings for Finder, Dock, Safari, security, etc., snapshotting each domain first
 
 Every run writes a timestamped archive to `~/.dotfile-archive/<timestamp>/` (files, per-domain

@@ -50,12 +50,18 @@ reads a different commit and reports on code you did not write, with no error to
 Symptom: findings that describe the pre-change code, or a clean verdict on a diff you know is risky.
 `git worktree list` settles it — a listed commit that is not your HEAD means those runs are worthless.
 
+## Report Contract
+
+What an agent returns, and how short it may be without losing substance, is owned by
+`subagent-report-contract`. Restate its digest requirement in any frozen packet you build: an agent's
+own definition is not guaranteed to supply it.
+
 ## Post-Run Integration
 
 Parallel agents finishing is not the end. After they return:
 
 1. **Check for conflicting edits** — did two agents touch the same file? Reconcile.
-2. **Review each summary against source** — a subagent reporting success is not proof (`verification-before-completion`). Spot-check the diff.
+2. **Review each report against source** — a subagent reporting success is not proof (`verification-before-completion`). Spot-check the diff. The report is the only artifact, so anything it omits is gone: if a finding looks thin or two agents disagree, re-dispatch that lens with a narrower question rather than guessing at what it left out.
 3. **Run the full suite** — parallel fixes that each pass in isolation can still break in combination.
 
 ## Red Flags

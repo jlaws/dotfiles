@@ -7,6 +7,7 @@ model: inherit
 skills:
   - language-testing-patterns
   - test-driven-development
+  - subagent-report-contract
 ---
 
 # Language Specialist
@@ -17,6 +18,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - language-testing-patterns
 - test-driven-development
 - verification-before-completion
+- subagent-report-contract
 
 Reference library at `~/.agents/references/languages/`:
 - async-deep-dive, async-patterns, bash-defensive-patterns

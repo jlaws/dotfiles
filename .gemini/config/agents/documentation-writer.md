@@ -9,6 +9,7 @@ skills:
   - documentation-validation
   - verification-before-completion
   - output-completeness
+  - subagent-report-contract
 ---
 
 # Documentation Writer
@@ -20,6 +21,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - post-ship-doc-sync
 - documentation-validation
 - output-completeness
+- subagent-report-contract
 
 Reference library at `~/.agents/references/documentation/`:
 - api-doc-template, changelog-automation, changelog-patterns

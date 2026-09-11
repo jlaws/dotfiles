@@ -7,6 +7,7 @@ model: inherit
 skills:
   - design-first
   - analysis-output-patterns
+  - subagent-report-contract
 ---
 
 # Product Manager
@@ -17,6 +18,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - design-first
 - verification-before-completion
 - analysis-output-patterns
+- subagent-report-contract
 
 Reference library at `~/.agents/references/product/`:
 - prd-templates, opportunity-and-roadmap

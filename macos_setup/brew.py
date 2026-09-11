@@ -30,6 +30,7 @@ BREW_PACKAGES = [
     "autojump",
     "mermaid-cli",
     "poppler",
+    "agent-browser",
     "uv",
     "node",
     "rg",
@@ -78,6 +79,11 @@ def install_packages(runner: Runner, *, dry_run: bool = False) -> None:
                 dry_run=dry_run,
                 check=False,
             )
+
+    # The formula ships only the CLI; the browser it drives is a separate download
+    # ("agent-browser install # Download Chrome (first time)" in its own help). Idempotent,
+    # so it is safe on every re-run of setup.
+    _run(runner, ["agent-browser", "install"], dry_run=dry_run)
 
     _run(runner, ["bash", "-c", _RUST_INSTALL], dry_run=dry_run)
     _run(runner, ["rustup", "default", "stable"], dry_run=dry_run)
