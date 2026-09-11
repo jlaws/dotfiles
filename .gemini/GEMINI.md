@@ -100,12 +100,15 @@ Use subagents to parallelize independent work and to delegate to specialist agen
 
 ## Task Delegation
 
-When spawning subagents, pick the cheapest model that can do the job:
-- `gemini-3.5-flash`: bulk mechanical tasks and scoped research/exploration
-- `gemini-3.1-pro-preview`: only when real planning or tradeoffs are involved
+Subagent frontmatter carries a model *tier* only -- `inherit`, `flash`, or `pro`. Every agent in
+`~/.gemini/config/agents/` is pinned to `flash`, so the tier floats to the current Flash model instead
+of going stale on a pinned ID.
+
+Version and reasoning effort are not per-agent. Select them for the session with `/effort <low|medium|high>`,
+or at launch with `--model <slug>` (for example `gemini-3.8-flash-high`; run `agy models` for current slugs).
 
 Caps:
-- `gemini-3.5-flash` never spawns further subagents -- if it needs to, the task was wrong-sized
+- A `flash` subagent never spawns further subagents -- if it needs to, the task was wrong-sized
 - Max spawn depth is 2 (parent -> subagent -> one more tier)
 
 If a subagent realizes it needs a smarter model, it returns to the parent instead of escalating on its own.
