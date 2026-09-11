@@ -297,6 +297,55 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(skill=path.parent.name):
                 self.assertEqual(leftovers, [], f"{path.parent.name}: upstream leftover")
 
+    def test_bash_guard_is_registered_on_every_harness_that_has_hooks(self):
+        """The guard only helps if it is wired. Claude reads `hooks.PreToolUse`; Codex reads
+        `[[hooks.PreToolUse]]`. Gemini has no hook surface, so it gets none -- see
+        `references/workflow/hook-patterns.md`, Per-Harness Support.
+
+        Both registrations invoke the INSTALLED copy under `~`, matching how log-prompt.sh is
+        invoked, because this config is synced to `~` and must work in every repo.
+        """
+        settings = json.loads((REPO / ".claude" / "settings.json").read_text())
+        pre = settings.get("hooks", {}).get("PreToolUse", [])
+        self.assertTrue(pre, ".claude/settings.json declares no PreToolUse hook")
+        commands = [h["command"] for entry in pre for h in entry.get("hooks", [])]
+        self.assertTrue(
+            any("guard-bash-output.sh" in c and "--format claude" in c for c in commands),
+            f"no Claude-format guard registration in {commands}",
+        )
+        self.assertEqual([e.get("matcher") for e in pre], ["Bash"])
+
+        codex = (REPO / ".codex" / "config.toml").read_text()
+        self.assertIn("[[hooks.PreToolUse]]", codex)
+        self.assertIn("guard-bash-output.sh --format codex", codex)
+        self.assertIn('matcher = "^Bash$"', codex)
+
+    def test_prompt_logging_is_registered_on_every_harness_that_has_hooks(self):
+        """`.codex/hooks/log-prompt.sh` shipped and synced since the tree was created, but
+        `.codex/config.toml` had no `[hooks]` table, so it never fired. Its Claude twin was
+        registered the whole time. Pin both so the asymmetry cannot come back."""
+        settings = json.loads((REPO / ".claude" / "settings.json").read_text())
+        claude = [
+            h["command"]
+            for entry in settings.get("hooks", {}).get("UserPromptSubmit", [])
+            for h in entry.get("hooks", [])
+        ]
+        self.assertTrue(any("log-prompt.sh" in c for c in claude), claude)
+
+        codex = (REPO / ".codex" / "config.toml").read_text()
+        self.assertIn("[[hooks.UserPromptSubmit]]", codex)
+        self.assertIn("log-prompt.sh", codex)
+
+    def test_guard_hook_ships_identically_in_both_hook_trees(self):
+        """One script, two registrations -- the only difference is the --format flag at call time.
+        Divergent copies would mean one harness silently gets different advice."""
+        claude = REPO / ".claude" / "hooks" / "guard-bash-output.sh"
+        codex = REPO / ".codex" / "hooks" / "guard-bash-output.sh"
+        for path in (claude, codex):
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file())
+        self.assertEqual(claude.read_bytes(), codex.read_bytes())
+
     def test_worktree_base_ref_is_pinned_to_local_head(self):
         """`fresh`, the harness default, branches agent-isolation worktrees off origin/<default>."""
         settings = json.loads((REPO / ".claude" / "settings.json").read_text())
