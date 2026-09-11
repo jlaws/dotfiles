@@ -11,7 +11,7 @@ task it was loaded to help with.
 
 **Codex reads `~/.agents/skills`, Gemini/Antigravity reads `~/.gemini/antigravity-cli/skills`, and Claude reads `~/.claude/skills`.** The trees have
 diverged on purpose: `.claude/` is written for the Claude 5 generation, `.agents/` serves the other
-tools. `tests/test_agent_config.py` pins which skills exist in each, not what they say.
+tools. A parity test, where the repo has one, pins which skills exist in each, not what they say.
 
 ## What earns a place in a skill
 
@@ -130,4 +130,4 @@ cause is that the skill never said why the step mattered.
 - [ ] Supporting files are referenced from SKILL.md
 - [ ] KB self-docs current: CLAUDE.md Knowledge Base Structure, and MEMORY.md if the asset set changed
 - [ ] `cmd-j-*` skills have Claude, Codex, and Gemini command counterparts
-- [ ] `make test` and `make check` pass
+- [ ] The repo's lint and test commands pass
