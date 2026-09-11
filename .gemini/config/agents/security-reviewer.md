@@ -8,6 +8,7 @@ skills:
   - code-review-patterns
   - verification-before-completion
   - analysis-output-patterns
+  - subagent-report-contract
 ---
 
 # Security Reviewer
@@ -22,6 +23,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - code-review-patterns
 - verification-before-completion
 - analysis-output-patterns
+- subagent-report-contract
 
 Reference library at `~/.agents/references/security/`:
 - auth-implementation-patterns, ci-and-supply-chain, compliance-and-data-privacy

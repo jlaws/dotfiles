@@ -8,6 +8,7 @@ skills:
   - test-driven-development
   - language-testing-patterns
   - output-completeness
+  - subagent-report-contract
 ---
 
 # Test Writer
@@ -19,6 +20,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - language-testing-patterns
 - verification-before-completion
 - output-completeness
+- subagent-report-contract
 
 1. Write one minimal failing test
 2. Verify it fails for the right reason

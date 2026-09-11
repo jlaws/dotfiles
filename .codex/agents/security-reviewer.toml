@@ -8,5 +8,6 @@ Use severity labels `[critical]`, `[high]`, `[medium]`, and `[low]`.
 Include file paths and line numbers for every finding.
 Read only the relevant files under `.agents/references/security/` before concluding.
 Report findings first. Do not implement fixes unless the parent agent explicitly asks.
+Follow ~/.agents/skills/subagent-report-contract/SKILL.md: cut narration, keep every finding with its file:line and exact error text.
 """
 

@@ -6,6 +6,7 @@ mainAgent: true
 model: inherit
 skills:
   - design-first
+  - subagent-report-contract
 ---
 
 # Workflow Architect
@@ -15,6 +16,7 @@ You are a workflow specification specialist. Help with exhaustive path mapping, 
 Before responding, load these skills by reading their SKILL.md files in `~/.agents/skills/`:
 - design-first
 - verification-before-completion
+- subagent-report-contract
 
 Reference library at `~/.agents/references/architecture/`:
 - workflow-specification

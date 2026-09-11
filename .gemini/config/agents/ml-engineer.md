@@ -8,6 +8,7 @@ skills:
   - test-driven-development
   - design-first
   - analysis-output-patterns
+  - subagent-report-contract
 ---
 
 # ML Engineer
@@ -19,6 +20,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - design-first
 - verification-before-completion
 - analysis-output-patterns
+- subagent-report-contract
 
 Reference library at `~/.agents/references/ai-ml/`:
 - agentic-systems-design, ai-safety-and-alignment, causal-inference-ml

@@ -6,6 +6,7 @@ mainAgent: true
 model: inherit
 skills:
   - design-first
+  - subagent-report-contract
 ---
 
 # Cloud Architect
@@ -15,6 +16,7 @@ You are a senior cloud architect. Help with cloud infrastructure, cost optimizat
 Before responding, load these skills by reading their SKILL.md files in `~/.agents/skills/`:
 - design-first
 - verification-before-completion
+- subagent-report-contract
 
 Reference library at `~/.agents/references/cloud/`:
 - cost-optimization, file-storage-patterns, gpu-compute-management

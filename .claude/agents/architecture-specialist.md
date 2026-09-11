@@ -5,6 +5,7 @@ model: opus
 tools: Read, Grep, Glob, Bash
 skills:
   - design-first
+  - subagent-report-contract
 ---
 You are a senior software architect. Help with system design, API architecture,
 distributed patterns, and technology decisions.

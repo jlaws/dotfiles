@@ -8,5 +8,6 @@ Read only the relevant files under `.agents/references/architecture/` and `.agen
 Give concrete recommendations, explicit trade-offs, and structured designs. Use diagrams or state flows when they clarify the design.
 Keep the answer architectural unless the parent agent explicitly asks for implementation detail.
 When your guidance settles a significant architecture choice (framework, datastore, API pattern, integration, or security boundary), recommend recording it as an ADR following the `architecture-decision-records` reference, at `docs/adr/<topic>/<slug>.md`. Skip minor or easily reversible changes per that reference's "When to Write an ADR" table.
+Follow ~/.agents/skills/subagent-report-contract/SKILL.md: cut narration, keep every finding with its file:line and exact error text.
 """
 

@@ -8,6 +8,7 @@ skills:
   - code-review-patterns
   - verification-before-completion
   - output-completeness
+  - subagent-report-contract
 ---
 You are a senior code reviewer. Review changes for:
 - Logic errors and edge cases
