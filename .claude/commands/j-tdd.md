@@ -13,10 +13,10 @@ Invoke the `test-driven-development` skill via the Skill tool before coding. The
 
 1. **Explore** — Read existing code around the feature area. Identify edge cases, existing patterns, and test infrastructure (test runner, fixtures, helpers).
 2. **Write tests** — Cover happy path, error cases, and edge cases. Tests MUST fail initially.
-3. **Verify RED** — Run the full test suite. Confirm every new test fails for the expected reason (feature missing, not typos or import errors). Paste output.
-4. **Implement** — Make each test pass one-by-one. After each change, run the full test suite. Write minimal code.
-5. **Lint** — Run the project's formatter and linter (check Makefile, package.json scripts, or pyproject.toml for commands). Fix all issues.
-6. **Final verification** — Run the full test suite. Paste output confirming all tests pass and output is clean.
+3. **Verify RED** — Run the new tests. Confirm every one fails for the expected reason (feature missing, not typos or import errors). Paste output.
+4. **Implement** — Make each test pass one-by-one. After each change, re-run the tests covering that change. Write minimal code.
+5. **Lint** — Run the project's formatter and linter (check justfile, Makefile, package.json scripts, or pyproject.toml for commands). Fix all issues.
+6. **Final verification** — Run the full test suite once. Paste output confirming all tests pass and output is clean.
 7. **Validate docs** — Apply the `documentation-validation` gate: if the feature/fix changed public surface or documented behavior, update README/API/CHANGELOG (or declare N/A with a reason).
 8. **Commit** — Create a commit summarizing what was implemented and test coverage achieved.
 
