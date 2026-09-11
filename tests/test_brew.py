@@ -60,6 +60,16 @@ class InstallPackagesTests(unittest.TestCase):
             argvs.index(["agent-browser", "install"]),
         )
 
+    def test_installs_jq_because_the_hooks_require_it(self):
+        """Every hook parses its stdin payload with `jq`: `log-prompt.sh` reads `.prompt`, and the
+        PreToolUse guard reads `.tool_input.command`. Both fail silently on a machine without it,
+        so setup has to install it rather than assume it.
+        """
+        runner = FakeRunner(_brew_ok)
+        install_packages(runner)
+
+        self.assertIn(["brew", "install", "jq"], runner.argv_list())
+
     def test_installs_search_tools(self):
         runner = FakeRunner(_brew_ok)
         install_packages(runner)

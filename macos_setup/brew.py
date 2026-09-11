@@ -24,6 +24,7 @@ BREW_PACKAGES = [
     "just",
     "vim",
     "grep",
+    "jq",
     "openssh",
     "git",
     "gh",
