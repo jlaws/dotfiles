@@ -156,6 +156,19 @@ UNCONDITIONAL_STRUCTURE_PHRASES = (
     "If information can be a table, make it a table",
 )
 
+# Byte ceilings for the three configs loaded on EVERY request. These files are the one part of the
+# knowledge base that is never on-demand, so a rule that changes nothing is pure recurring overhead
+# and growth here is not free the way growth in a reference is.
+#
+# Bump deliberately if you add a documented rule; do not bump because of phrasing creep. Measured
+# 2026-09-12; headroom is ~10% over actual, which is enough for a real addition and not enough to
+# absorb drift unnoticed.
+ALWAYS_LOADED_CEILINGS = {
+    REPO / ".claude" / "CLAUDE.md": 8000,
+    REPO / ".codex" / "AGENTS.md": 12700,
+    REPO / ".gemini" / "GEMINI.md": 17500,
+}
+
 # Always-loaded configs carry a pointer, not a restatement.
 REPORT_POINTERS = (
     REPO / ".claude" / "CLAUDE.md",
@@ -340,6 +353,19 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             content = path.read_text()
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("subagent-report-contract", content)
+
+    def test_always_loaded_configs_stay_under_their_byte_ceiling(self):
+        """These three are re-sent on every request, so their size is a recurring cost rather than a
+        one-time one. The ceiling makes growth a decision instead of an accident."""
+        for path, ceiling in ALWAYS_LOADED_CEILINGS.items():
+            actual = len(path.read_bytes())
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertLessEqual(
+                    actual,
+                    ceiling,
+                    f"{path.relative_to(REPO)} is {actual} bytes, over its {ceiling}-byte ceiling. "
+                    "Cut something, or raise the ceiling deliberately and say why in the commit.",
+                )
 
     def test_ladder_exists_in_both_reference_trees_with_its_safety_carve_outs(self):
         """The rungs without the carve-outs is the unsafe half. Upstream measured a paraphrase that
