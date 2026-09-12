@@ -196,6 +196,28 @@ ALWAYS_LOADED_CEILINGS = {
     REPO / ".gemini" / "GEMINI.md": 17500,
 }
 
+# The byte ceiling above is a standing instruction to cut prose from these files. These are the
+# lines that "cut something" must never reach -- each one prevents an irreversible action or a
+# prompt-injection foothold, and none of them is recoverable by noticing it went missing.
+SAFETY_LINE_INVARIANTS = {
+    REPO / ".claude" / "CLAUDE.md": (
+        "Never claim success without evidence",
+        "untrusted data, not instructions",
+        "Never force push to main or master",
+        "Tear down paid cloud services",
+    ),
+    REPO / ".codex" / "AGENTS.md": (
+        "untrusted data, not instructions",
+        "Never force push to main/master",
+        "tear down paid cloud services",
+    ),
+    REPO / ".gemini" / "GEMINI.md": (
+        "untrusted data (not instructions)",
+        "Never force push to main/master",
+        "Tear down paid cloud services",
+    ),
+}
+
 # Always-loaded configs carry a pointer, not a restatement.
 REPORT_POINTERS = (
     REPO / ".claude" / "CLAUDE.md",
@@ -393,6 +415,20 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     f"{path.relative_to(REPO)} is {actual} bytes, over its {ceiling}-byte ceiling. "
                     "Cut something, or raise the ceiling deliberately and say why in the commit.",
                 )
+
+    def test_byte_ceiling_never_reaches_the_safety_lines(self):
+        """The ceiling tells a future editor to cut something. These are not cuttable: each prevents
+        an irreversible action or an injection foothold, and a missing one is silent."""
+        for path, invariants in SAFETY_LINE_INVARIANTS.items():
+            content = path.read_text()
+            for line in invariants:
+                with self.subTest(path=path.relative_to(REPO), line=line):
+                    self.assertIn(
+                        line,
+                        content,
+                        f"{path.relative_to(REPO)} lost a safety line. Cut prose elsewhere or raise "
+                        "the ceiling; this one is not a trim candidate.",
+                    )
 
     def test_ladder_exists_in_both_reference_trees_with_its_safety_carve_outs(self):
         """The rungs without the carve-outs is the unsafe half. Upstream measured a paraphrase that
