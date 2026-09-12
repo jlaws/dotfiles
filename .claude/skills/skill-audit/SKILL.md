@@ -24,7 +24,7 @@ than working around it in prose.
 
 ## Judge what the script cannot
 
-The script proves structure. These four questions decide whether the knowledge base is worth loading.
+The script proves structure. These five questions decide whether the knowledge base is worth loading.
 Rate each and name the weakest — that is where to invest next.
 
 | Axis | Question |
@@ -33,6 +33,7 @@ Rate each and name the weakest — that is where to invest next.
 | Coverage | Is each common task type served by some asset, with no large gap? |
 | Freshness | Does anything describe behavior that changed, or point at a deleted file? |
 | Structure | Do the assets read as goals and interfaces, or as rulebooks? |
+| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number attributed rather than adopted? |
 
 ### What to look for
 
@@ -55,6 +56,12 @@ most expensive form of this. Check commands against the skills they overlap.
 **Stale model facts.** Pinned model IDs, capability claims about specific tiers, and effort defaults
 carried over from an older generation. Tier aliases (`opus`, `sonnet`, `haiku`, `fable`) float safely;
 full IDs like `claude-sonnet-4-5-20250929` do not.
+
+**Unsourced numbers.** A percentage or multiplier reads as measured fact and the reader acts on it.
+Distinguish a claim ("tables are ~40% more efficient") from a threshold ("min 80% coverage") or a
+rollout stage — only the claim needs provenance. Where a practice has fixed overhead, say at what size
+it exceeds the benefit. This is deliberately an axis and not a script check: a regex over `\d+%|\d+x`
+cannot tell a claim from a threshold, and the false positives outnumber the real findings.
 
 **Orphans.** The script lists references that no agent, command, or skill indexes. Each is a removal,
 merge, or index-fix candidate — decide which, rather than leaving it unreachable.
