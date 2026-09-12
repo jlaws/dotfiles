@@ -2,8 +2,8 @@
 
 The guard is ADVISORY. It never blocks a command and never rewrites one. A hook that edits the
 command an agent asked for puts a lossy layer between the agent and its evidence, contradicting
-`CLAUDE.md`'s byte-for-byte rule. This is the Fail-Open Principle already stated in
-`references/workflow/hook-patterns.md`, applied: it only ever emits an advisory message and exits 0.
+`CLAUDE.md`'s byte-for-byte rule. By the taxonomy in `references/workflow/hook-patterns.md` it is a
+detector, so it fails neutral: it only ever emits an advisory message, or nothing, and exits 0.
 
 Claude and Codex read that message from different fields, so the script takes `--format`:
 Claude uses a top-level `systemMessage`, Codex uses `hookSpecificOutput.additionalContext`.
@@ -391,7 +391,7 @@ class _TmpDirMixin(unittest.TestCase):
 
 
 class BashGuardDegradedModeTests(_TmpDirMixin):
-    """The fail-open path, exercised rather than assumed.
+    """The fail-neutral path, exercised rather than assumed.
 
     This was the guard's single most important property and had zero coverage, because the only
     test that could have reached it was gated on the runner's own jq.

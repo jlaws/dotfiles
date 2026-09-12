@@ -28,6 +28,7 @@ AI-assisted development compresses the cost of thoroughness. When Claude Code ef
 - **Speculative architecture** — abstractions for hypothetical futures
 - **Premature optimization** — profile first, optimize second
 - **Features not in spec** — completeness = finishing agreed scope, not expanding it
+- **A thing that need not exist** — before writing it, climb `code-efficiency-ladder`: does it exist already, does the stdlib or platform cover it, can it be one line
 
 ## Decision Framework
 
@@ -41,3 +42,20 @@ Is this more SCOPE than agreed?
 Uncertain if in scope?
   → ASK. Clarify before investing effort.
 ```
+
+The two axes, which is why "prefer thorough" and "stop at the first rung that holds" do not
+conflict:
+
+| Axis | Default |
+|---|---|
+| Quality of what is in scope | Thorough. The marginal cost is near-zero |
+| New scope, new abstractions, new dependencies | Lazy. Stop at the first rung that holds |
+
+Where they meet is a simplification that cuts a real corner. Build it lazy, then mark it: the
+`// SIMPLIFIED:` convention in `code-quality` records the ceiling and the upgrade trigger, so the
+lazy choice stays visible instead of becoming silent debt.
+
+## Cross-References
+
+- **reference:code-efficiency-ladder** — whether the thing should exist at all
+- **skill:code-quality** — the `// SIMPLIFIED:` marker for sanctioned shortcuts

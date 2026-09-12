@@ -80,7 +80,7 @@ Rate each and name the weakest — that is where to invest next.
 | Coverage | Is each common task type served by some asset, with no large gap? |
 | Freshness | Does anything describe behavior that changed, or point at a deleted file? |
 | Structure | Do the assets read as goals and interfaces, or as rulebooks? |
-| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number attributed rather than adopted? |
+| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number attributed rather than adopted? Is a counterfactual saving labelled an estimate? Is behavior shipped on a hunch labelled speculative? |
 
 ### What to look for
 
@@ -112,6 +112,13 @@ rollout stage — only the claim needs provenance. Where a practice has fixed ov
 it exceeds the benefit. This is deliberately an axis and not a script check: a regex over `\d+%|\d+x`
 cannot tell a claim from a threshold or a rollout stage, so it flags far more legitimate targets than
 real ones and the only way to green is to reword them.
+
+**Evidence rule:** the axis covers four failure shapes, not one. A number with no provenance. A
+*counterfactual* saving -- "this saved N tokens" about work never done the other way -- stated as
+measured rather than estimated. Behavior shipped on a hunch with no label saying so, and its mirror
+image, a rule the repo advertises that nothing enforces. And a best-case figure printed without the
+general one beside it. Full rules in `writing-skills`, Claims and evidence; this axis is where they
+get checked.
 
 **Orphans.** The script lists references that no agent, command, or skill indexes. Each is a removal,
 merge, or index-fix candidate — decide which, rather than leaving it unreachable. The adoption report

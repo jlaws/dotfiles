@@ -103,7 +103,10 @@ Worktree agents: see the `using-git-worktrees` skill for the completion contract
 ## Communication
 
 Assume an experienced developer. Lead with the answer, then explain if it is still needed. Keep it
-brief — sacrifice grammar before adding filler. Prefer bullets, tables, and code over prose.
+brief — sacrifice grammar before adding filler. Answer at the question's altitude: a verdict for a
+verdict question, a matrix for a matrix one. Reach for the densest format that fits what you have
+already decided to say, never one that invents sections to fill — structure you were not asked for
+costs tokens even as a table (`context-efficiency`).
 
 Ask clarifying questions rather than guessing, each with your recommended answer, and only after
 checking whether the code already answers it. Resolve open questions before finalizing a plan; the

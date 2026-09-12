@@ -47,6 +47,7 @@ dotfiles/
 ├── setup.sh           # Entry-point shim → python3 -m macos_setup
 ├── macos_setup/       # Python package: install + archive + uninstall/reset
 ├── tests/             # stdlib unittest suite for macos_setup
+├── docs/adr/          # Decision records (README.md + template.md are scaffolding, not ADRs)
 ├── pyproject.toml     # ruff config, project metadata
 ├── Makefile           # lint, format, fix, test targets
 ├── .agents/           # Shared Codex/Gemini KB (agentskills.io spec)
@@ -97,3 +98,7 @@ dotfiles/
 - `tests/test_agent_config.py` owns anything spanning two trees, not just parity: Codex agents must declare `name`/`description`/a non-empty `developer_instructions`, Gemini agents must be `model: inherit`, and no tracked asset in any tree may name a script the repo does not ship. `audit.py` is Claude-tree only by its own docstring, so cross-tree checks belong in the test file
 - `.claude/CLAUDE.md`, `.codex/AGENTS.md`, and `.gemini/GEMINI.md` are synced to `~` and loaded in every repo. Keep guidance that only applies to this repo in this file instead
 - Do not hardcode counts of KB assets (agents, commands, references, skills) — they go stale
+- `.claude/CLAUDE.md`, `.codex/AGENTS.md`, and `.gemini/GEMINI.md` are re-sent on every request, so
+  each carries a byte ceiling in `tests/test_agent_config.py` (`ALWAYS_LOADED_CEILINGS`). Bump it
+  deliberately when you add a documented rule; do not bump it for phrasing creep. These three hold
+  pointers, never restatements — guidance belongs in a skill or reference that loads on demand

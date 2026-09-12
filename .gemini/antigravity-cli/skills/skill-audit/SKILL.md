@@ -290,9 +290,16 @@ Beyond PASS/WARN/FAIL, rate the KB on five axes and name the weakest — that is
 | Coverage | Are the common task types covered by a skill, with no large gaps? |
 | Freshness | Any asset unreferenced by an agent/command/config, or pointing at deleted files? |
 | Structure | Frontmatter valid, cross-references resolve, naming conventions hold, within line budgets? |
-| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number attributed rather than adopted? |
+| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number attributed rather than adopted? Is a counterfactual saving labelled an estimate? Is behavior shipped on a hunch labelled speculative? |
 
 **Documentation currency:** mirror parity across trees and description-behavior match are part of freshness — see checks DOC-1..3.
+
+**Evidence rule:** the axis covers four failure shapes, not one. A number with no provenance. A
+*counterfactual* saving -- "this saved N tokens" about work never done the other way -- stated as
+measured rather than estimated. Behavior shipped on a hunch with no label saying so, and its mirror
+image, a rule the repo advertises that nothing enforces. And a best-case figure printed without the
+general one beside it. Full rules in `writing-skills`, Claims and evidence; this axis is where they
+get checked.
 
 **Groundedness rule:** prefer concrete file paths and repo-specific examples over generic advice — a skill that could apply to any repo teaches little about this one. Flag generic-only skills for grounding.
 

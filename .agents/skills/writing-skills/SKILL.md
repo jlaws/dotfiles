@@ -75,6 +75,18 @@ A number in a skill is a claim the reader will act on, so every quantitative cla
 
 Say when a practice loses, not only when it wins. A rule with no stated cost reads as free, and the reader stops looking for the cost. Where a technique has fixed overhead, such as a skill body preloaded on every dispatch or the cost of dispatching a subagent, say at what size the overhead exceeds the benefit.
 
+**A counterfactual is not a measurement.** "This saved N tokens" about work you did is unknowable -- the unwritten version was never written, so there is no baseline to subtract from. Either run a holdout (leave a fraction unshaped and compare) or label the figure an estimate and give its range. Naming a saving you cannot have observed is the most common way a real technique acquires a fake number.
+
+**Link the counter-evidence.** Where someone has published a measurement against a claim you are making, cite it and say which part survives your fix and which part stands. A claim with the strongest objection linked beside it is more trustworthy than one without, and a reader who finds the objection elsewhere first will discount everything around it.
+
+**Retract in place.** A figure that stops reproducing gets struck where it was published, with what replaced it -- not quietly deleted. Deleting it hides that it was ever believed, which is what a later reader most needs to know.
+
+**A feature is a claim too.** Behavior shipped on a hunch carries the same burden as a number: either evidence that it fires, or the label. Say it is speculative and say what would retire the label. The opposite failure is worse and quieter -- a rule the repo advertises but nothing enforces.
+
+**Cherry-picking is only dishonest when it is silent.** A best-case example fairly answers "what does this look like when it works", provided the general number sits next to it.
+
+**If you do build a measurement, two things make it defensible.** Include cases where the technique should *not* win, and fail loudly if it starts claiming a win there -- a suite of only favourable inputs proves the fixtures were chosen well, not that the technique works. And compare against a length-matched naive control: for a compressor, plain truncation to the same output size. Beating nothing is easy; beating the dumbest thing that produces the same volume is the real question.
+
 ## Co-located Scripts
 
 For mechanical steps (validation, formatting, deterministic checks), ship a `scripts/` file in the skill directory and call it, rather than describing the steps in prose. Reserve the LLM for judgment; let a script do what a script does better. Keep scripts one level deep and list any dependencies.

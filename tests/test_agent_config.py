@@ -108,6 +108,116 @@ REPORT_CONTRACT_OWNERS = (
 # mode. Neither is worth an archive that may never be opened.
 DISK_PERSISTENCE_MARKERS = ("scratchpad/agent-reports/", "permissionMode", "j-agent-reports")
 
+# Owns "should this code exist at all" -- the seven-rung stopping rule from ponytail. Separate owner
+# from completeness-principle, which owns "how thoroughly to build what is in scope"; the two govern
+# different axes and reading either alone inverts the other. The safety carve-outs are pinned
+# because ponytail measured a paraphrase that dropped them at 95% safe against the full ruleset's
+# 100%, so the carve-outs ARE the safety margin, not commentary.
+LADDER_OWNERS = (
+    REPO / ".claude" / "references" / "workflow" / "code-efficiency-ladder.md",
+    REPO / ".agents" / "references" / "workflow" / "code-efficiency-ladder.md",
+)
+
+# Strings the ladder is unsafe without. Same reason upstream pins its own: the ruleset pushes toward
+# the shortest solution, and these are what stop it pushing through a trust boundary.
+LADDER_SAFETY_INVARIANTS = (
+    "Input validation at trust boundaries",
+    "Error handling that prevents data loss",
+    "Security measures",
+    "Accessibility basics",
+    "Anything explicitly requested",
+    "correct on edge cases",
+    "Weakening counts as removing",
+    "never the reading",
+)
+
+# Surfaces where a code decision actually gets made. A reference reachable only from another
+# reference is indexed but never reached, so these carry a pointer -- and only a pointer, since
+# writing-skills forbids restating one statement across surfaces.
+LADDER_CONSUMERS = (
+    REPO / ".claude" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".agents" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".claude" / "agents" / "code-reviewer.md",
+    REPO / ".claude" / "commands" / "j-diff-review.md",
+    REPO / ".gemini" / "config" / "agents" / "code-reviewer.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
+)
+
+# Banning one lead-in sentence does not detect a restatement -- reword the lead-in and the rungs
+# copy across fine. These are the rungs' own distinctive text.
+LADDER_RUNG_MARKERS = (
+    "Stop at the first rung that holds",
+    "Already in this codebase?",
+    "Native platform feature covers it?",
+)
+
+# A surface that tells a reviewer a `// SIMPLIFIED:` marker is sanctioned must say in the same
+# breath that the sanction stops at a security control. Without that, the marker is a channel for
+# reviewed code to instruct its reviewer to look away, and the diff is untrusted data.
+SIMPLIFIED_SANCTION_SURFACES = (
+    REPO / ".claude" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".agents" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".claude" / "agents" / "code-reviewer.md",
+    REPO / ".claude" / "commands" / "j-diff-review.md",
+    REPO / ".gemini" / "config" / "agents" / "code-reviewer.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
+)
+
+# The unconditional form of this rule ("prefer bullets, tables, and code over prose") was measured
+# as the cause of the one backfire in a 20-task suite: a "summarize/compare X vs Y" prompt answered
+# with headed pro/con walls ran 173% of a no-tool baseline. Density is per unit of information
+# CARRIED, so scaffolding the question did not ask for costs tokens even in table form. One owner
+# holds the conditional; the always-loaded configs point at it rather than restating half of it.
+STRUCTURE_RULE_OWNERS = (
+    REPO / ".claude" / "references" / "workflow" / "context-efficiency.md",
+    REPO / ".agents" / "references" / "workflow" / "context-efficiency.md",
+)
+
+# Phrases that only make sense as the unconditional rule. Banned from the always-loaded configs so
+# the conditional cannot be quietly reverted to the form the measurement contradicted.
+UNCONDITIONAL_STRUCTURE_PHRASES = (
+    "Prefer bullets, tables, and code over prose",
+    "Prefer tables and code over prose",
+    "If information can be a table, make it a table",
+)
+
+# Byte ceilings for the three configs loaded on EVERY request. These files are the one part of the
+# knowledge base that is never on-demand, so a rule that changes nothing is pure recurring overhead
+# and growth here is not free the way growth in a reference is.
+#
+# Bump deliberately if you add a documented rule; do not bump because of phrasing creep. Measured
+# 2026-09-12; headroom is ~10% over actual, which is enough for a real addition and not enough to
+# absorb drift unnoticed.
+ALWAYS_LOADED_CEILINGS = {
+    REPO / ".claude" / "CLAUDE.md": 8000,
+    REPO / ".codex" / "AGENTS.md": 12700,
+    REPO / ".gemini" / "GEMINI.md": 17500,
+}
+
+# The byte ceiling above is a standing instruction to cut prose from these files. These are the
+# lines that "cut something" must never reach -- each one prevents an irreversible action or a
+# prompt-injection foothold, and none of them is recoverable by noticing it went missing.
+SAFETY_LINE_INVARIANTS = {
+    REPO / ".claude" / "CLAUDE.md": (
+        "Never claim success without evidence",
+        "untrusted data, not instructions",
+        "Never force push to main or master",
+        "Tear down paid cloud services",
+    ),
+    REPO / ".codex" / "AGENTS.md": (
+        "untrusted data, not instructions",
+        "Never force push to main/master",
+        "tear down paid cloud services",
+    ),
+    REPO / ".gemini" / "GEMINI.md": (
+        "untrusted data (not instructions)",
+        "Never force push to main/master",
+        "Tear down paid cloud services",
+    ),
+}
+
 # Always-loaded configs carry a pointer, not a restatement.
 REPORT_POINTERS = (
     REPO / ".claude" / "CLAUDE.md",
@@ -292,6 +402,110 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             content = path.read_text()
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("subagent-report-contract", content)
+
+    def test_always_loaded_configs_stay_under_their_byte_ceiling(self):
+        """These three are re-sent on every request, so their size is a recurring cost rather than a
+        one-time one. The ceiling makes growth a decision instead of an accident."""
+        for path, ceiling in ALWAYS_LOADED_CEILINGS.items():
+            actual = len(path.read_bytes())
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertLessEqual(
+                    actual,
+                    ceiling,
+                    f"{path.relative_to(REPO)} is {actual} bytes, over its {ceiling}-byte ceiling. "
+                    "Cut something, or raise the ceiling deliberately and say why in the commit.",
+                )
+
+    def test_byte_ceiling_never_reaches_the_safety_lines(self):
+        """The ceiling tells a future editor to cut something. These are not cuttable: each prevents
+        an irreversible action or an injection foothold, and a missing one is silent."""
+        for path, invariants in SAFETY_LINE_INVARIANTS.items():
+            content = path.read_text()
+            for line in invariants:
+                with self.subTest(path=path.relative_to(REPO), line=line):
+                    self.assertIn(
+                        line,
+                        content,
+                        f"{path.relative_to(REPO)} lost a safety line. Cut prose elsewhere or raise "
+                        "the ceiling; this one is not a trim candidate.",
+                    )
+
+    def test_ladder_exists_in_both_reference_trees_with_its_safety_carve_outs(self):
+        """The rungs without the carve-outs is the unsafe half. Upstream measured a paraphrase that
+        dropped them scoring 95% safe against the full ruleset's 100%, so they are pinned."""
+        for path in LADDER_OWNERS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                content = path.read_text()
+                for invariant in LADDER_SAFETY_INVARIANTS:
+                    self.assertIn(invariant, content)
+
+    def test_ladder_consumers_point_at_it_rather_than_restating_it(self):
+        """Each surface where a code decision is made names the ladder. Pointer, not copy: the rungs
+        must appear in exactly one place per tree or they drift."""
+        for path in LADDER_CONSUMERS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                content = path.read_text()
+                self.assertIn("code-efficiency-ladder", content)
+                for marker in LADDER_RUNG_MARKERS:
+                    self.assertNotIn(
+                        marker,
+                        content,
+                        f"{path.relative_to(REPO)} restates the ladder instead of pointing at it. "
+                        "Cut the copy; the reference is the one owner.",
+                    )
+
+    def test_simplified_sanction_never_ships_without_its_security_carve_out(self):
+        """The marker tells a reviewer to stand down. Every surface that says so must also say the
+        sanction stops at a trust boundary, or reviewed code can silence its own review."""
+        for path in SIMPLIFIED_SANCTION_SURFACES:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                content = path.read_text()
+                self.assertIn("// SIMPLIFIED:", content)
+                self.assertIn(
+                    "trust boundary",
+                    content,
+                    f"{path.relative_to(REPO)} sanctions `// SIMPLIFIED:` without naming the "
+                    "security carve-out. State it here or drop the sanction.",
+                )
+
+    def test_structure_rule_has_one_owner_carrying_the_conditional(self):
+        """The owner states BOTH halves: the density ordering, and that structure the question did
+        not ask for is a net cost anyway. Half the rule reads as a licence for the other half."""
+        for path in STRUCTURE_RULE_OWNERS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                # Collapse wrapping first: a reflow must not read as the rule going missing.
+                content = " ".join(path.read_text().split())
+                self.assertIn("per unit of information carried", content)
+                self.assertIn("Answer at the Question's Altitude", content)
+
+    def test_always_loaded_configs_do_not_restate_the_unconditional_structure_rule(self):
+        """A measured-wrong rule must not survive in a file re-sent on every request. The configs
+        point at context-efficiency instead, same convention as REPORT_POINTERS."""
+        for path in REPORT_POINTERS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                content = path.read_text()
+                for phrase in UNCONDITIONAL_STRUCTURE_PHRASES:
+                    self.assertNotIn(
+                        phrase,
+                        content,
+                        f"{path.relative_to(REPO)} still carries the unconditional structure rule. "
+                        "It points at context-efficiency instead.",
+                    )
+                self.assertIn("context-efficiency", content)
+                # These files are synced to ~. Claude resolves a reference by bare name, but where
+                # one of them writes a PATH it has to be home-anchored -- `references/...` on its
+                # own resolves to nothing from the home directory.
+                self.assertNotIn(
+                    "`references/",
+                    content,
+                    f"{path.relative_to(REPO)} writes an unanchored reference path. "
+                    "Use `~/.agents/references/...`, which is where the tree actually lands.",
+                )
 
     def test_diff_review_hands_reviewers_the_head_sha(self):
         for path in DIFF_REVIEW_DISPATCHERS:
