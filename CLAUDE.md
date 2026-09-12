@@ -47,6 +47,7 @@ dotfiles/
 ├── setup.sh           # Entry-point shim → python3 -m macos_setup
 ├── macos_setup/       # Python package: install + archive + uninstall/reset
 ├── tests/             # stdlib unittest suite for macos_setup
+├── docs/adr/          # Decision records (README.md + template.md are scaffolding, not ADRs)
 ├── pyproject.toml     # ruff config, project metadata
 ├── Makefile           # lint, format, fix, test targets
 ├── .agents/           # Shared Codex/Gemini KB (agentskills.io spec)

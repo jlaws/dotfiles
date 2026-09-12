@@ -68,16 +68,18 @@ scope, new abstractions, and new dependencies.** Recorded in `completeness-princ
 
 Two guards ship with the ladder, both ponytail's own:
 1. "Two options the same size? Take the one that is correct on edge cases. Lazy means writing less
-   code, not picking the flimsier algorithm."
+   code, not picking the flimsier algorithm." Extended here, because the cited defect is not an
+   equal-size choice: at a trust boundary the correct option wins regardless of size.
 2. The never-simplify-away list: input validation at trust boundaries, error handling that prevents
    data loss, security, accessibility, anything explicitly requested.
 
 ## Rationale
 
 The contradiction is apparent, not real — the two rules govern different axes, and naming the axes
-dissolves it. On the risk: ponytail's regression is on non-Claude models, and on Claude its same
-audit shows improvement (haiku 35/40 to 40/40, sonnet 0/40 to 40/40, opus 39/40 to 40/40). This repo
-targets Claude. Option 2's exclusion would also cost the most-measured part of the win to guard
+dissolves it. On the risk: ponytail's regression is on non-Claude models, and on Claude its
+robustness audit — a separate run from the agentic benchmark above, scored over 40 runs per model
+rather than 20 — shows improvement (haiku 35/40 to 40/40, sonnet 0/40 to 40/40, opus 39/40 to
+40/40). This repo targets Claude. Option 2's exclusion would also cost the most-measured part of the win to guard
 against a failure this repo's target models did not exhibit.
 
 The guards are not decoration, and there is evidence for that: ponytail's benchmark included a
@@ -88,14 +90,15 @@ ruleset's 100% (20/20). The carve-outs are the safety margin, which is why a tes
 
 ### Positive
 - Rungs 2-5 gain an owner; reuse-before-write becomes a stated reflex rather than an implicit habit.
-- Faithful to upstream, so the ledger can describe provenance precisely, including the #217 dating
-  of rung 2.
+- Faithful to upstream, so the ledger can describe provenance precisely, including the 2026-06-22
+  dating of rung 2.
 
 ### Negative
 - The safety carve-outs are now load-bearing text. If they are edited away the ladder becomes
   unsafe, which is why `tests/test_agent_config.py` pins them.
-- The measured win is third-party (n=4, one model, one repo) and is on the code axis only — 44% of
-  baseline on coding prompts against 87% on explanation-only prompts.
+- The measured win is third-party (n=4, one model, one repo) and is on the code axis only. The
+  ladder has little to bite on in explanation-only work, where the prose half of the pairing does
+  the work instead.
 - The ruleset costs more than it saves on short interactions and on reasoning models. Stated in the
   reference rather than left for a reader to discover.
 
@@ -105,8 +108,8 @@ ruleset's 100% (20/20). The carve-outs are the safety margin, which is why a tes
   `tests/test_reference_tree.py` enforces reachability, but transitively — a cross-reference from
   `context-efficiency.md` alone satisfies it. The consumer pointers are therefore a discoverability
   requirement, not a test requirement: a reference reachable only from another reference is indexed
-  but never reached from where the decision is actually made. `LADDER_OWNERS` in
-  `tests/test_agent_config.py` pins them instead.
+  but never reached from where the decision is actually made. `LADDER_CONSUMERS` in
+  `tests/test_agent_config.py` pins them instead; `LADDER_OWNERS` pins the reference itself.
 - Sanctioned shortcuts use the `// SIMPLIFIED:` marker, owned by `code-quality`, carrying both a
   ceiling and an upgrade trigger.
 

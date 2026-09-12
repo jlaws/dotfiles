@@ -78,8 +78,9 @@ the first half reads as a licence for the second. Option 3 is also the only opti
 ### Negative
 - Requires judgment at answer time. A model that misjudges altitude now has a rule that
   under-specifies rather than one that over-specifies.
-- The supporting numbers are a competitor's, measured on its own suite at n=1 per cell. We adopt the
-  mechanism, not the magnitude, and the ledger entries say so.
+- The supporting numbers are a competitor's, measured on its own suite: n=1 per cell on the 20-task
+  ledger, n=3 per arm on the re-measure quoted above. We adopt the mechanism, not the magnitude, and
+  the ledger entries say so.
 
 ## Implementation Notes
 - Owner: `references/workflow/context-efficiency.md`, `Token Density by Format`.

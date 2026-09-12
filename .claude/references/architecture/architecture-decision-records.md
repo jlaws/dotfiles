@@ -142,6 +142,10 @@ We will use **[choice]**.
 ## Implementation Notes
 - [specific guidance]
 
+## Reversal Conditions
+[What would have to become true for this decision to be revisited. Concrete enough that a future
+reader can tell whether it has happened.]
+
 ## Related Decisions
 - [title](../[topic]/[slug].md)
 
