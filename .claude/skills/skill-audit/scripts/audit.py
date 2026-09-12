@@ -37,6 +37,10 @@ SKILL_INVOCATION = re.compile(
 SUBAGENT = re.compile(r"subagent_type[\"']?\s*[:=]\s*[\"']([a-z0-9-]+)")
 ARG_TOKEN = re.compile(r"\$ARGUMENTS|\$\d")
 
+# A tier alias floats across a model generation; a pinned ID does not, and a KB asset that names one
+# silently degrades to an older model the day it is retired (CLAUDE.md, Delegation).
+MODEL_ALIASES = frozenset({"opus", "sonnet", "haiku", "fable", "inherit"})
+
 VALID_TOOLS = {
     "Read",
     "Grep",
@@ -253,6 +257,18 @@ class Audit:
                 unknown = sorted({t.strip() for t in fields["tools"].split(",")} - VALID_TOOLS)
                 if unknown:
                     self.add(WARN, "AG-F7", agent, f"unknown tools: {', '.join(unknown)}")
+
+            model = fields.get("model")
+            if model is None:
+                self.add(WARN, "AG-F8", agent, "declares no `model`")
+            elif model not in MODEL_ALIASES:
+                self.add(
+                    FAIL,
+                    "AG-F8",
+                    agent,
+                    f"pins model `{model}`; use a tier alias "
+                    f"({', '.join(sorted(MODEL_ALIASES))}) so it survives a model generation",
+                )
 
             if len(self.body(text).split()) < 20:
                 self.add(WARN, "AG-C1", agent, "body gives almost no role instruction")
