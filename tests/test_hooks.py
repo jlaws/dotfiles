@@ -191,8 +191,19 @@ class BashGuardRuleTests(unittest.TestCase):
             with self.subTest(command=command):
                 self.assert_silent(command)
 
-    def test_chained_commands(self):
-        self.assert_flags("git add -A && git commit -m x", "separate")
+    def test_chained_commands_are_silent(self):
+        """Regression: an `&&` rule here fired on nearly every command an agent writes, and being
+        first in the chain it shadowed all seven output rules. The guard bounds output size; failure
+        attribution is a separate concern, already stated in prose in CLAUDE.md's Bash section and
+        loaded every turn. Restating it per command was noise, not signal.
+        """
+        for command in [
+            "git add -A && git commit -m x",
+            "make check && make test",
+            "cd /tmp && ls",
+        ]:
+            with self.subTest(command=command):
+                self.assert_silent(command)
 
     def test_single_command_is_silent(self):
         self.assert_silent("git status --porcelain")

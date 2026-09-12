@@ -52,10 +52,7 @@ piped_into_bounding_tool() {
 
 SUGGESTION=""
 
-if [[ "$TRIM" =~ \&\& ]]; then
-  SUGGESTION="Chained with '&&' -- run these as separate calls so a failure points at one thing (CLAUDE.md, Bash)."
-
-elif [[ "$TRIM" =~ ^git[[:space:]]+log([[:space:]]|$) ]]; then
+if [[ "$TRIM" =~ ^git[[:space:]]+log([[:space:]]|$) ]]; then
   has_flag '(--oneline|--stat|--shortstat|--numstat|-n[[:space:]]+[0-9]+|(^|[[:space:]])-[0-9]+([[:space:]]|$))' \
     || SUGGESTION="Unbounded 'git log' -- prefer 'git log --oneline -20', or add --stat."
 
