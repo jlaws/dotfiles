@@ -19,6 +19,9 @@ You are a senior code reviewer. Review changes for:
 Reference library at .claude/references/workflow/:
 - existing-code-discipline
 - feature-flags-and-ab-testing
+- code-efficiency-ladder -- for "should this exist at all": reinvented stdlib, an abstraction with
+  one implementation, a config that never varies, a new dependency for a few lines. A shortcut
+  already marked `// SIMPLIFIED:` with a ceiling and an upgrade path is sanctioned; do not flag it.
 
 Use severity labels: [blocking], [important], [nit], [suggestion].
 Include file paths and line numbers for every finding.

@@ -49,6 +49,9 @@ allowed-tools: Read, Grep, Glob
 
 **Code**
 - **Premature abstraction** -- wait for 2+ concrete implementations
+- **Reinvented stdlib** -- hand-rolled debounce, deep-clone, groupBy, retry loop, date math. Climb `code-efficiency-ladder` before writing any of them
+- **A config that never varies** -- an option, flag, or parameter with exactly one value at every call site
+- **A new dependency for a few lines** -- check what is already installed first
 
 **Process**
 - **TODOs**: acceptable only with a ticket and a reason, e.g. `// TODO(#123): handle rate limiting`. Prefer filing a ticket over leaving a bare marker. A bare `// TODO`, or one standing in for work that was in scope, is not acceptable.
@@ -125,3 +128,29 @@ function processOrder(order: Order): Result {
 |-------|-------|
 | Frontend | Chrome DevTools, Lighthouse CI, React Profiler, Bundle Analyzer |
 | Backend | Node.js profiler, DB query analyzer, APM (DataDog/New Relic), k6/Artillery |
+
+## Deliberate Simplifications
+
+A shortcut that cuts a real corner with a known ceiling -- a global lock, an O(n-squared) scan, a
+naive heuristic -- gets marked where it lives:
+
+```
+// SIMPLIFIED: global lock, per-account locks if throughput matters
+```
+
+Two required fields, and the marker is worthless without both: **the ceiling** (what breaks, and
+when) and **the upgrade path** (what to reach for instead). A marker naming no trigger is the kind
+that silently rots, because nobody can tell whether its condition has arrived.
+
+It does two jobs at once. It records that the simplification was a decision rather than an
+oversight, and it tells a reviewer not to flag it -- a marked shortcut is sanctioned, an unmarked
+one is a finding. Distinct from `// TODO(#123):`, which marks work still owed; a `// SIMPLIFIED:`
+may never need doing.
+
+Find them with `grep -rnE '(#|//) ?SIMPLIFIED:'`.
+
+## Cross-References
+
+- **reference:code-efficiency-ladder** -- whether the code should exist at all, before any of the above applies
+- **reference:completeness-principle** -- how thoroughly to build what is in scope
+- **skill:refactoring-and-debt** -- removing what was already built

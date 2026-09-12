@@ -108,6 +108,37 @@ REPORT_CONTRACT_OWNERS = (
 # mode. Neither is worth an archive that may never be opened.
 DISK_PERSISTENCE_MARKERS = ("scratchpad/agent-reports/", "permissionMode", "j-agent-reports")
 
+# Owns "should this code exist at all" -- the seven-rung stopping rule from ponytail. Separate owner
+# from completeness-principle, which owns "how thoroughly to build what is in scope"; the two govern
+# different axes and reading either alone inverts the other. The safety carve-outs are pinned
+# because ponytail measured a paraphrase that dropped them at 95% safe against the full ruleset's
+# 100%, so the carve-outs ARE the safety margin, not commentary.
+LADDER_OWNERS = (
+    REPO / ".claude" / "references" / "workflow" / "code-efficiency-ladder.md",
+    REPO / ".agents" / "references" / "workflow" / "code-efficiency-ladder.md",
+)
+
+# Strings the ladder is unsafe without. Same reason upstream pins its own: the ruleset pushes toward
+# the shortest solution, and these are what stop it pushing through a trust boundary.
+LADDER_SAFETY_INVARIANTS = (
+    "Input validation at trust boundaries",
+    "Error handling that prevents data loss",
+    "Accessibility basics",
+    "correct on edge cases",
+    "never the reading",
+)
+
+# Surfaces where a code decision actually gets made. A reference reachable only from another
+# reference is indexed but never reached, so these carry a pointer -- and only a pointer, since
+# writing-skills forbids restating one statement across surfaces.
+LADDER_CONSUMERS = (
+    REPO / ".claude" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".agents" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".claude" / "agents" / "code-reviewer.md",
+    REPO / ".claude" / "commands" / "j-diff-review.md",
+)
+
 # The unconditional form of this rule ("prefer bullets, tables, and code over prose") was measured
 # as the cause of the one backfire in a 20-task suite: a "summarize/compare X vs Y" prompt answered
 # with headed pro/con walls ran 173% of a no-tool baseline. Density is per unit of information
@@ -309,6 +340,26 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             content = path.read_text()
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("subagent-report-contract", content)
+
+    def test_ladder_exists_in_both_reference_trees_with_its_safety_carve_outs(self):
+        """The rungs without the carve-outs is the unsafe half. Upstream measured a paraphrase that
+        dropped them scoring 95% safe against the full ruleset's 100%, so they are pinned."""
+        for path in LADDER_OWNERS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                content = path.read_text()
+                for invariant in LADDER_SAFETY_INVARIANTS:
+                    self.assertIn(invariant, content)
+
+    def test_ladder_consumers_point_at_it_rather_than_restating_it(self):
+        """Each surface where a code decision is made names the ladder. Pointer, not copy: the rungs
+        must appear in exactly one place per tree or they drift."""
+        for path in LADDER_CONSUMERS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                content = path.read_text()
+                self.assertIn("code-efficiency-ladder", content)
+                self.assertNotIn("Stop at the first rung that holds", content)
 
     def test_structure_rule_has_one_owner_carrying_the_conditional(self):
         """The owner states BOTH halves: the density ordering, and that structure the question did
