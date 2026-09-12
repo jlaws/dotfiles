@@ -258,17 +258,27 @@ class Audit:
                 if unknown:
                     self.add(WARN, "AG-F7", agent, f"unknown tools: {', '.join(unknown)}")
 
-            model = fields.get("model")
-            if model is None:
+            # A bare `model:` parses to "" rather than None, so `is None` alone reported an empty
+            # value as a pinned ID: "pins model ``". Falsy means undeclared, whatever the spelling.
+            model = (fields.get("model") or "").split("#")[0].strip()
+            if not model:
                 self.add(WARN, "AG-F8", agent, "declares no `model`")
             elif model not in MODEL_ALIASES:
-                self.add(
-                    FAIL,
-                    "AG-F8",
-                    agent,
-                    f"pins model `{model}`; use a tier alias "
-                    f"({', '.join(sorted(MODEL_ALIASES))}) so it survives a model generation",
-                )
+                aliases = ", ".join(sorted(MODEL_ALIASES))
+                if model.lower() in MODEL_ALIASES:
+                    # Without this the remedy names a value that looks identical to what was
+                    # written, and the actual fix -- lowercase it -- is nowhere in the message.
+                    self.add(
+                        FAIL, "AG-F8", agent, f"`model: {model}` must be lowercase `{model.lower()}`"
+                    )
+                else:
+                    self.add(
+                        FAIL,
+                        "AG-F8",
+                        agent,
+                        f"pins model `{model}`; use one of {aliases} so it survives a model "
+                        f"generation (`inherit` takes the parent's tier)",
+                    )
 
             if len(self.body(text).split()) < 20:
                 self.add(WARN, "AG-C1", agent, "body gives almost no role instruction")

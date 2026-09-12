@@ -125,6 +125,30 @@ class AgentModelPinTests(unittest.TestCase):
         self.assertEqual(len(findings), 1, findings)
         self.assertEqual(findings[0].severity, self.audit_module.WARN)
 
+    def test_an_empty_model_value_warns_rather_than_reporting_a_pin(self):
+        """`frontmatter` stores "" for a bare `model:`, which is not None. Testing only the wholly
+        absent key let the empty case report `pins model ``` `` ``` -- the opposite of what happened."""
+        for spelling in ("model:\n", "model: \n", 'model: ""\n'):
+            with self.subTest(spelling=spelling):
+                findings = self.findings_for(spelling)
+                self.assertEqual(len(findings), 1, findings)
+                self.assertEqual(findings[0].severity, self.audit_module.WARN)
+                self.assertIn("declares no `model`", findings[0].message)
+
+    def test_a_mis_cased_alias_names_the_lowercase_fix(self):
+        """The generic remedy lists `opus`, so `model: Opus` failed with a message naming a value
+        indistinguishable from what the author wrote."""
+        findings = self.findings_for("model: Opus\n")
+        self.assertEqual(len(findings), 1, findings)
+        self.assertEqual(findings[0].severity, self.audit_module.FAIL)
+        self.assertIn("must be lowercase `opus`", findings[0].message)
+
+    def test_the_failure_message_carries_the_remedy_not_only_the_defect(self):
+        """A finding that names the problem and not the fix costs the reader a lookup."""
+        message = self.findings_for("model: claude-sonnet-4-5-20250929\n")[0].message
+        for alias in ("opus", "sonnet", "haiku", "fable", "inherit"):
+            self.assertIn(alias, message)
+
 
 if __name__ == "__main__":
     unittest.main()

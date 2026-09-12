@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -14,15 +15,22 @@ FRONTMATTER_DESCRIPTION = re.compile(r'^description:\s*["\']?(.*?)["\']?$', re.M
 # is line 2 and `developer_instructions` line 4 of every Codex TOML, so a bare `^` pattern fails all
 # of them. Its third positional is `msg`, not flags, so the flag has to be compiled in here.
 CODEX_DESCRIPTION = re.compile(r'^description = "[^"\s]', re.MULTILINE)
-CODEX_INSTRUCTIONS = re.compile(r'^developer_instructions = """', re.MULTILINE)
+# `\s` crosses newlines without DOTALL, so this requires real content in the block. Matching
+# only the opening delimiter accepted `developer_instructions = """"""` -- precisely the empty
+# role the test exists to catch.
+CODEX_INSTRUCTIONS = re.compile(r'^developer_instructions = """\s*[^"\s]', re.MULTILINE)
 GEMINI_INHERIT = re.compile(r"^model: inherit$", re.MULTILINE)
 GEMINI_DESCRIPTION = re.compile(r'^description: "[^"\s]', re.MULTILINE)
 
 # A path into one of the four agent trees is a claim that the tree ships that file. `~/` and the
 # repo-relative form name the same asset, because the trees are synced to `~` verbatim. Example
 # paths in reference bodies (`./train.py`, `/tmp/...`) are not claims and do not match.
+# The lookbehind excludes `..claude` and word-joined text but deliberately allows a leading `/`,
+# so `~/.claude/x.py`, `dotfiles/.claude/x.py`, and an absolute path all resolve to the same claim.
+# An earlier `(?<![\w/.])` silently skipped every prefixed form, leaving a fail-closed test with a
+# hole that read as coverage.
 TREE_SCRIPT_PATH = re.compile(
-    r"(?<![\w/.])(?:~/)?"
+    r"(?<![\w.])/?(?:~/)?"
     r"(\.(?:claude|codex|agents|gemini)/[A-Za-z0-9._/-]*?\.(?:py|sh|mjs|js))"
     r"(?![A-Za-z0-9])"
 )
@@ -459,15 +467,43 @@ class AgentConfigArchitectureTests(unittest.TestCase):
     def test_no_tree_names_a_script_it_does_not_ship(self):
         """`.gemini/.../j-new` told the reader to run an `audit.py` under
         `~/.gemini/antigravity-cli/skills/skill-audit/scripts/`. That script exists only in the
-        Claude tree, so the instruction was dead the day it was written and nothing caught it."""
+        Claude tree, so the instruction was dead the day it was written and nothing caught it.
+
+        Tracked files only. `rglob` also picks up gitignored working state such as
+        `.claude/settings.local.json`, which makes the input set differ between this machine and a
+        clean checkout -- and that file currently names a `.gemini/hooks/` script that does not
+        exist. The `assertGreater` is the positive control: without it, an over-narrow regex, an
+        empty root list, or a wrong suffix filter all pass as silently as a clean tree.
+        """
+        tracked = subprocess.run(
+            ["git", "ls-files", "-z", *TREE_ROOTS],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split("\0")
         missing = []
+        scanned = []
+        claims = 0
+        for name in tracked:
+            path = REPO / name
+            if path.suffix not in {".md", ".toml", ".json"} or not path.is_file():
+                continue
+            scanned.append(name)
+            for claimed in TREE_SCRIPT_PATH.findall(path.read_text(encoding="utf-8")):
+                claims += 1
+                if not (REPO / claimed).is_file():
+                    missing.append(f"{name}: {claimed}")
+        self.assertGreater(claims, 0, "regex matched no script path at all; the check is vacuous")
+        # `git ls-files` with no pathspec lists the whole repo, so an empty TREE_ROOTS would widen
+        # the scan rather than empty it, and a bare `for root in TREE_ROOTS` would then assert
+        # nothing at all.
+        self.assertTrue(TREE_ROOTS, "TREE_ROOTS is empty; the per-root check below cannot fire")
         for root in TREE_ROOTS:
-            for path in sorted((REPO / root).rglob("*")):
-                if path.suffix not in {".md", ".toml", ".json"} or not path.is_file():
-                    continue
-                for claimed in TREE_SCRIPT_PATH.findall(path.read_text()):
-                    if not (REPO / claimed).is_file():
-                        missing.append(f"{path.relative_to(REPO)}: {claimed}")
+            self.assertTrue(
+                any(name.startswith(root + "/") for name in scanned),
+                f"{root} contributed no scanned file; TREE_ROOTS is not constraining the scan",
+            )
         self.assertEqual(missing, [], "assets name scripts that do not exist:\n" + "\n".join(missing))
 
     def test_codex_agents_declare_name_description_and_instructions(self):
