@@ -215,21 +215,29 @@ A PreToolUse gate can classify an action into three tiers instead of a binary al
 | Confirm | Require explicit human confirmation | deletes, `git push --force`, network writes, anything that spends money |
 | Block | Refuse | `rm -rf /`, curl-piped-to-shell, writing secrets |
 
-### Fail-Open Principle
+### Failure Direction by Component
 
 A hook that filters or transforms tool content (not a safety gate) MUST pass content through unchanged if it errors — never block or corrupt the workflow because a formatter crashed. Safety gates are the opposite: fail closed (block on error).
 
 **Detectors fail neutral, not open.** The rule above is for transforms, which have a correct
 inert behavior: emit the input. A detector — "is this an error?", "is this content important?" —
 has no such fallback, and failing open means fabricating a low-confidence positive that downstream
-logic then trusts. A detector with no information MUST return neutral and say so. Three distinct
-behaviors, three different failure directions:
+logic then trusts. A detector with no information MUST return neutral and say so.
+
+**Classify by function, not by shape.** Two components with the same plumbing fail in opposite
+directions, so the row is chosen by what the component is *for*:
 
 | Component | On error / no information |
 |-----------|---------------------------|
-| Transform | Fail **open** — pass the content through unchanged |
+| Transform that is not itself a control | Fail **open** — pass the content through unchanged |
+| Transform that *is* a control — redaction, scrubbing, sanitizing | Fail **closed**. A redactor that fails open emits the secret it exists to remove |
 | Safety gate | Fail **closed** — block |
-| Detector | Fail **neutral** — report no signal, never a weak positive |
+| Detector whose output feeds a safety gate | Fail **closed** — it inherits the gate's direction, because there the expensive error is the false negative |
+| Detector feeding anything else | Fail **neutral** — report no signal, never a weak positive |
+
+The middle two rows are the ones that get misread. A secret-redacting `PostToolUse` hook is a
+transform by shape and a control by function, and the tiered gate above is a detector feeding a
+gate: "neutral" there means the dangerous command is allowed.
 
 ### PreCompact Snapshot
 

@@ -164,15 +164,14 @@ When a task involves heavy research that could bloat the main context, consider 
 
 **Reversible summarization:** before you summarize or drop large output, persist the full original to a scratch file and cite its path — detail stays recoverable. Only summarize (or delegate to a subagent for context savings) when the estimated tokens saved exceed the overhead; scale compression intensity up as the window fills.
 
-
-Four rules make that one safe. Without them it permits a summarize whose persist silently failed —
+Five rules make that one safe. Without them it permits a summarize whose persist silently failed —
 a lossy compression that believes it is lossless.
 
 **If the original cannot be persisted, do not compress it.** Ship it verbatim and say why. The
 recovery path is what makes the compression reversible, so losing the path means losing the licence
 to compress. squeez states the consequence plainly: "No stash means no recovery path, so
 compressing would silently destroy the dropped lines ... Fail open: ship the verbatim original."
-This is `hook-patterns`' Fail-Open Principle applied to your own summarizing.
+This is `hook-patterns`' fail-open rule for transforms, applied to your own summarizing.
 
 **Round-trip before you trust a fold.** A transformation you call lossless carries its inverse and
 gets checked: if the round trip does not reproduce the original, or the result is not actually
@@ -195,6 +194,13 @@ drops bytes and therefore requires one. Sorting a transformation into the wrong 
 lossy step gets described as safe. Note the limit of the framing: calling an offload
 "information-preserving" redefines loss as *unrecoverable* rather than *changed*, and that holds
 only while the store is alive and the reader actually retrieves.
+
+**Some output is never a compression candidate.** Suspend compression, and resume after, when the
+content carries a security warning, a confirmation prompt for an irreversible action, or a
+multi-step sequence a fragment would put out of order. Suspend it when compressing would create
+technical ambiguity, and when the user asks you to clarify or repeats a question — the repeat is
+evidence the compressed form already failed. Chisle states the stopping condition as well as it can
+be put: compress until the rules would delete the answer, and no further.
 
 ## Parallel Tool Calls
 

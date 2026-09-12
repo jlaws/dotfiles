@@ -4,8 +4,9 @@
 # Suggests a bounded form of a command that would otherwise dump unbounded output into the agent's
 # context. It NEVER blocks and NEVER rewrites: the only thing it emits is an advisory message, and
 # it always exits 0. Rewriting the command an agent asked for would put a lossy layer between that
-# agent and its evidence, which contradicts the byte-for-byte rule in CLAUDE.md. This is the
-# Fail-Open Principle from references/workflow/hook-patterns.md, applied.
+# agent and its evidence, which contradicts the byte-for-byte rule in CLAUDE.md. By the taxonomy in
+# references/workflow/hook-patterns.md this is a detector, so it fails NEUTRAL: no information means
+# no signal emitted, never a low-confidence suggestion.
 #
 # Usage: guard-bash-output.sh [--format claude|codex]
 #   claude (default) -> {"systemMessage": "..."}
