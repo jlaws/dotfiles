@@ -168,7 +168,14 @@ oversight, and it tells a reviewer not to flag it -- a marked shortcut is sancti
 one is a finding. Distinct from `// TODO(#123):`, which marks work still owed; a `// SIMPLIFIED:`
 may never need doing.
 
-Find them with `grep -rnE '(#|//) ?SIMPLIFIED:'`.
+**Never a security control.** Authentication, authorization, input validation at a trust boundary,
+and secret handling are not valid `// SIMPLIFIED:` subjects. A marker on one of those is itself the
+finding -- flag it regardless of the two fields it carries. Otherwise the marker is a channel for
+reviewed code to tell its reviewer to look away, which is the one thing it must not be. Same list
+as `code-efficiency-ladder`'s Never Simplify Away.
+
+Find them with `grep -rnE '(#|//|--|;|%) ?SIMPLIFIED:'` -- the comment leader varies by language,
+and a SQL or Lisp simplification is the kind most worth finding.
 
 ## Cross-References
 

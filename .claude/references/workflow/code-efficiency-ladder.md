@@ -38,10 +38,15 @@ shared function beats one guard in every caller, and patching only the path the 
 every sibling caller broken. That framing is deliberate: it points the laziness reflex at the root
 cause rather than away from it.
 
-## Correctness Beats Brevity At Equal Size
+## Correctness Beats Brevity
 
 **Two options the same size? Take the one that is correct on edge cases.** Lazy means writing less
 code, not picking the flimsier algorithm.
+
+**Where they are not the same size, a trust boundary still takes the correct one.** The rungs stop
+at the first option that works, and the cheaper option is usually the weaker one, so without this
+the ladder selects the flimsier algorithm in exactly the case below. Validation, parsing of
+untrusted input, and auth are decided on correctness first and length second.
 
 This rule is load-bearing, not a platitude. It exists because the ladder has a measured failure
 mode: reaching for the laziest stdlib helper can pick one with an edge-case hole. ponytail's own
@@ -56,6 +61,9 @@ diagnosis: "a genuine (if minor) cost of pushing toward one-liners."
 - Security measures
 - Accessibility basics
 - Anything explicitly requested
+
+**Weakening counts as removing.** Swapping a control for a laxer implementation of the same control
+simplifies it away even though the line count barely moves. That is what the regression below was.
 
 If the user insists on the full version, build it — no re-arguing. These five are why the ladder is
 safe to run; ponytail measured a paraphrase that dropped them scoring 95% safe against the full
@@ -96,7 +104,8 @@ problem is actually hard, nowhere else.
 ponytail's own agentic benchmark, which is the strongest evidence available for this ruleset:
 12 feature tasks plus 6 safety tasks against a real repo
 (`tiangolo/full-stack-fastapi-template @ cd83fc1`), Haiku 4.5, n=4 per cell, LOC counted as
-`git diff` added lines, safety checked deterministically rather than by an LLM judge.
+`git diff` added lines, safety checked deterministically rather than by an LLM judge. The safety
+column scores the 5 security tasks at 4 runs each, so its denominator is 20 and not 24.
 
 | Arm | LOC | Tokens | Cost | Time | Safe (20 runs) |
 |---|--:|--:|--:|--:|--:|
@@ -107,9 +116,10 @@ ponytail's own agentic benchmark, which is the strongest evidence available for 
 These are ponytail's numbers, not measured here. Three limits it states itself, which decide what
 they mean:
 
-- **The win is on the code axis.** A separate benchmark measured this ruleset at 44% of a bare
-  model on coding prompts but 87% on explanation-only prompts. The ladder needs an abstraction to
-  skip or a stdlib call to reach for; it has nothing to bite on in prose.
+- **The win is on the code axis.** The ladder needs an abstraction to skip or a stdlib call to
+  reach for, so it bites hardest on code and least on explanation-only prompts, where the prose
+  half of the pairing does the work instead. A figure for that split circulated in an earlier
+  draft; it is left out because it could not be tied to a named source.
 - **It can cost more than it saves on short work, and on reasoning models.** ponytail measured
   +26.2% and +38.7% cost on two reasoning models — "the ruleset is re-sent as input every call and
   the baseline output is already terse, so the input and reasoning-token overhead outweighs the
