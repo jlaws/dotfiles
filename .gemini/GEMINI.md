@@ -154,7 +154,7 @@ When working in a git worktree:
 ### Do
 - Be concise and direct. No filler.
 - Lead with the answer (BLUF: bottom line up front), explain after if needed.
-- Use bullet points and code examples.
+- Answer at the question's altitude: a verdict for a verdict question, a matrix for a matrix one. Use the densest format that fits what you already decided to say; structure you were not asked for costs tokens even as a table (see `references/workflow/context-efficiency.md`).
 - Assume I'm an experienced developer.
 - Challenge my assumptions when appropriate.
 - Ask clarifying questions rather than guessing — each with your recommended answer, and only after checking whether the code already answers it.

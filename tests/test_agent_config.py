@@ -108,6 +108,23 @@ REPORT_CONTRACT_OWNERS = (
 # mode. Neither is worth an archive that may never be opened.
 DISK_PERSISTENCE_MARKERS = ("scratchpad/agent-reports/", "permissionMode", "j-agent-reports")
 
+# The unconditional form of this rule ("prefer bullets, tables, and code over prose") was measured
+# as the cause of the one backfire in a 20-task suite: a "summarize/compare X vs Y" prompt answered
+# with headed pro/con walls ran 173% of a no-tool baseline. Density is per unit of information
+# CARRIED, so scaffolding the question did not ask for costs tokens even in table form. One owner
+# holds the conditional; the always-loaded configs point at it rather than restating half of it.
+STRUCTURE_RULE_OWNERS = (
+    REPO / ".claude" / "references" / "workflow" / "context-efficiency.md",
+    REPO / ".agents" / "references" / "workflow" / "context-efficiency.md",
+)
+
+# Phrases that only make sense as the unconditional rule. Banned from the always-loaded configs so
+# the conditional cannot be quietly reverted to the form the measurement contradicted.
+UNCONDITIONAL_STRUCTURE_PHRASES = (
+    "Prefer bullets, tables, and code over prose",
+    "If information can be a table, make it a table",
+)
+
 # Always-loaded configs carry a pointer, not a restatement.
 REPORT_POINTERS = (
     REPO / ".claude" / "CLAUDE.md",
@@ -292,6 +309,25 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             content = path.read_text()
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("subagent-report-contract", content)
+
+    def test_structure_rule_has_one_owner_carrying_the_conditional(self):
+        """The owner states BOTH halves: the density ordering, and that structure the question did
+        not ask for is a net cost anyway. Half the rule reads as a licence for the other half."""
+        for path in STRUCTURE_RULE_OWNERS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("per unit of\ninformation carried", content)
+                self.assertIn("altitude", content.lower())
+
+    def test_always_loaded_configs_do_not_restate_the_unconditional_structure_rule(self):
+        """A measured-wrong rule must not survive in a file re-sent on every request. The configs
+        point at context-efficiency instead, same convention as REPORT_POINTERS."""
+        for path in REPORT_POINTERS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                for phrase in UNCONDITIONAL_STRUCTURE_PHRASES:
+                    self.assertNotIn(phrase, content)
+                self.assertIn("context-efficiency", content)
 
     def test_diff_review_hands_reviewers_the_head_sha(self):
         for path in DIFF_REVIEW_DISPATCHERS:

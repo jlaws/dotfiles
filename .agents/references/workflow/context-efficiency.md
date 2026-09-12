@@ -47,14 +47,19 @@ for. Two tight paragraphs beat five headed sections when the reader asked "which
 ### Output Rules Earn Their Place Or Cost You
 
 An instruction file is re-sent on every request, so a rule that changes nothing is pure overhead.
-claude-token-efficient measured current-model baselines at **0%** incidence of preamble,
-sycophancy, "as an AI", and smart quotes, and concluded: "rules targeting those behaviors carry
-input cost without changing output. Trim accordingly." This repo's configs carry none of them —
-that is deliberate, and it should stay that way.
+claude-token-efficient measured **Claude** baselines at **0%** incidence of preamble, sycophancy,
+"as an AI", and smart quotes, and concluded: "rules targeting those behaviors carry input cost
+without changing output. Trim accordingly." Do not add such a rule to a Claude-facing config
+without evidence the behavior still occurs.
 
-The asymmetry is instructive: in the same measurement the em-dash rule *did* move its marker (one
-model went 100% to 20% incidence), which is why that rule is worth its bytes. It was not monotonic
-— one cell regressed from 0% to 40% — so treat it as directional.
+Scope the finding to the model it was measured on. `.claude/CLAUDE.md` carries none of these rules;
+`.codex/AGENTS.md` does, and that stays, because a measurement on Claude says nothing about what
+another harness's model emits. Trimming it on this evidence would be exactly the unsourced
+generalization the Evidence axis forbids.
+
+The asymmetry within the same measurement is instructive: the em-dash rule *did* move its marker
+(one model went 100% to 20% incidence), which is why that rule is worth its bytes. It was not
+monotonic — one cell regressed from 0% to 40% — so treat it as directional.
 
 **A terseness ruleset loses money on short interactions.** Four sources measured this
 independently: ponytail at +26.2% and +38.7% cost on two reasoning models ("the ruleset is re-sent
