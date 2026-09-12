@@ -13,6 +13,7 @@ Determine scope from arguments:
 - **Empty** -> audit ALL asset types
 - **Asset type** (`skills`, `commands`, `agents`, `references`, `config`) -> audit only that type
 - **Name/path** (e.g., `skills/writing-plans`, `agents/code-reviewer`, `commands/j-arch`) -> audit only matching assets
+- **`adoption`** -> run the adoption pass below on its own. Never part of an unscoped run: it reads conversation history, so it happens only when asked for by name
 
 ## Phase 1: Discovery
 
@@ -96,6 +97,7 @@ For each `.md` file under `.claude/agents/`:
 | AG-F5 | `description` under 1024 chars | WARN | Keep concise |
 | AG-F6 | `tools` field exists | WARN | Should declare tool access |
 | AG-F7 | `tools` only lists valid tool names (Read, Grep, Glob, Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch) | WARN | Invalid tools ignored at runtime |
+| AG-F8 | `model` is a floating alias, never a pinned ID | WARN missing / FAIL pinned | A pinned ID degrades to an older model the day it is retired. Claude accepts `opus`, `sonnet`, `haiku`, `fable`, `inherit`; Gemini agents use `inherit`; Codex tunes `model_reasoning_effort` instead |
 
 **Content**
 
@@ -203,23 +205,29 @@ Verify links between assets resolve:
 | DOC-2 | Description reflects behavior — the `description` still matches what the body does after edits (no stale/misleading trigger) | WARN | Stale description misroutes invocation |
 | DOC-3 | Registration — a new or renamed asset is discoverable in `.claude/CLAUDE.md` Knowledge Base Structure (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
 
-## Phase 2H: Adoption
+## Phase 2H: Adoption (by hand, on request)
 
-Only on request, and only where the harness keeps readable transcripts. This tree ships no script for
-it, so the question is answered by hand: for each skill, agent, and command, is there evidence in
-recent sessions that anything named it?
+Not one of the automated 2A-2G checks: this tree ships no `scripts/` directory, so nothing here runs
+by itself. Only on request, and only where the harness keeps readable transcripts. The question,
+answered by hand: for each skill, agent, and command, is there evidence in recent sessions that
+anything named it?
 
-Four limits decide what an answer means:
+Five limits decide what an answer means. The first three were each measured wrong before they were
+measured right, so take them literally:
 
-- Count conversation turns only. The harness injects a catalogue of every agent and skill on every
-  session, and counting that marks everything used.
+- Count conversation prose only. Tool output is stored as ordinary conversation records, so a naive
+  pass counts a file the agent merely read as a mention of everything named inside it.
+- Do not count the record envelope. A branch or directory named after an asset otherwise scores once
+  per turn for a whole session.
+- Look in nested session directories too, not just the top level of each project. Subagent
+  transcripts live one or two levels deeper and are most of the corpus.
 - Sessions that edited the knowledge base name every asset in it. Exclude them.
-- An asset whose content was read rather than invoked can leave no mention at all.
 - Transcripts are pruned, so a last-seen date is bounded by retention, not by real last use.
 
-No evidence means no evidence was found. It does not mean unused, and on its own it is not a reason
-to delete anything. Use it as input to the orphan call, alongside whether anything references the
-asset at all.
+The cost of counting prose only: an asset invoked through a tool call and never discussed leaves no
+mention. So no evidence means no evidence was found. It does not mean unused, and on its own it is
+not a reason to delete anything. Use it as input to the orphan call, alongside whether anything
+references the asset at all.
 
 ## Phase 3: Report
 
@@ -234,6 +242,7 @@ Commands:   {n} audited  |  {pass} pass  |  {warn} warn  |  {fail} fail
 References: {n} audited  |  {pass} pass  |  {warn} warn  |  {fail} fail
 Config:     {n} checks   |  {pass} pass  |  {warn} warn  |  {fail} fail
 Cross-Refs: {n} checks   |  {pass} pass  |  {warn} warn  |  {fail} fail
+Adoption:   {n} assets   |  {active} active | {cold} cold | {none} no evidence   (on request only)
 ─────────────────────────────────────────────────────────────────────────
 Total:      {N} checks   |  {P} pass     |  {W} warn     |  {F} fail
 ```
@@ -273,7 +282,7 @@ References: auth-implementation-patterns, ...
 
 ## Health Score (qualitative)
 
-Beyond PASS/WARN/FAIL, rate the KB on four axes and name the weakest — that is where to invest next.
+Beyond PASS/WARN/FAIL, rate the KB on five axes and name the weakest — that is where to invest next.
 
 | Axis | Question |
 |------|----------|
@@ -281,6 +290,7 @@ Beyond PASS/WARN/FAIL, rate the KB on four axes and name the weakest — that is
 | Coverage | Are the common task types covered by a skill, with no large gaps? |
 | Freshness | Any asset unreferenced by an agent/command/config, or pointing at deleted files? |
 | Structure | Frontmatter valid, cross-references resolve, naming conventions hold, within line budgets? |
+| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number attributed rather than adopted? |
 
 **Documentation currency:** mirror parity across trees and description-behavior match are part of freshness — see checks DOC-1..3.
 
