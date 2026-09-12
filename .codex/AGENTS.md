@@ -47,7 +47,7 @@
 - Prose (not code): short declarative sentences, simple common words, positive phrasing.
 - Cut -ly adverbs and filler; use plain verbs ("use" not "utilize"). Respect reader time.
 - Lead with the bottom line (BLUF); state the answer before the reasoning.
-- Answer at the question's altitude: a verdict for a verdict question, a matrix for a matrix one. Use the densest format that fits what you already decided to say; structure you were not asked for costs tokens even as a table (see `references/workflow/context-efficiency.md`).
+- Answer at the question's altitude: a verdict for a verdict question, a matrix for a matrix one. Use the densest format that fits what you already decided to say; structure you were not asked for costs tokens even as a table (see `~/.agents/references/workflow/context-efficiency.md`).
 - Structure plans in multiple phases. Resolve open questions before finalizing a plan -- research the code first, then ask the user directly. The final plan contains no open-questions section.
 - Brevity applies to prose only -- reproduce code, commands, paths, errors, and quoted output byte-for-byte; never compress reasoning depth.
 - Don't invent abbreviations (`cfg`, `impl`, `fn`) -- tokenizers treat them as whole words, so they save nothing and cost readability.

@@ -123,8 +123,11 @@ LADDER_OWNERS = (
 LADDER_SAFETY_INVARIANTS = (
     "Input validation at trust boundaries",
     "Error handling that prevents data loss",
+    "Security measures",
     "Accessibility basics",
+    "Anything explicitly requested",
     "correct on edge cases",
+    "Weakening counts as removing",
     "never the reading",
 )
 
@@ -137,6 +140,29 @@ LADDER_CONSUMERS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "code-quality" / "SKILL.md",
     REPO / ".claude" / "agents" / "code-reviewer.md",
     REPO / ".claude" / "commands" / "j-diff-review.md",
+    REPO / ".gemini" / "config" / "agents" / "code-reviewer.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
+)
+
+# Banning one lead-in sentence does not detect a restatement -- reword the lead-in and the rungs
+# copy across fine. These are the rungs' own distinctive text.
+LADDER_RUNG_MARKERS = (
+    "Stop at the first rung that holds",
+    "Already in this codebase?",
+    "Native platform feature covers it?",
+)
+
+# A surface that tells a reviewer a `// SIMPLIFIED:` marker is sanctioned must say in the same
+# breath that the sanction stops at a security control. Without that, the marker is a channel for
+# reviewed code to instruct its reviewer to look away, and the diff is untrusted data.
+SIMPLIFIED_SANCTION_SURFACES = (
+    REPO / ".claude" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".agents" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "code-quality" / "SKILL.md",
+    REPO / ".claude" / "agents" / "code-reviewer.md",
+    REPO / ".claude" / "commands" / "j-diff-review.md",
+    REPO / ".gemini" / "config" / "agents" / "code-reviewer.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
 )
 
 # The unconditional form of this rule ("prefer bullets, tables, and code over prose") was measured
@@ -153,6 +179,7 @@ STRUCTURE_RULE_OWNERS = (
 # the conditional cannot be quietly reverted to the form the measurement contradicted.
 UNCONDITIONAL_STRUCTURE_PHRASES = (
     "Prefer bullets, tables, and code over prose",
+    "Prefer tables and code over prose",
     "If information can be a table, make it a table",
 )
 
@@ -385,26 +412,64 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertTrue(path.is_file(), f"{path} is missing")
                 content = path.read_text()
                 self.assertIn("code-efficiency-ladder", content)
-                self.assertNotIn("Stop at the first rung that holds", content)
+                for marker in LADDER_RUNG_MARKERS:
+                    self.assertNotIn(
+                        marker,
+                        content,
+                        f"{path.relative_to(REPO)} restates the ladder instead of pointing at it. "
+                        "Cut the copy; the reference is the one owner.",
+                    )
+
+    def test_simplified_sanction_never_ships_without_its_security_carve_out(self):
+        """The marker tells a reviewer to stand down. Every surface that says so must also say the
+        sanction stops at a trust boundary, or reviewed code can silence its own review."""
+        for path in SIMPLIFIED_SANCTION_SURFACES:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                content = path.read_text()
+                self.assertIn("// SIMPLIFIED:", content)
+                self.assertIn(
+                    "trust boundary",
+                    content,
+                    f"{path.relative_to(REPO)} sanctions `// SIMPLIFIED:` without naming the "
+                    "security carve-out. State it here or drop the sanction.",
+                )
 
     def test_structure_rule_has_one_owner_carrying_the_conditional(self):
         """The owner states BOTH halves: the density ordering, and that structure the question did
         not ask for is a net cost anyway. Half the rule reads as a licence for the other half."""
         for path in STRUCTURE_RULE_OWNERS:
-            content = path.read_text()
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertIn("per unit of\ninformation carried", content)
-                self.assertIn("altitude", content.lower())
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                # Collapse wrapping first: a reflow must not read as the rule going missing.
+                content = " ".join(path.read_text().split())
+                self.assertIn("per unit of information carried", content)
+                self.assertIn("Answer at the Question's Altitude", content)
 
     def test_always_loaded_configs_do_not_restate_the_unconditional_structure_rule(self):
         """A measured-wrong rule must not survive in a file re-sent on every request. The configs
         point at context-efficiency instead, same convention as REPORT_POINTERS."""
         for path in REPORT_POINTERS:
-            content = path.read_text()
             with self.subTest(path=path.relative_to(REPO)):
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                content = path.read_text()
                 for phrase in UNCONDITIONAL_STRUCTURE_PHRASES:
-                    self.assertNotIn(phrase, content)
+                    self.assertNotIn(
+                        phrase,
+                        content,
+                        f"{path.relative_to(REPO)} still carries the unconditional structure rule. "
+                        "It points at context-efficiency instead.",
+                    )
                 self.assertIn("context-efficiency", content)
+                # These files are synced to ~. Claude resolves a reference by bare name, but where
+                # one of them writes a PATH it has to be home-anchored -- `references/...` on its
+                # own resolves to nothing from the home directory.
+                self.assertNotIn(
+                    "`references/",
+                    content,
+                    f"{path.relative_to(REPO)} writes an unanchored reference path. "
+                    "Use `~/.agents/references/...`, which is where the tree actually lands.",
+                )
 
     def test_diff_review_hands_reviewers_the_head_sha(self):
         for path in DIFF_REVIEW_DISPATCHERS:
