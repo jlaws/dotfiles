@@ -27,6 +27,43 @@ Not all formats are equally efficient. Prefer higher-density formats when convey
 
 **Rule**: If information can be a table, make it a table. Reserve prose for explanations that require nuance.
 
+**Counter-rule, and it is the one that gets violated:** density is measured *per unit of
+information carried*. Structure the question did not ask for is a net cost even in table form,
+because the scaffolding invents content to fill. A "summarize/compare X vs Y" prompt answered with
+headed pro/con walls and "Pick A if / Pick B if" sections is the canonical case — Chisle measured
+one such answer at 173% of a no-tool baseline, then rewrote the rule and re-measured it at 93%
+(n=3). claude-token-efficient found the same thing from the other direction: "Words drop more
+consistently than tokens. Markdown and structure tokens partly offset word savings."
+
+So the two halves are: use the densest format for information you have already decided to include,
+and do not let the format decide what to include.
+
+### Answer at the Question's Altitude
+
+A question that wants a verdict gets a verdict. A question that wants a matrix gets a matrix. Do not
+manufacture headings, recaps, numbered scaffolding, or decorative tables the question did not ask
+for. Two tight paragraphs beat five headed sections when the reader asked "which one".
+
+### Output Rules Earn Their Place Or Cost You
+
+An instruction file is re-sent on every request, so a rule that changes nothing is pure overhead.
+claude-token-efficient measured current-model baselines at **0%** incidence of preamble,
+sycophancy, "as an AI", and smart quotes, and concluded: "rules targeting those behaviors carry
+input cost without changing output. Trim accordingly." This repo's configs carry none of them —
+that is deliberate, and it should stay that way.
+
+The asymmetry is instructive: in the same measurement the em-dash rule *did* move its marker (one
+model went 100% to 20% incidence), which is why that rule is worth its bytes. It was not monotonic
+— one cell regressed from 0% to 40% — so treat it as directional.
+
+**A terseness ruleset loses money on short interactions.** Four sources measured this
+independently: ponytail at +26.2% and +38.7% cost on two reasoning models ("the ruleset is re-sent
+as input every call and the baseline output is already terse, so the input and reasoning-token
+overhead outweighs the lines saved"); Chisle losing its short-coding segment 70% to 62%;
+claude-token-efficient finding short prompts "roughly cost-neutral"; and a third party measuring
+173 of their own sessions and finding injection overhead roughly cancelling the savings. The rules
+in this file pay off on long, tool-heavy, code-bearing work. On a one-line throwaway they do not.
+
 ## Two-Phase Retrieval
 
 Search first, read second. Never bulk-read files speculatively.
@@ -85,6 +122,19 @@ Shape tool and command output before it enters context — most of it is noise.
 
 **Hard constraint:** preserve failures, exit codes, and error strings **verbatim**. Shaping is for noise, never for evidence — `verification-before-completion` depends on the real output.
 
+**Shaping applies to command output, never to file reads.** A `Read` result's exact bytes feed the
+`old_string` of a later `Edit`, so shaping one makes you edit against text you never saw. This is a
+correctness rule, not an efficiency preference, and it has measured consequences: headroom observed
+that lossy-compressing file reads caused agents to re-read the same file (`cat` then `cat -A` then
+`cat -n`) to recover exact detail — turn inflation — and to lose the content outright when recovery
+failed. Narrow the read at the source instead (`offset`/`limit`, `sed -n`), which shrinks what you
+fetch rather than what you keep.
+
+**Two indicators, not one, before you treat output as an error.** A single keyword false-positives
+on ordinary output that merely mentions the word "error" — source code, a log schema, a help text.
+Requiring two distinct signals before switching to error handling avoids preserving everything and
+thereby preserving nothing.
+
 ## Context Budget
 
 | Layer | Line Limit | Review Cadence |
@@ -108,6 +158,38 @@ When a task involves heavy research that could bloat the main context, consider 
 | Single-pass analysis | Complete each analysis phase fully before starting the next |
 
 **Reversible summarization:** before you summarize or drop large output, persist the full original to a scratch file and cite its path — detail stays recoverable. Only summarize (or delegate to a subagent for context savings) when the estimated tokens saved exceed the overhead; scale compression intensity up as the window fills.
+
+
+Four rules make that one safe. Without them it permits a summarize whose persist silently failed —
+a lossy compression that believes it is lossless.
+
+**If the original cannot be persisted, do not compress it.** Ship it verbatim and say why. The
+recovery path is what makes the compression reversible, so losing the path means losing the licence
+to compress. squeez states the consequence plainly: "No stash means no recovery path, so
+compressing would silently destroy the dropped lines ... Fail open: ship the verbatim original."
+This is `hook-patterns`' Fail-Open Principle applied to your own summarizing.
+
+**Round-trip before you trust a fold.** A transformation you call lossless carries its inverse and
+gets checked: if the round trip does not reproduce the original, or the result is not actually
+smaller, return the original unchanged. headroom does this per call rather than claiming it once in
+a doc, which is the difference between a guarantee and a promise.
+
+**The citation counts inside the gate, not after it.** A pointer, marker, or path is overhead that
+exists only because you compressed, so it belongs in the arithmetic. squeez shipped and then fixed
+exactly this bug: a call saving 25 tokens emitted a ~40-token marker and still reported a win.
+
+**A pointer has to survive compaction.** Compaction can evict the content an in-conversation
+reference points at, leaving the reader a pointer to nothing. A file path does not have this
+problem, which is why the rule above says persist and cite a path rather than "refer back to the
+earlier output".
+
+**Declare loss per transformation, not per tool.** Two classes, and they get different treatment:
+a *reformat* packs the same information denser and needs no recovery path (stripping ANSI codes,
+collapsing an identical-line run to a counted marker, minifying JSON whitespace); an *offload*
+drops bytes and therefore requires one. Sorting a transformation into the wrong class is how a
+lossy step gets described as safe. Note the limit of the framing: calling an offload
+"information-preserving" redefines loss as *unrecoverable* rather than *changed*, and that holds
+only while the store is alive and the reader actually retrieves.
 
 ## Parallel Tool Calls
 
@@ -154,3 +236,4 @@ When context pressure builds, Claude Code compacts (summarizes) earlier conversa
 - **skill:code-agent-meta-patterns** — CLAUDE.md design, context management
 - **skill:session-handoff** — handoff file creation before context pressure
 - **reference:llm-application-patterns** — token reduction in LLM applications
+- **reference:code-efficiency-ladder** — the same economy applied to what gets built rather than what enters context

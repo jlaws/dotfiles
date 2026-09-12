@@ -219,6 +219,18 @@ A PreToolUse gate can classify an action into three tiers instead of a binary al
 
 A hook that filters or transforms tool content (not a safety gate) MUST pass content through unchanged if it errors — never block or corrupt the workflow because a formatter crashed. Safety gates are the opposite: fail closed (block on error).
 
+**Detectors fail neutral, not open.** The rule above is for transforms, which have a correct
+inert behavior: emit the input. A detector — "is this an error?", "is this content important?" —
+has no such fallback, and failing open means fabricating a low-confidence positive that downstream
+logic then trusts. A detector with no information MUST return neutral and say so. Three distinct
+behaviors, three different failure directions:
+
+| Component | On error / no information |
+|-----------|---------------------------|
+| Transform | Fail **open** — pass the content through unchanged |
+| Safety gate | Fail **closed** — block |
+| Detector | Fail **neutral** — report no signal, never a weak positive |
+
 ### PreCompact Snapshot
 
 A `PreCompact` hook can write current task, open files, and next step to a scratch file, and a `SessionStart` hook can read it back — enforcing the Context Preservation rule mechanically instead of relying on the model to remember.
