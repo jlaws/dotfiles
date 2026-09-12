@@ -6,8 +6,8 @@ allowed-tools: Read, Grep, Glob, Bash
 
 # Knowledge Base Audit
 
-Two halves. A script settles everything mechanical; you spend your attention on the judgment calls a
-script cannot make.
+Three parts. One script settles everything mechanical, a second measures which assets actually show
+up in transcripts, and you spend your attention on the judgment calls neither can make.
 
 ## Run the mechanical checks
 
@@ -22,6 +22,31 @@ syntax.
 
 Read its output; do not re-derive it by hand. If a check is wrong or missing, fix the script rather
 than working around it in prose.
+
+## Measure adoption
+
+Run only when asked -- it reads the harness's own transcripts. Nothing else invokes it, and no test
+or build target touches it.
+
+```bash
+python3 .claude/skills/skill-audit/scripts/adoption.py . --exclude <this-repo>
+```
+
+Read the limits it prints before the table, because they decide what the numbers mean:
+
+- It counts conversation turns only. The harness injects a catalogue of every agent and skill on
+  every session; counted, that marks everything `active` and the report says nothing.
+- A session that edited the knowledge base names every asset in it, which is what `--exclude` is
+  for. Without it, this repo's own sessions drown the signal.
+- An asset whose content was read rather than invoked can leave no mention at all.
+- Transcripts are pruned, so `last seen` is bounded by retention, not by real last use.
+
+`cold` and `no evidence` mean no evidence was found. Neither means unused, and neither is on its own
+a reason to delete anything. Use them as evidence for the **Orphans** judgement below: an asset that
+is both unreferenced and unmentioned is a strong removal candidate, while one that is unmentioned but
+well-referenced is more likely a discoverability problem.
+
+`--since` defaults to 30 days; `--all` scans everything and costs proportionally more.
 
 ## Judge what the script cannot
 
@@ -65,7 +90,8 @@ it exceeds the benefit. This is deliberately an axis and not a script check: a r
 cannot tell a claim from a threshold, and the false positives outnumber the real findings.
 
 **Orphans.** The script lists references that no agent, command, or skill indexes. Each is a removal,
-merge, or index-fix candidate — decide which, rather than leaving it unreachable.
+merge, or index-fix candidate — decide which, rather than leaving it unreachable. The adoption report
+is the evidence for that call where the asset is a skill, agent, or command.
 
 ## Tree layout
 

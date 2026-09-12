@@ -203,6 +203,24 @@ Verify links between assets resolve:
 | DOC-2 | Description reflects behavior — the `description` still matches what the body does after edits (no stale/misleading trigger) | WARN | Stale description misroutes invocation |
 | DOC-3 | Registration — a new or renamed asset is discoverable in `.claude/CLAUDE.md` Knowledge Base Structure (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
 
+## Phase 2H: Adoption
+
+Only on request, and only where the harness keeps readable transcripts. This tree ships no script for
+it, so the question is answered by hand: for each skill, agent, and command, is there evidence in
+recent sessions that anything named it?
+
+Four limits decide what an answer means:
+
+- Count conversation turns only. The harness injects a catalogue of every agent and skill on every
+  session, and counting that marks everything used.
+- Sessions that edited the knowledge base name every asset in it. Exclude them.
+- An asset whose content was read rather than invoked can leave no mention at all.
+- Transcripts are pruned, so a last-seen date is bounded by retention, not by real last use.
+
+No evidence means no evidence was found. It does not mean unused, and on its own it is not a reason
+to delete anything. Use it as input to the orphan call, alongside whether anything references the
+asset at all.
+
 ## Phase 3: Report
 
 ### Summary
