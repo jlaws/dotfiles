@@ -2,7 +2,7 @@
 
 Reference for Claude Code hook configuration patterns. Hooks run shell commands at specific lifecycle points, enabling automated validation, formatting, and guardrails.
 
-> **Note:** Hook `"hook"` values are shell commands executed outside the Bash tool — they run as regular shell scripts. The "no compound commands" rule applies to Bash tool calls only, not to hook shell commands. However, prefer simple, focused hook commands where possible.
+> **Note:** Hook `"command"` values are shell commands executed outside the Bash tool — they run as regular shell scripts. The "no compound commands" rule applies to Bash tool calls only, not to hook shell commands. However, prefer simple, focused hook commands where possible.
 
 ## Hook Lifecycle Points
 
@@ -25,7 +25,9 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
     "<lifecycle>": [
       {
         "matcher": "<tool-pattern>",
-        "hook": "<shell-command>"
+        "hooks": [
+          { "type": "command", "command": "<shell-command>", "timeout": 5 }
+        ]
       }
     ]
   }
@@ -34,13 +36,51 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
 
 ### Matcher Syntax
 
+`matcher` is a regex over **tool names**, not over the command or the file path. It is the one
+thing in this file that is easy to get wrong, because `permissions.allow` in the same
+`settings.json` *does* use the `Bash(npm *)` form. The two surfaces do not share a syntax.
+
 | Pattern | Matches |
 |---------|---------|
-| `Bash(git commit)` | Bash calls containing "git commit" |
+| `Bash` | every Bash call (also `BashOutput`, since the regex is unanchored) |
+| `^Bash$` | Bash calls only |
 | `Write\|Edit` | Write or Edit tool calls |
-| `Write(src/**)` | Write calls targeting `src/` paths |
-| `Bash(npm *)` | Any Bash call starting with "npm" |
-| (empty) | All calls of that tool |
+| `.*` or (empty) | every tool |
+| `Bash(git commit)` | **nothing.** Parses as `Bash` + a capture group, i.e. the tool name `Bashgit commit` |
+
+To act on a specific command or path, match the tool name and inspect `tool_input` inside the
+script -- which is what `guard-bash-output.sh` does.
+
+## Per-Harness Support
+
+Not every harness has a hook surface, and two that do disagree on the output shape. The first two
+rows were checked against that harness's own documentation. The third is weaker evidence and is
+marked as such: it records that this configuration ships no Gemini hook, which is not the same as
+proving the harness has none.
+
+| Tree | Tier | Config | Advisory output field |
+|------|------|--------|-----------------------|
+| `.claude/` | **hook** | `hooks.PreToolUse[]` in `settings.json`, `matcher: "Bash"` | top-level `systemMessage` |
+| `.codex/` | **hook** | `[[hooks.PreToolUse]]` in `config.toml` or `hooks.json`, `matcher = "^Bash$"` | `hookSpecificOutput.additionalContext` |
+| `.gemini/` | **absent** | none | none |
+
+The Gemini row is a property of this configuration: a parity test forbids a `hooks/` directory in
+that tree, the sync step deletes one if it appears, and its settings file carries only
+`permissions`. No claim is made about the harness itself. State a harness as absent rather than
+claiming a hook it cannot honor, and say which kind of evidence you have.
+
+### Exit codes and output
+
+| Signal | Effect |
+|--------|--------|
+| exit 0, no `permissionDecision` | Advisory only. Normal permission flow applies, the command runs unchanged |
+| exit 0 + `systemMessage` / `additionalContext` | The model sees the message; the command still runs |
+| `permissionDecision: "deny"` + `permissionDecisionReason` | Blocks the call, reason shown to the model |
+| exit 2 | Blocks the call regardless of JSON — this is why the blocking examples below `exit 2`, not `exit 1` |
+| `updatedInput` | Rewrites the tool input. Avoid: it puts a lossy layer between the agent and its evidence |
+
+A hook that only ever emits a message and exits 0 is advisory by construction — see the Fail-Open
+Principle below.
 
 ## Common Patterns
 
@@ -51,8 +91,10 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash(git commit)",
-        "hook": "lint-staged && npm test"
+        "matcher": "^Bash$",
+        "hooks": [
+          { "type": "command", "command": "lint-staged && npm test", "timeout": 60 }
+        ]
       }
     ]
   }
@@ -67,7 +109,9 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "hook": "eslint --fix ${file} && prettier --write ${file}"
+        "hooks": [
+          { "type": "command", "command": "eslint --fix ${file} && prettier --write ${file}", "timeout": 30 }
+        ]
       }
     ]
   }
@@ -81,12 +125,16 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash(rm -rf)",
-        "hook": "echo 'Blocked: rm -rf is denied by project hooks' && exit 1"
+        "matcher": "^Bash$",
+        "hooks": [
+          { "type": "command", "command": "guard-destructive.sh", "timeout": 5 }
+        ]
       },
       {
-        "matcher": "Bash(git push --force)",
-        "hook": "echo 'Blocked: force push denied' && exit 1"
+        "matcher": "^Bash$",
+        "hooks": [
+          { "type": "command", "command": "guard-force-push.sh", "timeout": 5 }
+        ]
       }
     ]
   }
@@ -100,8 +148,10 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Write(src/**/*.ts)|Edit(src/**/*.ts)",
-        "hook": "npx tsc --noEmit --pretty 2>&1 | head -20"
+        "matcher": "^(Write|Edit)$",
+        "hooks": [
+          { "type": "command", "command": "npx tsc --noEmit --pretty 2>&1 | head -20", "timeout": 120 }
+        ]
       }
     ]
   }
@@ -115,7 +165,9 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
   "hooks": {
     "Stop": [
       {
-        "hook": "npm test -- --bail 2>&1 | tail -5"
+        "hooks": [
+          { "type": "command", "command": "npm test -- --bail 2>&1 | tail -5", "timeout": 300 }
+        ]
       }
     ]
   }
@@ -135,8 +187,8 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
 | Problem | Fix |
 |---------|-----|
 | Hook not firing | Check matcher syntax matches tool name exactly |
-| Hook blocks everything | Narrow the matcher pattern (e.g., `Bash(git commit)` not `Bash(git)`) |
-| Hook output not visible | Ensure command writes to stdout; stderr may be swallowed |
+| Hook blocks everything | Anchor the matcher (`^Bash$`, not `Bash`) and narrow inside the script |
+| Hook output not visible | On exit 2 the model reads **stderr**; on exit 0 it reads `systemMessage` |
 | Hook too slow | Move heavy work to `Stop` hook or run async with `&` |
 
 ## Advanced Patterns

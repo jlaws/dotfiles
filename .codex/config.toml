@@ -8,3 +8,22 @@ approvals_reviewer = "auto_review"
 [agents]
 max_threads = 6
 max_depth = 1
+
+# Codex supports PreToolUse/UserPromptSubmit either here or in .codex/hooks.json. The scripts were
+# synced from day one but never registered, so log-prompt.sh had never fired -- its Claude twin was
+# wired the whole time. Both now match .claude/settings.json.
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "bash ~/.codex/hooks/guard-bash-output.sh --format codex"
+timeout = 5
+statusMessage = "Checking command output size"
+
+[[hooks.UserPromptSubmit]]
+
+[[hooks.UserPromptSubmit.hooks]]
+type = "command"
+command = "bash ~/.codex/hooks/log-prompt.sh"
+timeout = 5

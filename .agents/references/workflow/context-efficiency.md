@@ -43,6 +43,19 @@ Search first, read second. Never bulk-read files speculatively.
 
 **Delta reads:** when re-reading a file you just changed, read only the changed range (`git diff`, or Read with `offset`/`limit`) instead of the whole file. For a large unfamiliar file, read signatures/imports first, then Grep to the exact symbol and read only that range.
 
+**Tool priority.** Climb only when the rung below cannot answer it:
+
+| Rung | Tool | Use when |
+|---|---|---|
+| 1 | Grep | you know the symbol or string |
+| 2 | Glob | you know the path shape but not the contents |
+| 3 | Read with `offset`/`limit` | you have located the file and need one range |
+| 4 | a dispatched search subagent | the naming convention itself is unknown, or you want judgement too |
+
+Do not search with Bash. `find`, `grep`, and `rg` in a Bash call return unbounded output straight into
+context; the dedicated tools bound it. Bash search is for what the tools cannot do — `git grep` over
+history, or `git log -S`.
+
 ## Data Cleaning
 
 External content (web pages, logs, API responses) carries significant bloat. Clean before injecting into context.
