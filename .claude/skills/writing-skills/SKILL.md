@@ -25,6 +25,25 @@ Keep a section only if it passes one of these:
 Cut what fails all four. Generic best practice, framework tours, and derivable taxonomies are the
 usual offenders. A skill that could apply to any repo teaches little about this one.
 
+## Claims and evidence
+
+A number in a KB asset is a claim the reader will act on. Every quantitative claim carries how it was
+measured, or is marked unmeasured.
+
+| Instead of | Write |
+|---|---|
+| "Tables are ~40% more efficient than prose" | "Tables are denser than prose (unmeasured here; the ratio depends on the content)" |
+| "This cuts review time in half" | "Measured on <what>, <date>: <before> -> <after>" |
+
+Distinguish a claim from a target. "min 80% coverage" is a gate and needs no provenance; "cuts tokens
+2-3x" is a claim and does.
+
+Say when a practice loses, not only when it wins. A rule with no stated cost reads as free, and the
+reader stops looking for the cost. Where a technique has fixed overhead — a skill body preloaded on
+every dispatch, a subagent's dispatch cost — say at what size the overhead exceeds the benefit.
+
+Numbers from a third party are that party's claim, not yours. Attribute them or leave them out.
+
 ## The four shifts
 
 | Instead of | Write |

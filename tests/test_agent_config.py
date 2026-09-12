@@ -4,11 +4,37 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 FRONTMATTER_DESCRIPTION = re.compile(r'^description:\s*["\']?(.*?)["\']?$', re.MULTILINE)
+
+# `assertRegex` calls `re.search`, which anchors `^` to the start of the string only. `description`
+# is line 2 and `developer_instructions` line 4 of every Codex TOML, so a bare `^` pattern fails all
+# of them. Its third positional is `msg`, not flags, so the flag has to be compiled in here.
+CODEX_DESCRIPTION = re.compile(r'^description = "[^"\s]', re.MULTILINE)
+# `\s` crosses newlines without DOTALL, so this requires real content in the block. Matching
+# only the opening delimiter accepted `developer_instructions = """"""` -- precisely the empty
+# role the test exists to catch.
+CODEX_INSTRUCTIONS = re.compile(r'^developer_instructions = """\s*[^"\s]', re.MULTILINE)
+GEMINI_INHERIT = re.compile(r"^model: inherit$", re.MULTILINE)
+GEMINI_DESCRIPTION = re.compile(r'^description: "[^"\s]', re.MULTILINE)
+
+# A path into one of the four agent trees is a claim that the tree ships that file. `~/` and the
+# repo-relative form name the same asset, because the trees are synced to `~` verbatim. Example
+# paths in reference bodies (`./train.py`, `/tmp/...`) are not claims and do not match.
+# The lookbehind excludes `..claude` and word-joined text but deliberately allows a leading `/`,
+# so `~/.claude/x.py`, `dotfiles/.claude/x.py`, and an absolute path all resolve to the same claim.
+# An earlier `(?<![\w/.])` silently skipped every prefixed form, leaving a fail-closed test with a
+# hole that read as coverage.
+TREE_SCRIPT_PATH = re.compile(
+    r"(?<![\w.])/?(?:~/)?"
+    r"(\.(?:claude|codex|agents|gemini)/[A-Za-z0-9._/-]*?\.(?:py|sh|mjs|js))"
+    r"(?![A-Za-z0-9])"
+)
+TREE_ROOTS = (".claude", ".codex", ".agents", ".gemini")
 
 # Asset-set parity is enforced by name; bodies and descriptions are free to diverge per tool.
 # `.claude/` is rightsized for the Claude 5 generation, so its wording no longer tracks `.agents/`.
@@ -438,6 +464,71 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertEqual(wrappers, [])
         self.assertEqual(commands, [])
 
+    def test_no_tree_names_a_script_it_does_not_ship(self):
+        """`.gemini/.../j-new` told the reader to run an `audit.py` under
+        `~/.gemini/antigravity-cli/skills/skill-audit/scripts/`. That script exists only in the
+        Claude tree, so the instruction was dead the day it was written and nothing caught it.
+
+        Tracked files only. `rglob` also picks up gitignored working state such as
+        `.claude/settings.local.json`, which makes the input set differ between this machine and a
+        clean checkout -- and that file currently names a `.gemini/hooks/` script that does not
+        exist. The `assertGreater` is the positive control: without it, an over-narrow regex, an
+        empty root list, or a wrong suffix filter all pass as silently as a clean tree.
+        """
+        tracked = subprocess.run(
+            ["git", "ls-files", "-z", *TREE_ROOTS],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split("\0")
+        missing = []
+        scanned = []
+        claims = 0
+        for name in tracked:
+            path = REPO / name
+            if path.suffix not in {".md", ".toml", ".json"} or not path.is_file():
+                continue
+            scanned.append(name)
+            for claimed in TREE_SCRIPT_PATH.findall(path.read_text(encoding="utf-8")):
+                claims += 1
+                if not (REPO / claimed).is_file():
+                    missing.append(f"{name}: {claimed}")
+        self.assertGreater(claims, 0, "regex matched no script path at all; the check is vacuous")
+        # `git ls-files` with no pathspec lists the whole repo, so an empty TREE_ROOTS would widen
+        # the scan rather than empty it, and a bare `for root in TREE_ROOTS` would then assert
+        # nothing at all.
+        self.assertTrue(TREE_ROOTS, "TREE_ROOTS is empty; the per-root check below cannot fire")
+        for root in TREE_ROOTS:
+            self.assertTrue(
+                any(name.startswith(root + "/") for name in scanned),
+                f"{root} contributed no scanned file; TREE_ROOTS is not constraining the scan",
+            )
+        self.assertEqual(missing, [], "assets name scripts that do not exist:\n" + "\n".join(missing))
+
+    def test_codex_agents_declare_name_description_and_instructions(self):
+        """A Codex agent with no `developer_instructions` loads as an empty role and says nothing
+        about it. These three fields are the whole contract, and TOML has no frontmatter validator
+        here the way `audit.py` validates the Claude tree."""
+        agents = sorted((REPO / ".codex" / "agents").glob("*.toml"))
+        self.assertGreater(len(agents), 0, "must have Codex agents in .codex/agents")
+        for path in agents:
+            content = path.read_text()
+            name = re.compile(rf'^name = "{re.escape(path.stem)}"$', re.MULTILINE)
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertRegex(content, name)
+                self.assertRegex(content, CODEX_DESCRIPTION)
+                self.assertRegex(content, CODEX_INSTRUCTIONS)
+
+    def test_gemini_agents_inherit_the_parent_model(self):
+        """Settled in #93. A per-agent tier in the Gemini tree diverges silently from the Claude
+        tree, which is the one that chooses tiers."""
+        agents = sorted((REPO / ".gemini" / "config" / "agents").glob("*.md"))
+        self.assertGreater(len(agents), 0, "must have Gemini agents in .gemini/config/agents")
+        for path in agents:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertRegex(path.read_text(), GEMINI_INHERIT)
+
     def test_antigravity_agents_have_valid_frontmatter(self):
         """All Antigravity agents in .gemini/config/agents/ must declare subagent: true and mainAgent: true."""
         agents_dir = REPO / ".gemini" / "config" / "agents"
@@ -445,8 +536,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertGreater(len(agents), 0, "must have Antigravity agents in .gemini/config/agents")
         for agent_file in agents:
             content = agent_file.read_text()
+            name = re.compile(rf"^name: {re.escape(agent_file.stem)}$", re.MULTILINE)
             self.assertIn("subagent: true", content, f"{agent_file.name} missing subagent: true")
             self.assertIn("mainAgent: true", content, f"{agent_file.name} missing mainAgent: true")
+            self.assertRegex(content, name, f"{agent_file.name} name does not match its filename")
+            self.assertRegex(content, GEMINI_DESCRIPTION, f"{agent_file.name} description is empty")
 
     def test_antigravity_permissions_cover_claude_baseline(self):
         """Antigravity settings.json permissions must cover all Claude allowed commands and denied paths."""

@@ -24,6 +24,7 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 make check    # ruff check + ty (via .venv)
 make fix      # auto-fix + format
 make test     # stdlib unittest suite (python -m unittest)
+make verify   # check + test -- the full gate, and the only one that fails on audit WARN findings
 ```
 
 ### What setup.sh does:
@@ -93,5 +94,6 @@ dotfiles/
 - Follow TDD for `macos_setup` changes; add/adjust `tests/` and keep `make test` + `make check` green
 - Agent skills follow the [agentskills.io](https://agentskills.io/specification) spec (SKILL.md with YAML frontmatter)
 - `.claude/` is written for the Claude 5 generation and has intentionally diverged from `.agents/`, which serves Codex and Gemini. Only the asset sets are kept in parity, enforced by `tests/test_agent_config.py`. Declare any single-tree asset in that file's exception lists
+- `tests/test_agent_config.py` owns anything spanning two trees, not just parity: Codex agents must declare `name`/`description`/a non-empty `developer_instructions`, Gemini agents must be `model: inherit`, and no tracked asset in any tree may name a script the repo does not ship. `audit.py` is Claude-tree only by its own docstring, so cross-tree checks belong in the test file
 - `.claude/CLAUDE.md`, `.codex/AGENTS.md`, and `.gemini/GEMINI.md` are synced to `~` and loaded in every repo. Keep guidance that only applies to this repo in this file instead
 - Do not hardcode counts of KB assets (agents, commands, references, skills) — they go stale

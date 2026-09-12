@@ -16,11 +16,14 @@ type: reference
 | Cognitive shortcuts | Models deliberately skip "simple" sections — truncation is intentional, not a decoding error |
 | Alignment layer | Primary constraint: RLHF reward models penalize verbose outputs even when completeness is needed |
 
-## Empirical Findings
+## Reported Findings
+
+These come from third-party write-ups, not from measurement in this repo. Treat the effects as real
+and the magnitudes as unverified.
 
 - **Truncation is deliberate**: Not a probabilistic decoding failure — the model makes a purposeful choice to stop
-- **+45% quality improvement** from psychological/financial framing in prompts (e.g., "your career depends on this")
-- **Step-by-step reasoning** improves logic accuracy 34% → 80% (chain-of-thought effect)
+- **Stakes framing helps**: prompts that raise the stakes ("your career depends on this") cut truncation; the reported magnitude is not reproduced here
+- **Step-by-step reasoning** improves logic accuracy (the chain-of-thought effect); the size of the gain depends on the model and the task
 - **Seasonal patterns**: Outputs measurably shorter in December (attributed to training data distribution)
 - **Alignment as bottleneck**: Adding explicit completeness requirements in system prompts overrides RLHF brevity bias
 

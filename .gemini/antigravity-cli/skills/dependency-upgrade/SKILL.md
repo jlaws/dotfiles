@@ -76,7 +76,7 @@ When upgrading changes many models/types (e.g., Pydantic v1→v2 with 120 models
 | React upgrades | `react-codemod` | `npx react-codemod <transform>` |
 | ESLint flat config | `@eslint/migrate-config` | `npx @eslint/migrate-config .eslintrc.json` |
 
-**Always review codemod output** — they handle ~80% of cases but miss edge cases.
+**Always review codemod output** — they handle most cases but miss edge cases.
 
 ## Phase 3: Validation
 

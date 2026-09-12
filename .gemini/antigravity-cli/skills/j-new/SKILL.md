@@ -138,14 +138,17 @@ Every reference stem listed must exist -- the audit script fails on a dangling i
 
 ## Phase 5: Validate
 
-Run the mechanical checks rather than reviewing by hand:
+This tree ships no audit script, so walk the rules before writing:
 
-```bash
-python3 ~/.gemini/antigravity-cli/skills/skill-audit/scripts/audit.py . --type {type}s
-```
+- frontmatter opens and closes with `---`, `name` is kebab-case, and `description` fits its budget
+- `name` matches the skill folder, the command filename, or the agent convention
+- `description` is a trigger, not a workflow summary, and carries no `<` or `>`
+- every skill, agent, and reference the body names resolves to a real file
+- a command body using `$ARGUMENTS` declares `argument-hint`
+- the body carries at least one concrete example, not only prose
 
-Fix what it reports. Then confirm by judgment: does every section teach something a strong model would
-otherwise get wrong or vague? Cut what does not.
+Then confirm by judgment: does every section teach something a strong model would otherwise get wrong
+or vague? Cut what does not.
 
 ## Phase 6: Present and register
 

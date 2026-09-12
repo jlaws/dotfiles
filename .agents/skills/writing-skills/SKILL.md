@@ -64,6 +64,17 @@ description: Use when executing implementation plans with independent tasks in t
 
 Use MUST / MUST NOT / SHOULD / MAY with their RFC 2119 meanings so a hard gate reads differently from a suggestion. Reserve MUST/MUST NOT for non-negotiable rules, SHOULD for strong defaults with an escape hatch, MAY for options. Letting "should" creep into a hard gate is how discipline erodes.
 
+## Claims and Evidence
+
+A number in a skill is a claim the reader will act on, so every quantitative claim carries how it was measured or is marked unmeasured. Distinguish a claim from a target: "min 80% coverage" is a gate and needs no provenance, while "cuts tokens 2-3x" is a claim and does. Numbers from a third party are that party's claim, not yours; attribute them or leave them out.
+
+| Instead of | Write |
+|---|---|
+| "Tables are ~40% more efficient than prose" | "Tables are denser than prose (unmeasured here; the ratio depends on the content)" |
+| "This cuts review time in half" | "Measured on <what>, <date>: <before> -> <after>" |
+
+Say when a practice loses, not only when it wins. A rule with no stated cost reads as free, and the reader stops looking for the cost. Where a technique has fixed overhead, such as a skill body preloaded on every dispatch or the cost of dispatching a subagent, say at what size the overhead exceeds the benefit.
+
 ## Co-located Scripts
 
 For mechanical steps (validation, formatting, deterministic checks), ship a `scripts/` file in the skill directory and call it, rather than describing the steps in prose. Reserve the LLM for judgment; let a script do what a script does better. Keep scripts one level deep and list any dependencies.

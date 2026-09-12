@@ -20,7 +20,7 @@ Not all formats are equally efficient. Prefer higher-density formats when convey
 
 | Format | Relative Density | Best For |
 |--------|-----------------|----------|
-| Tables | Highest (~40% more efficient than prose) | Comparisons, decision matrices, option lists |
+| Tables | Highest (unmeasured here; the ratio depends on the content) | Comparisons, decision matrices, option lists |
 | Code blocks | High | Commands, configurations, examples |
 | Bullet points | Medium | Sequential steps, short items |
 | Prose paragraphs | Lowest | Explanations, nuanced reasoning |
@@ -67,7 +67,7 @@ External content (web pages, logs, API responses) carries significant bloat. Cle
 | API responses | Metadata, pagination, null fields | Relevant data fields |
 | Documentation | Boilerplate headers, version badges | Content sections, examples |
 
-**HTML to Markdown conversion reduces tokens 2-3x.** WebFetch does this automatically; when processing raw HTML, strip tags before reasoning.
+**HTML to Markdown conversion cuts tokens substantially** (unmeasured here; depends on markup density). WebFetch does this automatically; when processing raw HTML, strip tags before reasoning.
 
 **Fetch-tool selection (cheapest first):** WebFetch for public/static pages (does HTML to Markdown for free); the agent-browser CLI when a page is JS-rendered or behind an auth wall; `pdftotext` for PDFs rather than the Read tool, which spends vision tokens on document pages.
 

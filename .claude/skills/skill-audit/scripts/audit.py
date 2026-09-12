@@ -37,6 +37,10 @@ SKILL_INVOCATION = re.compile(
 SUBAGENT = re.compile(r"subagent_type[\"']?\s*[:=]\s*[\"']([a-z0-9-]+)")
 ARG_TOKEN = re.compile(r"\$ARGUMENTS|\$\d")
 
+# A tier alias floats across a model generation; a pinned ID does not, and a KB asset that names one
+# silently degrades to an older model the day it is retired (CLAUDE.md, Delegation).
+MODEL_ALIASES = frozenset({"opus", "sonnet", "haiku", "fable", "inherit"})
+
 VALID_TOOLS = {
     "Read",
     "Grep",
@@ -253,6 +257,28 @@ class Audit:
                 unknown = sorted({t.strip() for t in fields["tools"].split(",")} - VALID_TOOLS)
                 if unknown:
                     self.add(WARN, "AG-F7", agent, f"unknown tools: {', '.join(unknown)}")
+
+            # A bare `model:` parses to "" rather than None, so `is None` alone reported an empty
+            # value as a pinned ID: "pins model ``". Falsy means undeclared, whatever the spelling.
+            model = (fields.get("model") or "").split("#")[0].strip()
+            if not model:
+                self.add(WARN, "AG-F8", agent, "declares no `model`")
+            elif model not in MODEL_ALIASES:
+                aliases = ", ".join(sorted(MODEL_ALIASES))
+                if model.lower() in MODEL_ALIASES:
+                    # Without this the remedy names a value that looks identical to what was
+                    # written, and the actual fix -- lowercase it -- is nowhere in the message.
+                    self.add(
+                        FAIL, "AG-F8", agent, f"`model: {model}` must be lowercase `{model.lower()}`"
+                    )
+                else:
+                    self.add(
+                        FAIL,
+                        "AG-F8",
+                        agent,
+                        f"pins model `{model}`; use one of {aliases} so it survives a model "
+                        f"generation (`inherit` takes the parent's tier)",
+                    )
 
             if len(self.body(text).split()) < 20:
                 self.add(WARN, "AG-C1", agent, "body gives almost no role instruction")
