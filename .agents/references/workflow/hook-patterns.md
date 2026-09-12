@@ -36,18 +36,27 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
 
 ### Matcher Syntax
 
+`matcher` is a regex over **tool names**, not over the command or the file path. It is the one
+thing in this file that is easy to get wrong, because `permissions.allow` in the same
+`settings.json` *does* use the `Bash(npm *)` form. The two surfaces do not share a syntax.
+
 | Pattern | Matches |
 |---------|---------|
-| `Bash(git commit)` | Bash calls containing "git commit" |
+| `Bash` | every Bash call (also `BashOutput`, since the regex is unanchored) |
+| `^Bash$` | Bash calls only |
 | `Write\|Edit` | Write or Edit tool calls |
-| `Write(src/**)` | Write calls targeting `src/` paths |
-| `Bash(npm *)` | Any Bash call starting with "npm" |
-| (empty) | All calls of that tool |
+| `.*` or (empty) | every tool |
+| `Bash(git commit)` | **nothing.** Parses as `Bash` + a capture group, i.e. the tool name `Bashgit commit` |
+
+To act on a specific command or path, match the tool name and inspect `tool_input` inside the
+script -- which is what `guard-bash-output.sh` does.
 
 ## Per-Harness Support
 
-Not every harness has a hook surface, and two that do disagree on the output shape. Each row below
-was checked against that harness's own documentation, not inferred from another repo.
+Not every harness has a hook surface, and two that do disagree on the output shape. The first two
+rows were checked against that harness's own documentation. The third is weaker evidence and is
+marked as such: it records that this configuration ships no Gemini hook, which is not the same as
+proving the harness has none.
 
 | Tree | Tier | Config | Advisory output field |
 |------|------|--------|-----------------------|
@@ -55,9 +64,10 @@ was checked against that harness's own documentation, not inferred from another 
 | `.codex/` | **hook** | `[[hooks.PreToolUse]]` in `config.toml` or `hooks.json`, `matcher = "^Bash$"` | `hookSpecificOutput.additionalContext` |
 | `.gemini/` | **absent** | none | none |
 
-`.gemini/hooks/` is forbidden by `tests/test_agent_config.py` and deleted on sync
-(`macos_setup/dotfiles.py`); `antigravity-cli/settings.json` carries only `permissions`. State a
-harness as absent rather than claiming a hook it cannot honor.
+The Gemini row is a property of this configuration: a parity test forbids a `hooks/` directory in
+that tree, the sync step deletes one if it appears, and its settings file carries only
+`permissions`. No claim is made about the harness itself. State a harness as absent rather than
+claiming a hook it cannot honor, and say which kind of evidence you have.
 
 ### Exit codes and output
 
@@ -81,7 +91,7 @@ Principle below.
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash(git commit)",
+        "matcher": "^Bash$",
         "hooks": [
           { "type": "command", "command": "lint-staged && npm test", "timeout": 60 }
         ]
@@ -115,15 +125,15 @@ Principle below.
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash(rm -rf)",
+        "matcher": "^Bash$",
         "hooks": [
-          { "type": "command", "command": "echo 'Blocked: rm -rf is denied by project hooks' && exit 2", "timeout": 5 }
+          { "type": "command", "command": "guard-destructive.sh", "timeout": 5 }
         ]
       },
       {
-        "matcher": "Bash(git push --force)",
+        "matcher": "^Bash$",
         "hooks": [
-          { "type": "command", "command": "echo 'Blocked: force push denied' && exit 2", "timeout": 5 }
+          { "type": "command", "command": "guard-force-push.sh", "timeout": 5 }
         ]
       }
     ]
@@ -138,7 +148,7 @@ Principle below.
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Write(src/**/*.ts)|Edit(src/**/*.ts)",
+        "matcher": "^(Write|Edit)$",
         "hooks": [
           { "type": "command", "command": "npx tsc --noEmit --pretty 2>&1 | head -20", "timeout": 120 }
         ]
@@ -177,8 +187,8 @@ Principle below.
 | Problem | Fix |
 |---------|-----|
 | Hook not firing | Check matcher syntax matches tool name exactly |
-| Hook blocks everything | Narrow the matcher pattern (e.g., `Bash(git commit)` not `Bash(git)`) |
-| Hook output not visible | Ensure command writes to stdout; stderr may be swallowed |
+| Hook blocks everything | Anchor the matcher (`^Bash$`, not `Bash`) and narrow inside the script |
+| Hook output not visible | On exit 2 the model reads **stderr**; on exit 0 it reads `systemMessage` |
 | Hook too slow | Move heavy work to `Stop` hook or run async with `&` |
 
 ## Advanced Patterns

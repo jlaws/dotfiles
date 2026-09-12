@@ -82,9 +82,14 @@ def install_packages(runner: Runner, *, dry_run: bool = False) -> None:
             )
 
     # The formula ships only the CLI; the browser it drives is a separate download
-    # ("agent-browser install # Download Chrome (first time)" in its own help). Idempotent,
-    # so it is safe on every re-run of setup.
-    _run(runner, ["agent-browser", "install"], dry_run=dry_run)
+    # ("agent-browser install # Download Chrome (first time)" in its own help). Believed
+    # idempotent -- the help text says "first time" -- but nothing here pins that, so the claim is
+    # stated as belief rather than fact.
+    #
+    # check=False because this is the one bootstrap step that pulls a large binary over the
+    # network, and it sits ahead of rustup, npm, elan, the Claude CLI, and `brew cleanup`. A flaky
+    # download should not take those with it. The `ln -sf` above is soft for the same reason.
+    _run(runner, ["agent-browser", "install"], dry_run=dry_run, check=False)
 
     _run(runner, ["bash", "-c", _RUST_INSTALL], dry_run=dry_run)
     _run(runner, ["rustup", "default", "stable"], dry_run=dry_run)

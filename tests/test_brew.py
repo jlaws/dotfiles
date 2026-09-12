@@ -91,6 +91,26 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertNotIn(["brew", "install", "go"], argvs)
         self.assertFalse(any(argv and argv[0] == "go" for argv in argvs))
 
+    def test_a_failed_chrome_download_does_not_abort_the_rest_of_the_install(self):
+        """`agent-browser install` is the one bootstrap step that pulls a large binary over the
+        network, and it runs ahead of rustup, npm, elan, and the Claude CLI. A flaky download must
+        not take those with it, so it is the one install step that passes check=False.
+        """
+
+        def handler(argv):
+            if argv == ["agent-browser", "install"]:
+                return CompletedResult(1, "", "network unreachable")
+            return None
+
+        runner = FakeRunner(handler)
+        install_packages(runner, dry_run=False)
+
+        argvs = runner.argv_list()
+        self.assertIn(["agent-browser", "install"], argvs)
+        # Everything sequenced after it still ran.
+        self.assertIn(["rustup", "default", "stable"], argvs)
+        self.assertIn(["brew", "cleanup"], argvs)
+
     def test_regression_rust_analyzer_comes_from_rustup_not_brew(self):
         """rust-analyzer must come from `rustup component add`, never `brew install rust-analyzer`.
 

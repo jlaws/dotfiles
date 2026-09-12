@@ -70,7 +70,7 @@ WORKTREE_BASE_OWNERS = (
 # Owns "what a dispatched agent returns". A subagent's report is injected into the caller's context
 # verbatim AND is the only artifact -- nothing is persisted, so the contract compresses prose and
 # never substance. One owner, preloaded into agents via `skills:`; the alternative was restating it
-# in ~51 agent bodies, which is what :53-56 forbids.
+# in every agent body across all three trees, which is what :53-56 forbids.
 REPORT_CONTRACT_OWNERS = (
     REPO / ".claude" / "skills" / "subagent-report-contract" / "SKILL.md",
     REPO / ".agents" / "skills" / "subagent-report-contract" / "SKILL.md",
@@ -78,7 +78,7 @@ REPORT_CONTRACT_OWNERS = (
 )
 
 # Persisting reports to disk was considered and cut. These markers keep it cut: reintroducing it
-# would need the Write tool on 15 read-only agents, or a permissionMode that punches through plan
+# would need the Write tool on agents that are deliberately read-only, or a permissionMode that punches through plan
 # mode. Neither is worth an archive that may never be opened.
 DISK_PERSISTENCE_MARKERS = ("scratchpad/agent-reports/", "permissionMode", "j-agent-reports")
 
@@ -245,7 +245,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         """A dispatched agent's report is its only artifact, so the contract trades prose for
         brevity but never findings. Persisting reports to disk was considered and cut; the
         negative assertions keep it cut, because reintroducing it would need the Write tool on
-        15 read-only agents or a permissionMode that punches through plan mode."""
+        agents that are deliberately read-only, or a permissionMode that punches through plan
+        mode."""
         for path in REPORT_CONTRACT_OWNERS:
             content = path.read_text()
             with self.subTest(path=path.relative_to(REPO)):
