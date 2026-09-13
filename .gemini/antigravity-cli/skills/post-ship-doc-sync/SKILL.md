@@ -34,7 +34,7 @@ If a range is provided, use it. Otherwise default to last tag..HEAD (`git descri
 | Config reference | Env vars/settings changed | Config keys in diff |
 | CLI usage | Commands/flags changed | argparse/commander/clap definitions in diff |
 | Feature docs | Behavior changed | Business logic files in diff |
-| ADR decision | Shipped change contradicts an accepted ADR's Decision | `docs/adr/**/*.md` frontmatter `status: accepted` vs the diff |
+| ADR decision | Shipped change contradicts an ADR's Decision, or the decision no longer exists | `docs/adr/**/*.md` frontmatter vs the diff |
 
 For each doc file, cross-reference its content against the changed files to identify stale sections.
 
@@ -45,7 +45,7 @@ For each doc file, cross-reference its content against the changed files to iden
 - Update facts, not prose style
 - Add new sections only for genuinely new features
 - Remove references to deleted features
-- Never edit an accepted ADR's Decision in place — amend it with a dated Amendment Log row plus an `updated` bump, or write a superseding ADR
+- When a shipped change contradicts an ADR, update it in place: revise the Decision, add the old approach to `## Ruled Out` with its reason and date, bump `updated`. Delete the file outright when the decision it records no longer exists, and name the deletion in the summary — git holds the history
 
 ## Step 5 — Present for Approval
 
@@ -59,4 +59,4 @@ For each doc file, cross-reference its content against the changed files to iden
 - Speculative documentation (documenting unshipped features)
 - Updating counts/stats without verification
 - Changing doc structure/organization (that's a separate task)
-- Editing an accepted ADR's Decision in place
+- Leaving an ADR standing that the shipped change contradicts
