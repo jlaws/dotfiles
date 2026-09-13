@@ -29,7 +29,7 @@ Enumerate all assets by type:
 
 For each asset, record: type, category, name, file path, any supporting files.
 
-**Multi-tree scope.** Audit shared workflows and references in `.agents/`, their Claude copies, and each tool's native agents and commands. Shared workflow and reference bodies duplicated in `.claude/` should differ only by supported frontmatter. Every `cmd-j-*` skill must have Claude, Codex, and Gemini command counterparts. Native agent name sets must match across the three tools.
+**Multi-tree scope.** Audit shared workflows and references in `.agents/`, their Claude copies, and each tool's native agents and commands. Shared workflow bodies duplicated in `.claude/` should differ only by supported frontmatter. Reference bodies are held to section parity, not byte parity — see docs/adr/workflow/reference-tree-section-parity.md. Every `cmd-j-*` skill must have Claude, Codex, and Gemini command counterparts. Native agent name sets must match across the three tools.
 
 ## Phase 2: Automated Checks
 

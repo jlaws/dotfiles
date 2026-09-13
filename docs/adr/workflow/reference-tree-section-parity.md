@@ -11,7 +11,7 @@ superseded-by: null
 
 ## Context
 
-`.claude/references/` and `.agents/references/` hold the same 192 files at the same relative paths.
+`.claude/references/` and `.agents/references/` hold the same files at the same relative paths.
 `.claude/` serves Claude Code; `.agents/` is what Codex and Gemini read.
 
 `3547c54` (#76) rewrote the Claude tree for the Claude 5 generation under a stated keep test — "a
@@ -90,11 +90,22 @@ precisely because nothing forced the question.
 ## Implementation Notes
 
 - `test_reference_trees_expose_the_same_sections` in `tests/test_agent_config.py` is the enforcement
-  point. It compares ordered heading lists, so a reordering fails too.
-- Section parity does not extend to reference bodies pasted elsewhere. Only
-  `workflow/existing-code-discipline.md` is inlined outside the reference tree, in
-  `.codex/prompts/j-diff-review.md` and `.agents/skills/cmd-j-diff-review/SKILL.md`; those copies are
-  pinned separately.
+  point. It compares ordered heading lists, so a reordering fails too. Headings inside fenced code
+  blocks are excluded: a fenced block can hold a markdown *example* — the ADR template, a sample
+  CHANGELOG — and that is body content this decision leaves free.
+- `test_reference_trees_hold_the_same_files` pins the file set in both directions. The section check
+  walks the Claude tree, so on its own it would let an `.agents`-only reference through, and nothing
+  else in the repo reads that tree.
+- Section parity does not extend to reference bodies pasted elsewhere, and three references are:
+
+  | Reference | Pasted into | Pinned by |
+  |---|---|---|
+  | `workflow/existing-code-discipline.md` | `.codex/prompts/j-diff-review.md`, `.agents/skills/cmd-j-diff-review/SKILL.md` | `test_existing_code_discipline_is_one_document_in_every_tree`, section set **and** body |
+  | `security/security-analysis.md` | `.agents/skills/cmd-j-audit/SKILL.md`, `.codex/prompts/j-audit.md` | nothing |
+  | `research/output-template.md` | `.agents/skills/cmd-j-paper-analysis/SKILL.md`, `.codex/prompts/j-paper-analysis.md` | nothing |
+
+  The last two are a known gap, not a claim of coverage. They re-express their source rather than
+  copying it verbatim, so the byte-comparison used for the first one does not transfer as-is.
 
 ## Reversal Conditions
 
