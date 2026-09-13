@@ -190,6 +190,8 @@ UNCONDITIONAL_STRUCTURE_PHRASES = (
 # Bump deliberately if you add a documented rule; do not bump because of phrasing creep. Measured
 # 2026-09-12; headroom is ~10% over actual, which is enough for a real addition and not enough to
 # absorb drift unnoticed.
+PINNED_MODEL = re.compile(r"\b(?:gpt|claude|gemini)[- ]\d")
+
 # Every asset whose run ends on a pull request. Each reports the URL; `create-pr` additionally has
 # to look for an already-open PR the way `finishing-branch` does, instead of always creating one.
 PR_URL_SURFACES = (
@@ -648,6 +650,23 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("git rev-parse HEAD", content)
                 self.assertIn("HEAD SHA", content)
                 self.assertIn("do not create or request a worktree", content)
+
+    def test_delegation_ladders_name_no_pinned_model(self):
+        """A ladder rung that names a model version goes stale every generation, so rungs describe
+        tiers by role. Scoped to bullets on purpose: GEMINI.md's prose names a slug as a worked
+        `--model` example and ships `agy models` beside it as the freshness pointer, which is the
+        staleness problem already solved rather than an instance of it. The regex needs a digit, so
+        floating aliases (opus, sonnet, haiku, fable, flash, pro) stay legal."""
+        for path in ALWAYS_LOADED_CEILINGS:
+            pinned = [
+                line
+                for line in path.read_text(encoding="utf-8").splitlines()
+                if line.lstrip().startswith(("-", "*")) and PINNED_MODEL.search(line)
+            ]
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertEqual(
+                    pinned, [], f"{path.name} pins a model version; use a role or floating alias"
+                )
 
     def test_pr_workflows_report_the_url_and_reuse_the_open_pr(self):
         """Every asset that ends on a PR reports its URL, and never opens a second PR for a branch

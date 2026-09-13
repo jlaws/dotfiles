@@ -143,13 +143,13 @@ When working in a git worktree:
 
 ## Task Delegation
 
-When spawning subagents, pick the cheapest model that can do the job:
-- `gpt-5.6 luna`: bulk mechanical tasks, no judgment needed
-- `gpt-5.6 terra`: scoped research, code exploration, synthesis
-- `gpt-5.6 sol`: only when real planning or tradeoffs are involved
+When spawning subagents, pick the cheapest tier that can do the job:
+- cheapest tier: bulk mechanical tasks, no judgment needed
+- mid tier: scoped research, code exploration, synthesis
+- top tier: only when real planning or tradeoffs are involved
 
 Caps:
-- `luna` never spawns further subagents -- if it needs to, the task was wrong-sized
+- the cheapest tier never spawns further subagents -- if it needs to, the task was wrong-sized
 - Max spawn depth is 2 (parent -> subagent -> one more tier)
 
 If a subagent realizes it needs a smarter model, it returns to the parent instead of escalating on its own.
