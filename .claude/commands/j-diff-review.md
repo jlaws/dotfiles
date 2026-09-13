@@ -156,16 +156,19 @@ for scope guard, atomic commits, and verify before push.
 ## Step 7: Land the fixes
 
 A rung-1 fix is a commit on your branch and nothing else. A commit that never reaches the PR is a
-finding the reviewer still cannot see. Skip this step only if Step 6 produced no rung-1 commit.
+finding the reviewer still cannot see. With no rung-1 commit there is nothing to push, but the step
+still runs: every diff-review ends with the PR link.
 
 ```bash
 gh pr view --json number,url,state
 ```
 
-- **A PR is open** — `git push` the fixes to it. Never open a second one.
+- **A PR is open** — `git push` the fixes to it. Never open a second one. With nothing
+  to push, report its URL anyway.
 - **No PR** — load `finishing-branch` and follow it: verify tests, validate docs, then open the PR.
 
-Report the PR URL on the last line of the run, beside the Step 5 verdict.
+Report the PR URL on the last line of the run, beside the Step 5 verdict. This is unconditional:
+a run that fixed nothing still ends with the link.
 
 Step 1's "local git only, no `gh`" rule scopes to Steps 1-5, where PR metadata could contaminate the
 review. It does not bind this step: the report is written and every finding is disposed of.

@@ -714,6 +714,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 )
                 self.assertTrue("PR URL" in body, f"{rel}: the run never reports the PR URL")
                 self.assertTrue("Steps 1-5" in body, f"{rel}: the gh ban is unscoped")
+                # The push is conditional on a rung-1 commit; reporting the link never is. Gating
+                # both on the same condition is the regression -- a clean review then ends with no
+                # link, which is the behavior this step was added to remove.
+                self.assertTrue(
+                    "unconditional" in body, f"{rel}: the PR link report is gated on a fix existing"
+                )
 
     def test_one_diff_review_workflow_per_tree(self):
         """`code-review-patterns` used to carry a second diff-review workflow whose Step 6 said
