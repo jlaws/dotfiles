@@ -6,14 +6,10 @@ disable-model-invocation: true
 
 # Init
 
-Invoke the `project-scaffolding` skill before doing anything else.
-
-Target: the user's provided input. If none was provided, scaffold the current working directory.
-
-Read the repository before asking anything. If it has a README or code, infer purpose and stack and
-ask the user to correct you. If it is empty, invoke the `design-first` skill to establish purpose,
-requirements, and constraints first.
+Invoke the `project-scaffolding` skill before doing anything else. It owns the method: what to read
+before asking, what to interview for, where version numbers come from, and what gets written.
 
 For stack idioms and project layout you may delegate to `language-specialist` (loads
-`references/languages/`). Verify its output, and never take a version number from it: version
-currency comes from a registry query.
+`references/languages/`). Verify its output, and never take a version number from it.
+
+Target: the user's provided input. If none was provided, scaffold the current working directory.
