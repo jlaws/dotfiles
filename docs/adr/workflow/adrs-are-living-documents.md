@@ -61,8 +61,8 @@ the rest of the history is safe to let go of.
 ## Consequences
 
 **Gained**: `docs/adr/**/*.md` minus two scaffold files is the complete set of live decisions, every
-one asserted to be currently true. Log size tracks live decisions, not elapsed time. Per-ADR heading
-count drops from sixteen to nine.
+one asserted to be currently true. Log size tracks live decisions, not elapsed time. Per-ADR
+section count drops from fifteen or sixteen to nine.
 
 **Accepted**: No in-file audit trail, so `git log -p` is the only amendment history — a force-pushed
 history rewrite could lose it. Autonomous deletion means a dead ADR can disappear inside a larger
@@ -81,14 +81,21 @@ judgment call rather than a mechanical test.
 
 ## Enforcement
 
-- Owner: `references/architecture/architecture-decision-records.md`, mirrored byte-for-byte in
-  `.claude/` and `.agents/`.
-- Pinned by `tests/test_adr.py`, which fails on a retired frontmatter key, a status outside
-  `{proposed, accepted}`, a retired section heading, an `updated` earlier than `created`, a `topic`
-  that disagrees with its directory, an option cited by number, and any drift between
-  `docs/adr/template.md` and the spec's Standard ADR block.
-- Consumers carrying the edit-in-place rule: `post-ship-doc-sync` (three trees) and `j-arch` (four
-  trees).
+- Owner: `references/architecture/architecture-decision-records.md`, present in `.claude/` and
+  `.agents/` under the section-parity rule of
+  [reference-tree-section-parity.md](reference-tree-section-parity.md). The templates live inside
+  fenced blocks, which that rule leaves free, so `tests/test_adr.py` pins `docs/adr/template.md`
+  against **both** copies rather than relying on the trees happening to match.
+- Pinned by `tests/test_adr.py`, which fails on an empty ADR set, a missing or malformed
+  frontmatter block, a retired frontmatter key, a status outside `{proposed, accepted}`, a retired
+  section heading, a missing required section, an unterminated fence, an `updated` earlier than
+  `created`, a `topic` that disagrees with its directory or is absent from `docs/adr/README.md`, a
+  `## Related` link that does not resolve, an option cited by number or letter, and any drift
+  between `docs/adr/template.md` and either spec copy.
+- Consumers carrying the edit-in-place rule: `post-ship-doc-sync` (three trees), `j-arch` (four
+  trees), `j-plan` (four trees), and `writing-plans` (three trees).
+  `ADR_EDIT_IN_PLACE_CONSUMERS` in `tests/test_agent_config.py` pins them, so a consumer reverting
+  to the retired amend-or-supersede wording fails the suite.
 
 ## Reversal Conditions
 

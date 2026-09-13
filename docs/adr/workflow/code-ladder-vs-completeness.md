@@ -102,4 +102,5 @@ from the ladder is the narrower fallback, not a full revert.
 
 ## Related
 - [Structure preference is conditional](../context-efficiency/structure-is-conditional.md)
+- [Reference trees share a section set, not a body](reference-tree-section-parity.md)
 - [ADRs are living documents](adrs-are-living-documents.md)

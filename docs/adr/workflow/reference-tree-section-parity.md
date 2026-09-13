@@ -68,7 +68,7 @@ and pass.
 
 | Idea | Why ruled out | When |
 |------|---------------|------|
-| Byte-identical trees | Destroys legitimate adaptation. `workflow/context-efficiency.md` says `Explore` in the Claude tree and "a dispatched search subagent" in the shared tree, because Codex and Gemini have no tool by that name; byte-identity forces one of those two readers to get a wrong tool name. The same problem applies to model IDs and harness-specific paths. | 2026-09-12 |
+| Byte-identical trees | Trivially checkable, with zero ambiguity about what "in sync" means, but it destroys legitimate adaptation. `workflow/context-efficiency.md` says `Explore` in the Claude tree and "a dispatched search subagent" in the shared tree, because Codex and Gemini have no tool by that name; byte-identity forces one of those two readers to get a wrong tool name. The same problem applies to model IDs and harness-specific paths. | 2026-09-12 |
 | File-presence parity only | Cheapest possible check, but catches none of the 39 — every one of those files exists in both trees already. | 2026-09-12 |
 
 ## Enforcement
