@@ -75,7 +75,7 @@ Perfectionism (blocking for style) | Scope creep ("while you're at it...") | Del
 
 ---
 
-### Pre-Submission Diff Review
+### Diff Review Workflow
 
 Self-review workflow for current branch changes vs main. Catch issues before reviewers do.
 
