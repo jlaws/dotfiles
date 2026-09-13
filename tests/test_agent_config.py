@@ -638,6 +638,19 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("HEAD SHA", content)
                 self.assertIn("do not create or request a worktree", content)
 
+    def test_diff_review_lands_fixes_on_the_pr(self):
+        """A rung-1 fix that stays a local commit is a finding the reviewer never sees. Every tree's
+        diff-review ends by pushing to the branch's open PR and reporting its URL."""
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            rel = path.relative_to(REPO)
+            with self.subTest(path=rel):
+                self.assertTrue(
+                    "gh pr view" in body, f"{rel}: no open-PR lookup after the ladder"
+                )
+                self.assertTrue("PR URL" in body, f"{rel}: the run never reports the PR URL")
+                self.assertTrue("Steps 1-5" in body, f"{rel}: the gh ban is unscoped")
+
     def test_one_diff_review_workflow_per_tree(self):
         """`code-review-patterns` used to carry a second diff-review workflow whose Step 6 said
         report-only while the command's said fix-and-commit. The command owns the workflow; the

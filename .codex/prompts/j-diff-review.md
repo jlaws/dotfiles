@@ -79,7 +79,7 @@ Perfectionism (blocking for style) | Scope creep ("while you're at it...") | Del
 
 Self-review workflow for current branch changes vs main. Catch issues before reviewers do.
 
-**Do NOT use `gh` or any GitHub CLI commands. All information must come from local git.**
+**Steps 1-5 use local git only -- no `gh` or any GitHub CLI. All review evidence must come from local git.** Step 7 is the exception, and only after the report is written.
 
 #### Step 1 — Identify Changes
 
@@ -183,6 +183,26 @@ Read the code a finding touches before deciding. Reaching rung 4 without having 
 This step is the one exception to the read-only reviewer contract stated in the Verification Before Completion section below. That contract binds the six dispatched agents absolutely, and it binds you for Steps 1-5; rung 1 is the hand-off to the fixing actor, performed by you only after the report exists. Write the report first, then act — never edit before Step 5 is on the page.
 
 Scope guard: fixing a finding does not license unrelated refactors. If a fix grows past the diff's boundary, revert the partial edit, then take the next applicable rung. Follow the Receiving & Responding to Reviews section above (scope guard, atomic commits, verify before push).
+
+#### Step 7 — Land the Fixes
+
+A rung-1 fix is a commit on your branch and nothing else. A commit that never reaches the PR is a finding the reviewer still cannot see. Skip this step only if Step 6 produced no rung-1 commit.
+
+```bash
+gh pr view --json number,url,state
+```
+
+- **A PR is open** — `git push` the fixes to it. Never open a second one.
+- **No PR** — run the project's full test suite, confirm the docs match what changed, then:
+  ```bash
+  git push -u origin <branch>
+  gh pr create --title "<title>" --body "<body>"
+  ```
+  Write a real body — never `--fill`.
+
+Report the PR URL on the last line of the run, beside the Step 5 verdict.
+
+Step 1's "local git only, no `gh`" rule scopes to Steps 1-5, where PR metadata could contaminate the review. It does not bind this step: the report is written and every finding is disposed of.
 
 ---
 
