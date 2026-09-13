@@ -176,7 +176,7 @@ class BashGuardRuleTests(unittest.TestCase):
                 self.assert_silent(command)
 
     def test_bare_cat(self):
-        self.assert_flags("cat macos_setup/brew.py", "Read")
+        self.assert_flags("cat macos_setup/brew.py", "sed -n")
 
     def test_piped_cat_is_silent(self):
         for command in ["cat f.json | jq .", "cat f.txt | grep x", "cat f.txt | head -20"]:
@@ -184,7 +184,7 @@ class BashGuardRuleTests(unittest.TestCase):
                 self.assert_silent(command)
 
     def test_unbounded_find(self):
-        self.assert_flags("find . -type f", "Glob")
+        self.assert_flags("find . -type f", "-maxdepth")
 
     def test_bounded_find_is_silent(self):
         for command in ["find . -maxdepth 2 -type f", "find . -name '*.py'"]:
@@ -192,7 +192,7 @@ class BashGuardRuleTests(unittest.TestCase):
                 self.assert_silent(command)
 
     def test_unbounded_grep(self):
-        self.assert_flags("grep -r pattern .", "Grep")
+        self.assert_flags("grep -r pattern .", "-l to list files")
 
     def test_bounded_grep_is_silent(self):
         for command in ["grep -l pattern .", "grep -c pattern f", "grep -m 5 pattern f"]:
@@ -284,7 +284,7 @@ class BashGuardPrecisionTests(unittest.TestCase):
         """sed/awk/sort/uniq/cut emit one line per input line. They transform; they do not bound."""
         for command in ["cat big.log | sort", "cat f | cut -c1-80", "cat f.txt | sed s/a/b/"]:
             with self.subTest(command=command):
-                self.assert_flags(command, "Read")
+                self.assert_flags(command, "sed -n")
 
     def test_head_tail_and_wc_do_silence_a_rule(self):
         for command in ["cat big.log | head -20", "cat f | tail -5", "cat f | wc -l"]:
@@ -316,7 +316,7 @@ class BashGuardPrecisionTests(unittest.TestCase):
         """A search pattern is an operand, not a pipeline."""
         for command in ["grep -E 'head|tail' file.txt", "grep 'foo|head' ."]:
             with self.subTest(command=command):
-                self.assert_flags(command, "Grep")
+                self.assert_flags(command, "-l to list files")
 
     def test_flag_lookalikes_inside_quotes_do_not_silence_a_rule(self):
         for command in ['grep -rn "needle -l here" .', 'git log --grep="revert -20 thing"']:
@@ -339,24 +339,49 @@ class BashGuardPrecisionTests(unittest.TestCase):
 
     def test_a_trailing_comment_cannot_disable_the_guard(self):
         """`<<` anywhere used to kill the guard outright, so `# <<` was a one-token opt-out."""
-        self.assert_flags("cat bigfile.txt # <<", "Read")
+        self.assert_flags("cat bigfile.txt # <<", "sed -n")
 
     def test_real_heredocs_are_still_exempt(self):
         for command in ["cat > /tmp/x.md <<'EOF'\nbody\nEOF", "cat <<EOF\nx\nEOF"]:
             with self.subTest(command=command):
                 self.assert_silent(command)
 
-    def test_codex_advice_names_no_claude_only_tool(self):
-        """The same bytes ship to Codex, which has no Read/Grep/Glob tool. Naming one there is
-        advice the reader cannot act on -- the same reason rung 4 of the search ladder was reworded
-        for the shared tree.
+    def test_advice_names_no_dedicated_tool_in_either_format(self):
+        """Advice that names a dedicated tool is advice the reader cannot act on. Codex has no
+        Read/Grep/Glob tool at all, and Claude Code's auto mode routes reads and searches back
+        through Bash on purpose -- there the advisory contradicts a standing harness instruction,
+        so the reader ignores it and the guard trains itself to be noise. Naming the bounded shell
+        form works in every harness and every mode. Same reason rung 4 of the search ladder was
+        reworded for the shared tree.
         """
         for command in ["cat big.log", "find .", "grep -rn TODO ."]:
+            for fmt in ("claude", "codex"):
+                with self.subTest(command=command, fmt=fmt):
+                    msg = message(command, fmt=fmt)
+                    self.assertTrue(msg, f"expected a suggestion for {command!r}")
+                    for tool in ("Read tool", "Grep tool", "Glob tool"):
+                        self.assertNotIn(tool, msg)
+
+    def test_both_formats_carry_identical_advisory_text(self):
+        """--format picks the JSON envelope, never the words. Divergent text would mean one
+        harness silently gets different advice."""
+        for command in [
+            "git log",
+            "git diff",
+            "cat big.log",
+            "find .",
+            "grep -rn TODO .",
+            "ls -R",
+            "tree",
+            "pytest",
+            "cargo test",
+            "npm test",
+            "go test ./...",
+        ]:
             with self.subTest(command=command):
-                msg = message(command, fmt="codex")
-                self.assertTrue(msg, f"expected a suggestion for {command!r}")
-                for tool in ("Read tool", "Grep tool", "Glob tool"):
-                    self.assertNotIn(tool, msg)
+                claude = message(command, fmt="claude")
+                self.assertTrue(claude, f"expected a suggestion for {command!r}")
+                self.assertEqual(claude, message(command, fmt="codex"))
 
     def test_advisory_text_never_echoes_the_command_back(self):
         """The first cut classified with a regex prefix then interpolated the matched token into
