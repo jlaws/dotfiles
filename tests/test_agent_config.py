@@ -253,6 +253,48 @@ BRANCH_BASE_REF_DOCS = (
     REPO / ".gemini" / "GEMINI.md",
 )
 
+# Two trees, one table of contents. Bodies may differ -- `.claude/` is written for a generation
+# `.agents/` does not serve -- but a heading in one tree and not the other means a reader of the
+# other tree cannot find the topic at all. See docs/adr/workflow/reference-tree-section-parity.md.
+REFERENCE_TREES = (REPO / ".claude" / "references", REPO / ".agents" / "references")
+
+HEADING = re.compile(r"^#{2,4}\s+(.*?)\s*$", re.MULTILINE)
+
+# The reference plus the two prompts that paste its body, since Codex has no skill loader.
+EXISTING_CODE_DISCIPLINE_OWNERS = (
+    ".claude/references/workflow/existing-code-discipline.md",
+    ".agents/references/workflow/existing-code-discipline.md",
+    ".codex/prompts/j-diff-review.md",
+    ".agents/skills/cmd-j-diff-review/SKILL.md",
+)
+
+DISCIPLINE_SECTIONS = (
+    "Match Existing Patterns",
+    "Understand Before Deleting",
+    "Separate Refactoring from Features",
+    "Surface Hidden Assumptions",
+    "State Your Assumptions",
+)
+
+# Trimmed from the Claude tree by #76; the other trees follow rather than diverge.
+DISCIPLINE_TRIMMED = ("Read Before Modifying", "Scope Guard")
+
+ASSUMPTION_ROWS = (
+    "**Data:**",
+    "**Failure:**",
+    "**Boundaries:**",
+    "**State:**",
+    "**Environment:**",
+    "**Scope:**",
+    "**Testing:**",
+)
+
+DESIGN_FIRST_OWNERS = (
+    ".claude/skills/design-first/SKILL.md",
+    ".agents/skills/design-first/SKILL.md",
+    ".gemini/antigravity-cli/skills/design-first/SKILL.md",
+)
+
 
 def skill_directories(root: Path) -> set[str]:
     return {path.parent.name for path in root.glob("*/SKILL.md")}
@@ -807,6 +849,69 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertFalse((REPO / ".gemini" / "settings.json").exists(), "root .gemini/settings.json must not exist")
         self.assertFalse((REPO / ".gemini" / "commands").exists(), "legacy commands/ must not exist")
         self.assertFalse((REPO / ".gemini" / "agents").exists(), "legacy agents/ must not exist")
+
+
+    def test_reference_trees_expose_the_same_sections(self):
+        """Bodies may differ -- `Explore` in the Claude tree is "a dispatched search subagent" in
+        the shared one, because Codex and Gemini have no tool by that name. Section sets may not:
+        a heading in one tree and not the other means a reader of the other tree cannot find the
+        topic. See docs/adr/workflow/reference-tree-section-parity.md."""
+        claude, agents = REFERENCE_TREES
+        for claude_file in sorted(claude.rglob("*.md")):
+            rel = claude_file.relative_to(claude)
+            agents_file = agents / rel
+            with self.subTest(reference=str(rel)):
+                self.assertTrue(agents_file.is_file(), f"{rel} missing from .agents/references/")
+                self.assertEqual(
+                    HEADING.findall(claude_file.read_text(encoding="utf-8")),
+                    HEADING.findall(agents_file.read_text(encoding="utf-8")),
+                    f"{rel}: heading sets diverge between trees",
+                )
+
+    def test_shared_references_do_not_cite_the_claude_reference_tree(self):
+        """Codex and Gemini read .agents/ and have no .claude/ checkout, so a citation naming
+        that tree resolves nowhere. audit.py is Claude-only and never sees these.
+
+        Scoped to `.claude/references/` on purpose: permission-management.md and hook-patterns.md
+        document Claude Code's own settings layout, so `.claude/settings.json` is correct content
+        there rather than a dangling pointer."""
+        _, agents = REFERENCE_TREES
+        for agents_file in sorted(agents.rglob("*.md")):
+            rel = agents_file.relative_to(REPO)
+            with self.subTest(reference=str(rel)):
+                self.assertNotIn(
+                    ".claude/references/",
+                    agents_file.read_text(encoding="utf-8"),
+                    f"{rel} cites the Claude reference tree",
+                )
+
+    def test_existing_code_discipline_is_one_document_in_every_tree(self):
+        """Four copies, one section set. Two paste the text rather than linking it, so an edit to
+        the reference alone leaves the diff-review prompts stale."""
+        for rel in EXISTING_CODE_DISCIPLINE_OWNERS:
+            text = (REPO / rel).read_text(encoding="utf-8")
+            with self.subTest(owner=rel):
+                for section in DISCIPLINE_SECTIONS:
+                    self.assertIn(section, text, f"{rel} missing section {section}")
+                for section in DISCIPLINE_TRIMMED:
+                    self.assertNotIn(
+                        section, text, f"{rel} still carries {section}, trimmed in #76"
+                    )
+                for row in ASSUMPTION_ROWS:
+                    self.assertIn(row, text, f"{rel} missing taxonomy row {row}")
+
+    def test_design_first_filters_questions_and_reaches_the_taxonomy(self):
+        """A recommended answer makes a question cheap to answer; the filter is what keeps the
+        count down. The pointer is what puts the taxonomy in front of the design phase at all --
+        design-first indexes no references otherwise."""
+        for rel in DESIGN_FIRST_OWNERS:
+            text = (REPO / rel).read_text(encoding="utf-8")
+            tree = "claude" if rel.startswith(".claude") else "agents"
+            with self.subTest(skill=rel):
+                self.assertIn("throwing work away", text, rel)
+                self.assertIn(
+                    f".{tree}/references/workflow/existing-code-discipline.md", text, rel
+                )
 
 
 if __name__ == "__main__":
