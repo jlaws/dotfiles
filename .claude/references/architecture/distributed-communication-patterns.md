@@ -177,9 +177,9 @@
 Standard envelope for all domains:
 
 ```python
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-import uuid
 
 @dataclass
 class DomainEvent:

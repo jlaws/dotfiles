@@ -39,8 +39,9 @@ PR opened -> lint -> test -> dependency audit -> SBOM -> build -> deploy
 ```bash
 # npm: disable install scripts by default
 npm config set ignore-scripts true
-# Explicitly allow for known packages
-npx --allow-scripts=node-gyp npm install
+# Explicitly allow known packages: npm reads this from package.json / .npmrc,
+# there is no install-time flag (`npm install --allow-scripts` errors EALLOWSCRIPTS)
+npm pkg set 'allowScripts.node-gyp=true'
 
 # Use lock files (always commit them)
 npm ci          # Install from lock file exactly (not npm install)
@@ -64,8 +65,9 @@ pip install --require-hashes -r requirements.txt
 ```bash
 # npm: disable install scripts by default
 npm config set ignore-scripts true
-# Explicitly allow for known packages
-npx --allow-scripts=node-gyp npm install
+# Explicitly allow known packages: npm reads this from package.json / .npmrc,
+# there is no install-time flag (`npm install --allow-scripts` errors EALLOWSCRIPTS)
+npm pkg set 'allowScripts.node-gyp=true'
 
 # Use lock files (always commit them)
 npm ci          # Install from lock file exactly (not npm install)
