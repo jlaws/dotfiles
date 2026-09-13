@@ -92,11 +92,14 @@ END {
 
 SUGGESTION=""
 
-# say <claude-text> <codex-text> -- the same bytes ship to both harnesses, but Codex has no Read,
-# Grep, or Glob tool. Naming one there is advice the reader cannot act on, the same reason rung 4 of
-# the search ladder was reworded for the shared tree.
+# say <text> -- one advisory, every harness and every mode. Codex has no Read, Grep, or Glob tool,
+# and Claude Code's auto mode deliberately routes reads and searches back through Bash, so advice
+# that names a dedicated tool is advice the reader cannot act on -- in auto mode it contradicts a
+# standing harness instruction outright, and the reader correctly ignores it. Name the bounded shell
+# form instead; that is actionable everywhere. Same reason rung 4 of the search ladder was reworded
+# for the shared tree. --format still picks the JSON envelope, it no longer picks the words.
 say() {
-  if [ "$FORMAT" = "codex" ]; then SUGGESTION="$2"; else SUGGESTION="$1"; fi
+  SUGGESTION="$1"
 }
 
 # tok_matches <regex> [start] -- does any token from index <start> match, anchored whole?
@@ -133,8 +136,7 @@ check_statement() {
       case "$sub" in
         log)
           tok_matches '--oneline|--stat|--shortstat|--numstat|--name-only|--name-status|-[0-9]+|-n[0-9]*|--max-count(=[0-9]+)?' 2 \
-            || say "Unbounded 'git log' -- prefer 'git log --oneline -20', or add --stat." \
-                   "Unbounded 'git log' -- prefer 'git log --oneline -20', or add --stat."
+            || say "Unbounded 'git log' -- prefer 'git log --oneline -20', or add --stat."
           ;;
         diff)
           tok_matches '--stat|--name-only|--numstat|--shortstat|--name-status' 2 && return 0
@@ -149,59 +151,49 @@ check_statement() {
             [ "$saw_ddash" -eq 1 ] && return 0
             [ -e "$tok" ] && return 0
           done
-          say "Unbounded 'git diff' -- run 'git diff --stat' first, then diff only the paths that matter." \
-              "Unbounded 'git diff' -- run 'git diff --stat' first, then diff only the paths that matter."
+          say "Unbounded 'git diff' -- run 'git diff --stat' first, then diff only the paths that matter."
           ;;
       esac
       ;;
     cat)
-      say "'cat' of a whole file -- prefer the Read tool, or 'sed -n \"START,ENDp\"' for one range." \
-          "'cat' of a whole file -- read a bounded range with 'sed -n \"START,ENDp\"' instead."
+      say "'cat' of a whole file -- read a bounded range with 'sed -n \"START,ENDp\"' instead."
       ;;
     find)
       tok_matches '-maxdepth|-name|-iname|-path|-newer' 1 \
-        || say "Unbounded 'find' -- prefer the Glob tool, or add -maxdepth and -name." \
-               "Unbounded 'find' -- add -maxdepth and -name to bound it."
+        || say "Unbounded 'find' -- add -maxdepth and -name to bound it."
       ;;
     grep | rg)
       tok_matches '-[a-zA-Z]*[lcm][a-zA-Z]*[0-9]*|--files-with-matches|--count|--max-count(=[0-9]+)?' 1 \
-        || say "Unbounded '$first' -- prefer the Grep tool, or add -l to list files only." \
-               "Unbounded '$first' -- add -l to list files only, or -c to count."
+        || say "Unbounded '$first' -- add -l to list files only, or -c to count."
       ;;
     ls)
       tok_matches '-[a-zA-Z]*R[a-zA-Z]*|--recursive' 1 \
-        && say "Recursive 'ls -R' -- prefer 'tree -L 2', or a targeted glob." \
-               "Recursive 'ls -R' -- prefer 'tree -L 2', or a targeted glob."
+        && say "Recursive 'ls -R' -- prefer 'tree -L 2', or a targeted glob."
       ;;
     tree)
       tok_matches '-L[0-9]*|--level(=[0-9]+)?' 1 \
-        || say "Unbounded 'tree' -- add '-L 2' to cap the depth." \
-               "Unbounded 'tree' -- add '-L 2' to cap the depth."
+        || say "Unbounded 'tree' -- add '-L 2' to cap the depth."
       ;;
     pytest)
       # A scope is a path or -k. `-v` is not a scope, so "has any argument" was the wrong predicate.
       tok_matches '-k' 1 || has_operand 1 \
-        || say "Whole-suite 'pytest' -- scope it to a file or '-k <name>' while iterating." \
-               "Whole-suite 'pytest' -- scope it to a file or '-k <name>' while iterating."
+        || say "Whole-suite 'pytest' -- scope it to a file or '-k <name>' while iterating."
       ;;
     cargo)
       [ "$sub" = "test" ] || return 0
       has_operand 2 \
-        || say "Whole-suite 'cargo test' -- scope it to a module path while iterating." \
-               "Whole-suite 'cargo test' -- scope it to a module path while iterating."
+        || say "Whole-suite 'cargo test' -- scope it to a module path while iterating."
       ;;
     npm)
       [ "$sub" = "test" ] || return 0
       has_operand 2 \
-        || say "Whole-suite 'npm test' -- scope it with '-- --grep <name>' while iterating." \
-               "Whole-suite 'npm test' -- scope it with '-- --grep <name>' while iterating."
+        || say "Whole-suite 'npm test' -- scope it with '-- --grep <name>' while iterating."
       ;;
     go)
       [ "$sub" = "test" ] || return 0
       # ./... is the whole module, so it is not a scope.
       tok_matches '-run' 2 || has_operand 2 "./..." \
-        || say "Whole-module 'go test' -- scope it to a package or '-run <name>' while iterating." \
-               "Whole-module 'go test' -- scope it to a package or '-run <name>' while iterating."
+        || say "Whole-module 'go test' -- scope it to a package or '-run <name>' while iterating."
       ;;
   esac
 }
