@@ -153,7 +153,7 @@ For large diffs (>500 lines), ensure thorough coverage by analyzing sequentially
 1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection, auth gaps
 2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY violations
 3. **Testing** — Coverage gaps, test quality (behavior vs implementation), missing integration tests
-4. **Language-Specific** — Language-specific gotchas, idiom violations, anti-patterns
+4. **Language-Specific** — Language-specific gotchas, idiom violations, anti-patterns; see [references/language-gotchas.md](references/language-gotchas.md)
 
 Analyze each perspective independently, then synthesize: deduplicate, resolve contradictions, produce unified findings report.
 
