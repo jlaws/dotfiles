@@ -721,6 +721,19 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     "unconditional" in body, f"{rel}: the PR link report is gated on a fix existing"
                 )
 
+    def test_diff_review_maps_extensions_to_language_references(self):
+        """Deleting the duplicate workflow from `code-review-patterns` also removed the only
+        extension-to-reference mapping the Claude and Gemini commands had; their Step 3 named a
+        directory of 20+ files instead. Every tree carries the mapping in its own Step 3 now."""
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            rel = path.relative_to(REPO)
+            for ext in (".py", ".js", ".ts", ".tsx", ".go", ".sh", ".swift", ".rs"):
+                with self.subTest(path=rel, ext=ext):
+                    self.assertTrue(
+                        f"`{ext}`" in body, f"{rel}: Step 3 maps no reference for {ext}"
+                    )
+
     def test_one_diff_review_workflow_per_tree(self):
         """`code-review-patterns` used to carry a second diff-review workflow whose Step 6 said
         report-only while the command's said fix-and-commit. The command owns the workflow; the

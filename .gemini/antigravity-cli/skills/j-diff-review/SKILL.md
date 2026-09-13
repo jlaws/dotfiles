@@ -51,8 +51,20 @@ diff did not touch -- a changed function's callers, an invariant asserted elsewh
 
 ## Step 3: Detect scope
 
-Note which languages the diff touches so the language agent can load the matching references under
-`~/.agents/references/languages/`.
+Note which languages the diff touches so `language-specialist` can load the matching reference. Do not
+run the language pass inline -- it is a delegated perspective in Step 4.
+
+| Extension | Reference under `~/.agents/references/languages/` |
+|---|---|
+| `.py` | `python-patterns.md` |
+| `.js`, `.ts`, `.tsx` | `js-ts-patterns.md` |
+| `.go` | `go-concurrency-patterns.md` |
+| `.sh` | `bash-defensive-patterns.md` |
+| `.swift` | `swift-patterns.md` |
+| `.rs` | `rust-project-patterns.md` |
+
+For anything else, glob that directory for the closest match; if none fits, say so in the report rather
+than dropping the perspective.
 
 Flag missing tests when the diff changes source but no test files.
 
@@ -80,11 +92,11 @@ action under Step 6.
 
 | Perspective | Agent | Looks for | Loads |
 |---|---|---|---|
-| Code quality | `code-reviewer` | Edge cases, error handling, logic errors, missing validation, smells, coupling | `code-review-patterns`, `output-completeness` + `~/.agents/references/workflow/`; apply `code-quality` |
-| Security | `security-reviewer` | Injection, XSS, SSRF, path traversal, auth gaps, secrets, insecure defaults | `code-review-patterns` + `~/.agents/references/security/` |
-| Testing | `test-writer` | Coverage gaps, tests asserting implementation rather than behavior, flakiness | `test-driven-development`, `language-testing-patterns` + `~/.agents/references/testing/` |
+| Code quality | `code-reviewer` | Edge cases, error handling, logic errors, missing validation, smells, naming, DRY violations, unnecessary complexity, coupling | `code-review-patterns`, `output-completeness` + `~/.agents/references/workflow/`; apply `code-quality` |
+| Security | `security-reviewer` | STRIDE threats, injection, XSS, SSRF, path traversal, auth gaps, secrets in code, insecure defaults | `code-review-patterns` + `~/.agents/references/security/` (start with `security-analysis`) |
+| Testing | `test-writer` | Coverage gaps, tests asserting implementation rather than behavior, missing integration tests, flakiness | `test-driven-development`, `language-testing-patterns` + `~/.agents/references/testing/` |
 | Documentation | `documentation-writer` | Stale README/API/CHANGELOG/config/CLI docs, new public surface left undocumented, drifted paths and counts | `documentation-validation`, `post-ship-doc-sync` + `~/.agents/references/documentation/` |
-| Language-specific | `language-specialist` | Idiom violations and per-language traps for the languages the diff touches | `code-review-patterns` + `~/.agents/references/languages/` for the languages the diff touches |
+| Language-specific | `language-specialist` | Idiom violations and per-language traps for the languages the diff touches | `code-review-patterns` (its language-gotchas checklist) + `~/.agents/references/languages/` for the language Step 3 detected |
 | Observability | `devops-engineer` | New code paths with no logging/metrics/tracing, silently swallowed errors, new surface with no SLO or alert, analytics events missing from the tracking plan | `~/.agents/references/devops/` (observability, sre-practices, incident-management) + `~/.agents/references/architecture/error-handling-patterns` |
 
 Deduplicate across perspectives and resolve contradictions. Check each delegated finding against the
