@@ -68,4 +68,4 @@ queue: asyncio.Queue[dict] = asyncio.Queue(maxsize=100)
 - **Cancellation**: always catch `CancelledError`, clean up, then re-raise
 - **Mixing sync/async ORMs**: SQLAlchemy async requires `AsyncSession`; can't use sync session without `run_in_executor`
 
-> **Deep dive**: async context managers, generators, ML serving, batched inference, testing -- see `references/async-deep-dive.md`
+> **Deep dive**: async context managers, generators, ML serving, batched inference, testing -- see `references/languages/async-deep-dive.md`

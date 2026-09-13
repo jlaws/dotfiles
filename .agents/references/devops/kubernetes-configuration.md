@@ -108,7 +108,7 @@ Use `audit` + `warn` at stricter level than `enforce` during migration.
 - Requires a CNI that supports it (Calico, Cilium). Default kubenet does NOT enforce.
 - Test in staging with `audit` mode before enforcing.
 
-See `references/security-policies.md` for NetworkPolicy YAML examples.
+See `references/devops/security-policies.md` for NetworkPolicy YAML examples.
 
 ## RBAC
 
@@ -227,5 +227,5 @@ Run all three in CI before merge.
 
 ## References
 
-- `cloud/gpu-compute-management.md` — GPU scheduling and resource management
-- `cloud/cost-optimization.md` — cluster cost optimization strategies
+- `references/cloud/gpu-compute-management.md` — GPU scheduling and resource management
+- `references/cloud/cost-optimization.md` — cluster cost optimization strategies
