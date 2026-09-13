@@ -638,6 +638,35 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("HEAD SHA", content)
                 self.assertIn("do not create or request a worktree", content)
 
+    def test_one_diff_review_workflow_per_tree(self):
+        """`code-review-patterns` used to carry a second diff-review workflow whose Step 6 said
+        report-only while the command's said fix-and-commit. The command owns the workflow; the
+        skill owns mindset, severity labels, and feedback. The two inlined command bodies keep a
+        disposition ladder because there the section *is* the command."""
+        inlined = (
+            REPO / ".codex" / "prompts" / "j-diff-review.md",
+            REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
+        )
+        checked = 0
+        for tree in TREE_ROOTS:
+            for path in sorted((REPO / tree).rglob("code-review-patterns/SKILL.md")):
+                body = path.read_text(encoding="utf-8")
+                with self.subTest(path=path.relative_to(REPO)):
+                    rel = path.relative_to(REPO)
+                    self.assertFalse(
+                        "Pre-Submission Diff Review" in body,
+                        f"{rel} still carries the duplicate diff-review workflow",
+                    )
+                    self.assertFalse(
+                        "Decision Gate" in body,
+                        f"{rel} still carries the report-only Step 6",
+                    )
+                checked += 1
+        self.assertGreater(checked, 0, "no code-review-patterns copies compared; check is vacuous")
+        for path in inlined:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("Disposition Ladder", path.read_text(encoding="utf-8"))
+
     def test_branch_workflows_resolve_their_base_through_the_remote(self):
         for path in BRANCH_BASE_REF_DOCS:
             lines = path.read_text().splitlines()
