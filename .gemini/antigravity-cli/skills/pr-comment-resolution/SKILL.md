@@ -159,6 +159,7 @@ Present to the user:
 - Tests: {PASS/FAIL — evidence}
 - Lint: {PASS/FAIL — evidence}
 - Docs: {updated / N/A — reason}
+- PR URL: {url}
 - CI: {PASS/FAIL/PENDING — link}
 - Review re-requested: {reviewers}
 ```

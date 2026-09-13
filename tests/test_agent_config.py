@@ -190,6 +190,17 @@ UNCONDITIONAL_STRUCTURE_PHRASES = (
 # Bump deliberately if you add a documented rule; do not bump because of phrasing creep. Measured
 # 2026-09-12; headroom is ~10% over actual, which is enough for a real addition and not enough to
 # absorb drift unnoticed.
+# Every asset whose run ends on a pull request. Each reports the URL; `create-pr` additionally has
+# to look for an already-open PR the way `finishing-branch` does, instead of always creating one.
+PR_URL_SURFACES = (
+    REPO / ".claude" / "skills" / "pr-comment-resolution" / "SKILL.md",
+    REPO / ".agents" / "skills" / "pr-comment-resolution" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "pr-comment-resolution" / "SKILL.md",
+    REPO / ".claude" / "agents" / "create-pr.md",
+    REPO / ".codex" / "agents" / "create-pr.toml",
+    REPO / ".gemini" / "config" / "agents" / "create-pr.md",
+)
+
 ALWAYS_LOADED_CEILINGS = {
     REPO / ".claude" / "CLAUDE.md": 8000,
     REPO / ".codex" / "AGENTS.md": 12700,
@@ -637,6 +648,25 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("git rev-parse HEAD", content)
                 self.assertIn("HEAD SHA", content)
                 self.assertIn("do not create or request a worktree", content)
+
+    def test_pr_workflows_report_the_url_and_reuse_the_open_pr(self):
+        """Every asset that ends on a PR reports its URL, and never opens a second PR for a branch
+        that already has one -- the guard `finishing-branch` has and these did not."""
+        for path in PR_URL_SURFACES:
+            body = path.read_text(encoding="utf-8")
+            rel = path.relative_to(REPO)
+            with self.subTest(path=rel):
+                self.assertTrue("PR URL" in body, f"{rel} never reports the PR URL")
+                if path.stem == "create-pr":
+                    # Codex agents are prose and name no shell commands, so the guard is stated
+                    # rather than scripted there. Both forms have to say a PR may already exist.
+                    self.assertTrue(
+                        "already open" in body, f"{rel}: no open-PR guard before creating one"
+                    )
+                    if path.suffix == ".md":
+                        self.assertTrue(
+                            "gh pr view" in body, f"{rel}: guard names no lookup command"
+                        )
 
     def test_always_loaded_configs_require_reporting_the_pr_url(self):
         """"Provide the PR link when done" is a standing rule, not a diff-review-only one. Each
