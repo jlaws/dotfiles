@@ -151,6 +151,34 @@ LADDER_RUNG_MARKERS = (
     "Already in this codebase?",
     "Native platform feature covers it?",
 )
+# Surfaces that act on an ADR that already exists. ADRs are living documents -- edited in place,
+# deleted when the decision is gone -- so each of these has to carry that branch rather than the
+# amend-or-supersede one it replaced. See docs/adr/workflow/adrs-are-living-documents.md.
+ADR_EDIT_IN_PLACE_CONSUMERS = (
+    REPO / ".claude" / "commands" / "j-arch.md",
+    REPO / ".agents" / "skills" / "cmd-j-arch" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-arch.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-arch" / "SKILL.md",
+    REPO / ".claude" / "skills" / "post-ship-doc-sync" / "SKILL.md",
+    REPO / ".agents" / "skills" / "post-ship-doc-sync" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "post-ship-doc-sync" / "SKILL.md",
+    REPO / ".claude" / "commands" / "j-plan.md",
+    REPO / ".codex" / "prompts" / "j-plan.md",
+    REPO / ".agents" / "skills" / "cmd-j-plan" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md",
+    REPO / ".claude" / "skills" / "writing-plans" / "SKILL.md",
+    REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "writing-plans" / "SKILL.md",
+)
+
+# The lifecycle this repo retired. `tests/test_adr.py` bans these as *headings under docs/adr/*,
+# which says nothing about a skill or prompt teaching them again in prose.
+ADR_RETIRED_VOCABULARY = (
+    "Amendment Log",
+    "superseding ADR",
+    "supersede it",
+    "Never edit an accepted ADR",
+)
 
 
 # A surface that tells a reviewer a `// SIMPLIFIED:` marker is sanctioned must say in the same
@@ -544,6 +572,28 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                         content,
                         f"{path.relative_to(REPO)} restates the ladder instead of pointing at it. "
                         "Cut the copy; the reference is the one owner.",
+                    )
+
+    def test_adr_consumers_carry_the_edit_in_place_rule(self):
+        """Every surface that acts on an existing ADR says to update it in place. Nothing else in
+        the suite reads these files for ADR wording, so without this the whole model reverts to
+        amend-or-supersede with the suite green."""
+        for path in ADR_EDIT_IN_PLACE_CONSUMERS:
+            with self.subTest(path=path.relative_to(REPO)):
+                rel = path.relative_to(REPO)
+                self.assertTrue(path.is_file(), f"{path} is missing")
+                content = path.read_text(encoding="utf-8")
+                self.assertIn(
+                    "in place",
+                    content,
+                    f"{rel} acts on an existing ADR but no longer says to update it in place",
+                )
+                for term in ADR_RETIRED_VOCABULARY:
+                    self.assertNotIn(
+                        term,
+                        content,
+                        f"{rel} teaches the retired ADR lifecycle ({term!r}). A changed decision is "
+                        "edited in place and a dead one is deleted.",
                     )
 
     def test_simplified_sanction_never_ships_without_its_security_carve_out(self):
