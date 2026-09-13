@@ -107,14 +107,16 @@ git diff main...HEAD --name-only
 
 Inspect file extensions and note which languages the diff touches, so the `language-specialist` agent can load the matching patterns. Do not run the language pass inline — it is a delegated perspective (Step 4.5).
 
-| Extension | Pattern Set |
+| Extension | Reference under `.agents/references/languages/` |
 |-----------|-------------|
-| `.py` | Python patterns |
-| `.js`, `.ts`, `.tsx` | JS/TS patterns |
-| `.go` | Go concurrency patterns |
-| `.sh` | Bash defensive patterns |
-| `.swift` | Swift patterns |
-| `.rs` | Rust project patterns |
+| `.py` | `python-patterns.md` |
+| `.js`, `.ts`, `.tsx` | `js-ts-patterns.md` |
+| `.go` | `go-concurrency-patterns.md` |
+| `.sh` | `bash-defensive-patterns.md` |
+| `.swift` | `swift-patterns.md` |
+| `.rs` | `rust-project-patterns.md` |
+
+For anything else, glob that directory for the closest match; if none fits, say so in the report rather than dropping the perspective.
 
 Flag missing tests if diff modifies source but includes no test changes.
 

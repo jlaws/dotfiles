@@ -728,10 +728,28 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for path in DIFF_REVIEW_DISPATCHERS:
             body = path.read_text(encoding="utf-8")
             rel = path.relative_to(REPO)
-            for ext in (".py", ".js", ".ts", ".tsx", ".go", ".sh", ".swift", ".rs"):
+            for ext, ref in (
+                (".py", "python-patterns.md"),
+                (".js", "js-ts-patterns.md"),
+                (".ts", "js-ts-patterns.md"),
+                (".tsx", "js-ts-patterns.md"),
+                (".go", "go-concurrency-patterns.md"),
+                (".sh", "bash-defensive-patterns.md"),
+                (".swift", "swift-patterns.md"),
+                (".rs", "rust-project-patterns.md"),
+            ):
                 with self.subTest(path=rel, ext=ext):
                     self.assertTrue(
                         f"`{ext}`" in body, f"{rel}: Step 3 maps no reference for {ext}"
+                    )
+                    # Naming the file, not a prose label like "Python patterns": the Codex and
+                    # `.agents` trees have no skill loader, so a label resolves to nothing there.
+                    self.assertTrue(
+                        f"`{ref}`" in body, f"{rel}: {ext} maps to no resolvable reference file"
+                    )
+                    self.assertTrue(
+                        (REPO / ".agents" / "references" / "languages" / ref).is_file(),
+                        f"{rel}: Step 3 names {ref}, which the repo does not ship",
                     )
 
     def test_one_diff_review_workflow_per_tree(self):
