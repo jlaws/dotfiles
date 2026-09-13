@@ -8,6 +8,8 @@ import subprocess
 import unittest
 from pathlib import Path
 
+from tests.markdown import HEADING, heading_texts, markdown_headings
+
 REPO = Path(__file__).resolve().parents[1]
 FRONTMATTER_DESCRIPTION = re.compile(r'^description:\s*["\']?(.*?)["\']?$', re.MULTILINE)
 
@@ -57,9 +59,7 @@ J_PLAN_COMMANDS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md",
 )
 
-PLAN_STORAGE_SKILLS = (
-    REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md",
-)
+PLAN_STORAGE_SKILLS = (REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md",)
 
 PLAN_EXECUTION_CONSUMERS = (
     REPO / ".agents" / "skills" / "cmd-j-execute-plan" / "SKILL.md",
@@ -151,6 +151,7 @@ LADDER_RUNG_MARKERS = (
     "Already in this codebase?",
     "Native platform feature covers it?",
 )
+
 
 # A surface that tells a reviewer a `// SIMPLIFIED:` marker is sanctioned must say in the same
 # breath that the sanction stops at a security control. Without that, the marker is a channel for
@@ -277,49 +278,6 @@ BRANCH_BASE_REF_DOCS = (
 # other tree cannot find the topic at all. See docs/adr/workflow/reference-tree-section-parity.md.
 REFERENCE_TREES = (REPO / ".claude" / "references", REPO / ".agents" / "references")
 
-# Captures the level too: a section demoted from `##` to `###` in one tree is a structural
-# change, and matching on heading text alone would let it through. `[ \t]+` rather than `\s+`
-# so an empty `## ` cannot swallow the next paragraph, and `#{1,6}` so a divergent H1 title or
-# a deep H5 is not invisible. Trailing hashes are stripped: `## Foo ##` is the same section
-# as `## Foo`.
-HEADING = re.compile(r"^(#{1,6})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$")
-FENCE = ("```", "~~~")
-
-
-def markdown_headings(text: str) -> list[tuple[str, str]]:
-    """Headings outside fenced code blocks.
-
-    A fenced block can hold a markdown *example* -- the ADR template inside
-    architecture-decision-records.md, the sample CHANGELOG inside changelog-patterns.md. Those
-    are body content the parity decision deliberately allows to differ, so counting them as
-    structure would both couple the trees where they should be free and report a "section"
-    divergence naming a section that does not exist.
-    """
-    out: list[tuple[str, str]] = []
-    fence = ""
-    for line in text.splitlines():
-        stripped = line.lstrip()
-        if stripped.startswith(FENCE):
-            token = stripped[:3]
-            if not fence:
-                fence = token
-            elif token == fence:
-                fence = ""
-            continue
-        if fence:
-            continue
-        match = HEADING.match(line)
-        if match:
-            out.append((match.group(1), match.group(2)))
-    return out
-
-
-def heading_texts(text: str) -> set[str]:
-    """Section names only. The four existing-code-discipline copies nest at different depths --
-    `##` in the references, `####` inside the two prompts that paste the body -- so level is not
-    comparable across them, but "is this a heading at all" still is."""
-    return {name for _level, name in markdown_headings(text)}
-
 
 def discipline_body(text: str) -> list[str]:
     """The prose under the existing-code-discipline sections, normalized for cross-copy compare.
@@ -418,12 +376,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             for name in skill_directories(REPO / ".agents" / "skills")
             if name.startswith("cmd-j-")
         }
-        codex = {
-            path.stem for path in (REPO / ".codex" / "prompts").glob("j-*.md")
-        }
-        claude = {
-            path.stem for path in (REPO / ".claude" / "commands").glob("j-*.md")
-        }
+        codex = {path.stem for path in (REPO / ".codex" / "prompts").glob("j-*.md")}
+        claude = {path.stem for path in (REPO / ".claude" / "commands").glob("j-*.md")}
         antigravity = {
             name
             for name in skill_directories(REPO / ".gemini" / "antigravity-cli" / "skills")
@@ -436,15 +390,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertEqual(command_skills, claude - CLAUDE_ONLY_COMMANDS)
 
     def test_native_agent_sets_match(self):
-        codex = {
-            path.stem for path in (REPO / ".codex" / "agents").glob("*.toml")
-        }
-        claude = {
-            path.stem for path in (REPO / ".claude" / "agents").glob("*.md")
-        }
-        antigravity = {
-            path.stem for path in (REPO / ".gemini" / "config" / "agents").glob("*.md")
-        }
+        codex = {path.stem for path in (REPO / ".codex" / "agents").glob("*.toml")}
+        claude = {path.stem for path in (REPO / ".claude" / "agents").glob("*.md")}
+        antigravity = {path.stem for path in (REPO / ".gemini" / "config" / "agents").glob("*.md")}
 
         self.assertEqual(codex, claude - CLAUDE_ONLY_AGENTS)
         self.assertEqual(codex, antigravity)
@@ -694,7 +642,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                         )
 
     def test_always_loaded_configs_require_reporting_the_pr_url(self):
-        """"Provide the PR link when done" is a standing rule, not a diff-review-only one. Each
+        """ "Provide the PR link when done" is a standing rule, not a diff-review-only one. Each
         harness config states it where its Git rules live."""
         for path in ALWAYS_LOADED_CEILINGS:
             rel = path.relative_to(REPO)
@@ -709,9 +657,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             body = path.read_text(encoding="utf-8")
             rel = path.relative_to(REPO)
             with self.subTest(path=rel):
-                self.assertTrue(
-                    "gh pr view" in body, f"{rel}: no open-PR lookup after the ladder"
-                )
+                self.assertTrue("gh pr view" in body, f"{rel}: no open-PR lookup after the ladder")
                 self.assertTrue("PR URL" in body, f"{rel}: the run never reports the PR URL")
                 self.assertTrue("Steps 1-5" in body, f"{rel}: the gh ban is unscoped")
                 # The push is conditional on a rung-1 commit; reporting the link never is. Gating
@@ -797,9 +743,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         syntax are ours now. REFERENCES.md keeps the upstream attribution."""
         for path in sorted((REPO / ".agents" / "skills").glob("*/SKILL.md")):
             leftovers = [
-                line.strip()
-                for line in path.read_text().splitlines()
-                if "superpowers" in line
+                line.strip() for line in path.read_text().splitlines() if "superpowers" in line
             ]
             with self.subTest(skill=path.parent.name):
                 self.assertEqual(leftovers, [], f"{path.parent.name}: upstream leftover")
@@ -984,7 +928,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 any(name.startswith(root + "/") for name in scanned),
                 f"{root} contributed no scanned file; TREE_ROOTS is not constraining the scan",
             )
-        self.assertEqual(missing, [], "assets name scripts that do not exist:\n" + "\n".join(missing))
+        self.assertEqual(
+            missing, [], "assets name scripts that do not exist:\n" + "\n".join(missing)
+        )
 
     def test_codex_agents_declare_name_description_and_instructions(self):
         """A Codex agent with no `developer_instructions` loads as an empty role and says nothing
@@ -1048,7 +994,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         # Check command translations: Bash(cmd) -> command(prefix)
         for rule in claude_allow:
             if rule.startswith("Bash(") and rule.endswith(")"):
-                cmd = rule[len("Bash("):-1].removesuffix(" *")
+                cmd = rule[len("Bash(") : -1].removesuffix(" *")
                 if cmd == "grep:*":
                     cmd = "grep"
                 expected = f"command({cmd})"
@@ -1056,11 +1002,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
 
         for rule in claude_deny:
             if rule.startswith("Bash(") and rule.endswith(")"):
-                cmd = rule[len("Bash("):-1].removesuffix(" *")
+                cmd = rule[len("Bash(") : -1].removesuffix(" *")
                 expected = f"command({cmd})"
                 self.assertIn(expected, agy_deny, f"Missing denied command: {expected}")
             elif rule.startswith("Read(") and rule.endswith(")"):
-                path = rule[len("Read("):-1].removesuffix("/**")
+                path = rule[len("Read(") : -1].removesuffix("/**")
                 if path.startswith("./"):
                     continue  # non-absolute paths are rejected by the Antigravity sandbox
                 expected = f"read_file({path})"
@@ -1068,10 +1014,17 @@ class AgentConfigArchitectureTests(unittest.TestCase):
 
     def test_legacy_gemini_artifacts_are_not_tracked(self):
         """Legacy Gemini CLI policy engine, hooks, commands, and agents must not be present in .gemini/."""
-        self.assertFalse((REPO / ".gemini" / "policies").exists(), "legacy policies/ must not exist")
+        self.assertFalse(
+            (REPO / ".gemini" / "policies").exists(), "legacy policies/ must not exist"
+        )
         self.assertFalse((REPO / ".gemini" / "hooks").exists(), "legacy hooks/ must not exist")
-        self.assertFalse((REPO / ".gemini" / "settings.json").exists(), "root .gemini/settings.json must not exist")
-        self.assertFalse((REPO / ".gemini" / "commands").exists(), "legacy commands/ must not exist")
+        self.assertFalse(
+            (REPO / ".gemini" / "settings.json").exists(),
+            "root .gemini/settings.json must not exist",
+        )
+        self.assertFalse(
+            (REPO / ".gemini" / "commands").exists(), "legacy commands/ must not exist"
+        )
         self.assertFalse((REPO / ".gemini" / "agents").exists(), "legacy agents/ must not exist")
 
     def test_reference_trees_hold_the_same_files(self):
