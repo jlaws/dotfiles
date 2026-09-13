@@ -68,7 +68,7 @@ Full methodology: load skill `verification-before-completion` (read `~/.agents/s
 - Never force push to main/master
 - Branch naming: `type/short-description` (e.g., `fix/login-timeout`)
 - Completed work ends in a PR, opened without being asked. When a plan's unit of work passes its gates, open the PR and stop there -- for a multi-PR plan that is every PR boundary, not just the last.
-- When a PR is already open for the current work, push follow-up fixes to that same PR/branch. Do not open a new PR unless the user asks.
+- When a PR is already open for the current work, push follow-up fixes to that same PR/branch. Do not open a new PR unless the user asks. A commit that never leaves your machine is not on the PR. Report the PR URL when you finish work on one.
 - After opening a PR, stop and wait for the user to review/merge before starting the next work item, unless told to keep going.
 - After a squash or rebase, diff against the pre-squash tree (and confirm the branch) to verify no file or config was dropped before force-pushing.
 

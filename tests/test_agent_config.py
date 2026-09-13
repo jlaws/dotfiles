@@ -638,6 +638,15 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("HEAD SHA", content)
                 self.assertIn("do not create or request a worktree", content)
 
+    def test_always_loaded_configs_require_reporting_the_pr_url(self):
+        """"Provide the PR link when done" is a standing rule, not a diff-review-only one. Each
+        harness config states it where its Git rules live."""
+        for path in ALWAYS_LOADED_CEILINGS:
+            rel = path.relative_to(REPO)
+            with self.subTest(path=rel):
+                body = path.read_text(encoding="utf-8")
+                self.assertTrue("PR URL" in body, f"{rel} never asks for the PR URL")
+
     def test_diff_review_lands_fixes_on_the_pr(self):
         """A rung-1 fix that stays a local commit is a finding the reviewer never sees. Every tree's
         diff-review ends by pushing to the branch's open PR and reporting its URL."""
