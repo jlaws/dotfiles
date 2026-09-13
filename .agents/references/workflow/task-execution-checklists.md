@@ -34,34 +34,6 @@ While implementing:
 
 ---
 
-## Self-Review Checklist
-
-Review your own work with fresh eyes before moving on:
-
-**Completeness:**
-- Did I implement everything in the spec?
-- Did I miss any requirements?
-- Are there edge cases I didn't handle?
-- If behavior or public surface changed, did I update the docs (or note N/A)?
-
-**Quality:**
-- Are names clear and accurate?
-- Is the code clean and maintainable?
-- Did I follow existing codebase patterns?
-
-**Discipline:**
-- Did I avoid overbuilding (YAGNI)?
-- Did I only build what was requested?
-
-**Testing:**
-- Do tests verify behavior (not just mock behavior)?
-- Did I follow TDD if required?
-- Are tests comprehensive?
-
-Fix any issues found during self-review before proceeding.
-
----
-
 ## Spec Compliance Checklist
 
 Verify the implementation matches the specification — nothing more, nothing less.

@@ -139,62 +139,6 @@ formatjs compile locales/en.json --out-file compiled/en.json
 i18next 'src/**/*.{ts,tsx}' --output 'locales/$LOCALE/$NAMESPACE.json'
 ```
 
-## Locale-Aware Formatting with Intl API
-
-The `Intl` API is built into all modern browsers and Node.js. Use it instead of libraries like `moment` or `date-fns` for formatting.
-
-### Numbers
-
-```typescript
-// Currency
-new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' })
-  .format(1234.56);  // "1.234,56 €"
-
-// Percentage
-new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 1 })
-  .format(0.856);  // "85.6%"
-
-// Compact notation
-new Intl.NumberFormat('en-US', { notation: 'compact' })
-  .format(1500000);  // "1.5M"
-```
-
-### Dates
-
-```typescript
-// Medium date
-new Intl.DateTimeFormat('ja-JP', { dateStyle: 'medium' })
-  .format(new Date());  // "2025/01/15"
-
-// Relative time
-new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
-  .format(-1, 'day');  // "yesterday"
-
-// Time zones
-new Intl.DateTimeFormat('en-US', {
-  timeZone: 'Asia/Tokyo',
-  dateStyle: 'full',
-  timeStyle: 'short'
-}).format(new Date());  // "Wednesday, January 15, 2025 at 2:30 AM"
-```
-
-### Lists
-
-```typescript
-new Intl.ListFormat('en', { style: 'long', type: 'conjunction' })
-  .format(['Alice', 'Bob', 'Charlie']);  // "Alice, Bob, and Charlie"
-
-new Intl.ListFormat('en', { style: 'long', type: 'disjunction' })
-  .format(['red', 'blue', 'green']);  // "red, blue, or green"
-```
-
-### Collation (Sorting)
-
-```typescript
-const collator = new Intl.Collator('de-DE');
-['ä', 'a', 'z'].sort(collator.compare);  // ['a', 'ä', 'z']
-```
-
 ## RTL Support
 
 ### CSS Logical Properties
@@ -211,19 +155,6 @@ Replace physical properties with logical ones for automatic RTL support.
 | `left: 10px` | `inset-inline-start: 10px` |
 | `border-left` | `border-inline-start` |
 | `width` | `inline-size` (when direction-dependent) |
-
-### HTML Setup
-
-```html
-<html lang="ar" dir="rtl">
-```
-
-```typescript
-// Dynamic direction
-const direction = ['ar', 'he', 'fa', 'ur'].includes(locale) ? 'rtl' : 'ltr';
-document.documentElement.setAttribute('dir', direction);
-document.documentElement.setAttribute('lang', locale);
-```
 
 ### Bidirectional Text
 

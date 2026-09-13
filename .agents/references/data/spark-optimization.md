@@ -39,7 +39,7 @@ df = (spark.read.parquet("s3://bucket/data/")
 ```python
 from pyspark.sql import functions as F
 
-# 1. Broadcast Join
+# 1. Broadcast Join - small side must fit in each executor's memory.
 # Spark auto-broadcasts under spark.sql.autoBroadcastJoinThreshold (default 10MB);
 # F.broadcast() forces it regardless. See the cheat sheet for raising the threshold.
 result = large_df.join(F.broadcast(small_df), on="key", how="left")

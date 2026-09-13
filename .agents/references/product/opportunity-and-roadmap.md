@@ -60,15 +60,6 @@ Explicitly document rejected features to prevent re-litigation:
 
 ## GTM Brief
 
-### Launch Checklist
-
-- [ ] Feature flag ready for staged rollout
-- [ ] Documentation / changelog updated
-- [ ] Support team briefed (FAQ + escalation path)
-- [ ] Monitoring dashboard configured (errors, latency, adoption)
-- [ ] Rollback procedure tested
-- [ ] Success metrics baseline captured
-
 ### Rollback Triggers
 
 | Signal | Threshold | Action |

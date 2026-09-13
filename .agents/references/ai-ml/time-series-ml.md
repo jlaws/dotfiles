@@ -37,7 +37,7 @@ class PatchEmbedding(nn.Module):
         B, L, C = x.shape                            # (batch, seq_len, channels)
         # unfold appends the window dim: (B, num_patches, C, patch_len)
         x = x.unfold(dimension=1, size=self.patch_len, step=self.stride)
-        # -> (B, C, num_patches, patch_len) so the flatten groups by batch then channel
+        # Move C next to B so the flatten keeps each patch contiguous
         x = x.permute(0, 2, 1, 3).reshape(B * C, -1, self.patch_len)
         return self.proj(x), C
 

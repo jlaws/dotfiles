@@ -44,45 +44,6 @@ Level 4 (Product):       Polished, scalable, monitored
 
 Ship Level 2. Iterate to Level 3 only after validation. Most features never need Level 4.
 
-## Feature Flag Gated MVP
-
-```typescript
-interface MVPConfig {
-  flags: Record<string, {
-    enabled: boolean;
-    allowList: string[];  // Early access user IDs
-    level: 0 | 1 | 2 | 3 | 4;
-  }>;
-}
-
-const mvpConfig: MVPConfig = {
-  flags: {
-    "ai-summary": {
-      enabled: true,
-      allowList: ["user_alpha1", "user_alpha2"],
-      level: 2,  // Duct tape: works but slow, no caching
-    },
-    "team-sharing": {
-      enabled: false,
-      allowList: [],
-      level: 0,  // Wizard of Oz: founder manually shares via email
-    },
-    "export-pdf": {
-      enabled: true,
-      allowList: [],
-      level: 1,  // Concierge: queues request, team generates manually
-    },
-  },
-};
-
-function canAccess(feature: string, userId: string): boolean {
-  const flag = mvpConfig.flags[feature];
-  if (!flag || !flag.enabled) return false;
-  if (flag.allowList.length === 0) return true;
-  return flag.allowList.includes(userId);
-}
-```
-
 ## Analytics-First Architecture
 
 Instrument before you build. Every MVP feature should emit events from day one.

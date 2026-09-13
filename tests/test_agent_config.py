@@ -258,7 +258,9 @@ BRANCH_BASE_REF_DOCS = (
 # other tree cannot find the topic at all. See docs/adr/workflow/reference-tree-section-parity.md.
 REFERENCE_TREES = (REPO / ".claude" / "references", REPO / ".agents" / "references")
 
-HEADING = re.compile(r"^#{2,4}\s+(.*?)\s*$", re.MULTILINE)
+# Captures the level too: a section demoted from `##` to `###` in one tree is a structural
+# change, and matching on heading text alone would let it through.
+HEADING = re.compile(r"^(#{2,4})\s+(.*?)\s*$", re.MULTILINE)
 
 # The reference plus the two prompts that paste its body, since Codex has no skill loader.
 EXISTING_CODE_DISCIPLINE_OWNERS = (

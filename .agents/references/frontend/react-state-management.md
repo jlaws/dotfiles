@@ -80,10 +80,6 @@ const store = useAppStore.getState();
 console.log(store.user);
 ```
 
-### Zustand Advanced
-
-Stack middleware: `devtools(subscribeWithSelector(persist(immer(...))))`. Use `partialize` for partial persistence, `subscribeWithSelector` for external subscriptions. Test via `useStore.getState()`.
-
 ## Redux Toolkit
 
 Use `configureStore` + `createSlice`. Type `RootState` and `AppDispatch` from store. Use `createAsyncThunk` for async operations with `pending/fulfilled/rejected` matchers.

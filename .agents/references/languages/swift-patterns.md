@@ -151,7 +151,7 @@ For @MainActor, actors, TaskGroup, AsyncStream, and cancellation examples, see [
 
 ## Testing & Error Handling
 
-For XCTest, Swift Testing, dependency injection, Result type, and custom error patterns, see [references/testing-and-errors.md](references/testing-and-errors.md).
+For XCTest, Swift Testing, dependency injection, and custom error patterns, see [references/testing-and-errors.md](references/testing-and-errors.md).
 
 ## Performance
 

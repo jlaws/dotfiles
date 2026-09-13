@@ -67,9 +67,3 @@ tests/
 - Separate integration/e2e tests into dedicated directories
 - Share fixtures via `fixtures/`, not copy-paste
 
-## Gotchas
-- Using `fireEvent` instead of `userEvent` (misses real interactions)
-- Snapshot tests for components (maintenance burden, no value)
-- Module mocking when DI would work (breaks on refactors)
-- Not awaiting async assertions (tests pass when they shouldn't)
-- `data-testid` as first choice (tests implementation, not behavior)

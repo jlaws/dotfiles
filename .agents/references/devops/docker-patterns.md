@@ -21,30 +21,6 @@
 
 ## Optimized Python Dockerfile
 
-### Layer Caching Strategy
-
-Order matters. Least-changing layers first, most-changing last.
-
-```dockerfile
-FROM python:3.11-slim AS base
-
-# System deps change rarely -- cache aggressively
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Dependencies change occasionally
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# App code changes frequently -- last layer
-COPY . /app
-WORKDIR /app
-
-EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
 ### Multi-Stage ML Build
 
 Separates build-time deps (compilers, headers) from runtime.
@@ -159,35 +135,6 @@ mlruns/
 Dockerfile*
 docker-compose*
 .dockerignore
-```
-
-## Security Best Practices
-
-```dockerfile
-# Run as non-root
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-USER appuser
-
-# Pin package versions
-RUN pip install --no-cache-dir torch==2.1.0 transformers==4.35.0
-
-# Use COPY, never ADD (ADD auto-extracts tarballs, fetches URLs)
-COPY requirements.txt .
-
-# No secrets in build args -- use runtime env or mounted secrets
-# BAD:  ARG API_KEY
-# GOOD: pass at runtime via -e or .env
-```
-
-### Scanning
-
-```bash
-# Trivy scan before push
-docker build -t myapp:latest .
-trivy image myapp:latest --severity HIGH,CRITICAL
-
-# Hadolint for Dockerfile linting
-hadolint Dockerfile
 ```
 
 ## Gotchas and Anti-Patterns

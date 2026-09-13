@@ -86,65 +86,6 @@ Use `srcset` + `sizes` for resolution switching, `<picture>` + `<source media>` 
 
 Use `repeat(auto-fit, minmax(250px, 1fr))` for breakpoint-free responsive grids. Sidebar: fixed + `minmax(0, 1fr)` behind a media query.
 
-### Code Example: Responsive Grid Layout
-
-```css
-/* Auto-fit grid: automatically reflows based on space */
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-/* Sidebar + main content: stack on mobile, side-by-side on desktop */
-.layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 1024px) {
-  .layout {
-    grid-template-columns: 250px 1fr;
-  }
-
-  .sidebar {
-    position: sticky;
-    top: 1rem;
-    height: fit-content;
-  }
-}
-
-/* 3-column grid with controlled column width */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  auto-rows: 300px;
-  gap: 1.5rem;
-}
-
-/* Named areas for flexible layouts */
-.dashboard {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-areas:
-    'header'
-    'sidebar'
-    'main'
-    'footer';
-}
-
-@media (min-width: 1024px) {
-  .dashboard {
-    grid-template-columns: 250px 1fr;
-    grid-template-areas:
-      'header header'
-      'sidebar main'
-      'footer footer';
-  }
-}
-```
-
 ## Viewport Units
 
 Dynamic viewport height units handle mobile browser chrome (address bar, bottom nav).

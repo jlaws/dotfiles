@@ -177,10 +177,9 @@
 Standard envelope for all domains:
 
 ```python
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-
+import uuid
 
 @dataclass
 class DomainEvent:
@@ -188,7 +187,8 @@ class DomainEvent:
     aggregate_id: str
     data: dict
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat())
     schema_version: int = 1
     correlation_id: str = ""
     idempotency_key: str = ""

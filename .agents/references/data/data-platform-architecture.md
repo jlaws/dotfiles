@@ -105,7 +105,7 @@ for snapshot in table.metadata.snapshots:
 df = table.scan(snapshot_id=123456789).to_pandas()
 
 # Read as of timestamp
-from datetime import datetime, timezone
+from datetime import datetime
 
 snap = table.snapshot_as_of_timestamp(
     int(datetime(2025, 1, 15).timestamp() * 1000),

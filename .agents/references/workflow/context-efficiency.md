@@ -202,21 +202,6 @@ technical ambiguity, and when the user asks you to clarify or repeats a question
 evidence the compressed form already failed. Chisle states the stopping condition as well as it can
 be put: compress until the rules would delete the answer, and no further.
 
-## Parallel Tool Calls
-
-Each sequential tool call is a round trip. Batch independent operations to reduce turns.
-
-```markdown
-# Bad: 3 sequential turns
-Read file A → Read file B → Read file C
-
-# Good: 1 turn
-Read file A + Read file B + Read file C (parallel)
-```
-
-**When to parallelize**: operations with no data dependencies between them.
-**When NOT to**: one result informs the next call's parameters.
-
 ## CLAUDE.md as Stable Prefix
 
 CLAUDE.md content is prepended to every conversation. Identical content across sessions enables KV cache hits (provider-side optimization).

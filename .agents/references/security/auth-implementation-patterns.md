@@ -7,6 +7,7 @@
 - **Always** set token expiration (15-30min access, 7d refresh) and rate-limit login endpoints
 - **Never** implement custom password hashing -- use bcrypt/scrypt/argon2 with cost factor >= 12
 - **Always** hash refresh tokens before storing them in the database
+- **Always** use secure, expiring tokens for password reset -- never email a reusable link
 
 ## JWT Authentication
 
@@ -322,11 +323,3 @@ const apiLimiter = rateLimit({
 app.post('/api/auth/login', loginLimiter, async (req, res) => { /* ... */ });
 app.use('/api/', apiLimiter);
 ```
-
-## Common Pitfalls
-
-- **JWT in localStorage**: Vulnerable to XSS, use httpOnly cookies
-- **No Token Expiration**: Tokens should expire (15-30min access, 7d refresh)
-- **Client-Side Auth Only**: Always validate server-side
-- **Insecure Password Reset**: Use secure tokens with expiration
-- **No Rate Limiting**: Vulnerable to brute force

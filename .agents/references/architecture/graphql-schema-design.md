@@ -36,18 +36,7 @@ extend type Query {
 
 ## Type Design Patterns
 
-### 1. Non-Null Types
-```graphql
-type User {
-  id: ID!              # Always required
-  email: String!       # Required
-  phone: String        # Optional (nullable)
-  posts: [Post!]!      # Non-null array of non-null posts
-  tags: [String!]      # Nullable array of non-null strings
-}
-```
-
-### 2. Interfaces for Polymorphism
+### 1. Interfaces for Polymorphism
 ```graphql
 interface Node {
   id: ID!
@@ -71,7 +60,7 @@ type Query {
 }
 ```
 
-### 3. Unions for Heterogeneous Results
+### 2. Unions for Heterogeneous Results
 ```graphql
 union SearchResult = User | Post | Comment
 
@@ -98,7 +87,7 @@ type Query {
 }
 ```
 
-### 4. Input Types
+### 3. Input Types
 ```graphql
 input CreateUserInput {
   email: String!

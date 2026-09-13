@@ -1,13 +1,5 @@
 # Performance Testing and Profiling
 
-## The Rule
-
-```
-MEASURE FIRST. OPTIMIZE SECOND. MEASURE AGAIN.
-```
-
-Never optimize based on intuition. Profile, identify the bottleneck, fix it, verify with numbers.
-
 ## Tool Decision Table
 
 | Scenario | Tool | Why |

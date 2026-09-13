@@ -76,68 +76,6 @@ def main(
     ctx.obj["config"] = load_config(config.expanduser())
 ```
 
-## Rich TUI Components
-
-### Tables and Progress
-
-```python
-from rich.console import Console
-from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
-
-console = Console()
-
-def show_results(items: list[dict]):
-    table = Table(title="Results", show_lines=False)
-    table.add_column("ID", style="cyan", no_wrap=True)
-    table.add_column("Name", style="green")
-    table.add_column("Status", justify="center")
-    for item in items:
-        status = "[bold red]FAIL[/]" if item["failed"] else "[green]OK[/]"
-        table.add_row(str(item["id"]), item["name"], status)
-    console.print(table)
-
-def process_files(files: list[Path]):
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TextColumn("{task.completed}/{task.total}"),
-    ) as progress:
-        task = progress.add_task("Processing...", total=len(files))
-        for f in files:
-            do_work(f)
-            progress.update(task, advance=1)
-```
-
-### Live Display, Prompts, and Tree
-
-```python
-from rich.live import Live
-from rich.panel import Panel
-from rich.prompt import Prompt, Confirm
-from rich.tree import Tree
-
-def monitor(stream):
-    with Live(Panel("Starting..."), refresh_per_second=4) as live:
-        for event in stream:
-            live.update(Panel(f"[bold]{event.status}[/]\n{event.message}"))
-
-name = Prompt.ask("Project name", default="my-project")
-overwrite = Confirm.ask(f"[yellow]{name}[/] exists. Overwrite?", default=False)
-
-def show_structure(root_path: Path):
-    tree = Tree(f"[bold]{root_path.name}[/]")
-    for child in sorted(root_path.iterdir()):
-        if child.is_dir():
-            branch = tree.add(f"[blue]{child.name}/[/]")
-            for sub in sorted(child.iterdir()):
-                branch.add(sub.name)
-        else:
-            tree.add(child.name)
-    console.print(tree)
-```
-
 ## Configuration File Handling
 
 ```python
