@@ -38,6 +38,9 @@ matters is that the shape is agreed before it is built, not that the document is
 - Prefer multiple-choice questions when possible
 - Each question carries your **recommended answer** — let the user confirm, not explain from scratch
 - **Research before asking** — if the codebase can answer it (Glob/Grep/Read), find out first; only ask what the code can't tell you
+- **Filter for blocking** — a question earns its place when a wrong answer means throwing work away
+  rather than adjusting it. Anything a minute of searching settles is research you owe, not a question.
+  A codebase that contradicts itself on one of those is worth raising.
 - Order questions by dependency — resolve the ones that unlock others first
 - Focus on: purpose, constraints, success criteria, edge cases
 - Keep asking until you understand what you're building
@@ -54,6 +57,9 @@ matters is that the shape is agreed before it is built, not that the document is
 - Scale each section to its complexity (a few sentences if straightforward, more if nuanced)
 - Ask after each major section whether it looks right so far
 - Cover as applicable: architecture, components, data flow, error handling, testing approach
+- **State your assumptions** — numbered and falsifiable, across whichever rows the work touches
+  (`.claude/references/workflow/existing-code-discipline.md`). Written down, an assumption costs the
+  user one line to correct; left implicit, it gets corrected after the code exists.
 - Be ready to revise if something doesn't fit
 
 ### Phase 5: Document

@@ -33,6 +33,9 @@ Every feature goes through this process. A utility function, a config change, a 
 - Prefer multiple-choice questions when possible
 - Each question carries your **recommended answer** — let the user confirm, not explain from scratch
 - **Research before asking** — if the codebase can answer it (Glob/Grep/Read), find out first; only ask what the code can't tell you
+- **Filter for blocking** — ask when a wrong answer means throwing work away, not adjusting it.
+  Anything a minute of searching answers is research you owe, not a question. If the codebase
+  contradicts itself on one of those, that *is* worth raising.
 - Order questions by dependency — resolve the ones that unlock others first
 - Focus on: purpose, constraints, success criteria, edge cases
 - Keep asking until you understand what you're building
@@ -49,6 +52,9 @@ Every feature goes through this process. A utility function, a config change, a 
 - Scale each section to its complexity (a few sentences if straightforward, more if nuanced)
 - Ask after each major section whether it looks right so far
 - Cover as applicable: architecture, components, data flow, error handling, testing approach
+- **State your assumptions** — numbered and falsifiable, across whichever rows apply. See
+  `.agents/references/workflow/existing-code-discipline.md`. An assumption written down is one the
+  user can correct for free; one left implicit gets corrected after the code exists.
 - Be ready to revise if something doesn't fit
 
 ### Phase 5: Document
