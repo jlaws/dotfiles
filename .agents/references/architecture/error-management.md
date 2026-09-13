@@ -1,6 +1,18 @@
 # Error Management
 
-Comprehensive error tracking, analysis, alerting, incident response, and prevention patterns.
+What this file owns: error tracking setup, correlation IDs, log structure, reading stack traces, and
+grouping errors into distinct issues.
+
+What it does not own, because a sibling says it better and used to disagree with this file:
+
+| Topic | Owner |
+|---|---|
+| Severity levels and response times | `devops/incident-management.md` (SEV1-SEV4, with response times) |
+| Incident response phases, postmortems, Five Whys | `devops/incident-management.md` |
+| Alert routing, thresholds, burn rates | `devops/observability.md` |
+| Retry and backoff | `architecture/retry-patterns.md` (which correctly refuses to retry 400/401/403/404/422 and honors `Retry-After`) |
+| Root-cause investigation method | the `debugging-methodology` skill |
+| Fail-fast and input validation | `architecture/error-handling-patterns.md` |
 
 ## Error Tracking Service Integration
 

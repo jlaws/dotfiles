@@ -7,12 +7,11 @@ Reusable checklists for implementing, reviewing, and completing tasks. Reference
 For each task in a plan, follow this cycle:
 
 1. **Implement** — follow the Implementation Checklist below
-2. **Self-review** — use the Self-Review Checklist below
-3. **Spec compliance check** — use the Spec Compliance Checklist below
-4. **If spec issues:** fix and re-check. Repeat until pass.
-5. **Code quality check** — use the Code Quality Checklist below (only after spec compliance passes)
-6. **If quality issues:** fix and re-check. Repeat until pass.
-7. **Mark task complete**, move to next
+2. **Spec compliance check** — use the Spec Compliance Checklist below
+3. **If spec issues:** fix and re-check. Repeat until pass.
+4. **Code quality check** — use the Code Quality Checklist below (only after spec compliance passes)
+5. **If quality issues:** fix and re-check. Repeat until pass.
+6. **Mark task complete**, move to next
 
 ---
 
@@ -28,7 +27,6 @@ While implementing:
 2. Write tests (following TDD if required)
 3. Verify implementation works
 4. Commit your work
-5. Self-review (below)
 
 **If anything is unclear, ask before guessing.**
 
