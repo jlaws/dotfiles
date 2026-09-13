@@ -18,7 +18,7 @@ deciders: ["@name"]
 We will use **[choice]**.
 
 ## Rationale
-[Why this option best fits the decision drivers.]
+[Why this choice best fits the decision drivers.]
 
 ## Consequences
 **Gained**: [benefit]

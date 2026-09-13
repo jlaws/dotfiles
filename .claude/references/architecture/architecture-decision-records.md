@@ -102,6 +102,11 @@ Editing in place is the default, not the exception. Three things make it safe:
 - **Git holds the diff.** `git log -p docs/adr/<topic>/<slug>.md` is the full amendment trail, and it
   costs nothing to carry because it is not in the file.
 
+**Name every deletion in the change summary.** Deleting an ADR needs no separate approval, so the
+summary line is what puts it in front of a reviewer. A record that vanishes inside a large diff
+with nothing pointing at it is the one loss this model can cause that the diff alone does not
+make obvious.
+
 **Never leave a stale ADR standing.** An ADR contradicted by shipped code is worse than no ADR: an
 agent reads it as current and plans against it. Update it or delete it in the same change that made
 it wrong.
@@ -134,7 +139,7 @@ deciders: ["@name"]
 We will use **[choice]**.
 
 ## Rationale
-[Why this option best fits the decision drivers.]
+[Why this choice best fits the decision drivers.]
 
 ## Consequences
 **Gained**: [benefit]
@@ -186,6 +191,9 @@ deciders: ["@name"]
 |------|---------------|------|
 | [name the idea] | [reason] | YYYY-MM-DD |
 
+## Reversal Conditions
+[What would have to become true for this decision to be revisited.]
+
 ## Related
 - [title](../[topic]/[slug].md)
 ```
@@ -208,7 +216,9 @@ to achieve **[goals]**,
 accepting that **[tradeoff]**.
 ```
 
-(Single-sentence format — no table sections. Revise the sentence in place and bump `updated`.)
+(Single-sentence format — no table sections, so it carries neither `## Ruled Out` nor
+`## Reversal Conditions`. Use it only where the decision genuinely fits one sentence; revise the
+sentence in place and bump `updated`.)
 
 ## Naming and Grouping
 
@@ -237,7 +247,7 @@ Two cases still touch shared state, both rarer than writing an ADR:
 
 Two scaffold files sit beside the topic directories:
 
-- `docs/adr/README.md` — the repo's topic list with one line on what each covers, the slug rule, and the keep-it-current rule. It states explicitly that there is no index: discover ADRs with `docs/adr/**/*.md` and read frontmatter.
+- `docs/adr/README.md` — the repo's topic list with one line on what each covers, the scope test, and the keep-it-current rule. It states explicitly that there is no index: discover ADRs with `docs/adr/**/*.md` and read frontmatter.
 - `docs/adr/template.md` — the Standard ADR template above, verbatim, ready to copy.
 
 Both scaffold files match `docs/adr/**/*.md` and neither is an ADR. Exclude `README.md` and `template.md` by name whenever that glob is used to enumerate decisions.
@@ -249,9 +259,9 @@ decisions, and every file in it is asserted to be currently true.
 
 ### Before Submission
 - [ ] Context clearly explains the problem
-- [ ] All viable options considered
-- [ ] Pros/cons balanced and honest
-- [ ] Consequences (positive and negative) documented
+- [ ] Every option that was weighed appears in `## Ruled Out` with its reason and date
+- [ ] Trade-offs stated honestly, including the ones the decision accepts
+- [ ] Consequences recorded as **Gained** and **Accepted**
 
 ### During Review
 - [ ] At least 2 senior engineers reviewed
@@ -261,7 +271,8 @@ decisions, and every file in it is asserted to be currently true.
 
 ### After Acceptance
 - [ ] frontmatter status/created/updated set
-- [ ] `## Related` links resolve, and `## Enforcement` names a real owner and test
+- [ ] `## Related` links resolve, and `## Reversal Conditions` is concrete enough to check
+- [ ] `## Enforcement` names a real owner and test, where the template carries that section
 - [ ] Team notified
 - [ ] Implementation tickets created
 
