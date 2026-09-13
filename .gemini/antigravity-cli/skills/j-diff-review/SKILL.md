@@ -151,3 +151,20 @@ Write the report first, then act -- never edit before Step 5 is on the page.
 Scope guard: fixing a finding does not license unrelated refactors. If a fix grows past the diff's
 boundary, revert the partial edit, then take the next applicable rung. Follow `pr-comment-resolution`
 for scope guard, atomic commits, and verify before push.
+
+## Step 7: Land the fixes
+
+A rung-1 fix is a commit on your branch and nothing else. A commit that never reaches the PR is a
+finding the reviewer still cannot see. Skip this step only if Step 6 produced no rung-1 commit.
+
+```bash
+gh pr view --json number,url,state
+```
+
+- **A PR is open** -- `git push` the fixes to it. Never open a second one.
+- **No PR** -- load `finishing-branch` and follow it: verify tests, validate docs, then open the PR.
+
+Report the PR URL on the last line of the run, beside the Step 5 verdict.
+
+Step 1's "local git only, no `gh`" rule scopes to Steps 1-5, where PR metadata could contaminate the
+review. It does not bind this step: the report is written and every finding is disposed of.
