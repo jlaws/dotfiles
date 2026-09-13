@@ -253,6 +253,125 @@ BRANCH_BASE_REF_DOCS = (
     REPO / ".gemini" / "GEMINI.md",
 )
 
+# Two trees, one table of contents. Bodies may differ -- `.claude/` is written for a generation
+# `.agents/` does not serve -- but a heading in one tree and not the other means a reader of the
+# other tree cannot find the topic at all. See docs/adr/workflow/reference-tree-section-parity.md.
+REFERENCE_TREES = (REPO / ".claude" / "references", REPO / ".agents" / "references")
+
+# Captures the level too: a section demoted from `##` to `###` in one tree is a structural
+# change, and matching on heading text alone would let it through. `[ \t]+` rather than `\s+`
+# so an empty `## ` cannot swallow the next paragraph, and `#{1,6}` so a divergent H1 title or
+# a deep H5 is not invisible. Trailing hashes are stripped: `## Foo ##` is the same section
+# as `## Foo`.
+HEADING = re.compile(r"^(#{1,6})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$")
+FENCE = ("```", "~~~")
+
+
+def markdown_headings(text: str) -> list[tuple[str, str]]:
+    """Headings outside fenced code blocks.
+
+    A fenced block can hold a markdown *example* -- the ADR template inside
+    architecture-decision-records.md, the sample CHANGELOG inside changelog-patterns.md. Those
+    are body content the parity decision deliberately allows to differ, so counting them as
+    structure would both couple the trees where they should be free and report a "section"
+    divergence naming a section that does not exist.
+    """
+    out: list[tuple[str, str]] = []
+    fence = ""
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith(FENCE):
+            token = stripped[:3]
+            if not fence:
+                fence = token
+            elif token == fence:
+                fence = ""
+            continue
+        if fence:
+            continue
+        match = HEADING.match(line)
+        if match:
+            out.append((match.group(1), match.group(2)))
+    return out
+
+
+def heading_texts(text: str) -> set[str]:
+    """Section names only. The four existing-code-discipline copies nest at different depths --
+    `##` in the references, `####` inside the two prompts that paste the body -- so level is not
+    comparable across them, but "is this a heading at all" still is."""
+    return {name for _level, name in markdown_headings(text)}
+
+
+def discipline_body(text: str) -> list[str]:
+    """The prose under the existing-code-discipline sections, normalized for cross-copy compare.
+
+    Heading level is dropped -- the two prompts nest the same sections one level deeper -- as are
+    blank lines. Everything else has to match, so editing the reference and leaving a pasted copy
+    behind fails here instead of drifting silently until someone reads both.
+    """
+    wanted = set(DISCIPLINE_SECTIONS)
+    body: list[str] = []
+    capturing = False
+    for line in text.splitlines():
+        match = HEADING.match(line)
+        if match:
+            capturing = match.group(2) in wanted
+            if capturing:
+                body.append(f"# {match.group(2)}")
+            continue
+        if capturing and line.strip():
+            body.append(line.strip())
+    return body
+
+
+# The reference plus the two prompts that paste its body, since Codex has no skill loader.
+EXISTING_CODE_DISCIPLINE_OWNERS = (
+    ".claude/references/workflow/existing-code-discipline.md",
+    ".agents/references/workflow/existing-code-discipline.md",
+    ".codex/prompts/j-diff-review.md",
+    ".agents/skills/cmd-j-diff-review/SKILL.md",
+)
+
+DISCIPLINE_SECTIONS = (
+    "Match Existing Patterns",
+    "Understand Before Deleting",
+    "Separate Refactoring from Features",
+    "Surface Hidden Assumptions",
+    "State Your Assumptions",
+)
+
+# Trimmed from the Claude tree by #76; the other trees follow rather than diverge. Checked
+# against heading names, not raw text: "Scope guard:" is live prose in both diff-review
+# prompts, and a whole-file substring ban would fail the moment someone title-cased it.
+DISCIPLINE_TRIMMED = ("Read Before Modifying", "Scope Guard")
+
+ASSUMPTION_ROWS = (
+    "**Data:**",
+    "**Failure:**",
+    "**Boundaries:**",
+    "**State:**",
+    "**Environment:**",
+    "**Scope:**",
+    "**Testing:**",
+)
+
+DESIGN_FIRST_OWNERS = (
+    ".claude/skills/design-first/SKILL.md",
+    ".agents/skills/design-first/SKILL.md",
+    ".gemini/antigravity-cli/skills/design-first/SKILL.md",
+)
+
+# The same pointer, in the skill that writes the plan rather than the one that designs it.
+WRITING_PLANS_OWNERS = (
+    ".claude/skills/writing-plans/SKILL.md",
+    ".agents/skills/writing-plans/SKILL.md",
+    ".gemini/antigravity-cli/skills/writing-plans/SKILL.md",
+)
+
+# Bullet labels, not sentences: a reworded rationale is fine, a deleted bullet is not.
+DESIGN_FIRST_BULLET = "**Filter for blocking**"
+WRITING_PLANS_BULLET = "**Assumptions stated**"
+
 
 def skill_directories(root: Path) -> set[str]:
     return {path.parent.name for path in root.glob("*/SKILL.md")}
@@ -266,6 +385,10 @@ def description(path: Path) -> str:
 
 
 class AgentConfigArchitectureTests(unittest.TestCase):
+    # Heading lists run past the 640-char default for 58 of 191 references, and a truncated
+    # diff names no section -- which is the one thing the failure exists to tell you.
+    maxDiff = None
+
     def test_shared_skills_do_not_contain_agent_wrappers(self):
         wrappers = sorted((REPO / ".agents" / "skills").glob("agent-*/SKILL.md"))
         self.assertEqual(wrappers, [])
@@ -807,6 +930,145 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertFalse((REPO / ".gemini" / "settings.json").exists(), "root .gemini/settings.json must not exist")
         self.assertFalse((REPO / ".gemini" / "commands").exists(), "legacy commands/ must not exist")
         self.assertFalse((REPO / ".gemini" / "agents").exists(), "legacy agents/ must not exist")
+
+    def test_reference_trees_hold_the_same_files(self):
+        """The section check below walks the Claude tree, so a `.claude`-only file fails loudly
+        there. The reverse does not: an `.agents`-only reference is loaded by Codex and Gemini and
+        checked by nobody, because audit.py never reads that tree. This closes that direction."""
+        claude, agents = REFERENCE_TREES
+        self.assertTrue(
+            claude.is_dir(), f"{claude} is missing; every parity check would pass vacuously"
+        )
+        self.assertTrue(
+            agents.is_dir(), f"{agents} is missing; every parity check would pass vacuously"
+        )
+        claude_files = {path.relative_to(claude).as_posix() for path in claude.rglob("*.md")}
+        agents_files = {path.relative_to(agents).as_posix() for path in agents.rglob("*.md")}
+        self.assertGreater(len(claude_files), 0, "no references found at all; the check is vacuous")
+        self.assertEqual(claude_files, agents_files, "the two reference trees hold different files")
+
+    def test_reference_trees_expose_the_same_sections(self):
+        """Bodies may differ -- `Explore` in the Claude tree is "a dispatched search subagent" in
+        the shared one, because Codex and Gemini have no tool by that name. Section sets may not:
+        a heading in one tree and not the other means a reader of the other tree cannot find the
+        topic. See docs/adr/workflow/reference-tree-section-parity.md."""
+        claude, agents = REFERENCE_TREES
+        compared = 0
+        for claude_file in sorted(claude.rglob("*.md")):
+            rel = claude_file.relative_to(claude)
+            agents_file = agents / rel
+            with self.subTest(reference=str(rel)):
+                self.assertTrue(agents_file.is_file(), f"{rel} missing from .agents/references/")
+                self.assertEqual(
+                    markdown_headings(claude_file.read_text(encoding="utf-8")),
+                    markdown_headings(agents_file.read_text(encoding="utf-8")),
+                    f"{rel}: heading sets diverge between trees",
+                )
+            compared += 1
+        self.assertGreater(compared, 0, "no reference pairs compared; the check is vacuous")
+
+    def test_shared_references_do_not_cite_the_claude_reference_tree(self):
+        """Codex and Gemini read .agents/ and have no .claude/ checkout, so a citation naming
+        that tree resolves nowhere. audit.py is Claude-only and never sees these.
+
+        Scoped to `.claude/references/` on purpose: permission-management.md, hook-patterns.md,
+        and context-efficiency.md document Claude Code's own settings and config layout, so
+        `.claude/settings.json` and `.claude/CLAUDE.md` are correct content there rather than
+        dangling pointers. Scoped to references/ rather than all of .agents/ for the same reason
+        -- skill-audit names the Claude tree because auditing it is the skill's whole job."""
+        _, agents = REFERENCE_TREES
+        offenders = []
+        scanned = 0
+        for agents_file in sorted(agents.rglob("*.md")):
+            scanned += 1
+            rel = agents_file.relative_to(REPO)
+            lines = agents_file.read_text(encoding="utf-8").splitlines()
+            offenders += [
+                f"{rel}:{n}: {line.strip()}"
+                for n, line in enumerate(lines, 1)
+                if ".claude/references/" in line
+            ]
+        self.assertGreater(scanned, 0, "no shared references scanned; the check is vacuous")
+        self.assertEqual(
+            offenders, [], "shared references cite the Claude tree:\n" + "\n".join(offenders)
+        )
+
+    def test_existing_code_discipline_is_one_document_in_every_tree(self):
+        """Four copies, one section set and one body. Two paste the text rather than linking it,
+        so an edit to the reference alone leaves the diff-review prompts stale -- and comparing
+        section names alone would not notice, because the prose is where the guidance lives."""
+        bodies = {}
+        for rel in EXISTING_CODE_DISCIPLINE_OWNERS:
+            path = REPO / rel
+            with self.subTest(owner=rel):
+                self.assertTrue(path.is_file(), f"{rel} is missing")
+                text = path.read_text(encoding="utf-8")
+                names = heading_texts(text)
+                for section in DISCIPLINE_SECTIONS:
+                    self.assertIn(section, names, f"{rel} has no section named {section!r}")
+                for section in DISCIPLINE_TRIMMED:
+                    self.assertNotIn(
+                        section, names, f"{rel} still has section {section!r}, trimmed in #76"
+                    )
+                missing = [row for row in ASSUMPTION_ROWS if row not in text]
+                self.assertEqual(missing, [], f"{rel} is missing taxonomy rows: {missing}")
+                bodies[rel] = discipline_body(text)
+        source = EXISTING_CODE_DISCIPLINE_OWNERS[0]
+        self.assertGreater(
+            len(bodies[source]), 0, f"{source} yielded no discipline prose; the check is vacuous"
+        )
+        for rel in EXISTING_CODE_DISCIPLINE_OWNERS[1:]:
+            with self.subTest(owner=rel):
+                self.assertEqual(bodies[source], bodies[rel], f"{rel} has drifted from {source}")
+
+    def test_design_first_and_writing_plans_reach_the_taxonomy(self):
+        """A recommended answer makes a question cheap to answer; the filter is what keeps the
+        count down. The pointer is what puts the taxonomy in front of the work at all -- neither
+        skill indexes a reference otherwise. Pinned by bullet label rather than by sentence, so
+        rewording the rationale is free and deleting the bullet is not."""
+        checked = 0
+        for owners, bullet in (
+            (DESIGN_FIRST_OWNERS, DESIGN_FIRST_BULLET),
+            (WRITING_PLANS_OWNERS, WRITING_PLANS_BULLET),
+        ):
+            self.assertTrue(bullet, "bullet label is empty; the check would be vacuous")
+            for rel in owners:
+                checked += 1
+                with self.subTest(skill=rel):
+                    path = REPO / rel
+                    self.assertTrue(path.is_file(), f"{rel} is missing")
+                    text = path.read_text(encoding="utf-8")
+                    tree = "claude" if rel.split("/", 1)[0] == ".claude" else "agents"
+                    pointer = f".{tree}/references/workflow/existing-code-discipline.md"
+                    self.assertTrue(bullet in text, f"{rel} has no {bullet} bullet")
+                    self.assertTrue(pointer in text, f"{rel} does not point at {pointer}")
+        self.assertEqual(
+            checked,
+            len(DESIGN_FIRST_OWNERS) + len(WRITING_PLANS_OWNERS),
+            "owner lists shrank; the check is vacuous",
+        )
+
+    def test_shared_skills_are_byte_identical_in_the_gemini_tree(self):
+        """Gemini loads its own copy of every shared skill and nothing rewrites them on sync, so
+        the pair is supposed to be the same bytes. `cmd-j-*` is excluded: those are commands, and
+        each harness adapts their body. A convention 30 skills keep and no test held."""
+        agents_skills = REPO / ".agents" / "skills"
+        gemini_skills = REPO / ".gemini" / "antigravity-cli" / "skills"
+        compared = 0
+        for source in sorted(agents_skills.glob("*/SKILL.md")):
+            name = source.parent.name
+            if name.startswith("cmd-j-"):
+                continue
+            mirror = gemini_skills / name / "SKILL.md"
+            with self.subTest(skill=name):
+                self.assertTrue(mirror.is_file(), f"{name} has no Gemini copy")
+                self.assertEqual(
+                    source.read_text(encoding="utf-8"),
+                    mirror.read_text(encoding="utf-8"),
+                    f"{name}: the .agents and .gemini copies have diverged",
+                )
+            compared += 1
+        self.assertGreater(compared, 0, "no shared skills compared; the check is vacuous")
 
 
 if __name__ == "__main__":

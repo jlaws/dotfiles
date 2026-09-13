@@ -16,28 +16,6 @@ Department Views: Sales, Marketing, Operations, Finance dashboards
 Detailed Drilldowns: Individual metrics, root cause analysis
 ```
 
-## Common KPIs by Department
-
-```yaml
-Sales:
-  Revenue: MRR, ARR, ARPU, Revenue Growth Rate
-  Pipeline: Pipeline Value, Win Rate, Deal Size, Sales Cycle Length
-
-Marketing:
-  Acquisition: CPA, CAC, Lead Volume, MQLs
-  ROI: Marketing ROI, Channel Attribution, CAC Payback Period
-
-Product:
-  Usage: DAU/MAU, Session Duration, Feature Adoption, Stickiness
-  Quality: NPS, CSAT, Bug Count, Time to Resolution
-  Growth: User Growth Rate, Activation Rate, Retention Rate, Churn Rate
-
-Finance:
-  Profitability: Gross Margin, Net Profit Margin, EBITDA
-  Liquidity: Current Ratio, Cash Flow, Working Capital
-  Efficiency: Revenue per Employee, Operating Expense Ratio
-```
-
 ## Layout: SaaS Metrics Dashboard
 
 ```

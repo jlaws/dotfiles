@@ -110,7 +110,7 @@ Package.swift
 
 **Rule**: Start with `weak`, switch to `unowned` only after profiling shows measurable overhead.
 
-For detailed retain cycle examples and the weak self dance, see [references/memory-management.md](references/memory-management.md).
+For detailed retain cycle examples and the weak self dance, see [references/languages/memory-management.md](references/languages/memory-management.md).
 
 ## Concurrency Patterns
 
@@ -124,7 +124,7 @@ For detailed retain cycle examples and the weak self dance, see [references/memo
 
 **Rule**: Always prefer async/await unless integrating with legacy GCD code.
 
-For @MainActor, actors, TaskGroup, AsyncStream, and cancellation examples, see [references/concurrency-patterns.md](references/concurrency-patterns.md).
+For @MainActor, actors, TaskGroup, AsyncStream, and cancellation examples, see [references/languages/concurrency-patterns.md](references/languages/concurrency-patterns.md).
 
 ## Common Gotchas
 
@@ -151,8 +151,8 @@ For @MainActor, actors, TaskGroup, AsyncStream, and cancellation examples, see [
 
 ## Testing & Error Handling
 
-For XCTest, Swift Testing, dependency injection, Result type, and custom error patterns, see [references/testing-and-errors.md](references/testing-and-errors.md).
+For XCTest, Swift Testing, dependency injection, and custom error patterns, see [references/languages/testing-and-errors.md](references/languages/testing-and-errors.md).
 
 ## Performance
 
-For lazy properties, custom COW, @inline hints, and Instruments profiling guidance, see [references/swift-performance.md](references/swift-performance.md).
+For lazy properties, custom COW, @inline hints, and Instruments profiling guidance, see [references/languages/swift-performance.md](references/languages/swift-performance.md).

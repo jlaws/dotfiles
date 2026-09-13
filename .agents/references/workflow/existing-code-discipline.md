@@ -3,12 +3,6 @@
 
 Rules for working within an existing codebase. Complements code-quality (smells/style) and refactoring-and-debt (refactoring cadence).
 
-## Read Before Modifying
-
-- **Read the entire file** before changing any part of it — not just the section you plan to edit
-- Understand the file's structure, conventions, and how your target section relates to the rest
-- Check for file-level comments, configuration blocks, or initialization that affects your change
-
 ## Match Existing Patterns
 
 - **Never introduce a new pattern** alongside an existing one without explicitly flagging the inconsistency
@@ -25,12 +19,6 @@ Code may be used in ways not visible through static analysis:
 
 **If unsure whether code is used: ask, don't delete.**
 
-## Scope Guard
-
-- If a "small fix" grows mid-implementation — **STOP and ask**
-- Define your change boundary before starting; resist scope creep
-- A fix that touches 3 files should not silently become a fix that touches 12
-
 ## Separate Refactoring from Features
 
 - Different commits minimum, different branches preferred
@@ -44,3 +32,21 @@ Watch for and document when you encounter:
 - Undocumented invariants (field X is always non-null after method Y)
 - Concurrency assumptions (single-threaded, lock held, queue ordering)
 - Environment assumptions (only works on macOS, requires specific env vars)
+
+## State Your Assumptions
+
+State them numbered and falsifiable — something a reader can check and call wrong. "Inputs are under
+10k rows and fit in memory" is an assumption. "The code should be maintainable" is not.
+
+Cover whichever rows the work actually touches:
+
+- **Data:** shape, volume, trust level, encoding, and what a malformed input looks like
+- **Failure:** what happens on timeout, partial write, or a downstream 500 — retry, fail loud, or degrade
+- **Boundaries:** who calls this, what is public API versus internal, what backwards-compat it owes
+- **State:** concurrency, idempotency, transactionality, ordering guarantees
+- **Environment:** runtime version, where it deploys, what it is allowed to reach
+- **Scope:** what you are deliberately not doing, and what you are leaving as a TODO
+- **Testing:** what you will cover, and what you will leave uncovered
+
+Auth, money, migrations, and deletion get more suspicion than the rest — there, be more skeptical of
+your own assumptions than the work seems to warrant.

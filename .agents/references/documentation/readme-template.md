@@ -60,8 +60,3 @@ MIT
 - Link out to detailed docs rather than inlining everything
 - Keep badges to 3-5 max; CI, version, license are standard
 
-### Newcomer-Focused Documentation
-- Write READMEs assuming the reader has **minimal context** -- aim to get them productive quickly
-- Include: high-level purpose, major concepts/abstractions, how it fits into the broader ecosystem
-- Give directions (or better yet, a real working example) on how to get a concrete integration running
-- Keep it concise -- long docs get skimmed, short docs get read

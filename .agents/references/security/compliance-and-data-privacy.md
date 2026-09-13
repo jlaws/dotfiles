@@ -139,4 +139,4 @@ Access, Rectification, Erasure, Restrict Processing, Portability, Object
 
 ## References
 
-- .claude/references/business/payment-systems.md — PCI-DSS compliant payment implementation
+- `references/business/payment-systems.md` — PCI-DSS compliant payment implementation

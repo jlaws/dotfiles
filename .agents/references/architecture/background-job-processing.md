@@ -164,7 +164,8 @@ def on_task_failure(sender=None, task_id=None, exception=None,
         redis_client.lpush("dlq", json.dumps({
             "task_name": sender.name, "task_id": task_id,
             "args": args, "kwargs": kwargs,
-            "exception": str(exception), "failed_at": datetime.now(timezone.utc).isoformat(),
+            "exception": str(exception),
+            "failed_at": datetime.now(timezone.utc).isoformat(),
         }))
 
 def replay_dead_letters(limit=100):

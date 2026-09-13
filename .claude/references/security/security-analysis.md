@@ -179,4 +179,4 @@ Synthesize into Threat Model Document (system overview, STRIDE table, attack tre
 
 ## References
 
-- .claude/references/ai-ml/ai-safety-and-alignment.md — AI-specific security and safety considerations
+- `references/ai-ml/ai-safety-and-alignment.md` — AI-specific security and safety considerations

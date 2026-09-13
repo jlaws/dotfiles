@@ -25,26 +25,6 @@ CREATE INDEX idx_posts_search ON posts USING GIN(to_tsvector('english', title ||
 CREATE INDEX idx_metadata ON events USING GIN(metadata);
 ```
 
-## N+1 Query Fix
-
-```python
-# BAD: N+1 queries
-users = db.query("SELECT * FROM users LIMIT 10")
-for user in users:
-    orders = db.query("SELECT * FROM orders WHERE user_id = ?", user.id)
-```
-
-```sql
--- FIX: JOIN
-SELECT u.id, u.name, o.id as order_id, o.total
-FROM users u
-LEFT JOIN orders o ON u.id = o.user_id
-WHERE u.id IN (1, 2, 3, 4, 5);
-
--- FIX: Batch query
-SELECT * FROM orders WHERE user_id IN (1, 2, 3, 4, 5);
-```
-
 ## Cursor-Based Pagination
 
 ```sql
@@ -76,34 +56,6 @@ FROM orders
 WHERE status = 'completed'
 GROUP BY user_id
 HAVING COUNT(*) > 10;
-```
-
-## Subquery to JOIN Refactor
-
-```sql
--- BAD: Correlated subquery
-SELECT u.name, (SELECT COUNT(*) FROM orders o WHERE o.user_id = u.id) as order_count
-FROM users u;
-
--- GOOD: JOIN with aggregation
-SELECT u.name, COUNT(o.id) as order_count
-FROM users u
-LEFT JOIN orders o ON o.user_id = u.id
-GROUP BY u.id, u.name;
-
--- CTEs for clarity
-WITH recent_users AS (
-    SELECT id, name, email FROM users
-    WHERE created_at > NOW() - INTERVAL '30 days'
-),
-user_order_counts AS (
-    SELECT user_id, COUNT(*) as order_count FROM orders
-    WHERE created_at > NOW() - INTERVAL '30 days'
-    GROUP BY user_id
-)
-SELECT ru.name, COALESCE(uoc.order_count, 0) as orders
-FROM recent_users ru
-LEFT JOIN user_order_counts uoc ON ru.id = uoc.user_id;
 ```
 
 ## Batch Operations
@@ -138,20 +90,6 @@ CREATE INDEX idx_user_summary_spent ON user_order_summary(total_spent DESC);
 
 -- Concurrent refresh (no lock)
 REFRESH MATERIALIZED VIEW CONCURRENTLY user_order_summary;
-```
-
-## Partitioning
-
-```sql
-CREATE TABLE orders (
-    id SERIAL, user_id INT, total DECIMAL, created_at TIMESTAMP
-) PARTITION BY RANGE (created_at);
-
-CREATE TABLE orders_2024_q1 PARTITION OF orders
-    FOR VALUES FROM ('2024-01-01') TO ('2024-04-01');
-
--- Queries auto-prune partitions
-SELECT * FROM orders WHERE created_at BETWEEN '2024-02-01' AND '2024-02-28';
 ```
 
 ## Monitoring Queries

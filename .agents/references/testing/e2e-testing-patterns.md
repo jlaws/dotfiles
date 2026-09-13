@@ -45,12 +45,6 @@
 
 **Never use**: CSS classes, nth-child, complex XPath, DOM structure
 
-### Test Data Management
-- Each test creates its own data (API calls in `beforeEach` or fixtures)
-- Never depend on data from another test
-- Clean up after yourself -- or use isolated test accounts
-- Use unique identifiers (timestamps, UUIDs) to avoid collisions in parallel runs
-
 ## Flaky Test Prevention
 
 ### Waiting Strategy

@@ -107,8 +107,10 @@ df = table.scan(snapshot_id=123456789).to_pandas()
 # Read as of timestamp
 from datetime import datetime, timezone
 
+# Always pass an aware datetime -- naive .timestamp() is read as local time,
+# so the same code selects a different snapshot on a machine outside UTC.
 snap = table.snapshot_as_of_timestamp(
-    int(datetime(2025, 1, 15).timestamp() * 1000),
+    int(datetime(2025, 1, 15, tzinfo=timezone.utc).timestamp() * 1000),
 )
 df = table.scan(snapshot_id=snap.snapshot_id).to_pandas()
 

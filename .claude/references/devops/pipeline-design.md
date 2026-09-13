@@ -127,11 +127,11 @@ deploy:
 
 **Quick pick**: Turborepo for <50 packages, Nx when you need guardrails, Bazel for polyglot at scale (>100 packages / >500 engineers).
 
-For detailed monorepo patterns, see [references/monorepo-tools.md](references/monorepo-tools.md).
+For detailed monorepo patterns, see [references/devops/monorepo-tools.md](references/devops/monorepo-tools.md).
 
 ## References
 
-- .claude/references/data/airflow-dag-patterns.md — Airflow DAG design patterns for data pipelines
+- `references/data/airflow-dag-patterns.md` — Airflow DAG design patterns for data pipelines
 
 ## Cross-References
 
