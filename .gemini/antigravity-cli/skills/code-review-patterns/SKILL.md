@@ -89,95 +89,6 @@ skills:
 
 ---
 
-## Pre-Submission Diff Review
-
-Self-review workflow for current branch changes vs main. Catch issues before reviewers do.
-
-**Do NOT use `gh` or any GitHub CLI commands. All information must come from local git.**
-
-### Step 1 — Identify Changes
-
-```bash
-git diff main...HEAD
-git log main..HEAD --oneline
-```
-
-FAIL FAST if current branch IS main or has no commits ahead of main.
-
-### Step 2 — Gather Full Context
-
-```bash
-git diff main...HEAD --name-only
-```
-
-**Read every changed file in full** — not just diff hunks. Context beyond changed lines catches cross-cutting issues.
-
-### Step 3 — Detect Review Scope
-
-Inspect file extensions. Load matching language skills:
-
-| Extension | Skill |
-|-----------|-------|
-| `.py` | `languages:python-patterns` |
-| `.js`, `.ts`, `.tsx` | `languages:js-ts-patterns` |
-| `.go` | `languages:go-concurrency-patterns` |
-| `.sh` | `languages:bash-defensive-patterns` |
-| `.swift` | `languages:swift-patterns` |
-| `.rs` | `languages:rust-project-patterns` |
-
-Flag missing tests if diff modifies source but includes no test changes.
-
-### Step 4 — Multi-Perspective Analysis
-
-Analyze the diff from each perspective independently, then merge findings.
-
-**4.1 Code Review** — Edge cases, error handling, logic errors, missing validation (Phase 3 checklist above).
-
-**4.2 Code Quality** — Cross-reference `workflow:code-quality`: smells, naming, DRY violations, unnecessary complexity, coupling.
-
-**4.3 Security** — Cross-reference `security:security-analysis`: STRIDE threats, injection, XSS, SSRF, path traversal, auth gaps, secrets in code, insecure defaults.
-
-**4.4 Testing** — Cross-reference `testing:language-testing-patterns`: coverage gaps, test quality (behavior vs implementation), missing integration tests, flaky indicators.
-
-**4.5 Language-Specific Gotchas** — Apply auto-detected `languages:*-patterns` skills. See [references/language-gotchas.md](references/language-gotchas.md).
-
-**4.6 Documentation** — Cross-reference `workflow:documentation-validation`: does the diff change public surface (API, CLI, config) or documented behavior without updating README/API docs/CHANGELOG? Flag stale docs as a finding.
-
-### Step 5 — Structured Findings Report
-
-```markdown
-## Diff Review — {BRANCH_NAME}
-
-### Critical
-- {finding} — {file:line} — {perspective}
-
-### High
-- {finding} — {file:line} — {perspective}
-
-### Medium
-- {finding} — {file:line} — {perspective}
-
-### Test Gaps
-- {description of missing coverage}
-
-### What Looks Good
-- {positive observation}
-```
-
-Omit empty severity sections. Always include "What Looks Good".
-
-### Step 6 — Decision Gate
-
-**Default: report only.** Do NOT automatically implement fixes.
-
-After presenting findings, ask:
-1. Implement fixes for findings above
-2. Nothing — review complete
-
-If implementing, follow `workflow:pr-comment-resolution` Step 4 (scope guard, atomic commits, verify before push).
-
----
-
 ## Receiving & Responding to Reviews
 
 ### Response Pattern
@@ -241,7 +152,7 @@ For large diffs (>500 lines), ensure thorough coverage by analyzing sequentially
 1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection, auth gaps
 2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY violations
 3. **Testing** — Coverage gaps, test quality (behavior vs implementation), missing integration tests
-4. **Language-Specific** — Language-specific gotchas, idiom violations, anti-patterns
+4. **Language-Specific** — Language-specific gotchas, idiom violations, anti-patterns; see [references/language-gotchas.md](references/language-gotchas.md)
 
 Analyze each perspective independently, then synthesize: deduplicate, resolve contradictions, produce unified findings report.
 

@@ -75,11 +75,11 @@ Perfectionism (blocking for style) | Scope creep ("while you're at it...") | Del
 
 ---
 
-### Pre-Submission Diff Review
+### Diff Review Workflow
 
 Self-review workflow for current branch changes vs main. Catch issues before reviewers do.
 
-**Do NOT use `gh` or any GitHub CLI commands. All information must come from local git.**
+**Steps 1-5 use local git only -- no `gh` or any GitHub CLI. All review evidence must come from local git.** Step 7 is the exception, and only after the report is written.
 
 #### Step 1 — Identify Changes
 
@@ -105,14 +105,16 @@ git diff main...HEAD --name-only
 
 Inspect file extensions and note which languages the diff touches, so the `language-specialist` agent can load the matching patterns. Do not run the language pass inline — it is a delegated perspective (Step 4.5).
 
-| Extension | Pattern Set |
+| Extension | Reference under `.agents/references/languages/` |
 |-----------|-------------|
-| `.py` | Python patterns |
-| `.js`, `.ts`, `.tsx` | JS/TS patterns |
-| `.go` | Go concurrency patterns |
-| `.sh` | Bash defensive patterns |
-| `.swift` | Swift patterns |
-| `.rs` | Rust project patterns |
+| `.py` | `python-patterns.md` |
+| `.js`, `.ts`, `.tsx` | `js-ts-patterns.md` |
+| `.go` | `go-concurrency-patterns.md` |
+| `.sh` | `bash-defensive-patterns.md` |
+| `.swift` | `swift-patterns.md` |
+| `.rs` | `rust-project-patterns.md` |
+
+For anything else, glob that directory for the closest match; if none fits, say so in the report rather than dropping the perspective.
 
 Flag missing tests if diff modifies source but includes no test changes.
 
@@ -183,6 +185,26 @@ Read the code a finding touches before deciding. Reaching rung 4 without having 
 This step is the one exception to the read-only reviewer contract stated in the Verification Before Completion section below. That contract binds the six dispatched agents absolutely, and it binds you for Steps 1-5; rung 1 is the hand-off to the fixing actor, performed by you only after the report exists. Write the report first, then act — never edit before Step 5 is on the page.
 
 Scope guard: fixing a finding does not license unrelated refactors. If a fix grows past the diff's boundary, revert the partial edit, then take the next applicable rung. Follow the Receiving & Responding to Reviews section above (scope guard, atomic commits, verify before push).
+
+#### Step 7 — Land the Fixes
+
+A rung-1 fix is a commit on your branch and nothing else. A commit that never reaches the PR is a finding the reviewer still cannot see. With no rung-1 commit there is nothing to push, but the step still runs: every diff-review ends with the PR link.
+
+```bash
+gh pr view --json number,url,state
+```
+
+- **A PR is open** — `git push` the fixes to it. Never open a second one. With nothing to push, report its URL anyway.
+- **No PR** — run the project's full test suite, confirm the docs match what changed, then:
+  ```bash
+  git push -u origin <branch>
+  gh pr create --title "<title>" --body "<body>"
+  ```
+  Write a real body — never `--fill`.
+
+Report the PR URL on the last line of the run, beside the Step 5 verdict. This is unconditional: a run that fixed nothing still ends with the link.
+
+Step 1's "local git only, no `gh`" rule scopes to Steps 1-5, where PR metadata could contaminate the review. It does not bind this step: the report is written and every finding is disposed of.
 
 ---
 

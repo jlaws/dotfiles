@@ -40,6 +40,7 @@ Follow these steps in order:
 - If nothing staged, skip
 
 ## 4. Push & Create PR
+- Run `gh pr view --json number,url,state` first. If a PR is already open for this branch, `git push` to it, skip `gh pr create`, and report that PR's URL
 - Run `git push -u origin <branch>`
 - Create PR with explicit title and body (never use `--fill`):
   - Title: the commit message or a summary of changes
@@ -47,5 +48,5 @@ Follow these steps in order:
   - Run `gh pr create --title "<title>" --body "<body>"`
 
 ## 5. Output
-- Display the PR URL returned by `gh pr create`
+- Display the PR URL: the one `gh pr create` returned, or the already-open PR's URL from step 4
 - Summarize: branch name, commit count, files changed

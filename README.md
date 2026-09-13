@@ -140,6 +140,24 @@ Some settings can't be automated and require manual setup:
 - **Security & Privacy** → Firewall (enable)
 - **Keyboard** → Modifier Keys (Caps Lock → Escape, if desired)
 
+### Developer Tools
+
+macOS assesses every binary a terminal spawns. Granting the terminal the Developer Tools
+entitlement exempts its child processes, which removes the stall on unsigned build output.
+
+```zsh
+spctl developer-mode enable-terminal
+```
+
+It prints `Terminal added as a developer tool.` Turn it on in System Settings → Privacy &
+Security → Developer Tools.
+
+`spctl` only recognizes `Terminal.app`, `iTerm.app`, `Alacritty.app`, `Xcode.app`,
+`Xcode-beta.app`, and `CommandLineTools`. **Ghostty is not on that list**, so the command does
+nothing for it, and on macOS 15+ `spctl` may answer `This operation is no longer supported.`
+Either way the fallback is the same: open System Settings → Privacy & Security → Developer
+Tools and drag in `/Applications/Ghostty.app`.
+
 ### Applications
 - **Ghostty**: Primary terminal — config reference at `ghosty_config.txt` in repo root
 - **Xcode**: Sign in with Apple ID, install additional components

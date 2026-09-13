@@ -196,6 +196,25 @@ ALWAYS_LOADED_CEILINGS = {
     REPO / ".gemini" / "GEMINI.md": 17500,
 }
 
+# A versioned model ID in a delegation ladder. The vendor word may be followed by up to two lowercase
+# segments before the version, so this catches `claude-opus-5` and `claude-haiku-4-5` as well as
+# `gpt-6-astra`; matching only `vendor` + digit would miss every current Claude ID. A digit is
+# required, which keeps the floating aliases (opus, sonnet, haiku, fable, flash, pro) legal.
+PINNED_MODEL = re.compile(
+    r"\b(?:gpt|claude|gemini|opus|sonnet|haiku|fable)(?:[- ][a-z]+){0,2}[- ]\d"
+)
+
+# Every asset whose run ends on a pull request. Each reports the URL; `create-pr` additionally has
+# to look for an already-open PR the way `finishing-branch` does, instead of always creating one.
+PR_URL_SURFACES = (
+    REPO / ".claude" / "skills" / "pr-comment-resolution" / "SKILL.md",
+    REPO / ".agents" / "skills" / "pr-comment-resolution" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "pr-comment-resolution" / "SKILL.md",
+    REPO / ".claude" / "agents" / "create-pr.md",
+    REPO / ".codex" / "agents" / "create-pr.toml",
+    REPO / ".gemini" / "config" / "agents" / "create-pr.md",
+)
+
 # The byte ceiling above is a standing instruction to cut prose from these files. These are the
 # lines that "cut something" must never reach -- each one prevents an irreversible action or a
 # prompt-injection foothold, and none of them is recoverable by noticing it went missing.
@@ -637,6 +656,130 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("git rev-parse HEAD", content)
                 self.assertIn("HEAD SHA", content)
                 self.assertIn("do not create or request a worktree", content)
+
+    def test_delegation_ladders_name_no_pinned_model(self):
+        """A ladder rung that names a model version goes stale every generation, so rungs describe
+        tiers by role. Scoped to bullets on purpose: GEMINI.md's prose names a slug as a worked
+        `--model` example and ships `agy models` beside it as the freshness pointer, which is the
+        staleness problem already solved rather than an instance of it. The regex needs a digit, so
+        floating aliases (opus, sonnet, haiku, fable, flash, pro) stay legal."""
+        for path in ALWAYS_LOADED_CEILINGS:
+            pinned = [
+                line
+                for line in path.read_text(encoding="utf-8").splitlines()
+                if line.lstrip().startswith(("-", "*")) and PINNED_MODEL.search(line)
+            ]
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertEqual(
+                    pinned, [], f"{path.name} pins a model version; use a role or floating alias"
+                )
+
+    def test_pr_workflows_report_the_url_and_reuse_the_open_pr(self):
+        """Every asset that ends on a PR reports its URL, and never opens a second PR for a branch
+        that already has one -- the guard `finishing-branch` has and these did not."""
+        for path in PR_URL_SURFACES:
+            body = path.read_text(encoding="utf-8")
+            rel = path.relative_to(REPO)
+            with self.subTest(path=rel):
+                self.assertTrue("PR URL" in body, f"{rel} never reports the PR URL")
+                if path.stem == "create-pr":
+                    # Codex agents are prose and name no shell commands, so the guard is stated
+                    # rather than scripted there. Both forms have to say a PR may already exist.
+                    self.assertTrue(
+                        "already open" in body, f"{rel}: no open-PR guard before creating one"
+                    )
+                    if path.suffix == ".md":
+                        self.assertTrue(
+                            "gh pr view" in body, f"{rel}: guard names no lookup command"
+                        )
+
+    def test_always_loaded_configs_require_reporting_the_pr_url(self):
+        """"Provide the PR link when done" is a standing rule, not a diff-review-only one. Each
+        harness config states it where its Git rules live."""
+        for path in ALWAYS_LOADED_CEILINGS:
+            rel = path.relative_to(REPO)
+            with self.subTest(path=rel):
+                body = path.read_text(encoding="utf-8")
+                self.assertTrue("PR URL" in body, f"{rel} never asks for the PR URL")
+
+    def test_diff_review_lands_fixes_on_the_pr(self):
+        """A rung-1 fix that stays a local commit is a finding the reviewer never sees. Every tree's
+        diff-review ends by pushing to the branch's open PR and reporting its URL."""
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            rel = path.relative_to(REPO)
+            with self.subTest(path=rel):
+                self.assertTrue(
+                    "gh pr view" in body, f"{rel}: no open-PR lookup after the ladder"
+                )
+                self.assertTrue("PR URL" in body, f"{rel}: the run never reports the PR URL")
+                self.assertTrue("Steps 1-5" in body, f"{rel}: the gh ban is unscoped")
+                # The push is conditional on a rung-1 commit; reporting the link never is. Gating
+                # both on the same condition is the regression -- a clean review then ends with no
+                # link, which is the behavior this step was added to remove.
+                self.assertTrue(
+                    "unconditional" in body, f"{rel}: the PR link report is gated on a fix existing"
+                )
+
+    def test_diff_review_maps_extensions_to_language_references(self):
+        """Deleting the duplicate workflow from `code-review-patterns` also removed the only
+        extension-to-reference mapping the Claude and Gemini commands had; their Step 3 named a
+        directory of 20+ files instead. Every tree carries the mapping in its own Step 3 now."""
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            rel = path.relative_to(REPO)
+            for ext, ref in (
+                (".py", "python-patterns.md"),
+                (".js", "js-ts-patterns.md"),
+                (".ts", "js-ts-patterns.md"),
+                (".tsx", "js-ts-patterns.md"),
+                (".go", "go-concurrency-patterns.md"),
+                (".sh", "bash-defensive-patterns.md"),
+                (".swift", "swift-patterns.md"),
+                (".rs", "rust-project-patterns.md"),
+            ):
+                with self.subTest(path=rel, ext=ext):
+                    self.assertTrue(
+                        f"`{ext}`" in body, f"{rel}: Step 3 maps no reference for {ext}"
+                    )
+                    # Naming the file, not a prose label like "Python patterns": the Codex and
+                    # `.agents` trees have no skill loader, so a label resolves to nothing there.
+                    self.assertTrue(
+                        f"`{ref}`" in body, f"{rel}: {ext} maps to no resolvable reference file"
+                    )
+                    self.assertTrue(
+                        (REPO / ".agents" / "references" / "languages" / ref).is_file(),
+                        f"{rel}: Step 3 names {ref}, which the repo does not ship",
+                    )
+
+    def test_one_diff_review_workflow_per_tree(self):
+        """`code-review-patterns` used to carry a second diff-review workflow whose Step 6 said
+        report-only while the command's said fix-and-commit. The command owns the workflow; the
+        skill owns mindset, severity labels, and feedback. The two inlined command bodies keep a
+        disposition ladder because there the section *is* the command."""
+        inlined = (
+            REPO / ".codex" / "prompts" / "j-diff-review.md",
+            REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
+        )
+        checked = 0
+        for tree in TREE_ROOTS:
+            for path in sorted((REPO / tree).rglob("code-review-patterns/SKILL.md")):
+                body = path.read_text(encoding="utf-8")
+                with self.subTest(path=path.relative_to(REPO)):
+                    rel = path.relative_to(REPO)
+                    self.assertFalse(
+                        "Pre-Submission Diff Review" in body,
+                        f"{rel} still carries the duplicate diff-review workflow",
+                    )
+                    self.assertFalse(
+                        "Decision Gate" in body,
+                        f"{rel} still carries the report-only Step 6",
+                    )
+                checked += 1
+        self.assertGreater(checked, 0, "no code-review-patterns copies compared; check is vacuous")
+        for path in inlined:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("Disposition Ladder", path.read_text(encoding="utf-8"))
 
     def test_branch_workflows_resolve_their_base_through_the_remote(self):
         for path in BRANCH_BASE_REF_DOCS:

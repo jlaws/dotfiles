@@ -93,6 +93,7 @@
     "pr": ""
   },
   "skillListingBudgetFraction": 0.03,
+  "outputStyle": "Concise",
   "sandbox": {
     "enabled": false,
     "autoAllowBashIfSandboxed": true,
