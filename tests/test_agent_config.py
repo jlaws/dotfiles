@@ -190,7 +190,19 @@ UNCONDITIONAL_STRUCTURE_PHRASES = (
 # Bump deliberately if you add a documented rule; do not bump because of phrasing creep. Measured
 # 2026-09-12; headroom is ~10% over actual, which is enough for a real addition and not enough to
 # absorb drift unnoticed.
-PINNED_MODEL = re.compile(r"\b(?:gpt|claude|gemini)[- ]\d")
+ALWAYS_LOADED_CEILINGS = {
+    REPO / ".claude" / "CLAUDE.md": 8000,
+    REPO / ".codex" / "AGENTS.md": 12700,
+    REPO / ".gemini" / "GEMINI.md": 17500,
+}
+
+# A versioned model ID in a delegation ladder. The vendor word may be followed by up to two lowercase
+# segments before the version, so this catches `claude-opus-5` and `claude-haiku-4-5` as well as
+# `gpt-6-astra`; matching only `vendor` + digit would miss every current Claude ID. A digit is
+# required, which keeps the floating aliases (opus, sonnet, haiku, fable, flash, pro) legal.
+PINNED_MODEL = re.compile(
+    r"\b(?:gpt|claude|gemini|opus|sonnet|haiku|fable)(?:[- ][a-z]+){0,2}[- ]\d"
+)
 
 # Every asset whose run ends on a pull request. Each reports the URL; `create-pr` additionally has
 # to look for an already-open PR the way `finishing-branch` does, instead of always creating one.
@@ -202,12 +214,6 @@ PR_URL_SURFACES = (
     REPO / ".codex" / "agents" / "create-pr.toml",
     REPO / ".gemini" / "config" / "agents" / "create-pr.md",
 )
-
-ALWAYS_LOADED_CEILINGS = {
-    REPO / ".claude" / "CLAUDE.md": 8000,
-    REPO / ".codex" / "AGENTS.md": 12700,
-    REPO / ".gemini" / "GEMINI.md": 17500,
-}
 
 # The byte ceiling above is a standing instruction to cut prose from these files. These are the
 # lines that "cut something" must never reach -- each one prevents an irreversible action or a
