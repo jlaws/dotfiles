@@ -38,5 +38,5 @@ You automate the full PR workflow. Follow these steps in order:
   - Run `gh pr create --title "<title>" --body "<body>"`
 
 ## 5. Output
-- Display the PR URL returned by `gh pr create`
+- Display the PR URL: the one `gh pr create` returned, or the already-open PR's URL from step 4
 - Summarize: branch name, commit count, files changed
