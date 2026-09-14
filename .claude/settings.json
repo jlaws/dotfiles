@@ -1,6 +1,14 @@
 {
+  "skillListingBudgetFraction": 0.03,
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "75"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
-    "defaultMode": "plan",
     "allow": [
       "Bash(git diff *)",
       "Bash(git log *)",
@@ -83,25 +91,8 @@
       "Read(./.git/config)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)"
-    ]
-  },
-  "worktree": {
-    "baseRef": "head"
-  },
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
-  "skillListingBudgetFraction": 0.03,
-  "outputStyle": "Concise",
-  "sandbox": {
-    "enabled": false,
-    "autoAllowBashIfSandboxed": true,
-    "allowUnsandboxedCommands": false,
-    "network": {
-      "allowLocalBinding": true,
-      "allowUnixSockets": []
-    }
+    ],
+    "defaultMode": "plan"
   },
   "hooks": {
     "PreToolUse": [
@@ -137,8 +128,18 @@
       }
     ]
   },
-  "env": {
-    "ENABLE_TOOL_SEARCH": "true",
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
-  }
+  "worktree": {
+    "baseRef": "head"
+  },
+  "outputStyle": "Concise",
+  "sandbox": {
+    "enabled": false,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "network": {
+      "allowUnixSockets": [],
+      "allowLocalBinding": true
+    }
+  },
+  "agentPushNotifEnabled": true
 }
