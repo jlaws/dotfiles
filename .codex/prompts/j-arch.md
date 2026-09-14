@@ -13,6 +13,6 @@ Before starting, gather diagnostic context:
 
 For deep architecture guidance, delegate to the `architecture-specialist` agent, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `.agents/references/architecture/` library, then returns specific guidance. Verify its output against the codebase before presenting.
 
-If the consultation reaches a significant architecture decision, offer to capture it as an ADR (see the `architecture-decision-records` reference) in `docs/adr/<topic>/<slug>.md`. If an accepted ADR already covers the decision, amend it (Amendment Log row plus an `updated` bump) or supersede it instead of writing a new file. Skip minor or easily reversible changes.
+If the consultation reaches a significant architecture decision, offer to capture it as an ADR (see the `architecture-decision-records` reference) in `docs/adr/<topic>/<slug>.md`. If an ADR already covers the decision, update it in place — revise the Decision, add the previous approach to `## Ruled Out` with its reason and date, and bump `updated` — rather than writing a second file. Skip minor or easily reversible changes.
 
 Help with: $ARGUMENTS

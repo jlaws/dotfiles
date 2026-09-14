@@ -23,17 +23,21 @@ If none apply, skip the ADR (see the table below).
 ## ADR Lifecycle
 
 ```
-Proposed -> Accepted -> Deprecated
-                     -> Superseded (by <topic>/<slug>)
-Proposed -> Rejected
+Proposed -> Accepted -> Accepted (updated in place, as often as the decision moves)
+                     -> Deleted  (the decision no longer exists)
+Proposed -> Deleted
 ```
 
 Status values:
 - `status: proposed` — under discussion, not yet decided.
-- `status: accepted` — the decision is in force.
-- `status: rejected` — considered and declined (kept for the record).
-- `status: deprecated` — no longer applies, with no direct replacement (add a dated Amendment Log row explaining why).
-- `status: superseded` — replaced by a newer decision. The replaced ADR carries `superseded-by: <id>`; the replacing ADR carries `supersedes: [<id>]`. Frontmatter is the binding link; add a Related Decisions entry too in formats that have that section.
+- `status: accepted` — the decision is in force. It stays `accepted` for the ADR's whole life; a
+  revised decision is still a decision in force.
+
+There is no `superseded`, `deprecated`, or `rejected` status, because there is no file left to carry
+one. **A record whose decision no longer exists is deleted, not archived.** It is dead documentation,
+and dead documentation costs every future reader the time to work out that it is dead. Git holds the
+history. Anything still worth knowing — why the old approach failed, what it cost — moves into the
+successor ADR's `## Ruled Out` table as one dated row.
 
 ## When to Write an ADR
 
@@ -52,47 +56,65 @@ and dates are read by globbing, not by parsing prose.
 
 ```yaml
 ---
-status: accepted        # proposed | accepted | rejected | deprecated | superseded
+status: accepted        # proposed | accepted
 topic: data
-created: 2026-03-01     # first written; immutable
-updated: 2026-03-01     # date of the newest Amendment Log row; equals created when new
+created: 2026-03-01     # record first written; never changes
+updated: 2026-09-13     # last substantive edit
 deciders: ["@name"]
-supersedes: []          # ADR ids, e.g. ["data/mongodb-profiles"]
-superseded-by: null     # ADR id, or null
 ---
 ```
 
 Three invariants:
-- **`created` never changes.** It records when the decision was made, not when the file was last touched.
-- **`updated` always equals the newest Amendment Log row's date.** A new ADR with an empty log has `updated` equal to `created`.
-- **The path is authoritative for `topic`.** The field mirrors the containing directory so a reader holding only the frontmatter still knows the topic. On mismatch the directory wins; fix the field.
+- **`created` never changes. It records when the *record* was first written, not when the current
+  decision was made.** Those are the same date until the first in-place reversal; after one they
+  differ, and the record's date is the one worth keeping — it is when this question first became
+  worth deciding. The newest `## Ruled Out` row dates the current decision.
+- **`updated` is the date of the last substantive edit.** It is the timeliness signal — a reader
+  weighing whether an ADR still describes the system starts here. A new ADR has `updated` equal to
+  `created`. Fixing a typo is not substantive; changing what the record asserts is.
+- **The path is authoritative for `topic`.** The field mirrors the containing directory so a reader
+  holding only the frontmatter still knows the topic. On mismatch the directory wins; fix the field.
 
-## Amendments & Status Transitions
+There are no `supersedes` or `superseded-by` fields. A superseded ADR is deleted, so there is no file
+at either end of the link.
 
-An Accepted ADR's **Decision is immutable**. The record changes only through one of these paths:
+## Keeping an ADR Current
+
+An ADR is a living document. It describes the decision **as it stands today**, not as it was first
+written. Keeping it current is the job; a record that disagrees with the system is a defect in the
+record.
 
 | Situation | Action | Result |
 |-----------|--------|--------|
-| Clarification, corrected detail, or added consequence that does **not** reverse the decision | Add a dated row to the ADR's **Amendment Log** and bump `updated`; leave the Decision text untouched | stays `accepted` |
-| The decision itself changes (reversal or material change) | Write a **new ADR** that supersedes the old one; cross-link both | old -> `status: superseded` + `superseded-by: <id>`, new -> `supersedes: [<id>]` |
-| Decision no longer relevant, no replacement | Add a dated Amendment Log row explaining why, bump `updated` | `status: deprecated` |
+| Clarification, corrected detail, or new consequence | Edit the text in place; bump `updated` | stays `accepted` |
+| The decision changes | Edit `## Decision` and `## Rationale` in place, add the previous approach to `## Ruled Out` with its reason and date, bump `updated` | stays `accepted` |
+| A finding invalidates an option, but the decision holds | Add the option to `## Ruled Out` with the finding and date, bump `updated` | stays `accepted` |
+| The decision no longer exists — the component, constraint, or question is gone | **Delete the file.** Move anything still worth knowing into the successor's `## Ruled Out` | file removed |
+| One decision splits into two, or two merge into one | Write the new ADRs, carry forward what still applies, delete the old file | file removed |
 
-The boundary is simple: **any reversal or material change gets a new ADR** (use the Deprecation ADR template). Minor clarifications get an Amendment Log row. Never rewrite an accepted Decision in place. Superseded and deprecated ADRs stay in the log; they are immutable history, not deletions.
+Editing in place is the default, not the exception. Three things make it safe:
 
-The **Amendment Log** is a fixed section in every ADR (see templates). It starts empty:
+- **`created` still records when the record was first written.** The decision's age is not lost by
+  editing it.
+- **`## Ruled Out` is where reversals go.** One dated row with the reason, not a narrative. It is the
+  concise record of what was tried and why it was dropped, and it is the section that keeps an ADR
+  honest about its own reversals.
+- **Git holds the diff.** `git log -p docs/adr/<topic>/<slug>.md` is the full amendment trail, and it
+  costs nothing to carry because it is not in the file.
 
-```markdown
-## Amendment Log
-| Date | Change | Reason | By |
-|------|--------|--------|-----|
-| YYYY-MM-DD | Clarified retry-budget wording | Ambiguous in review | @name |
-```
+**Name every deletion in the change summary.** Deleting an ADR needs no separate approval, so the
+summary line is what puts it in front of a reviewer. A record that vanishes inside a large diff
+with nothing pointing at it is the one loss this model can cause that the diff alone does not
+make obvious.
 
-Every row is paired with bumping `updated` in frontmatter. A row without the bump is an incomplete amendment.
+**Never leave a stale ADR standing.** An ADR contradicted by shipped code is worse than no ADR: an
+agent reads it as current and plans against it. Update it or delete it in the same change that made
+it wrong.
 
 ## Templates
 
-Recognized ADR formats include Nygard (the 2011 original), MADR (most widely adopted), the Y-Statement (one-sentence), and ISO/IEC/IEEE 42010. The templates below cover the common ones.
+Recognized ADR formats include Nygard (the 2011 original), MADR (most widely adopted), the
+Y-Statement (one-sentence), and ISO/IEC/IEEE 42010. The templates below cover the common ones.
 
 ### Standard ADR (MADR Format)
 
@@ -103,55 +125,42 @@ topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 deciders: ["@name"]
-supersedes: []
-superseded-by: null
 ---
 # [Title]
 
 ## Context
-[Why we needed to decide. Include constraints, requirements, team experience.]
+[Why this decision exists. Constraints and requirements as they stand today, not as they once were.]
 
 ## Decision Drivers
 * **Must have X** for Y reason
 * **Should support Z** to reduce complexity
 
-## Considered Options
-
-### Option 1: [Name]
-- **Pros**: ...
-- **Cons**: ...
-
-### Option 2: [Name]
-- **Pros**: ...
-- **Cons**: ...
-
 ## Decision
 We will use **[choice]**.
 
 ## Rationale
-[Why this option best fits the decision drivers.]
+[Why this choice best fits the decision drivers.]
 
 ## Consequences
+**Gained**: [benefit]
+**Accepted**: [cost/risk]
 
-### Positive
-- [benefit]
+## Ruled Out
+| Idea | Why ruled out | When |
+|------|---------------|------|
+| [name the idea, never a number] | [reason, with the evidence if there was any] | YYYY-MM-DD |
 
-### Negative
-- [cost/risk]
-
-## Implementation Notes
-- [specific guidance]
+## Enforcement
+- Owner: `path/to/the/file/this/decision/governs`
+- Pinned by: `tests/test_x.py::test_y`, or "nothing — convention only"
 
 ## Reversal Conditions
 [What would have to become true for this decision to be revisited. Concrete enough that a future
 reader can tell whether it has happened.]
 
-## Related Decisions
+## Related
 - [title](../[topic]/[slug].md)
-
-## Amendment Log
-| Date | Change | Reason | By |
-|------|--------|--------|-----|
+- [other document](../../path/to/doc.md)
 ```
 
 ### Lightweight ADR
@@ -163,8 +172,6 @@ topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 deciders: ["@name"]
-supersedes: []
-superseded-by: null
 ---
 # [Title]
 
@@ -175,16 +182,20 @@ superseded-by: null
 [What we decided]
 
 ## Consequences
-**Good**: [benefits]
-**Bad**: [costs]
-**Mitigations**: [how to address the bad]
+**Gained**: [benefits]
+**Accepted**: [costs]
+**Mitigations**: [how to address the costs]
 
-## Related Decisions
+## Ruled Out
+| Idea | Why ruled out | When |
+|------|---------------|------|
+| [name the idea] | [reason] | YYYY-MM-DD |
+
+## Reversal Conditions
+[What would have to become true for this decision to be revisited.]
+
+## Related
 - [title](../[topic]/[slug].md)
-
-## Amendment Log
-| Date | Change | Reason | By |
-|------|--------|--------|-----|
 ```
 
 ### Y-Statement Format
@@ -196,8 +207,6 @@ topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 deciders: ["@name"]
-supersedes: []
-superseded-by: null
 ---
 In the context of **[situation]**,
 facing **[problem]**,
@@ -207,38 +216,9 @@ to achieve **[goals]**,
 accepting that **[tradeoff]**.
 ```
 
-(Single-sentence format — keeps the frontmatter, drops the Amendment Log; amend by superseding.)
-
-### Deprecation ADR
-
-```markdown
----
-status: proposed
-topic: [topic]
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-deciders: ["@name"]
-supersedes: ["[topic]/[slug]"]
-superseded-by: null
----
-# Deprecate X in Favor of Y
-
-## Context
-[Why the original decision no longer serves us]
-
-## Migration Plan
-1. Phase 1 (Week 1-2): Dual-write
-2. Phase 2 (Week 3-4): Backfill + validate
-3. Phase 3 (Week 5): Switch reads
-4. Phase 4 (Week 6): Remove old writes, decommission
-
-## Lessons Learned
-- [What we'd do differently]
-
-## Amendment Log
-| Date | Change | Reason | By |
-|------|--------|--------|-----|
-```
+(Single-sentence format — no table sections, so it carries neither `## Ruled Out` nor
+`## Reversal Conditions`. Use it only where the decision genuinely fits one sentence; revise the
+sentence in place and bump `updated`.)
 
 ## Naming and Grouping
 
@@ -260,26 +240,28 @@ docs/adr/
 - **No sequence counter anywhere.** Ordering comes from `created`.
 - **Adding an ADR creates exactly one file and edits none.** That is the point of the scheme: a shared counter or a hand-maintained index turns every concurrent ADR write into a merge conflict, because both writers claim the same next number or edit the same index lines.
 
-Three cases still touch shared state, all rarer than writing an ADR:
+Two cases still touch shared state, both rarer than writing an ADR:
 
-- **Superseding** edits the predecessor's frontmatter. Two writers superseding the same ADR collide there.
 - **A new topic** adds a line to `docs/adr/README.md`. Adding an ADR to an existing topic does not.
 - **The same topic and slug** chosen twice is an add/add conflict. It means two writers recorded the same decision; merge the records rather than renaming one.
 
 Two scaffold files sit beside the topic directories:
 
-- `docs/adr/README.md` — the repo's topic list with one line on what each covers, the slug rule, and the amend-vs-supersede rule. It states explicitly that there is no index: discover ADRs with `docs/adr/**/*.md` and read frontmatter.
+- `docs/adr/README.md` — the repo's topic list with one line on what each covers, the scope test, and the keep-it-current rule. It states explicitly that there is no index: discover ADRs with `docs/adr/**/*.md` and read frontmatter.
 - `docs/adr/template.md` — the Standard ADR template above, verbatim, ready to copy.
 
 Both scaffold files match `docs/adr/**/*.md` and neither is an ADR. Exclude `README.md` and `template.md` by name whenever that glob is used to enumerate decisions.
+
+There is no archive directory. `docs/adr/**/*.md` minus those two files is the complete set of live
+decisions, and every file in it is asserted to be currently true.
 
 ## Review Checklist
 
 ### Before Submission
 - [ ] Context clearly explains the problem
-- [ ] All viable options considered
-- [ ] Pros/cons balanced and honest
-- [ ] Consequences (positive and negative) documented
+- [ ] Every option that was weighed appears in `## Ruled Out` with its reason and date
+- [ ] Trade-offs stated honestly, including the ones the decision accepts
+- [ ] Consequences recorded as **Gained** and **Accepted**
 
 ### During Review
 - [ ] At least 2 senior engineers reviewed
@@ -289,7 +271,8 @@ Both scaffold files match `docs/adr/**/*.md` and neither is an ADR. Exclude `REA
 
 ### After Acceptance
 - [ ] frontmatter status/created/updated set
-- [ ] related ADRs cross-linked both ways
+- [ ] `## Related` links resolve, and `## Reversal Conditions` is concrete enough to check
+- [ ] `## Enforcement` names a real owner and test, where the template carries that section
 - [ ] Team notified
 - [ ] Implementation tickets created
 
@@ -304,9 +287,11 @@ A decision is done when it has: **evidence** for the choice, the **criteria and 
 - **Be honest about trade-offs** - include real cons
 - **Don't number ADRs** - concurrent writers collide on the next number
 - **Don't maintain a hand-edited index** - glob `docs/adr/**/*.md` and read frontmatter
-- **Don't change accepted ADRs** - write new ones to supersede
-- **Record minor clarifications in the Amendment Log** - not by editing the Decision
-- **Don't hide failures** - rejected decisions are valuable
+- **Keep accepted ADRs current** - edit the Decision in place and bump `updated`
+- **Delete an ADR whose decision is gone** - move what still matters into the successor's `## Ruled Out`
+- **Record reversals in `## Ruled Out`** - one dated row with the reason, not a narrative
+- **Name ruled-out ideas, never number them** - a table row has no anchor, and "Option 2" stops resolving the moment the table is reordered
+- **Don't hide failures** - the paths that did not work belong in `## Ruled Out`, not in a deleted draft
 - **Don't be vague** - specific decisions, specific consequences
 
 ## Architecture Patterns Reference

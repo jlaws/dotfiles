@@ -2,10 +2,8 @@
 status: accepted
 topic: workflow
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-13
 deciders: ["@jlaws"]
-supersedes: []
-superseded-by: null
 ---
 # Thorough about quality dimensions, lazy about new scope
 
@@ -36,31 +34,9 @@ local part). Its own diagnosis: "a genuine (if minor) cost of pushing toward one
 * **Should keep fidelity with the upstream source**, so the ledger entry can describe a faithful
   adoption rather than a fork.
 
-## Considered Options
-
-### Option 1: Ladder-first everywhere
-- **Pros**: One rule, no conditional.
-- **Cons**: Contradicts the completeness principle outright, and the measured regression lands
-  squarely on validation code.
-
-### Option 2: Exclude parsing and validation paths from the ladder
-- **Pros**: Strongest guarantee against the measured failure class.
-- **Cons**: Rungs 3-5 (stdlib, native, installed dep) are most useful precisely on parsing. Blunts
-  the win where it is largest, and forks the upstream ruleset.
-
-### Option 3: Drop rung 6 ("Can it be one line?")
-- **Pros**: Removes the rung ponytail's own defect analysis names.
-- **Cons**: Breaks rung-for-rung fidelity, so the adoption can no longer be described as faithful —
-  and the defect is really about *which* helper, not about line count.
-
-### Option 4: Adopt in full with ponytail's own guards, and write the axis boundary
-- **Pros**: Faithful adoption. Uses the mitigations the upstream added in response to its own
-  measurement, which it then measured at 100% safe (20/20) on Claude models.
-- **Cons**: Relies on a guard holding rather than on a structural exclusion.
-
 ## Decision
 
-We will use **Option 4**.
+We will **adopt the ladder in full with ponytail's own guards, and write the axis boundary**.
 
 The boundary: **thorough about the quality dimensions of work already in scope; lazy about new
 scope, new abstractions, and new dependencies.** Recorded in `completeness-principle.md` under
@@ -79,8 +55,8 @@ The contradiction is apparent, not real — the two rules govern different axes,
 dissolves it. On the risk: ponytail's regression is on non-Claude models, and on Claude its
 robustness audit — a separate run from the agentic benchmark above, scored over 40 runs per model
 rather than 20 — shows improvement (haiku 35/40 to 40/40, sonnet 0/40 to 40/40, opus 39/40 to
-40/40). This repo targets Claude. Option 2's exclusion would also cost the most-measured part of the win to guard
-against a failure this repo's target models did not exhibit.
+40/40). This repo targets Claude. Excluding parsing and validation paths would also cost the
+most-measured part of the win to guard against a failure this repo's target models did not exhibit.
 
 The guards are not decoration, and there is evidence for that: ponytail's benchmark included a
 paraphrase arm that dropped the carve-outs, and it scored 95% safe (19/20) against the full
@@ -88,21 +64,26 @@ ruleset's 100% (20/20). The carve-outs are the safety margin, which is why a tes
 
 ## Consequences
 
-### Positive
-- Rungs 2-5 gain an owner; reuse-before-write becomes a stated reflex rather than an implicit habit.
-- Faithful to upstream, so the ledger can describe provenance precisely, including the 2026-06-22
-  dating of rung 2.
+**Gained**: Rungs 2-5 gain an owner; reuse-before-write becomes a stated reflex rather than an
+implicit habit. Faithful to upstream, so the ledger can describe provenance precisely, including the
+2026-06-22 dating of rung 2.
 
-### Negative
-- The safety carve-outs are now load-bearing text. If they are edited away the ladder becomes
-  unsafe, which is why `tests/test_agent_config.py` pins them.
-- The measured win is third-party (n=4, one model, one repo) and is on the code axis only. The
-  ladder has little to bite on in explanation-only work, where the prose half of the pairing does
-  the work instead.
-- The ruleset costs more than it saves on short interactions and on reasoning models. Stated in the
-  reference rather than left for a reader to discover.
+**Accepted**: The safety carve-outs are now load-bearing text — if they are edited away the ladder
+becomes unsafe, which is why `tests/test_agent_config.py` pins them. The measured win is third-party
+(n=4, one model, one repo) and is on the code axis only; the ladder has little to bite on in
+explanation-only work, where the prose half of the pairing does the work instead. The ruleset costs
+more than it saves on short interactions and on reasoning models, stated in the reference rather
+than left for a reader to discover.
 
-## Implementation Notes
+## Ruled Out
+
+| Idea | Why ruled out | When |
+|------|---------------|------|
+| Ladder-first everywhere | Contradicts the completeness principle outright, and the measured regression lands squarely on validation code. | 2026-09-12 |
+| Exclude parsing and validation paths from the ladder | Rungs 3-5 (stdlib, native, installed dep) are most useful precisely on parsing. Blunts the win where it is largest, and forks the upstream ruleset. | 2026-09-12 |
+| Drop rung 6 ("Can it be one line?") | Breaks rung-for-rung fidelity, so the adoption can no longer be described as faithful — and the defect is really about *which* helper, not about line count. | 2026-09-12 |
+
+## Enforcement
 - Owner: `references/workflow/code-efficiency-ladder.md`.
 - Consumers point at it: `skills/code-quality`, `agents/code-reviewer`, `commands/j-diff-review`.
   `tests/test_reference_tree.py` enforces reachability, but transitively — a cross-reference from
@@ -116,12 +97,10 @@ ruleset's 100% (20/20). The carve-outs are the safety margin, which is why a tes
 ## Reversal Conditions
 
 Reverse if the edge-case-correctness guard proves insufficient in practice — specifically, if a lazy
-stdlib pick ships an edge-case hole in this repo's own code. The narrower Option 2 is the fallback,
-not a full revert.
+stdlib pick ships an edge-case hole in this repo's own code. Excluding parsing and validation paths
+from the ladder is the narrower fallback, not a full revert.
 
-## Related Decisions
+## Related
 - [Structure preference is conditional](../context-efficiency/structure-is-conditional.md)
-
-## Amendment Log
-| Date | Change | Reason | By |
-|------|--------|--------|-----|
+- [Reference trees share a section set, not a body](reference-tree-section-parity.md)
+- [ADRs are living documents](adrs-are-living-documents.md)

@@ -1,9 +1,11 @@
 # Architecture Decision Records
 
 Conventions, and this repo's topic list. **Not an index** — ordering comes from each ADR's
-`created` date, and there is no sequence counter anywhere.
+`created` date, and there is no sequence counter anywhere. `created` is when the record was first
+written, not when its current decision was taken, so a revised ADR keeps its original place in
+that order; `updated` is the recency signal.
 
-Format, frontmatter, templates, and the amendment rules live in
+Format, frontmatter, templates, and the keep-it-current rules live in
 `architecture-decision-records.md` under `references/architecture/` — `.claude/` for Claude,
 `~/.agents/` for Codex and Gemini. Read that before writing one; this file does not restate it.
 `template.md` beside this file is that reference's Standard ADR template, copied verbatim and ready
@@ -22,9 +24,13 @@ Add a topic by adding a row here and a directory. Pick names from this repo's ow
 
 ## Scope
 
-An ADR is for a decision that is significant **and** not easily reversible. Minor or cheap-to-undo
-choices are recorded inline in the asset they affect. Every ADR fills in `## Reversal Conditions`,
-so a future reader can tell whether those conditions have arrived.
+An ADR is for a decision that passes the architectural significance test in that reference. Minor
+or cheap-to-undo choices are recorded inline in the asset they affect. Every ADR fills in
+`## Reversal Conditions`, so a future reader can tell whether those conditions have arrived.
+
+Every ADR here is asserted to be **currently true**. A decision that changed is edited in place, with
+the old approach moved to that ADR's `## Ruled Out` table. A decision that no longer exists has its
+file deleted — there is no archive, and no retired record is kept. Git holds the history.
 
 `README.md` and `template.md` are scaffolding, not decisions. Exclude both by name whenever
 `docs/adr/**/*.md` is used to enumerate ADRs.

@@ -137,11 +137,12 @@ fact about this repo's config surface, not restated global guidance, and without
   history to inventory the repo is fine.
 - `README.md` only if one is absent, following `references/documentation/readme-template.md`.
 - `docs/adr/` seeded with the conventions in `references/architecture/architecture-decision-records.md`:
-  topic directories, no sequence numbers, ordering by the `created` date, and `## Reversal Conditions`
-  filled in on every record.
+  topic directories, no sequence numbers, ordering by the `created` date, `## Reversal Conditions`
+  filled in on every record, and no archive directory: a changed decision is edited in place and a
+  dead one is deleted, so every file present is asserted to be currently true.
 - A seed ADR for the stack decision **when Phase 2 actually interviewed for it**, since that interview
-  produced the context, options, and rationale an ADR needs. When the stack arrived with the code,
-  there were no options weighed and no rationale to record, so skip it rather than inventing one.
+  produced the context, alternatives, and rationale an ADR needs. When the stack arrived with the code,
+  there were no alternatives weighed and no rationale to record, so skip it rather than inventing one.
 
 Write no CI workflows and no dependency-bot configuration unless asked.
 

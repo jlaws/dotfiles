@@ -2,10 +2,8 @@
 status: accepted
 topic: workflow
 created: 2026-09-12
-updated: 2026-09-12
+updated: 2026-09-13
 deciders: ["@jlaws"]
-supersedes: []
-superseded-by: null
 ---
 # Reference trees share a section set, not a body
 
@@ -34,25 +32,6 @@ finds nothing, with no error anywhere to tell either of us.
   different model generations, and forcing identical prose would be a regression.
 * **Should need no maintenance** — a policy with a growing exception list stops being a policy.
 
-## Considered Options
-
-### Option 1: Byte-identical trees
-- **Pros**: trivially checkable; zero ambiguity about what "in sync" means.
-- **Cons**: destroys legitimate adaptation. `workflow/context-efficiency.md` says `` `Explore` `` in
-  the Claude tree and "a dispatched search subagent" in the shared tree, because Codex and Gemini have
-  no tool by that name. Byte-identity forces one of those two readers to get a wrong tool name. The
-  same problem applies to model IDs and harness-specific paths.
-
-### Option 2: Heading-set parity
-- **Pros**: catches all 39 observed structural divergences; permits prose, tool names, model IDs, and
-  code-versus-summary differences inside a section; cheap to express as one loop.
-- **Cons**: two trees can state opposite things under the same heading and still pass. This check
-  constrains structure, not correctness.
-
-### Option 3: File-presence parity only
-- **Pros**: cheapest possible check.
-- **Cons**: catches none of the 39. Every one of those files exists in both trees already.
-
 ## Decision
 
 We will use **heading-set parity**. For every path under `.claude/references/`, the `.agents/`
@@ -74,20 +53,25 @@ precisely because nothing forced the question.
 
 ## Consequences
 
-### Positive
-- The 39 structural divergences get fixed once and cannot silently return.
-- A Claude-only reference edit now fails the suite until it is mirrored, which surfaces the decision
-  at edit time rather than months later.
-- `.agents/` gains correctness fixes that had been landing only in `.claude/`.
+**Gained**: The 39 structural divergences get fixed once and cannot silently return. A Claude-only
+reference edit now fails the suite until it is mirrored, which surfaces the decision at edit time
+rather than months later. `.agents/` gains correctness fixes that had been landing only in
+`.claude/`.
 
-### Negative
-- Every future reference change costs an edit in both trees. That is the point, but it is a real tax.
-- Structural divergence has no escape hatch. A genuine need for one will require amending this
-  decision rather than adding an entry somewhere.
-- The check says nothing about whether the two bodies under a shared heading agree. Two trees can
-  contradict each other and pass.
+**Accepted**: Every future reference change costs an edit in both trees — that is the point, but it
+is a real tax. Structural divergence has no escape hatch: a genuine need for one will require
+revising this decision in place rather than adding an entry somewhere. And the check says nothing
+about whether the two bodies under a shared heading agree, so two trees can contradict each other
+and pass.
 
-## Implementation Notes
+## Ruled Out
+
+| Idea | Why ruled out | When |
+|------|---------------|------|
+| Byte-identical trees | Trivially checkable, with zero ambiguity about what "in sync" means, but it destroys legitimate adaptation. `workflow/context-efficiency.md` says `Explore` in the Claude tree and "a dispatched search subagent" in the shared tree, because Codex and Gemini have no tool by that name; byte-identity forces one of those two readers to get a wrong tool name. The same problem applies to model IDs and harness-specific paths. | 2026-09-12 |
+| File-presence parity only | Cheapest possible check, but catches none of the 39 — every one of those files exists in both trees already. | 2026-09-12 |
+
+## Enforcement
 
 - `test_reference_trees_expose_the_same_sections` in `tests/test_agent_config.py` is the enforcement
   point. It compares ordered heading lists, so a reordering fails too. Headings inside fenced code
@@ -111,12 +95,9 @@ precisely because nothing forced the question.
 
 A reference file genuinely needs a section in one tree that must not appear in the other, and
 adapting the body under a shared heading is not enough to express the difference. A harness-specific
-*topic* — not a harness-specific *wording* — is the signal. If that arrives, supersede this ADR
-rather than adding an exception list to the test.
+*topic* — not a harness-specific *wording* — is the signal. If that arrives, update this ADR in place
+and record the exception-list approach in `## Ruled Out` — do not add an exception list to the test.
 
-## Related Decisions
-- [Thorough about quality dimensions, lazy about new scope](../workflow/code-ladder-vs-completeness.md)
-
-## Amendment Log
-| Date | Change | Reason | By |
-|------|--------|--------|-----|
+## Related
+- [Thorough about quality dimensions, lazy about new scope](code-ladder-vs-completeness.md)
+- [ADRs are living documents](adrs-are-living-documents.md)

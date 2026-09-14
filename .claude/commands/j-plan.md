@@ -124,8 +124,10 @@ approach, the alternatives rejected, the trade-offs accepted, and the conditions
 it — the four fields of an ADR. Where a decision is significant and not easily reversible, add a
 *task* to the plan that writes `docs/adr/<topic>/<slug>.md` during execution, following
 `.claude/references/architecture/architecture-decision-records.md`. The ADR is a repo artifact
-written at implementation time; the plan is not. Skip minor or easily reversible choices and note
-them inline instead.
+written at implementation time; the plan is not. Where an ADR already covers the decision, the
+task updates it in place — revise the Decision, add the previous approach to `## Ruled Out` with
+its reason and date, and bump `updated` — rather than adding a second file. Skip minor or easily
+reversible choices and note them inline instead.
 
 ## Step 4: Red-team the draft
 
