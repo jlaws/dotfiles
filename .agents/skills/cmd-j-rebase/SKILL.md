@@ -45,14 +45,17 @@ Squash first, then rebase — a single commit resolves each conflict once instea
 3. Even with zero textual conflicts, inspect `git diff origin/main...HEAD` for semantic drift — the branch may call APIs that `main` renamed, moved, or deleted.
 4. If a conflict cannot be resolved with confidence, run `git rebase --abort` and hand the branch back untouched with an explanation. Never guess at a resolution.
 
-## Phase 4: Targeted Verify Gate
+## Phase 4: Targeted Verify and Repair
 
 1. `git diff --name-only origin/main..HEAD` — the merged file set.
 2. Run only the tests that directly cover those files. Do NOT run the full suite, a whole-repo lint, or a full build — the point is a fast gate on what actually changed.
 3. If a changed file has no covering test, name it in the report rather than passing over it silently.
 4. Apply the `documentation-validation` gate: confirm product docs and any KB self-docs match this branch's changes, or declare N/A with a reason. Passing tests do not prove docs are current.
 
-STOP before pushing on any failure. A rebase can introduce a semantic break with no textual conflict, and a broken branch must not reach the PR. Report the failure and let the user fix it.
+5. A failed check blocks the push, not repair work. MUST diagnose and fix recoverable whitespace, formatting, test, and documentation failures within the branch's work without asking for confirmation. An extra blank line introduced during conflict resolution is yours to fix, not a reason to hand work back to the user. Never weaken or skip checks to obtain a pass.
+6. Rerun the failed checks and any checks affected by the repair. After two failed attempts on the same error, re-examine the cause and change approach; the retry count alone is not a reason to hand off.
+7. Once repairs pass, review the repair diff, stage only the repaired files, and run `git commit --amend --no-edit` to retain one commit. Review the final `git diff origin/main...HEAD`, run `git diff --check origin/main...HEAD`, and confirm a clean working tree and one branch commit. Any new verification failure returns to step 5. When verification passes, continue to Phase 5 and refresh the PR without another confirmation.
+8. Stop without pushing only when a genuine blocker requires user input, permissions, or unavailable resources. Report the exact failed command and error, attempted repairs, the concrete blocker, and the Phase 2 recovery SHA. A failed check by itself is not such a blocker.
 
 ## Phase 5: Force-push
 
