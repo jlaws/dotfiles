@@ -49,7 +49,7 @@ thing in this file that is easy to get wrong, because `permissions.allow` in the
 | `Bash(git commit)` | **nothing.** Parses as `Bash` + a capture group, i.e. the tool name `Bashgit commit` |
 
 To act on a specific command or path, match the tool name and inspect `tool_input` inside the
-script -- which is what `guard-bash-output.sh` does.
+script.
 
 ## Per-Harness Support
 

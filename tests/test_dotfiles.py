@@ -268,6 +268,49 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertTrue(installed_agent.exists())
         self.assertIn("subagent: true", installed_agent.read_text())
 
+    def test_removes_the_retired_bash_output_guard_from_both_hook_trees(self):
+        """The guard was deleted from the repo, but `.claude/hooks` and `.codex/hooks` sync as
+        directories and syncing does not prune -- so without an AGENT_REMOVALS entry the installed
+        copies would keep firing forever. See
+        `docs/adr/context-efficiency/hooks-do-not-restate-loaded-guidance.md`.
+
+        Archived before deletion, so `--uninstall` can put them back.
+        """
+        claude_guard = self._write_target(".claude/hooks/guard-bash-output.sh", "#!/usr/bin/env bash")
+        codex_guard = self._write_target(".codex/hooks/guard-bash-output.sh", "#!/usr/bin/env bash")
+        kept = self._write_target(".claude/hooks/log-prompt.sh", "#!/usr/bin/env bash")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(claude_guard.exists())
+        self.assertFalse(codex_guard.exists())
+        self.assertTrue(kept.exists())
+
+        removed = {
+            entry["dest"]
+            for entry in self.archive.manifest["files"]
+            if entry["action"] == "removed"
+        }
+        self.assertIn(str(claude_guard), removed)
+        self.assertIn(str(codex_guard), removed)
+
+    def test_a_live_removal_is_reported_at_info_like_the_preview(self):
+        """`--dry-run` logged every path it would remove while the real run logged nothing at the
+        default level -- `remove_file` reports at DEBUG. Two files left the user's home directory
+        with no run output and only the archive manifest as evidence. The preview must not be
+        louder than the run it previews.
+        """
+        guard = self._write_target(".claude/hooks/guard-bash-output.sh", "#!/usr/bin/env bash")
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(guard.exists())
+        self.assertTrue(
+            any(f"removed stale {guard}" in line for line in captured.output),
+            captured.output,
+        )
+
 
 class RevertFilesTests(unittest.TestCase):
     def setUp(self):
