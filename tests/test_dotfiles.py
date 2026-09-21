@@ -268,6 +268,32 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertTrue(installed_agent.exists())
         self.assertIn("subagent: true", installed_agent.read_text())
 
+    def test_removes_the_retired_bash_output_guard_from_both_hook_trees(self):
+        """The guard was deleted from the repo, but `.claude/hooks` and `.codex/hooks` sync as
+        directories and syncing does not prune -- so without an AGENT_REMOVALS entry the installed
+        copies would keep firing forever. See
+        `docs/adr/context-efficiency/hooks-do-not-restate-loaded-guidance.md`.
+
+        Archived before deletion, so `--uninstall` can put them back.
+        """
+        claude_guard = self._write_target(".claude/hooks/guard-bash-output.sh", "#!/usr/bin/env bash")
+        codex_guard = self._write_target(".codex/hooks/guard-bash-output.sh", "#!/usr/bin/env bash")
+        kept = self._write_target(".claude/hooks/log-prompt.sh", "#!/usr/bin/env bash")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(claude_guard.exists())
+        self.assertFalse(codex_guard.exists())
+        self.assertTrue(kept.exists())
+
+        removed = {
+            entry["dest"]
+            for entry in self.archive.manifest["files"]
+            if entry["action"] == "removed"
+        }
+        self.assertIn(str(claude_guard), removed)
+        self.assertIn(str(codex_guard), removed)
+
 
 class RevertFilesTests(unittest.TestCase):
     def setUp(self):

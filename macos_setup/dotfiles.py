@@ -65,6 +65,8 @@ AGENT_REMOVALS = [
     ".claude/hooks/lessons-learned.sh",
     ".codex/hooks/lessons-learned.sh",
     ".gemini/hooks/lessons-learned.sh",
+    ".claude/hooks/guard-bash-output.sh",
+    ".codex/hooks/guard-bash-output.sh",
     ".claude/commands/j-finalize-pr.md",
     ".gemini/hooks",
     ".gemini/policies",
