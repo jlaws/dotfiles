@@ -9,18 +9,10 @@ approvals_reviewer = "auto_review"
 max_threads = 6
 max_depth = 1
 
-# Codex supports PreToolUse/UserPromptSubmit either here or in .codex/hooks.json. The scripts were
-# synced from day one but never registered, so log-prompt.sh had never fired -- its Claude twin was
-# wired the whole time. Both now match .claude/settings.json.
-[[hooks.PreToolUse]]
-matcher = "^Bash$"
-
-[[hooks.PreToolUse.hooks]]
-type = "command"
-command = "bash ~/.codex/hooks/guard-bash-output.sh --format codex"
-timeout = 5
-statusMessage = "Checking command output size"
-
+# Codex reads hooks either here or in .codex/hooks.json. log-prompt.sh synced from day one but was
+# never registered, so it had never fired while its Claude twin was wired the whole time. This
+# matches .claude/settings.json, which also registers UserPromptSubmit and nothing else --
+# see docs/adr/context-efficiency/hooks-do-not-restate-loaded-guidance.md.
 [[hooks.UserPromptSubmit]]
 
 [[hooks.UserPromptSubmit.hooks]]
