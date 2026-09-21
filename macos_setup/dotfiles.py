@@ -237,6 +237,10 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
             apply_file(src_file, dest_file, archive)
             _LOG.debug("sync %s", dest_file)
             synced += 1
+    # A removal deletes a file out of the user's home directory, so it is reported at INFO like
+    # the dry-run branch rather than at DEBUG inside `remove_path`. Without this the preview was
+    # louder than the real run: `--dry-run` listed every path while the live run said nothing, and
+    # the only record that anything went was the archive manifest.
     for removal in _agent_removal_paths(repo, target):
         if not removal.exists() and not removal.is_symlink():
             continue
@@ -244,6 +248,7 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
             _LOG.info("would remove %s", removal)
         else:
             remove_path(removal, archive)
+            _LOG.info("removed stale %s", removal)
     if dry_run:
         return
     _LOG.info("Synced %d agent config files to %s", synced, target)

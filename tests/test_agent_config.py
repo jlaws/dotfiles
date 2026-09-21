@@ -805,16 +805,29 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         banner restated its Knowledge base section, so both went. `UserPromptSubmit` stays: it
         writes a log to disk and emits nothing into the conversation.
 
-        Asserting the exact key set, rather than two `assertNotIn` calls, also catches a third
-        emitting hook added later -- which is the actual rule. The PreCompact/SessionStart
-        snapshot pattern in `references/workflow/hook-patterns.md` is the case the ADR leaves
-        open, and adopting it means editing this test on purpose.
+        Claude's settings are JSON, so its hooks are checked as a parsed key set: that catches a
+        third emitting hook added later, which is the actual rule, and reformatting cannot evade
+        it.
+
+        Codex is TOML and `tomllib` is 3.11+, above the 3.9 floor `[tool.ty.environment]` pins for
+        `macos_setup`, so its check stays textual -- but on the bare key, not on one spelling of
+        the header. An earlier cut used `assertNotIn("[[hooks.PreToolUse]]", ...)`, which three
+        equivalent spellings walk straight past: `[[ hooks.PreToolUse ]]`,
+        `[[hooks."PreToolUse"]]`, and an inline `[hooks]` table with `PreToolUse = [ ... ]`. All
+        three parse to exactly the registration the literal form produces. Any TOML that registers
+        the hook has to name the key, so the absence of the key name is the property worth
+        asserting. Residual limit: a `\\u`-escaped spelling inside a quoted key would slip through.
+        Nobody writes that in a config they author themselves.
+
+        The PreCompact/SessionStart snapshot pattern in `references/workflow/hook-patterns.md` is
+        the case the ADR leaves open, and adopting it means editing this test on purpose.
         """
         settings = json.loads((REPO / ".claude" / "settings.json").read_text())
         self.assertEqual(sorted(settings.get("hooks", {})), ["UserPromptSubmit"])
 
         codex = (REPO / ".codex" / "config.toml").read_text()
-        self.assertNotIn("[[hooks.PreToolUse]]", codex)
+        self.assertNotIn("PreToolUse", codex)
+        self.assertIn("[[hooks.UserPromptSubmit]]", codex)
 
         for tree in (".claude", ".codex"):
             guard = REPO / tree / "hooks" / "guard-bash-output.sh"

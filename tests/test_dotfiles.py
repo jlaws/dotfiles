@@ -294,6 +294,23 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertIn(str(claude_guard), removed)
         self.assertIn(str(codex_guard), removed)
 
+    def test_a_live_removal_is_reported_at_info_like_the_preview(self):
+        """`--dry-run` logged every path it would remove while the real run logged nothing at the
+        default level -- `remove_file` reports at DEBUG. Two files left the user's home directory
+        with no run output and only the archive manifest as evidence. The preview must not be
+        louder than the run it previews.
+        """
+        guard = self._write_target(".claude/hooks/guard-bash-output.sh", "#!/usr/bin/env bash")
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(guard.exists())
+        self.assertTrue(
+            any(f"removed stale {guard}" in line for line in captured.output),
+            captured.output,
+        )
+
 
 class RevertFilesTests(unittest.TestCase):
     def setUp(self):
