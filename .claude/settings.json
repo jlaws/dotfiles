@@ -119,5 +119,16 @@
       "allowLocalBinding": true
     }
   },
+  "promptSuggestionEnabled": false,
+  "awaySummaryEnabled": false,
+  "pluginConfigs": {
+    "agents-md@builtin": {
+      "options": {
+        "instructionFiles": "claude-md"
+      }
+    }
+  },
+  "remoteControlAtStartup": true,
+  "autoDreamEnabled": true,
   "agentPushNotifEnabled": true
 }
