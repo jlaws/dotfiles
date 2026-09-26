@@ -81,8 +81,9 @@ report-only instruction below - verbatim, in every dispatch prompt. Do not rely 
 > to this diff, return "no findings - surface not present" rather than manufacturing material.
 > Work in the current directory; do not create or request a worktree. If this packet names a HEAD SHA,
 > run `git rev-parse HEAD` and confirm it matches before reporting. If it moved, run
-> `git diff <named-sha> -- <changed files>`: an empty diff means your findings stand; a non-empty one
-> means re-check those hunks, and return BLOCKED only if you cannot. If no SHA is named, proceed.
+> `git diff <named-sha> -- <changed files>` and `git diff --name-only <named-sha> HEAD`: an empty diff and
+> no new paths mean your findings stand; a non-empty diff means re-check those hunks; a new path outside
+> the changed-file list means return BLOCKED naming it. If no SHA is named, proceed.
 > Report as `subagent-report-contract` specifies: a verdict line, then findings as `file:line`
 > rows. Cut narration, preamble, and restatement. Do **not** cut findings - there is no length
 > limit and nothing is archived, so anything you leave out is lost. Quote failures, errors, and

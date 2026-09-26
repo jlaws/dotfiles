@@ -84,19 +84,28 @@ python3 .claude/skills/skill-audit/scripts/memory.py
 With no `--memory-dir` it checks every store; pass `--memory-dir DIR` (repeatable) to scope it, and
 `--json` for machine output. Symlinked stores are checked once. Exit 1 on any FAIL, 2 on a bad
 argument. It checks the index (present, no dangling entries, every file indexed, at most 200 lines
-because the harness drops the rest, lines at most 150 characters as a WARN), frontmatter
-(`name`, `description`, `type`), and `[[wikilinks]]`, which resolve to a memory's `name` or file
-stem with underscores and hyphens treated alike.
+and 25KB because the harness loads only the first 200 lines or 25KB, whichever comes first, per
+code.claude.com/docs/en/memory; lines at most 150 characters as a WARN), frontmatter (`name`,
+`description`, `type`), `[[wikilinks]]`, which resolve to a memory's `name` or file stem with
+underscores and hyphens treated alike, and that every `*.md` entry is a readable UTF-8 file inside
+the store. An unreadable entry is a FAIL, not a crash, so one bad file never hides another store's
+report. Link targets that do not look like slugs are reported by length, so memory prose stays out
+of the report.
 
-The script cannot judge whether a memory is still true. Do that pass by hand, per store:
+The script cannot judge whether a memory is still true. Do that pass by hand, per store. Two rules
+bound it: this session edits only this repo, never another project's tree, and nothing is deleted
+without the user. List deletion candidates with the reason for each and stop; the stores are not
+under version control, so a wrong `rm` is unrecoverable.
 
 - **Stale.** A memory describing finished work (a merged PR, a completed epic, a resume procedure
   for a finished run) or contradicting current code. Verify against the repo before deleting.
 - **Owned.** A rule an always-loaded file, a skill, or the project's own docs already state. Delete
   it; the owner is the one that loads.
 - **Recurring.** The same rule re-learned in several stores means no asset states it, or one
-  contradicts it. Fix the asset (a lint or test in the project, a skill or command here) instead of
-  keeping more copies of the memory.
+  contradicts it. Fix the asset (a skill or command here; for another project, name the lint or
+  test it needs and leave the edit to a session in that repo) instead of keeping more copies of the
+  memory. Generalize before promoting: this repo is public, so strip project names, paths, people,
+  and incident details, and keep only the rule.
 
 ## Judge what the script cannot
 

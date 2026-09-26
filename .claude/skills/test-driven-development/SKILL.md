@@ -96,7 +96,9 @@ testing the thing you think it is.
 ## Proving a guard
 
 A test added after the code already works has never been seen to fail, so it has not been shown to
-test anything. Prove it the same way as a bug fix, by making the code wrong on purpose:
+test anything. Prove it the same way as a bug fix, by making the code wrong on purpose. Do this
+only in a tree you own: a reviewer, or anyone sharing a working tree with other agents, mutates a
+`git archive` copy instead.
 
 1. Mutate the production code back to the broken behavior (revert the fix, flip the operator,
    hard-wire the value the guard should catch).
@@ -110,8 +112,8 @@ Two traps turn a real mutation into a false "fail" or "pass":
 
 - A restore by `mv file.bak file` keeps the backup's older mtime, so incremental builds (cargo,
   make) may skip the rebuild and rerun the mutated binary. `touch` the restored file.
-- `git checkout -- <file>` does nothing for an untracked file. `git add` a new file before mutating
-  it, or restore from a copy.
+- `git checkout -- <file>` fails with `error: pathspec ... did not match` for an untracked file and
+  restores nothing. `git add` a new file before mutating it, or restore from a copy.
 
 Compare tokens or parsed values in assertions, not substrings: a needle that also appears in an
 unrelated line (a path, a test name, another clause's message) makes the test pass for the wrong

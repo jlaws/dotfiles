@@ -14,6 +14,7 @@ Determine scope from arguments:
 - **Asset type** (`skills`, `commands`, `agents`, `references`, `config`) -> audit only that type
 - **Name/path** (e.g., `skills/writing-plans`, `agents/code-reviewer`, `commands/j-arch`) -> audit only matching assets
 - **`adoption`** -> run the adoption pass below on its own. Never part of an unscoped run: it reads conversation history, so it happens only when asked for by name
+- **`memory`** -> Claude Code only. It checks Claude's auto-memory stores under `~/.claude` with a script that ships in the `.claude/` tree; Codex and Gemini have no such store, so this scope does nothing here
 
 ## Phase 1: Discovery
 
