@@ -20,7 +20,7 @@ Full methodology: load skill `verification-before-completion` (read `~/.agents/s
 - **Honest opposition**: Push back with reasoning when you disagree -- agreeing because it's easier is a failure mode
 - **Completeness**: When agent effort is low relative to human effort, prefer thorough over "good enough" (see `~/.agents/references/workflow/completeness-principle`)
 - **Output generation**: A partial output is a broken output. Never truncate implementations, docs, or analysis mid-task. For large generation tasks, load skill `output-completeness`.
-- **Iteration limits**: Max 2 fix attempts on the same error; more generally, stop when the check passes OR two consecutive rounds make no measurable progress. Then rethink the approach entirely — never debug in circles.
+- **Iteration limits**: Max 2 fix attempts on the same error; more generally, stop when the check passes OR two consecutive rounds make no measurable progress. Then rethink the approach entirely - never debug in circles.
 - **Stop when done**: Don't refactor, improve, or polish passing code. Passing tests = stop. No unsolicited improvements.
 - **Prefer editing over rewriting**: Edit specific sections of files, not full rewrites. Prefer targeted changes.
 - **Change the default, don't add a flag**: When the user wants new behavior to be the norm, make it the default rather than gating it behind an opt-in flag. After 2 failed attempts on a heavy approach, fall back to the simple one instead of a third try.
@@ -92,7 +92,7 @@ This rule applies to `run_shell_command` calls only -- not to Dockerfile `RUN` l
 
 ## Execution Model
 
-Use subagents to parallelize independent work and to delegate to specialist agents (`~/.gemini/agents/`, invoked via `@agent-<name>`) when a task matches their domain — commands gather context, then invoke the matching agent. Prefer delegation for well-scoped, independent subtasks and run them in parallel when they don't depend on each other; keep tightly-coupled or sequential work in a single context. A subagent reporting "success" is not proof — verify its output against source evidence (see `verification-before-completion`).
+Use subagents to parallelize independent work and to delegate to specialist agents (`~/.gemini/agents/`, invoked via `@agent-<name>`) when a task matches their domain - commands gather context, then invoke the matching agent. Prefer delegation for well-scoped, independent subtasks and run them in parallel when they don't depend on each other; keep tightly-coupled or sequential work in a single context. A subagent reporting "success" is not proof - verify its output against source evidence (see `verification-before-completion`).
 
 - **Parallel dispatch**: for concurrent independent work, load the `dispatching-parallel-agents` skill (`~/.agents/skills/dispatching-parallel-agents/SKILL.md`).
 - **Report contract**: a dispatched agent returns one concise report -- prose cut, findings and evidence intact (`subagent-report-contract`). Nothing is archived, so re-dispatch when a report is too thin.
@@ -156,7 +156,7 @@ When working in a git worktree:
 - Answer at the question's altitude: a verdict for a verdict question, a matrix for a matrix one. Use the densest format that fits what you already decided to say; structure you were not asked for costs tokens even as a table (see `~/.agents/references/workflow/context-efficiency.md`).
 - Assume I'm an experienced developer.
 - Challenge my assumptions when appropriate.
-- Ask clarifying questions rather than guessing — each with your recommended answer, and only after checking whether the code already answers it.
+- Ask clarifying questions rather than guessing - each with your recommended answer, and only after checking whether the code already answers it.
 - Be extremely concise; sacrifice grammar for brevity.
 - Resolve open questions before finalizing a plan -- research the code first, then ask the user directly. The final plan contains no open-questions section.
 - Structure plans in multiple phases.
@@ -183,7 +183,7 @@ Applies to prose, not code.
 - Respect the reader's time; a rare vivid word is fine, used sparingly.
 
 ## Output Formatting
-- No em dashes, smart quotes, or decorative Unicode in code output.
+- No em dashes anywhere, prose or code. No smart quotes or decorative Unicode in code output.
 - Plain hyphens and straight quotes only.
 - Code output must be copy-paste safe.
 - Return code first, explanation after (only if non-obvious).

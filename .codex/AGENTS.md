@@ -41,7 +41,7 @@
 - No sycophantic openers, hollow closers, or "As an AI" framing.
 - No narration ("Now I will...", "I have completed...", "Let me...").
 - No unsolicited suggestions beyond scope.
-- No em dashes, smart quotes, or decorative Unicode in code output. Plain hyphens and straight quotes.
+- No em dashes anywhere, prose or code. No smart quotes or decorative Unicode in code output. Plain hyphens and straight quotes.
 - Code output must be copy-paste safe.
 - Return code first, explanation after (only if non-obvious).
 - Prose (not code): short declarative sentences, simple common words, positive phrasing.
@@ -133,13 +133,13 @@ When working in a git worktree:
 
 ## Execution Model
 
-- Use subagents to parallelize independent work and to delegate to specialist agents when a task matches their domain — gather context, then invoke the matching agent.
+- Use subagents to parallelize independent work and to delegate to specialist agents when a task matches their domain - gather context, then invoke the matching agent.
 - Prefer delegation for well-scoped, independent subtasks (run in parallel when they don't depend on each other); keep tightly-coupled or sequential work in a single context.
-- A subagent reporting "success" is not proof — verify its output against source evidence before trusting it.
+- A subagent reporting "success" is not proof - verify its output against source evidence before trusting it.
 - Parallel dispatch: for concurrent independent work, load the `dispatching-parallel-agents` skill.
 - A dispatched agent returns one concise report -- prose cut, findings and evidence intact
   (`subagent-report-contract`). Nothing is archived, so re-dispatch when a report is too thin.
-- Plan execution modes: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) — choose by plan size/coupling; both via `/j-execute-plan`. Once a multi-PR plan's earlier PR merges, `/j-next` branches off the updated main and runs the next part.
+- Plan execution modes: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) - choose by plan size/coupling; both via `/j-execute-plan`. Once a multi-PR plan's earlier PR merges, `/j-next` branches off the updated main and runs the next part.
 
 ## Task Delegation
 

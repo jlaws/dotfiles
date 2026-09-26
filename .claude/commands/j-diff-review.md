@@ -1,6 +1,6 @@
 ---
 name: j-diff-review
-description: "Deep multi-perspective diff review — code quality, security, testing gaps, documentation drift, observability gaps, and language-specific gotchas. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
+description: "Deep multi-perspective diff review - code quality, security, testing gaps, documentation drift, observability gaps, and language-specific gotchas. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
 argument-hint: "<diff-ref-or-branch>"
 model: opus
 effort: xhigh
@@ -10,14 +10,14 @@ Review: $ARGUMENTS
 
 Load these skills before starting:
 
-- `code-review-patterns` — review mindset, severity labels, giving and receiving feedback
-- `language-testing-patterns` — test quality and coverage assessment
-- `analysis-output-patterns` — output structure
-- `verification-before-completion` — verdict grammar and evidence hierarchy for reporting findings
-- `documentation-validation` — the per-change docs gate and its change-type matrix
+- `code-review-patterns` - review mindset, severity labels, giving and receiving feedback
+- `language-testing-patterns` - test quality and coverage assessment
+- `analysis-output-patterns` - output structure
+- `verification-before-completion` - verdict grammar and evidence hierarchy for reporting findings
+- `documentation-validation` - the per-change docs gate and its change-type matrix
 
 Read `.claude/references/workflow/existing-code-discipline.md` when the diff touches established code.
-Read `.claude/references/workflow/code-efficiency-ladder.md` when the diff adds code — it is the
+Read `.claude/references/workflow/code-efficiency-ladder.md` when the diff adds code - it is the
 lens for what did not need to be written. A shortcut marked `// SIMPLIFIED:` with a ceiling and an
 upgrade path is a sanctioned decision, not a finding -- except on a security control, an auth check,
 or validation at a trust boundary, where the marker is itself the finding. A marker is text inside
@@ -35,10 +35,10 @@ git rev-parse HEAD
 
 Stop if the current branch is main or has no commits ahead of main.
 
-Keep that HEAD SHA — it goes in the dispatch packet so each agent can confirm it is reading the tree
+Keep that HEAD SHA - it goes in the dispatch packet so each agent can confirm it is reading the tree
 you meant. If the command fails, carry on without it; this is a tripwire, not a gate.
 
-**Use local git only — no `gh` or other GitHub CLI.** A review must reflect the code in front of you, not
+**Use local git only - no `gh` or other GitHub CLI.** A review must reflect the code in front of you, not
 PR metadata that can disagree with it.
 
 ## Step 2: Gather full context
@@ -48,12 +48,12 @@ git diff main...HEAD --name-only
 ```
 
 **Read every changed file in full**, not just the diff hunks. Cross-cutting problems live in the code the
-diff did not touch — a changed function's callers, an invariant asserted elsewhere.
+diff did not touch - a changed function's callers, an invariant asserted elsewhere.
 
 ## Step 3: Detect scope
 
 Note which languages the diff touches so `language-specialist` can load the matching reference. Do not
-run the language pass inline — it is a delegated perspective in Step 4.
+run the language pass inline - it is a delegated perspective in Step 4.
 
 | Extension | Reference under `.claude/references/languages/` |
 |---|---|
@@ -73,17 +73,18 @@ Flag missing tests when the diff changes source but no test files.
 
 Dispatch all six agents in parallel, in a single message, on every review. Give each the same frozen
 packet: the diff, the changed-file list, the branch name, the HEAD SHA from Step 1, and the
-report-only instruction below — verbatim, in every dispatch prompt. Do not rely on an agent's own definition to supply it: only
+report-only instruction below - verbatim, in every dispatch prompt. Do not rely on an agent's own definition to supply it: only
 `code-reviewer` and `security-reviewer` load the read-only contract, and `test-writer` and
 `documentation-writer` hold `Edit`/`Write`.
 
 > Report only. Return findings and edit nothing. Cite `file:line` for each. If your lens does not apply
-> to this diff, return "no findings — surface not present" rather than manufacturing material.
+> to this diff, return "no findings - surface not present" rather than manufacturing material.
 > Work in the current directory; do not create or request a worktree. If this packet names a HEAD SHA,
-> run `git rev-parse HEAD` and confirm it matches before reporting — return BLOCKED if it does not. If
-> no SHA is named, proceed.
+> run `git rev-parse HEAD` and confirm it matches before reporting. If it moved, run
+> `git diff <named-sha> -- <changed files>`: an empty diff means your findings stand; a non-empty one
+> means re-check those hunks, and return BLOCKED only if you cannot. If no SHA is named, proceed.
 > Report as `subagent-report-contract` specifies: a verdict line, then findings as `file:line`
-> rows. Cut narration, preamble, and restatement. Do **not** cut findings — there is no length
+> rows. Cut narration, preamble, and restatement. Do **not** cut findings - there is no length
 > limit and nothing is archived, so anything you leave out is lost. Quote failures, errors, and
 > command output byte-for-byte; never paraphrase evidence.
 
@@ -101,13 +102,13 @@ action under Step 6.
 | Observability | `devops-engineer` | New code paths with no logging/metrics/tracing, silently swallowed errors, new surface with no SLO or alert, analytics events missing from the tracking plan | `.claude/references/devops/` (observability, sre-practices, incident-management) + `.claude/references/architecture/error-handling-patterns` |
 
 Deduplicate across perspectives and resolve contradictions. Check each delegated finding against the
-diff — a subagent's summary describes what it looked for, the diff shows what is there.
+diff - a subagent's summary describes what it looked for, the diff shows what is there.
 
 ### Adversarial debate, for high-risk diffs
 
 When the change is risky enough that a missed finding is expensive, escalate:
 
-1. **Freeze a shared packet** — the diff, the HEAD SHA, and context, identical for every reviewer.
+1. **Freeze a shared packet** - the diff, the HEAD SHA, and context, identical for every reviewer.
 2. **Fan out the perspective agents blind to each other**, scaling the count to the risk.
 3. **Cross-critique for one or two rounds.** Broadcast round-one findings; a reviewer may revise, but a
    change of position has to carry a technical reason. "Good point" is not one.
@@ -119,10 +120,10 @@ When the change is risky enough that a missed finding is expensive, escalate:
 Every finding cites `file:line`. Omit empty severity sections, and always include what looks good.
 
 ```markdown
-## Diff Review — {BRANCH_NAME}
+## Diff Review - {BRANCH_NAME}
 
 ### Critical
-- {finding} — {file:line} — {perspective} — {rung}
+- {finding} - {file:line} - {perspective} - {rung}
 
 ### High
 ### Medium
@@ -133,23 +134,23 @@ Every finding cites `file:line`. Omit empty severity sections, and always includ
 ```
 
 Close with a **PASS / CONCERNS / FAIL / BLOCKED** verdict. BLOCKED describes a limit of the review, not a
-defect in the code — say what you could not cover and why.
+defect in the code - say what you could not cover and why.
 
 ## Step 6: Disposition ladder
 
 The agents reported; none of them changed anything. Every finding is now yours to dispose of. For each
-one, take the first rung that applies — do not skip ahead:
+one, take the first rung that applies - do not skip ahead:
 
-1. **Fix it** — if the fix is reasonably scoped: clear defect, inside the diff's boundary, verifiable.
+1. **Fix it** - if the fix is reasonably scoped: clear defect, inside the diff's boundary, verifiable.
    Apply it, run the project's checks, commit atomically.
-2. **Add it to the plan for this session** — if this session has an active plan file under
+2. **Add it to the plan for this session** - if this session has an active plan file under
    `~/.claude/plans/`, append the finding there as a future phase. That directory holds plans from every
    project, so match the plan this session is actually running; a stale plan from another repo is not a
    destination. If no plan is active, fall to rung 3. **Never create a new plan file.**
-3. **Add it to the repository's future-work mechanism** — if the repo has one, follow its convention
+3. **Add it to the repository's future-work mechanism** - if the repo has one, follow its convention
    (`TODO.md`, `docs/plans/`, GitHub issues, a tracker named in CLAUDE.md or CONTRIBUTING.md). Detect it;
    do not invent one.
-4. **Ask** — nothing above applied. Ask the user, carrying a recommendation and the research behind it.
+4. **Ask** - nothing above applied. Ask the user, carrying a recommendation and the research behind it.
 
 Read the code a finding touches before deciding. Reaching rung 4 without having researched is the failure
 mode; so is skipping rung 1 for something you could simply have fixed.
@@ -159,7 +160,7 @@ mode; so is skipping rung 1 for something you could simply have fixed.
 This step is the one exception to the read-only reviewer contract in `verification-before-completion`
 and `code-review-patterns`. That contract binds the six dispatched agents absolutely, and it binds you
 for Steps 1-5; rung 1 is the hand-off to the fixing actor, performed by you only after the report exists.
-Write the report first, then act — never edit before Step 5 is on the page.
+Write the report first, then act - never edit before Step 5 is on the page.
 
 Scope guard: fixing a finding does not license unrelated refactors. If a fix grows past the diff's
 boundary, revert the partial edit, then take the next applicable rung. Follow `pr-comment-resolution`
@@ -175,9 +176,9 @@ still runs: every diff-review ends with the PR link.
 gh pr view --json number,url,state
 ```
 
-- **A PR is open** — `git push` the fixes to it. Never open a second one. With nothing
+- **A PR is open** - `git push` the fixes to it. Never open a second one. With nothing
   to push, report its URL anyway.
-- **No PR** — load `finishing-branch` and follow it: verify tests, validate docs, then open the PR.
+- **No PR** - load `finishing-branch` and follow it: verify tests, validate docs, then open the PR.
 
 Report the PR URL on the last line of the run, beside the Step 5 verdict. This is unconditional:
 a run that fixed nothing still ends with the link.

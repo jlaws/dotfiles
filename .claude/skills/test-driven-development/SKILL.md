@@ -14,7 +14,7 @@ expected reason is what proves it has teeth.
 
 ## When it applies
 
-Default to TDD for new features, bug fixes, and behavior changes — anywhere you are deciding what the
+Default to TDD for new features, bug fixes, and behavior changes - anywhere you are deciding what the
 code should do.
 
 It buys less where there is no behavior to specify: generated code, configuration, and throwaway
@@ -43,7 +43,7 @@ test('retries failed operations 3 times', async () => {
 });
 ```
 
-Run it, and read the failure. It should fail — not error — and fail because the behavior is missing,
+Run it, and read the failure. It should fail - not error - and fail because the behavior is missing,
 not because of a typo. Two failure modes to recognize:
 
 - **It passes.** You are describing behavior that already exists. The test is not about your change.
@@ -71,7 +71,7 @@ the next failing test.
 | **Minimal** | One thing. An "and" in the name means split it. | `test('validates email and domain and whitespace')` |
 | **Clear** | The name describes the behavior | `test('test1')` |
 | **Shows intent** | Demonstrates the API you want | Obscures what the code should do |
-| **Tests logic** | Exercises a decision, transformation, or path | `expect(config.timeout).toBe(5000)` — restates the source |
+| **Tests logic** | Exercises a decision, transformation, or path | `expect(config.timeout).toBe(5000)` - restates the source |
 | **Targets production** | Tests real application code | Tests the helpers, factories, or fixtures |
 
 ## When stuck
@@ -93,10 +93,34 @@ then add boundary variants around the fix.
 **The test must fail without the fix and pass with it.** If you cannot show both states, it is not
 testing the thing you think it is.
 
+## Proving a guard
+
+A test added after the code already works has never been seen to fail, so it has not been shown to
+test anything. Prove it the same way as a bug fix, by making the code wrong on purpose:
+
+1. Mutate the production code back to the broken behavior (revert the fix, flip the operator,
+   hard-wire the value the guard should catch).
+2. Run the test. It must fail with the assertion you wrote, naming the case, not with an unrelated
+   compile error or setup failure.
+3. Restore the code, then grep that the restore landed. A mutation that never applied proves
+   nothing, and one left in place ships a bug.
+4. Run the test again and see it pass.
+
+Two traps turn a real mutation into a false "fail" or "pass":
+
+- A restore by `mv file.bak file` keeps the backup's older mtime, so incremental builds (cargo,
+  make) may skip the rebuild and rerun the mutated binary. `touch` the restored file.
+- `git checkout -- <file>` does nothing for an untracked file. `git add` a new file before mutating
+  it, or restore from a copy.
+
+Compare tokens or parsed values in assertions, not substrings: a needle that also appears in an
+unrelated line (a path, a test name, another clause's message) makes the test pass for the wrong
+reason.
+
 ## Related
 
-If you are unsure whether a mocking approach is sound — testing mock behavior instead of real
-behavior, test-only methods on production classes, tautology tests that assert configuration — read
+If you are unsure whether a mocking approach is sound - testing mock behavior instead of real
+behavior, test-only methods on production classes, tautology tests that assert configuration - read
 `references/testing-anti-patterns.md`.
 
 A shipped change also needs a documentation decision: updated, or N/A with a reason. See
