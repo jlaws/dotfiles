@@ -2,22 +2,29 @@
 
 Auto-memory is a directory of Markdown files plus a `MEMORY.md` index that the harness loads into
 every conversation. Nothing checks it as it grows, so indexes drift from the files they list, links
-between memories rot, and an index past the harness's line cap loses its tail silently. This script
-checks the mechanical half of that; whether a memory is still true is a judgment it leaves alone.
+between memories rot, and an index past the harness's read limit loses its tail silently. This
+script checks the mechanical half of that; whether a memory is still true is a judgment it leaves
+alone.
 
 Checks, per store:
 
   FAIL index-missing   the store has memory files but no MEMORY.md
-  FAIL index-dangling  an index entry links a file that does not exist
+  FAIL index-dangling  an index entry links a file that does not exist inside the store
   FAIL unindexed       a memory file no index entry links (the harness will never surface it)
-  FAIL index-too-long  MEMORY.md exceeds 200 lines; the harness truncates everything after that
+  FAIL index-too-long  MEMORY.md exceeds 200 lines or 25KB; the harness loads only the first 200
+                       lines or 25KB, whichever comes first (code.claude.com/docs/en/memory)
   FAIL frontmatter     a memory file lacks `name`, `description`, or `type`
   FAIL wikilink        a `[[slug]]` names no memory by its `name` or file stem (underscores and
-                       hyphens match)
+                       hyphens match; `[[slug|alias]]` and `[[slug#heading]]` resolve by slug)
+  FAIL unreadable      an entry named `*.md` could not be read as UTF-8 text, or is not a regular
+                       file inside the store
   WARN index-line-long an index line exceeds 150 characters
 
 Stores are resolved through symlinks and checked once each, so checkouts that share one store by
-symlink report it once. The report names files and checks, never memory contents.
+symlink report it once. A file that cannot be read is reported and skipped; it never stops the
+other stores from being checked. The report names files and checks. A link target is echoed only
+when it looks like a slug; anything else is reported by length so memory prose stays out of the
+report.
 
 Usage:
     memory.py [--memory-dir DIR ...] [--json]
@@ -33,18 +40,20 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Set
 
 INDEX = "MEMORY.md"
 MAX_INDEX_LINES = 200
+MAX_INDEX_BYTES = 25 * 1024
 MAX_INDEX_LINE_CHARS = 150
 REQUIRED_FIELDS = ("name", "description", "type")
 
-INDEX_LINK = re.compile(r"\]\(([^)\s]+\.md)\)")
-WIKILINK = re.compile(r"\[\[([^\]\n]+)\]\]")
+INDEX_LINK = re.compile(r"\]\(([^)\s]+\.md)(?:#[^)\s]*)?\)")
+WIKILINK = re.compile(r"\[\[([^\[\]\n]+)\]\]")
 # `[[...]]` is also TOML array-of-tables and bash test syntax, so code is stripped before matching.
 CODE = re.compile(r"```.*?```|`[^`\n]*`", re.DOTALL)
 FIELD = re.compile(r"^\s*([A-Za-z_]+):\s*(.*)$")
+SLUG_SHAPE = re.compile(r"^[A-Za-z0-9_./-]{1,80}$")
 
 
 def default_stores() -> List[Path]:
@@ -56,7 +65,7 @@ def default_stores() -> List[Path]:
 
 
 def frontmatter(text: str) -> Dict[str, str]:
-    """Return the frontmatter fields of a memory file, flattening one level of nesting."""
+    """Return the frontmatter fields of a memory file, flattening nested keys to their leaf name."""
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
         return {}
@@ -66,13 +75,19 @@ def frontmatter(text: str) -> Dict[str, str]:
             break
         match = FIELD.match(line)
         if match:
-            fields.setdefault(match.group(1), match.group(2).strip())
+            fields.setdefault(match.group(1), match.group(2).strip().strip("\"'"))
     return fields
 
 
 def slug(value: str) -> str:
-    """Normalize a memory name so `feedback_a` and `feedback-a` compare equal."""
+    """Normalize a link target so `feedback_a`, `feedback-a`, and `feedback-a|alias` compare equal."""
+    value = value.split("|", 1)[0].split("#", 1)[0]
     return value.strip().strip("\"'").lower().replace("_", "-")
+
+
+def shown(target: str) -> str:
+    """Return a link target for the report, or its length when it does not look like a slug."""
+    return target if SLUG_SHAPE.match(target) else "<{} chars>".format(len(target))
 
 
 def finding(level: str, store: str, check: str, file: str, detail: str) -> Dict[str, str]:
@@ -82,71 +97,106 @@ def finding(level: str, store: str, check: str, file: str, detail: str) -> Dict[
 
 def label(path: Path) -> str:
     """Return a store path with the home directory shortened to ~."""
-    home = str(Path.home())
-    text = str(path)
-    return "~" + text[len(home) :] if text.startswith(home) else text
+    home = Path.home().resolve()
+    resolved = path.resolve()
+    if resolved == home or home in resolved.parents:
+        return "~/" + resolved.relative_to(home).as_posix()
+    return str(path)
+
+
+def inside(store: Path, path: Path) -> bool:
+    """Return whether a path is a regular file whose resolved location sits inside the store."""
+    return path.is_file() and store in path.resolve().parents
+
+
+def read_text(path: Path) -> Optional[str]:
+    """Read a UTF-8 text file (BOM tolerated); return None when it cannot be read as such."""
+    try:
+        return path.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
+def check_index(store: Path, name: str, found: List[Dict[str, str]]) -> Optional[Set[str]]:
+    """Check MEMORY.md; return the set of resolved paths it links, or None when it has no index."""
+    index_path = store / INDEX
+    if not index_path.is_file():
+        return None
+    text = read_text(index_path)
+    if text is None:
+        found.append(finding("FAIL", name, "unreadable", INDEX, "not a regular UTF-8 text file"))
+        return set()
+    index_lines = text.splitlines()
+    size = len(text.encode("utf-8"))
+    if len(index_lines) > MAX_INDEX_LINES or size > MAX_INDEX_BYTES:
+        found.append(
+            finding(
+                "FAIL",
+                name,
+                "index-too-long",
+                INDEX,
+                "{} lines, {} bytes; the harness loads only the first {} lines or {} bytes".format(
+                    len(index_lines), size, MAX_INDEX_LINES, MAX_INDEX_BYTES
+                ),
+            )
+        )
+    for number, line in enumerate(index_lines, 1):
+        if len(line) > MAX_INDEX_LINE_CHARS:
+            found.append(
+                finding(
+                    "WARN",
+                    name,
+                    "index-line-long",
+                    INDEX,
+                    "line {} is {} chars (max {})".format(number, len(line), MAX_INDEX_LINE_CHARS),
+                )
+            )
+    linked: Set[str] = set()
+    targets = {m for line in index_lines for m in INDEX_LINK.findall(line) if "://" not in m}
+    for target in sorted(targets):
+        if inside(store, store / target):
+            linked.add((store / target).resolve().name)
+        else:
+            found.append(
+                finding(
+                    "FAIL",
+                    name,
+                    "index-dangling",
+                    shown(target),
+                    "linked from MEMORY.md but not a file inside the store",
+                )
+            )
+    return linked
 
 
 def check_store(store: Path) -> List[Dict[str, str]]:
     """Run every check against one memory store."""
     name = label(store)
-    files = sorted(p for p in store.glob("*.md") if p.name != INDEX)
     found: List[Dict[str, str]] = []
-    index_path = store / INDEX
+    entries = sorted(p for p in store.glob("*.md") if p.name != INDEX)
+    linked = check_index(store, name, found)
 
-    if not index_path.is_file():
-        if files:
+    texts: Dict[str, str] = {}
+    for path in entries:
+        text = read_text(path) if inside(store, path) else None
+        if text is None:
             found.append(
-                finding(
-                    "FAIL",
-                    name,
-                    "index-missing",
-                    INDEX,
-                    "no MEMORY.md for {} files".format(len(files)),
-                )
+                finding("FAIL", name, "unreadable", path.name, "not a regular UTF-8 text file")
             )
-        linked = set()
-    else:
-        index_lines = index_path.read_text(encoding="utf-8").splitlines()
-        if len(index_lines) > MAX_INDEX_LINES:
-            found.append(
-                finding(
-                    "FAIL",
-                    name,
-                    "index-too-long",
-                    INDEX,
-                    "{} lines; the harness drops everything after line {}".format(
-                        len(index_lines), MAX_INDEX_LINES
-                    ),
-                )
-            )
-        for number, line in enumerate(index_lines, 1):
-            if len(line) > MAX_INDEX_LINE_CHARS:
-                found.append(
-                    finding(
-                        "WARN",
-                        name,
-                        "index-line-long",
-                        INDEX,
-                        "line {} is {} chars (max {})".format(
-                            number, len(line), MAX_INDEX_LINE_CHARS
-                        ),
-                    )
-                )
-        linked = {m for line in index_lines for m in INDEX_LINK.findall(line)}
-        for target in sorted(linked):
-            if not (store / target).is_file():
-                found.append(
-                    finding(
-                        "FAIL", name, "index-dangling", target, "linked from MEMORY.md but missing"
-                    )
-                )
+        else:
+            texts[path.name] = text
 
-    texts = {p.name: p.read_text(encoding="utf-8") for p in files}
+    if linked is None and texts:
+        found.append(
+            finding(
+                "FAIL", name, "index-missing", INDEX, "no MEMORY.md for {} files".format(len(texts))
+            )
+        )
+
     names = {slug(frontmatter(text).get("name", "")) for text in texts.values()} - {""}
     names |= {slug(Path(filename).stem) for filename in texts}
     for filename, text in texts.items():
-        if index_path.is_file() and filename not in linked:
+        if linked is not None and filename not in linked:
             found.append(
                 finding("FAIL", name, "unindexed", filename, "no MEMORY.md entry links it")
             )
@@ -164,7 +214,7 @@ def check_store(store: Path) -> List[Dict[str, str]]:
                         name,
                         "wikilink",
                         filename,
-                        "[[{}]] matches no memory name or file".format(target),
+                        "[[{}]] matches no memory name or file".format(shown(target)),
                     )
                 )
     return found
@@ -205,9 +255,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     requested = (
         [Path(d).expanduser() for d in args.memory_dir] if args.memory_dir else default_stores()
     )
-    for path in requested:
-        if not path.is_dir():
-            parser.error("{} is not a directory".format(path))
+    bad = [str(path) for path in requested if not path.is_dir()]
+    if bad:
+        parser.error("not a directory: " + ", ".join(bad))
 
     stores: List[Path] = []
     for path in requested:
