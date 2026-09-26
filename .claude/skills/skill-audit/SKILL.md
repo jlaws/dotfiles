@@ -6,12 +6,14 @@ allowed-tools: Read, Grep, Glob, Bash
 
 # Knowledge Base Audit
 
-Three parts. One script settles everything mechanical, a second measures which assets actually show
-up in transcripts, and you spend your attention on the judgment calls neither can make.
+Four parts. One script settles everything mechanical, a second measures which assets actually show
+up in transcripts, a third checks the auto-memory stores, and you spend your attention on the
+judgment calls none of them can make.
 
 The scope argument routes: `skills`, `commands`, `agents`, `references`, and `config` narrow the
-mechanical checks and the judgment pass; `adoption` runs the transcript report alone; a path audits
-that asset. No argument runs everything except adoption, which is never automatic.
+mechanical checks and the judgment pass; `adoption` runs the transcript report alone; `memory` runs
+the memory check and its judgment pass; a path audits that asset. No argument runs everything except
+adoption and memory, which are never automatic.
 
 ## Run the mechanical checks
 
@@ -69,10 +71,37 @@ them as evidence for the **Orphans** judgment below: an asset that is both unref
 unmentioned is a strong removal candidate, while one that is unmentioned but well-referenced is more
 likely a discoverability problem. A `cold` asset has positive evidence -- treat it as used.
 
+## Check memory
+
+Reached by `/j-skill-audit memory`. Auto-memory is the harness's runtime state, not a synced asset:
+it lives under `~/.claude/projects/*/memory` and `~/.claude/agent-memory/*`, has no source in this
+repo, and must never be committed here, because it holds private notes about other projects.
+
+```bash
+python3 .claude/skills/skill-audit/scripts/memory.py
+```
+
+With no `--memory-dir` it checks every store; pass `--memory-dir DIR` (repeatable) to scope it, and
+`--json` for machine output. Symlinked stores are checked once. Exit 1 on any FAIL, 2 on a bad
+argument. It checks the index (present, no dangling entries, every file indexed, at most 200 lines
+because the harness drops the rest, lines at most 150 characters as a WARN), frontmatter
+(`name`, `description`, `type`), and `[[wikilinks]]`, which resolve to a memory's `name` or file
+stem with underscores and hyphens treated alike.
+
+The script cannot judge whether a memory is still true. Do that pass by hand, per store:
+
+- **Stale.** A memory describing finished work (a merged PR, a completed epic, a resume procedure
+  for a finished run) or contradicting current code. Verify against the repo before deleting.
+- **Owned.** A rule an always-loaded file, a skill, or the project's own docs already state. Delete
+  it; the owner is the one that loads.
+- **Recurring.** The same rule re-learned in several stores means no asset states it, or one
+  contradicts it. Fix the asset (a lint or test in the project, a skill or command here) instead of
+  keeping more copies of the memory.
+
 ## Judge what the script cannot
 
 The script proves structure. These five questions decide whether the knowledge base is worth loading.
-Rate each and name the weakest — that is where to invest next.
+Rate each and name the weakest - that is where to invest next.
 
 | Axis | Question |
 |------|----------|
@@ -108,7 +137,7 @@ and are not checked, so read those by hand.
 
 **Unsourced numbers.** A percentage or multiplier reads as measured fact and the reader acts on it.
 Distinguish a claim ("tables are ~40% more efficient") from a threshold ("min 80% coverage") or a
-rollout stage — only the claim needs provenance. Where a practice has fixed overhead, say at what size
+rollout stage - only the claim needs provenance. Where a practice has fixed overhead, say at what size
 it exceeds the benefit. This is deliberately an axis and not a script check: a regex over `\d+%|\d+x`
 cannot tell a claim from a threshold or a rollout stage, so it flags far more legitimate targets than
 real ones and the only way to green is to reword them.
@@ -121,7 +150,7 @@ general one beside it. Full rules in `writing-skills`, Claims and evidence; this
 get checked.
 
 **Orphans.** The script lists references that no agent, command, or skill indexes. Each is a removal,
-merge, or index-fix candidate — decide which, rather than leaving it unreachable. The adoption report
+merge, or index-fix candidate - decide which, rather than leaving it unreachable. The adoption report
 is the evidence for that call where the asset is a skill, agent, or command.
 
 ## Tree layout
