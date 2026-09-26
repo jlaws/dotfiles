@@ -42,6 +42,8 @@ REQUIRED_FIELDS = ("name", "description", "type")
 
 INDEX_LINK = re.compile(r"\]\(([^)\s]+\.md)\)")
 WIKILINK = re.compile(r"\[\[([^\]\n]+)\]\]")
+# `[[...]]` is also TOML array-of-tables and bash test syntax, so code is stripped before matching.
+CODE = re.compile(r"```.*?```|`[^`\n]*`", re.DOTALL)
 FIELD = re.compile(r"^\s*([A-Za-z_]+):\s*(.*)$")
 
 
@@ -154,7 +156,7 @@ def check_store(store: Path) -> List[Dict[str, str]]:
             found.append(
                 finding("FAIL", name, "frontmatter", filename, "missing " + ", ".join(missing))
             )
-        for target in WIKILINK.findall(text):
+        for target in WIKILINK.findall(CODE.sub("", text)):
             if slug(target) not in names:
                 found.append(
                     finding(

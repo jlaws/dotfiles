@@ -119,6 +119,14 @@ class MemoryCheckTests(_StoreMixin):
         )
         self.assertEqual(self.findings(root), [])
 
+    def test_double_brackets_inside_code_are_not_wikilinks(self):
+        body = (
+            "TOML tables like `[[hooks.PreToolUse]]` and bash tests like `[[ -n $x ]]`.\n\n"
+            "```toml\n[[package]]\nname = 'x'\n```\n"
+        )
+        root = self.store({"feedback_a.md": memory_file("feedback-a", body)})
+        self.assertEqual(self.findings(root), [])
+
     def test_wikilink_may_name_a_file_stem_instead_of_its_name_field(self):
         root = self.store(
             {
