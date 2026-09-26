@@ -130,6 +130,9 @@ Before writing, run the **redesign gate**. Any of these means fix the design, no
 - No clear error-handling strategy.
 - The design optimizes for hypothetical future requirements over current ones.
 - "It depends" answers most questions about the design.
+- Every option for a decision is weak. Redesign the mechanism until one option is clearly right
+  (often by making the bad state impossible to represent) rather than asking the user to pick
+  the least bad.
 
 Then replace the working notes with the complete plan per `writing-plans`, including its Mandatory
 Phase Skeleton. Write the draft directly to the plan file.

@@ -13,7 +13,7 @@ allowed-tools: Read, Grep, Glob, Bash
 ### Step 1: Load and Review Plan
 
 1. Read the plan file
-2. Review critically — identify questions, gaps, or concerns
+2. Review critically - identify questions, gaps, or concerns
 3. If concerns: raise them with the user before starting
 4. If clear: proceed to execution
 
@@ -25,33 +25,35 @@ For each task in the batch:
 1. Announce which task you're starting
 2. Follow each step exactly as written in the plan
 3. Run all verification commands specified
-4. Run the task's stated verification command and read the result before moving on — a step whose check
+4. Run the task's stated verification command and read the result before moving on - a step whose check
    never ran is not done
-5. Commit after each task (or as the plan specifies)
+5. Commit once per phase, when the phase's last task passes (or as the plan specifies); tasks in a phase share its commit
 
 #### Living Document Maintenance
 
 **NOT optional.** Maintain these sections in the plan file as you execute:
 
-**Progress** — checklist updated after each task:
+**Progress** - checklist updated after each task:
 ```markdown
 ## Progress
-- [x] Task 1: Setup schema — `a1b2c3d`
-- [x] Task 2: Create migration — `e4f5g6h`
-- [ ] Task 3: Add model layer ← current
-- [ ] Task 4: Write API endpoints
+- [x] Phase 2: Schema and migration - `a1b2c3d`
+  - [x] Task 1: Setup schema
+  - [x] Task 2: Create migration
+- [ ] Phase 3: Model and API
+  - [ ] Task 3: Add model layer ← current
+  - [ ] Task 4: Write API endpoints
 ```
 
-**Decision Log** — judgment calls when the plan is ambiguous or reality diverges:
+**Decision Log** - judgment calls when the plan is ambiguous or reality diverges:
 ```markdown
 ## Decision Log
 | Task | Decision | Rationale |
 |------|----------|-----------|
-| 3 | Used `jsonb` instead of `json` column type | Plan said "JSON column" — `jsonb` supports indexing, matches existing schema pattern in `users` table |
+| 3 | Used `jsonb` instead of `json` column type | Plan said "JSON column" - `jsonb` supports indexing, matches existing schema pattern in `users` table |
 | 5 | Skipped Redis cache, used in-memory LRU | Redis not in docker-compose; plan's behavioral check (< 5ms response) passes with LRU |
 ```
 
-**Surprises & Discoveries** — unexpected behaviors with evidence:
+**Surprises & Discoveries** - unexpected behaviors with evidence:
 ```markdown
 ## Surprises & Discoveries
 - Task 2: Migration fails silently when `pgcrypto` extension missing. Fixed by adding `CREATE EXTENSION IF NOT EXISTS pgcrypto;`. Error was: `PG::UndefinedFunction: ERROR: function gen_random_uuid() does not exist`
@@ -59,14 +61,15 @@ For each task in the batch:
 
 ### Step 3: Report
 
-After each batch, present evidence artifacts — not summaries:
+After each batch, present evidence artifacts - not summaries:
 
 - **Paste terminal output** as code blocks. Don't paraphrase test results or build output.
 - **Run behavioral acceptance checks** from the plan (phase acceptance checks, task behavioral checks) and paste results.
 - **Include Decision Log entries** made during this batch.
 - **Include Surprises & Discoveries** from this batch.
 - Say: **"Batch complete. Ready for feedback."**
-- Wait for user response before continuing
+- Wait for user response before continuing. Prefer batch boundaries that end a phase, so the pause
+  leaves no uncommitted work; when a batch must end mid-phase, say so and name the uncommitted files
 
 ### Step 4: Continue
 
@@ -79,11 +82,11 @@ Based on feedback:
 
 After all tasks are done and verified:
 - Run full test suite one final time
-- Validate documentation with the `documentation-validation` skill — product docs and KB self-docs current, or N/A with reason
+- Validate documentation with the `documentation-validation` skill - product docs and KB self-docs current, or N/A with reason
 - Load `finishing-branch` skill and follow it (verify → validate docs → open the PR)
 
 A completed unit of plan work ends in a pull request, opened without being asked. For a plan with PR
-boundaries, that is the end of each boundary, not just the last one — push the PR, then wait for review
+boundaries, that is the end of each boundary, not just the last one - push the PR, then wait for review
 before the next boundary rather than running on.
 
 ## When to Stop and Ask
@@ -94,7 +97,7 @@ before the next boundary rather than running on.
 - An instruction in the plan is unclear or ambiguous
 - The plan's assumptions don't match reality (file doesn't exist, API changed, etc.)
 - You've hit 3+ consecutive unexpected issues
-- A non-idempotent step partially executed (e.g., half a migration ran). Stop immediately — re-running may corrupt state. Report exactly what happened and what state you're in.
+- A non-idempotent step partially executed (e.g., half a migration ran). Stop immediately - re-running may corrupt state. Report exactly what happened and what state you're in.
 
 **Ask for clarification rather than guessing.** Don't force through blockers.
 
@@ -114,7 +117,7 @@ Completed Task 3 (Add model layer):
 - Behavioral check passed:
   $ ./bin/rails runner 'puts User.create!(name: "test").id'
   42
-- Committed: `a1b2c3d feat: add User model with validations`
+- Phase 3 not yet committed (Task 4 remains)
 
 Starting Task 4 (Write API endpoints)...
 ```
@@ -125,7 +128,7 @@ Starting Task 4 (Write API endpoints)...
 - Continuing past a failing test
 - Modifying the plan without user approval
 - Executing tasks out of order without justification
-- Committing broken code between tasks
+- Committing a phase whose acceptance check has not passed
 - Guessing when the plan is unclear
 - Summarizing verification output instead of pasting it (paste the actual terminal output)
 - Making decisions without logging them (every judgment call goes in the Decision Log)
@@ -133,6 +136,6 @@ Starting Task 4 (Write API endpoints)...
 ## Integration
 
 **Receives plans from:** `writing-plans`
-**Hands off to:** `finishing-branch` when all tasks complete — which opens the PR, it does not ask whether to
+**Hands off to:** `finishing-branch` when all tasks complete - which opens the PR, it does not ask whether to
 **Uses:** `verification-before-completion` for verdict grammar when reporting step outcomes
-**Alternative mode:** `subagent-driven-development` — dispatches a fresh subagent per task instead of executing inline. Prefer it for large plans, mostly-independent tasks, or when inline execution would exhaust context; prefer this skill (inline) for small or tightly-coupled plans. Both share the same living-document ledger.
+**Alternative mode:** `subagent-driven-development` - dispatches a fresh subagent per task instead of executing inline. Prefer it for large plans, mostly-independent tasks, or when inline execution would exhaust context; prefer this skill (inline) for small or tightly-coupled plans. Both share the same living-document ledger.

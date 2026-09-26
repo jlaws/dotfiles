@@ -10,7 +10,7 @@ Find the cause before changing anything. A fix aimed at a symptom you have not e
 not hold or moves the bug somewhere else, and each speculative attempt makes the state harder to reason
 about. Finish Phase 1 before proposing a fix.
 
-Report what you found, where (`file:line`), and the fix — finding first, explanation after. Read the
+Report what you found, where (`file:line`), and the fix - finding first, explanation after. Read the
 relevant code before forming a theory about it, and when the cause is still unclear, say so rather than
 offering a guess as an answer.
 
@@ -23,11 +23,11 @@ be bolder:
 |----------|--------|
 | 1-2 | Normal Phase 3 (hypothesis + test) |
 | 3 | STOP. Structured analysis before retrying |
-| 3+ no progress | Ask user — root cause unclear or architectural change needed |
+| 3+ no progress | Ask user - root cause unclear or architectural change needed |
 
 **Structured analysis before attempt 3:**
 1. Write down what you tried and what happened
-2. Articulate your assumptions — which one is wrong?
+2. Articulate your assumptions - which one is wrong?
 3. Identify information gaps
 4. Re-read relevant code with fresh eyes
 5. Return to Phase 1 with a new mental model
@@ -51,8 +51,10 @@ A harness, checker, or environment fault is **never** fixed by changing product 
 
 **1. Reproduce Consistently**
 - Can you trigger it reliably? Exact steps? Minimal reproduction?
-- If not reproducible, gather more data — don't guess
+- If not reproducible, gather more data - don't guess
 - For intermittent issues: add logging with timestamps, stress test, look for race conditions
+- Reproduce before you plan the fix, not only before you write it. A fix plan built on a traced but
+  unreproduced cause fixes the wrong thing. In the plan, separate observed facts from hypotheses.
 
 **2. Check Recent Changes**
 ```bash
@@ -64,7 +66,7 @@ git log --all --oneline -- <file>        # History of specific file
 ### Phase 2: Pattern Analysis
 
 1. Find working examples of similar code
-2. Compare against references — list every difference
+2. Compare against references - list every difference
 3. Understand dependencies (settings, config, environment)
 
 ### Phase 3: Hypothesis and Testing
@@ -75,16 +77,16 @@ git log --all --oneline -- <file>        # History of specific file
 
 #### Structured Hypothesis Investigation
 
-When the cause is unclear, enumerate 3-5 hypotheses up front (most likely first). Independent hypotheses that share no state may be investigated in parallel via subagents; otherwise investigate sequentially. Either way, keep the confirm/refute discipline for each hypothesis — do not blur evidence across them.
+When the cause is unclear, enumerate 3-5 hypotheses up front (most likely first). Independent hypotheses that share no state may be investigated in parallel via subagents; otherwise investigate sequentially. Either way, keep the confirm/refute discipline for each hypothesis - do not blur evidence across them.
 
 For each hypothesis, note:
-- **What to check** — specific file, function, or state to inspect
-- **Evidence that would confirm** — what you'd expect to see if this IS the cause
-- **Evidence that would refute** — what you'd expect to see if this is NOT the cause
+- **What to check** - specific file, function, or state to inspect
+- **Evidence that would confirm** - what you'd expect to see if this IS the cause
+- **Evidence that would refute** - what you'd expect to see if this is NOT the cause
 
 Investigate each in turn:
 1. Gather evidence (read code, check logs, add instrumentation)
-2. **Confirm or refute** — be explicit about which
+2. **Confirm or refute** - be explicit about which
 3. If confirmed: proceed to Phase 4
 4. If refuted: move to next hypothesis
 5. If inconclusive: note what's missing and continue
@@ -100,7 +102,7 @@ Investigate each in turn:
 {explanation}
 
 ### Hypotheses Tested
-1. {hypothesis} — {confirmed/refuted} — {evidence}
+1. {hypothesis} - {confirmed/refuted} - {evidence}
 2. ...
 
 ### Fix
@@ -112,13 +114,13 @@ Investigate each in turn:
 
 ### Phase 4: Implementation
 
-1. **Create Failing Test** — simplest possible reproduction, automated
-2. **Implement Single Fix** — ONE change at a time
-3. **Verify** — test passes? No other tests broken?
+1. **Create Failing Test** - simplest possible reproduction, automated
+2. **Implement Single Fix** - ONE change at a time
+3. **Verify** - test passes? No other tests broken?
 
 If the bug stems from invalid data flowing through multiple layers, read `references/defense-in-depth.md` to add validation at every layer and make it structurally impossible.
 
-**If 3+ Fixes Failed**: see "Stop after two attempts" above — discuss fundamentals rather than retrying.
+**If 3+ Fixes Failed**: see "Stop after two attempts" above - discuss fundamentals rather than retrying.
 
 ---
 
@@ -132,6 +134,9 @@ git bisect good v1.0.0            # This was good
 git bisect good   # or bad, repeat until found
 git bisect reset
 ```
+
+A timeout on a path that used to pass is a regression, not a budget problem. Bisect it. Raising the
+timeout, adding a retry, or adding a per-command override hides the slowdown and ships it.
 
 ### Differential Debugging
 

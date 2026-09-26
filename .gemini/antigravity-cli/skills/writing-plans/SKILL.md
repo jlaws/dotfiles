@@ -7,7 +7,7 @@ description: "Use when planning a multi-step implementation before coding."
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero codebase context. Document everything they need: which files to touch, complete code samples, how to test, exact commands with expected output. Bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+Write comprehensive implementation plans assuming the engineer has zero codebase context. Document everything they need: which files to touch, complete code samples, how to test, exact commands with expected output. Bite-sized tasks. DRY. YAGNI. TDD. One commit per phase.
 
 Target audience: skilled developer unfamiliar with your codebase and toolset.
 
@@ -32,7 +32,7 @@ Every plan MUST start with:
 ```markdown
 # [Feature Name] Implementation Plan
 
-**Purpose:** [Behavioral statement — what changes for the user/system]
+**Purpose:** [Behavioral statement - what changes for the user/system]
 
 BAD: "Implement caching layer"
 GOOD: "After this change, repeated API calls for the same resource return cached results within 5ms instead of hitting the database"
@@ -43,16 +43,21 @@ GOOD: "After this change, repeated API calls for the same resource return cached
 
 **Codebase Orientation:**
 - Entry point: `path/to/main.ext`
-- Key modules: `path/to/relevant/` — [what it does]
+- Key modules: `path/to/relevant/` - [what it does]
 - Test runner: `command` (run from `directory/`)
-- Config: `path/to/config` — [relevant settings]
+- Config: `path/to/config` - [relevant settings]
+
+**Risks:**
+| Risk | Closed by |
+|------|-----------|
+| [what could be wrong] | [file:line, measurement, or inspection that closes it, or the test that will catch it] |
 
 ---
 ```
 
 ## Mandatory Phase Skeleton
 
-Phases are the single unit of grouping — a plan is phases, a phase is tasks. Every plan uses this order. The ends are fixed; the middle expands to as many implementation phases as the work needs.
+Phases are the single unit of grouping - a plan is phases, a phase is tasks. Every plan uses this order. The ends are fixed; the middle expands to as many implementation phases as the work needs.
 
 Each phase carries a goal, an acceptance check, and its own doc delta:
 
@@ -68,7 +73,7 @@ Each phase carries a goal, an acceptance check, and its own doc delta:
 ### Task 3: Commit
 ```
 
-A phase may also be a **decision gate** — prototype, measure, then choose. State the measurement and the branch it decides:
+A phase may also be a **decision gate** - prototype, measure, then choose - but only when the measurement needs something planning cannot reach: the real workload, production data, or code that does not exist yet. A measurement you can run now (a profiler, a prototype, a benchmark on the current tree) runs during planning, and its number goes in the plan. State the measurement and the branch it decides:
 
 ```markdown
 ## Phase 2: Evaluate cache strategy (prototype)
@@ -79,9 +84,11 @@ A phase may also be a **decision gate** — prototype, measure, then choose. Sta
 
 After a decision-gate phase the executor pauses and reports findings before continuing.
 
-### Phase 0 — Branch hygiene
+Phases are numbered from 1. There is no Phase 0.
 
-No plan starts on `main`. The first phase of every plan is:
+### Phase 1 - Branch, then documentation
+
+No plan starts on `main`. Phase 1 opens with branch hygiene:
 
 ```bash
 git fetch origin main
@@ -89,21 +96,19 @@ git status --porcelain              # must be empty; stop and report if not
 git checkout -b <type>/<short-description> origin/main
 ```
 
-Branch naming follows `type/short-description`. If the plan spans multiple PRs, every later PR repeats this from a clean slate — see PR Boundaries below.
+Branch naming follows `type/short-description`. If the plan spans multiple PRs, every later PR repeats this from a clean slate - see PR Boundaries below.
 
-### Phase 1 — Documentation
+Then write the docs and READMEs describing the behavior the plan will create, before the code exists. The docs are the contract the implementation then satisfies. Name exact files; never write "update the docs". A deliverable that is docs-only touches no source files.
 
-Write the docs and READMEs describing the behavior the plan will create, before the code exists. The docs are the contract the implementation then satisfies. Name exact files; never write "update the docs".
+### Phases 2..N-1 - TDD implementation
 
-### Phases 2..N-1 — TDD implementation
-
-Each follows `test-driven-development`: write the failing test, run it and confirm it fails for the right reason, write the minimal implementation, confirm green, commit.
+Each follows `test-driven-development`: write the failing test, run it and confirm it fails for the right reason, write the minimal implementation, confirm green. The phase ends in one commit.
 
 **Each of these phases leads with the doc delta for its own work, then the code.** Phase 1 sets the contract; later phases correct it wherever reality diverged. A phase that changes documented behavior without touching the doc in the same phase is incomplete.
 
 Order them **risk-first**: the hardest or least-certain work goes first, so a wrong assumption surfaces while the plan is still cheap to change. Make each phase a **vertical slice** that produces something testable end to end, rather than a horizontal layer that proves nothing until the layer above it lands.
 
-### Phase N — Validation gate
+### Phase N - Validation gate
 
 Prove the capability end to end, not just that the unit tests pass. State one of:
 
@@ -117,13 +122,13 @@ Benchmark: N/A -- repo has no benchmark harness; the capability is validated by
 `make verify` plus the Phase 3 acceptance check.
 ```
 
-Extend an existing benchmark where one covers the surface; add a new one where none does. An unstated benchmark decision is a failed plan — silence is not N/A.
+Extend an existing benchmark where one covers the surface; add a new one where none does. An unstated benchmark decision is a failed plan - silence is not N/A.
 
 ### PR Boundaries
 
-Commit after every phase. Every unit of plan work ends in a pull request, opened automatically once its phases pass their gates — the executor does not stop to ask whether to open one.
+One commit per phase. Every unit of plan work ends in a pull request, opened automatically once its phases pass their gates - the executor does not stop to ask whether to open one. An opened PR is a stop point: no side work until review.
 
-**Split into multiple PRs when the change is substantial.** Each PR must land the tree in a valid state: its doc updates and its code updates ship together, so `post-ship-doc-sync` and a diff review find nothing stale. After each PR, **wait for review** before starting the next.
+**Default to one PR per plan.** Split into multiple PRs only when a group of phases is independently shippable and the combined diff is too large to review as one, and state that reason in the plan. Each PR must land the tree in a valid state: its doc updates and its code updates ship together, so `post-ship-doc-sync` and a diff review find nothing stale. After each PR, **wait for review** before starting the next.
 
 Between PRs, reset to a clean slate:
 
@@ -139,19 +144,18 @@ A plan that spans PRs states its boundaries explicitly: which phases belong to w
 
 ### Pre-production
 
-Assume the system is pre-production unless the plan says otherwise. Breaking changes are acceptable — prefer the clean design over a compatibility shim, and say so in the plan rather than leaving the reader to guess.
+Assume the system is pre-production unless the plan says otherwise. Breaking changes are acceptable - prefer the clean design over a compatibility shim, and say so in the plan rather than leaving the reader to guess.
 
 ## Bite-Sized Task Granularity
 
 Each step is one action (2-5 minutes):
 
-- "Write the failing test" — step
-- "Run it to make sure it fails" — step
-- "Implement the minimal code to make the test pass" — step
-- "Run the tests and make sure they pass" — step
-- "Commit" — step
+- "Write the failing test" - step
+- "Run it to make sure it fails" - step
+- "Implement the minimal code to make the test pass" - step
+- "Run the tests and make sure they pass" - step
 
-If a step takes more than 5 minutes, split it further.
+If a step takes more than 5 minutes, split it further. The commit is the phase's final task, not a step inside every task.
 
 ## Task Structure
 
@@ -192,46 +196,52 @@ def function(input):
 
 Run: `test-command path/to/test::test_name`
 Expected: PASS
+````
 
-**Step 5: Commit**
+A phase's final task commits the phase's work:
 
 ```bash
 git add tests/path/test.ext src/path/file.ext
 git commit -m "feat: add specific feature"
 ```
-````
 
 ## Requirements
 
-- **Exact file paths** — always, no "add to the appropriate file"
-- **Complete code** — paste actual code, not "add validation here"
-- **Exact commands** — with expected output, not "run the tests"
-- **TDD integration** — each task = failing test → verify fail → implement → verify pass → commit
-- **Self-contained tasks** — each task can be understood and executed independently
-- **Frequent commits** — one commit per task or logical unit
-- **Idempotent steps** — every step safely re-runnable. `CREATE TABLE IF NOT EXISTS`, not `CREATE TABLE`. `mkdir -p`, not `mkdir`. If a step fails midway, re-running it from the top must not corrupt state.
-- **Resolve all ambiguities** — no "choose appropriate X" or "use a suitable library". Every decision is made in the plan. If you can't decide, flag it as a decision-gate phase.
-- **Documentation task** — if the change alters public surface or documented behavior, include an explicit doc-update task; don't leave docs implicit. See `documentation-validation`.
-- **Phase skeleton** — Phase 0 branch hygiene, Phase 1 docs, Phases 2..N-1 TDD, Phase N validation gate.
-- **Stated validation gate** — the benchmark and gate command, or an explicit N/A with a reason.
-- **Stated PR boundaries** — one PR, or which phases map to which PR with a review wait between.
-- **Risk-first vertical slices** — hardest or least-certain phase first; each phase testable end to end rather than a horizontal layer.
-- **Decisions persisted** — every significant, not-easily-reversible decision has an ADR task (`docs/adr/<topic>/<slug>.md`), updating an existing record in place rather than adding a second file; minor ones are noted inline. See `.agents/references/architecture/architecture-decision-records.md`.
-- **Assumptions stated** — the plan names its assumptions, numbered and falsifiable, across
+- **Exact file paths** - always, no "add to the appropriate file"
+- **Complete code** - paste actual code, not "add validation here"
+- **Exact commands** - with expected output, not "run the tests"
+- **TDD integration** - each task = failing test → verify fail → implement → verify pass
+- **Self-contained tasks** - each task can be understood and executed independently
+- **One commit per phase** - the phase's final task commits its work
+- **Idempotent steps** - every step safely re-runnable. `CREATE TABLE IF NOT EXISTS`, not `CREATE TABLE`. `mkdir -p`, not `mkdir`. If a step fails midway, re-running it from the top must not corrupt state.
+- **Resolve all ambiguities** - no "choose appropriate X" or "use a suitable library". Every decision is made in the plan. Research what the code or primary docs can answer; run what can be measured now. A decision-gate phase is only for a measurement planning cannot reach.
+- **Risks closed with evidence** - every named risk gets a row in the header's Risks table naming the evidence that closes it (a file:line, a measurement, an inspection) or the test that will catch it. A risk whose mitigation is "measure first" is unfinished research.
+- **Findings filed, not listed** - an unrelated defect found while planning goes to the project's tracker; the plan names the entry. The plan holds no "recorded, not fixed" list. A security defect never goes to a public tracker: report it to the user, or through the project's private advisory channel.
+- **Requirements, not history** - the plan states what to build and why. Decision history and review back-and-forth go in ADRs or nowhere.
+- **No follow-up tail** - in-scope work is planned in full. No HANDOFF phase and no "known follow-ups" section for accepted scope.
+- **Documentation task** - if the change alters public surface or documented behavior, include an explicit doc-update task; don't leave docs implicit. See `documentation-validation`.
+- **Phase skeleton** - Phase 1 branch hygiene then docs, Phases 2..N-1 TDD, Phase N validation gate.
+- **Stated validation gate** - the benchmark and gate command, or an explicit N/A with a reason.
+- **Stated PR boundaries** - one PR, or which phases map to which PR with a review wait between.
+- **Risk-first vertical slices** - hardest or least-certain phase first; each phase testable end to end rather than a horizontal layer.
+- **Decisions persisted** - every significant, not-easily-reversible decision has an ADR task (`docs/adr/<topic>/<slug>.md`), updating an existing record in place rather than adding a second file; minor ones are noted inline. See `.agents/references/architecture/architecture-decision-records.md`.
+- **Assumptions stated** - the plan names its assumptions, numbered and falsifiable, across
   whichever rows apply. See `.agents/references/workflow/existing-code-discipline.md`.
 
 ## Self-Review (before handoff)
 
 Before presenting execution options, review the finished plan against this checklist and fix any gap:
 
-- **Spec coverage** — every requirement maps to at least one task; nothing dropped.
-- **Placeholder scan** — no "TBD", "add validation", "handle edge cases", or "choose appropriate X" remains; every decision is made in the plan.
-- **Type/signature consistency** — function and type signatures match across every task that references them.
-- **Junior-engineer bar** — the plan is good enough only if an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing could execute it correctly. If any step relies on taste or unstated context, make it explicit. Name YAGNI and DRY as constraints where a task invites over-building.
-- **Documentation coverage** — a change that ships a public-surface or behavior change has a doc-update task, or the plan states docs are N/A with a reason.
-- **Skeleton conformance** — Phase 0 fetches and branches off `origin/main`; Phase 1 is docs; the last phase is the validation gate; every middle phase leads with its own doc delta.
-- **Validation gate stated** — a named benchmark and gate command, or an explicit N/A with a reason.
-- **Risk order and slicing** — the riskiest work is first, and no phase is a horizontal layer that proves nothing on its own.
+- **Spec coverage** - every requirement maps to at least one task; nothing dropped.
+- **Placeholder scan** - no "TBD", "add validation", "handle edge cases", or "choose appropriate X" remains; every decision is made in the plan. A step phrased "check whether", "if it turns out", "decide during", or "re-check after" is an unresolved question in disguise: resolve it now.
+- **Risk evidence** - every risk row names its closing evidence or catching test.
+- **No follow-up tail** - nothing in accepted scope is deferred to a HANDOFF or follow-ups section.
+- **Type/signature consistency** - function and type signatures match across every task that references them.
+- **Junior-engineer bar** - the plan is good enough only if an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing could execute it correctly. If any step relies on taste or unstated context, make it explicit. Name YAGNI and DRY as constraints where a task invites over-building.
+- **Documentation coverage** - a change that ships a public-surface or behavior change has a doc-update task, or the plan states docs are N/A with a reason.
+- **Skeleton conformance** - Phase 1 fetches and branches off `origin/main`, then writes docs; the last phase is the validation gate; every middle phase leads with its own doc delta.
+- **Validation gate stated** - a named benchmark and gate command, or an explicit N/A with a reason.
+- **Risk order and slicing** - the riskiest work is first, and no phase is a horizontal layer that proves nothing on its own.
 
 ## Execution Handoff
 
@@ -240,16 +250,16 @@ After the self-review, present execution options:
 ```
 Plan saved to `<plan-file-path>`. Execution options:
 
-1. **Execute now (inline)** — work through tasks in batches with review checkpoints
+1. **Execute now (inline)** - work through tasks in batches with review checkpoints
    (uses executing-plans skill; run via /j-execute-plan)
 
-2. **Execute via subagents** — fresh agent per task with per-task spec + quality review
+2. **Execute via subagents** - fresh agent per task with per-task spec + quality review
    (uses subagent-driven-development skill; best for large or independent-task plans)
 
-3. **Execute in new session** — open a new session and load executing-plans
+3. **Execute in new session** - open a new session and load executing-plans
    (fresh context per batch)
 
-4. **Manual** — you execute the plan yourself
+4. **Manual** - you execute the plan yourself
 
 Which approach?
 ```
