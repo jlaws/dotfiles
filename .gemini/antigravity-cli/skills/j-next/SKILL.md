@@ -45,6 +45,7 @@ Do not ask GitHub -- the API is slow, and a squash merge severs ancestry, so `gi
    ```
    An empty diff means the previous part is merged.
 5. A non-empty diff is not automatically a failure -- `origin/main` may carry later edits to the same files. Read it and judge whether the previous part's behavior is present. STOP and show the diff if you cannot tell, or if the part is plainly absent. Building the next part on top of unmerged work produces a PR that silently re-lands or reverts it.
+6. Once the previous part is confirmed merged, collapse its phases in the plan file to one line each with the PR number (`Phase 3: retrieval rewrite, merged in #123`). Anything those phases left unfinished is folded into the next part's phases as tasks before execution starts; the plan keeps no follow-ups section (`writing-plans`, No follow-up tail).
 
 ## Phase 3: Clean slate off main
 

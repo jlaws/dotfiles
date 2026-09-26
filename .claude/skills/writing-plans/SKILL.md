@@ -39,6 +39,11 @@ GOOD: "After this change, repeated API calls for the same resource return cached
 - Test runner: `command` (run from `directory/`)
 - Config: `path/to/config` - [relevant settings]
 
+**Risks:**
+| Risk | Closed by |
+|------|-----------|
+| [what could be wrong] | [file:line, measurement, or inspection that closes it, or the test that will catch it] |
+
 ---
 ```
 
@@ -142,7 +147,7 @@ Each step is one action (2-5 minutes):
 - "Implement the minimal code to make the test pass" - step
 - "Run the tests and make sure they pass" - step
 
-If a step takes more than 5 minutes, split it further. The commit is the phase's last step, not a task's.
+If a step takes more than 5 minutes, split it further. The commit is the phase's final task, not a step inside every task.
 
 ## Task Structure
 
@@ -202,8 +207,8 @@ git commit -m "feat: add specific feature"
 - **One commit per phase** - the phase's final task commits its work
 - **Idempotent steps** - every step safely re-runnable. `CREATE TABLE IF NOT EXISTS`, not `CREATE TABLE`. `mkdir -p`, not `mkdir`. If a step fails midway, re-running it from the top must not corrupt state.
 - **Resolve all ambiguities** - no "choose appropriate X" or "use a suitable library". Every decision is made in the plan. Research what the code or primary docs can answer; run what can be measured now. A decision-gate phase is only for a measurement planning cannot reach.
-- **Risks closed with evidence** - every named risk gets a row naming the evidence that closes it (a file:line, a measurement, an inspection) or the test that will catch it. A risk whose mitigation is "measure first" is unfinished research.
-- **Findings filed, not listed** - an unrelated defect found while planning goes to the project's tracker; the plan names the entry. The plan holds no "recorded, not fixed" list.
+- **Risks closed with evidence** - every named risk gets a row in the header's Risks table naming the evidence that closes it (a file:line, a measurement, an inspection) or the test that will catch it. A risk whose mitigation is "measure first" is unfinished research.
+- **Findings filed, not listed** - an unrelated defect found while planning goes to the project's tracker; the plan names the entry. The plan holds no "recorded, not fixed" list. A security defect never goes to a public tracker: report it to the user, or through the project's private advisory channel.
 - **Requirements, not history** - the plan states what to build and why. Decision history and review back-and-forth go in ADRs or nowhere.
 - **No follow-up tail** - in-scope work is planned in full. No HANDOFF phase and no "known follow-ups" section for accepted scope.
 - **Documentation task** - if the change alters public surface or documented behavior, include an explicit doc-update task; don't leave docs implicit. See `documentation-validation`.

@@ -36,10 +36,12 @@ For each task in the batch:
 **Progress** - checklist updated after each task:
 ```markdown
 ## Progress
-- [x] Task 1: Setup schema - `a1b2c3d`
-- [x] Task 2: Create migration - `e4f5g6h`
-- [ ] Task 3: Add model layer ← current
-- [ ] Task 4: Write API endpoints
+- [x] Phase 2: Schema and migration - `a1b2c3d`
+  - [x] Task 1: Setup schema
+  - [x] Task 2: Create migration
+- [ ] Phase 3: Model and API
+  - [ ] Task 3: Add model layer ← current
+  - [ ] Task 4: Write API endpoints
 ```
 
 **Decision Log** - judgment calls when the plan is ambiguous or reality diverges:
@@ -66,7 +68,8 @@ After each batch, present evidence artifacts - not summaries:
 - **Include Decision Log entries** made during this batch.
 - **Include Surprises & Discoveries** from this batch.
 - Say: **"Batch complete. Ready for feedback."**
-- Wait for user response before continuing
+- Wait for user response before continuing. Prefer batch boundaries that end a phase, so the pause
+  leaves no uncommitted work; when a batch must end mid-phase, say so and name the uncommitted files
 
 ### Step 4: Continue
 
@@ -114,7 +117,7 @@ Completed Task 3 (Add model layer):
 - Behavioral check passed:
   $ ./bin/rails runner 'puts User.create!(name: "test").id'
   42
-- Committed: `a1b2c3d feat: add User model with validations`
+- Phase 3 not yet committed (Task 4 remains)
 
 Starting Task 4 (Write API endpoints)...
 ```
@@ -125,7 +128,7 @@ Starting Task 4 (Write API endpoints)...
 - Continuing past a failing test
 - Modifying the plan without user approval
 - Executing tasks out of order without justification
-- Committing broken code between tasks
+- Committing a phase whose acceptance check has not passed
 - Guessing when the plan is unclear
 - Summarizing verification output instead of pasting it (paste the actual terminal output)
 - Making decisions without logging them (every judgment call goes in the Decision Log)
