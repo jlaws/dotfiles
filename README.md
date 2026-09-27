@@ -167,7 +167,7 @@ Tools and drag in `/Applications/Ghostty.app`.
 | File | Purpose |
 |------|---------|
 | `.zshrc` | Zsh configuration, loads Oh My Zsh and sources `.extra` |
-| `.extra` | Aliases, functions, PATH, and environment variables |
+| `.extra` | Aliases, functions, PATH, open file descriptor limits (65,536), and environment variables |
 | `.gitconfig` | Git configuration (aliases, colors, defaults) |
 | `.gitignore` | Global gitignore patterns |
 | `.editorconfig` | Editor settings (indent style, charset, etc.) |
