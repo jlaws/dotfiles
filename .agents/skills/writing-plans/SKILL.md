@@ -82,7 +82,7 @@ A phase may also be a **decision gate** - prototype, measure, then choose - but 
 **Decision gate:** measure p99 after Task 5. If LRU exceeds 5 ms, Phase 3 uses Redis.
 ```
 
-After a decision-gate phase the executor pauses and reports findings before continuing.
+After a decision-gate phase the executor records the measurement and the branch it chose in the Decision Log and continues. It stops only when the result matches no branch the plan defined.
 
 Phases are numbered from 1. There is no Phase 0.
 
@@ -250,7 +250,7 @@ After the self-review, present execution options:
 ```
 Plan saved to `<plan-file-path>`. Execution options:
 
-1. **Execute now (inline)** - work through tasks in batches with review checkpoints
+1. **Execute now (inline)** - work through tasks in batches, running to the PR without pausing
    (uses executing-plans skill; run via /j-execute-plan)
 
 2. **Execute via subagents** - fresh agent per task with per-task spec + quality review

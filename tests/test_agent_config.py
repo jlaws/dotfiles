@@ -70,6 +70,28 @@ PLAN_EXECUTION_CONSUMERS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-next" / "SKILL.md",
 )
 
+CLAUDE_PLAN_EXECUTION_COMMANDS = (
+    REPO / ".claude" / "commands" / "j-execute-plan.md",
+    REPO / ".claude" / "commands" / "j-next.md",
+)
+
+PLAN_WORKFLOW_SKILLS = tuple(
+    root / skill / "SKILL.md"
+    for root in (
+        REPO / ".claude" / "skills",
+        REPO / ".agents" / "skills",
+        REPO / ".gemini" / "antigravity-cli" / "skills",
+    )
+    for skill in ("executing-plans", "writing-plans")
+)
+
+MID_PR_PAUSE_PHRASES = (
+    "Wait for user response",
+    "Ready for feedback",
+    "review checkpoints",
+    "executor pauses",
+)
+
 ACTIVE_PLAN_CONSUMERS = (
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
     REPO / ".codex" / "prompts" / "j-diff-review.md",
@@ -910,6 +932,17 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("modification times", content)
                 self.assertIn("even when there is only one", content)
                 self.assertIn("MUST NOT execute a discovered plan without confirmation", content)
+
+    def test_plan_execution_runs_to_the_pr_without_pausing(self):
+        # A mid-PR "ready for feedback" stop asks for review the PR already provides.
+        for path in PLAN_WORKFLOW_SKILLS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                for phrase in MID_PR_PAUSE_PHRASES:
+                    self.assertNotIn(phrase, content)
+        for path in (*PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS):
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("blocking question", path.read_text())
 
     def test_active_plan_commands_use_the_persisted_locations(self):
         for path in ACTIVE_PLAN_CONSUMERS:
