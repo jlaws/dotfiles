@@ -6,6 +6,13 @@
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 
+# File descriptor limits (raise soft limit from macOS default 256 for dev tooling)
+current_limit=$(ulimit -n 2>/dev/null)
+if [ "$current_limit" != "unlimited" ] && [ "${current_limit:-0}" -lt 65536 ] 2>/dev/null; then
+	ulimit -n 65536 2>/dev/null || ulimit -n 10240 2>/dev/null
+fi
+unset current_limit
+
 # PATH additions
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="/Users/jlaws/.antigravity/antigravity/bin:$PATH"

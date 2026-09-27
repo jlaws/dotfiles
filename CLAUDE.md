@@ -69,7 +69,7 @@ dotfiles/
 | File | Purpose |
 |------|---------|
 | `.zshrc` | Loads Oh My Zsh, sources `.extra` |
-| `.extra` | 60+ aliases, functions, PATH setup (234 lines) |
+| `.extra` | 60+ aliases, functions, PATH setup, file descriptor limits (249 lines) |
 | `.gitconfig` | Git aliases (`l`, `s`, `d`, `go`, `dm`, `amend`) |
 | `.vimrc` | Solarized Dark, relative line numbers, centralized backup/undo/swap files |
 | `.vim/` | Solarized colorscheme, syntax files, and state directories |
