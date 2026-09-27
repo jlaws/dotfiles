@@ -74,6 +74,8 @@ Maintain the plan file's living-document sections as you go - `## Progress` with
 
 Honor the plan's validation gate before moving on, and stop on failure per `executing-plans`.
 
+Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask) or when the PR is open for review.
+
 ## Phase 5: Open the PR
 
 Invoke the `create-pr` agent to stage, commit, push, and open the PR for this part. Title and body cover this part's phases only, and the body says which part of the plan it is.

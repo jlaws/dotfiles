@@ -5,7 +5,7 @@ description: "Use when executing a written plan in one working context."
 
 # Executing Plans
 
-**Core principle:** Batch execution with checkpoints for review.
+**Core principle:** Batch execution with evidence per batch. Review happens on the PR.
 
 ## The Process
 
@@ -65,16 +65,14 @@ After each batch, present evidence artifacts - not summaries:
 - **Run behavioral acceptance checks** from the plan (phase acceptance checks, task behavioral checks) and paste results.
 - **Include Decision Log entries** made during this batch.
 - **Include Surprises & Discoveries** from this batch.
-- Say: **"Batch complete. Ready for feedback."**
-- Wait for user response before continuing. Prefer batch boundaries that end a phase, so the pause
-  leaves no uncommitted work; when a batch must end mid-phase, say so and name the uncommitted files
+- Post the report inline and start the next batch without waiting. The PR is the review point; never
+  stop mid-PR to ask for review of completed batches
 
 ### Step 4: Continue
 
-Based on feedback:
-- Apply requested changes
-- Execute next batch of 3 tasks
+- Execute the next batch
 - Repeat until all tasks complete
+- Apply any feedback the user interjects before the next batch
 
 ### Step 5: Complete
 
@@ -89,12 +87,15 @@ before the next boundary rather than running on.
 
 ## When to Stop and Ask
 
+These conditions, and an opened PR at a PR boundary, are the only reasons to stop.
+
 **STOP executing immediately when:**
 - A test fails and the fix isn't obvious from the plan
 - A dependency is missing or unavailable
 - An instruction in the plan is unclear or ambiguous
 - The plan's assumptions don't match reality (file doesn't exist, API changed, etc.)
 - You've hit 3+ consecutive unexpected issues
+- A decision-gate result matches no branch the plan defined
 - A non-idempotent step partially executed (e.g., half a migration ran). Stop immediately - re-running may corrupt state. Report exactly what happened and what state you're in.
 
 **Ask for clarification rather than guessing.** Don't force through blockers.
@@ -123,6 +124,7 @@ Starting Task 4 (Write API endpoints)...
 ## Red Flags
 
 - Skipping verification steps to move faster
+- Pausing mid-PR for review or approval of completed batches
 - Continuing past a failing test
 - Modifying the plan without user approval
 - Executing tasks out of order without justification

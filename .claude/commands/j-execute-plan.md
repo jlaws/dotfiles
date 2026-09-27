@@ -12,6 +12,8 @@ Read the plan file below and review it critically for gaps or contradictions bef
 
 Default to inline unless the plan is large or the tasks are clearly independent; state which mode you chose and why, then follow that skill exactly (maintain the plan's living-document ledger, verify each step, stop and ask on blockers).
 
+Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask) or when the PR is open for review.
+
 Each PR boundary ends by opening the PR — that is `finishing-branch`'s default and needs no prompting. Where the plan spans several PRs, stop after each one and wait for review; /j-next resumes at the next boundary.
 
 Plan file: $ARGUMENTS
