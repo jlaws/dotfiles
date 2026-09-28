@@ -6,6 +6,8 @@ plan_mode_reasoning_effort = "xhigh"
 approvals_reviewer = "auto_review"
 
 [agents]
+default_subagent_model = "gpt-6-sol"
+default_subagent_reasoning_effort = "high"
 max_threads = 6
 max_depth = 1
 

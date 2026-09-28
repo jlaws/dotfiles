@@ -219,6 +219,14 @@ The `.claude/` directory is self-contained with `/j-*` commands, specialist agen
 
 The `.codex/` directory contains Codex-native agents, prompts, hooks, and command rules. Reusable workflows and `$cmd-j-*` command skills live under `.agents/`, which Codex discovers directly. For example, invoke `$cmd-j-tdd` or `$cmd-j-plan` in Codex. The files under `.codex/prompts/` remain available through `/prompts:j-tdd` style slash commands.
 
+Codex subagents default to `gpt-6-sol` with `high` reasoning effort through the
+`[agents]` defaults in `.codex/config.toml`. Select `gpt-6-astra` with `high` effort
+for substantive planning, architecture decisions, or complex diagnosis across systems.
+Selection follows the assigned task rather than the agent role; routine work and final reviews
+use Sol unless they meet those criteria. Native roles set high effort and leave the model unset
+so task-specific model overrides can take effect. See `.codex/AGENTS.md`, Task Delegation.
+Parent-agent model and planning effort are configured separately.
+
 In Codex and Gemini, `j-plan` saves its working plan under the gitignored `scratchpad/plans/`
 directory. It falls back to a private
 `${TMPDIR:-/tmp}/j-plan/<repo-id>/` directory when the repository does not ignore `scratchpad/`; the

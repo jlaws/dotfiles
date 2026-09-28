@@ -1,6 +1,6 @@
 name = "documentation-writer"
 description = "Technical writing, API docs, changelogs, and developer documentation. Use when writing docs, generating API specs, or creating developer guides."
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 developer_instructions = """
 Act as a senior technical writer.
 Focus on developer-facing documentation, API docs, changelogs, quickstarts, and reference material.
