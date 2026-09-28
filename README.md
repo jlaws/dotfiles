@@ -87,7 +87,7 @@ file, the original is saved into the run's archive; newly created files are trac
 be removed on uninstall. The Vim runtime tree includes the Solarized colorscheme and creates
 `~/.vim/backup`, `~/.vim/undo`, and `~/.vim/swap`.
 
-### 2. Install Packages (via Homebrew)
+### 2. Install Packages and Language Tooling
 - **GNU utilities**: `coreutils`, `findutils`, `gnu-sed`, `moreutils`
 - **Updated tools**: `vim`, `grep`, `openssh`, `screen`, `wget`
 - **Git tools**: `git`, `git-lfs`, `gh`
@@ -95,6 +95,7 @@ be removed on uninstall. The Vim runtime tree includes the Solarized colorscheme
 - **Language tools**: `uv`
 - **Rust tooling**: `rustup`, stable toolchain, `rust-analyzer` component
 - **Language servers**: `node`, `pyright`
+- **AI agent tooling**: Claude Code, Codex, Antigravity CLI
 
 Homebrew packages are **not** removed on uninstall.
 
