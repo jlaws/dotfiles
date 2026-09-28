@@ -143,13 +143,13 @@ When working in a git worktree:
 
 ## Task Delegation
 
-When spawning subagents, pick the cheapest tier that can do the job:
-- cheapest tier: bulk mechanical tasks, no judgment needed
-- mid tier: scoped research, code exploration, synthesis
-- top tier: only when real planning or tradeoffs are involved
+Choose the model by the assigned task, not the agent's role:
+- Default to `gpt-6-sol` with `high` effort for exploration, implementation, tests, docs, routine diagnosis, reviews, and PR work.
+- Use `gpt-6-astra` with `high` effort for creating or evaluating implementation plans, architecture decisions, or complex diagnosis with unresolved interactions across systems. State the task-specific reason when selecting Astra.
+- Gathering facts for a plan and conducting a final review do not automatically qualify for Astra. This policy takes precedence over generic workflow model tiers.
+- Pass the selected model and `high` effort when dispatching. Use a fresh context or a bounded context fork when required to apply model overrides; a full-history fork inherits the parent's model.
 
 Caps:
-- the cheapest tier never spawns further subagents -- if it needs to, the task was wrong-sized
 - Max spawn depth is 2 (parent -> subagent -> one more tier)
 
 If a subagent realizes it needs a smarter model, it returns to the parent instead of escalating on its own.

@@ -46,7 +46,7 @@ For each task in order:
 
 ### Step 2: Final Whole-Branch Review
 
-After all tasks: dispatch one reviewer on the **most capable model** over the entire branch diff (`git diff main...HEAD`) for cross-cutting concerns no single-task review can see — architecture drift, integration gaps, inconsistent patterns, and stale documentation (apply `documentation-validation`). Resolve findings, then hand off to `finishing-branch`, which opens the PR without being asked.
+After all tasks: dispatch one reviewer over the entire branch diff (`git diff main...HEAD`) following the active environment's model policy (or the most capable model when no environment policy applies) for cross-cutting concerns no single-task review can see - architecture drift, integration gaps, inconsistent patterns, and stale documentation (apply `documentation-validation`). Resolve findings, then hand off to `finishing-branch`, which opens the PR without being asked.
 
 ## File-Based Handoffs
 
@@ -62,13 +62,15 @@ No helper scripts required — `git diff` + a scratch file is the whole mechanis
 
 ## Model Selection
 
+Follow the active environment's delegation policy first (for example, task-based routing where routine work and final reviews do not automatically escalate to the top tier). When the environment defines no tool-specific policy, fall back to this table:
+
 Always specify the model explicitly when dispatching (subagents otherwise inherit an expensive default).
 
 | Task complexity | Model tier |
 |-----------------|-----------|
 | Mechanical, 1-2 files, complete spec | cheap/fast |
-| Multi-file integration | standard |
-| Architecture, ambiguous, final review | most capable |
+| Multi-file integration, routine review | standard |
+| Architecture, ambiguous, complex diagnosis | most capable |
 
 ## Progress Ledger
 

@@ -254,6 +254,9 @@ ALWAYS_LOADED_CEILINGS = {
 PINNED_MODEL = re.compile(
     r"\b(?:gpt|claude|gemini|opus|sonnet|haiku|fable)(?:[- ][a-z]+){0,2}[- ]\d"
 )
+# The user chose these exact Codex models. Keep the exception narrow: a dated variant or another
+# generation must still fail the stale-model guard, as must either name in another tool's ladder.
+CODEX_SELECTED_MODELS = re.compile(r"(?<![\w.-])gpt-6-(?:sol|astra)(?![\w.-])")
 
 # Every asset whose run ends on a pull request. Each reports the URL; `create-pr` additionally has
 # to look for an already-open PR the way `finishing-branch` does, instead of always creating one.
@@ -677,22 +680,34 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("HEAD SHA", content)
                 self.assertIn("do not create or request a worktree", content)
 
-    def test_delegation_ladders_name_no_pinned_model(self):
+    def test_delegation_ladders_name_no_unapproved_pinned_model(self):
         """A ladder rung that names a model version goes stale every generation, so rungs describe
         tiers by role. Scoped to bullets on purpose: GEMINI.md's prose names a slug as a worked
         `--model` example and ships `agy models` beside it as the freshness pointer, which is the
         staleness problem already solved rather than an instance of it. The regex needs a digit, so
-        floating aliases (opus, sonnet, haiku, fable, flash, pro) stay legal."""
+        floating aliases (opus, sonnet, haiku, fable, flash, pro) stay legal. The user's exact
+        Codex selections are the only versioned-model exception."""
         for path in ALWAYS_LOADED_CEILINGS:
+            lines = path.read_text(encoding="utf-8").splitlines()
+            if path == REPO / ".codex" / "AGENTS.md":
+                lines = [CODEX_SELECTED_MODELS.sub("", line) for line in lines]
             pinned = [
                 line
-                for line in path.read_text(encoding="utf-8").splitlines()
+                for line in lines
                 if line.lstrip().startswith(("-", "*")) and PINNED_MODEL.search(line)
             ]
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertEqual(
-                    pinned, [], f"{path.name} pins a model version; use a role or floating alias"
+                    pinned, [], f"{path.name} pins an unapproved model version"
                 )
+
+    def test_codex_model_allowlist_matches_only_exact_selected_names(self):
+        for name in ("gpt-6-sol", "gpt-6-astra"):
+            with self.subTest(name=name):
+                self.assertEqual(CODEX_SELECTED_MODELS.sub("", f"`{name}`"), "``")
+        for name in ("gpt-6-luna", "gpt-5.6-sol", "gpt-6-sol-2026-09-28", "gpt-6-astra-pro"):
+            with self.subTest(name=name):
+                self.assertIsNotNone(PINNED_MODEL.search(CODEX_SELECTED_MODELS.sub("", name)))
 
     def test_pr_workflows_report_the_url_and_reuse_the_open_pr(self):
         """Every asset that ends on a PR reports its URL, and never opens a second PR for a branch
@@ -1030,6 +1045,29 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertRegex(content, name)
                 self.assertRegex(content, CODEX_DESCRIPTION)
                 self.assertRegex(content, CODEX_INSTRUCTIONS)
+
+    def test_codex_subagents_default_to_sol_high(self):
+        content = (REPO / ".codex" / "config.toml").read_text()
+        agents = re.search(r"(?ms)^\[agents\]\n(.*?)(?=^\[|\Z)", content)
+        self.assertIsNotNone(agents, "subagent defaults must live under [agents]")
+        assert agents is not None
+        self.assertRegex(
+            agents[1], re.compile(r'^default_subagent_model = "gpt-6-sol"$', re.MULTILINE)
+        )
+        self.assertRegex(
+            agents[1], re.compile(r'^default_subagent_reasoning_effort = "high"$', re.MULTILINE)
+        )
+
+    def test_codex_roles_allow_task_model_selection_at_high_effort(self):
+        agents = sorted((REPO / ".codex" / "agents").glob("*.toml"))
+        self.assertTrue(agents, "must exercise native Codex roles")
+        for path in agents:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertRegex(
+                    content, re.compile(r'^model_reasoning_effort = "high"$', re.MULTILINE)
+                )
+                self.assertNotRegex(content, re.compile(r"^\s*model\s*=", re.MULTILINE))
 
     def test_gemini_agents_inherit_the_parent_model(self):
         """Settled in #93. A per-agent tier in the Gemini tree diverges silently from the Claude
