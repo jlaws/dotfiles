@@ -121,9 +121,71 @@ class MergeTomlTests(unittest.TestCase):
         m2 = merge_toml(repo, m1)
         self.assertEqual(m1, m2)
 
+    def test_handles_quoted_table_headers_and_file_paths(self) -> None:
+        target = (
+            '[hooks.state."/Users/jlaws/.codex/config.toml:user_prompt_submit:0:0"]\n'
+            'trusted_hash = "sha256:abc"\n'
+            '[projects."/Users/jlaws/Workspace/dotfiles"]\n'
+            'trust_level = "trusted"\n'
+        )
+        repo = 'model = "gpt-6-astra"\n'
+        res = merge_toml(repo, target)
+        self.assertIn('[hooks.state."/Users/jlaws/.codex/config.toml:user_prompt_submit:0:0"]', res)
+        self.assertIn('trusted_hash = "sha256:abc"', res)
+        self.assertIn('[projects."/Users/jlaws/Workspace/dotfiles"]', res)
+        self.assertIn('trust_level = "trusted"', res)
+        self.assertIn('model = "gpt-6-astra"', res)
+
+    def test_merges_full_codex_config_preserving_custom_machine_tables(self) -> None:
+        repo = (
+            'project_doc_fallback_filenames = ["CLAUDE.md", ".agents.md"]\n'
+            'model = "gpt-6-astra"\n'
+            '[agents]\n'
+            'default_subagent_model = "gpt-6-sol"\n'
+            'default_subagent_reasoning_effort = "high"\n'
+            'max_threads = 6\n'
+            '[[hooks.UserPromptSubmit]]\n'
+            '[[hooks.UserPromptSubmit.hooks]]\n'
+            'type = "command"\n'
+            'command = "bash ~/.codex/hooks/log-prompt.sh"\n'
+        )
+        target = (
+            'project_doc_fallback_filenames = ["CLAUDE.md", ".agents.md"]\n'
+            'model = "gpt-5"\n'
+            '[agents]\n'
+            'max_threads = 8\n'
+            '# Hook registration comment\n'
+            '[[hooks.UserPromptSubmit]]\n'
+            '[[hooks.UserPromptSubmit.hooks]]\n'
+            'type = "command"\n'
+            'command = "bash ~/.codex/hooks/old.sh"\n'
+            '[hooks.state."/path/to/config.toml:0:0"]\n'
+            'trusted_hash = "sha256:123"\n'
+            '[tui]\n'
+            'screen_reader_detection_done = true\n'
+        )
+        res = merge_toml(repo, target)
+        self.assertIn('model = "gpt-6-astra"', res)
+        self.assertIn('max_threads = 6', res)
+        self.assertIn('default_subagent_model = "gpt-6-sol"', res)
+        self.assertIn('bash ~/.codex/hooks/log-prompt.sh', res)
+        self.assertNotIn('bash ~/.codex/hooks/old.sh', res)
+        self.assertIn('[hooks.state."/path/to/config.toml:0:0"]', res)
+        self.assertIn('trusted_hash = "sha256:123"', res)
+        self.assertIn('[tui]', res)
+        self.assertIn('screen_reader_detection_done = true', res)
+
     def test_raises_on_malformed_section_header(self) -> None:
         with self.assertRaises(ConfigMergeError):
             merge_toml('model = "a"\n', '[unclosed table header\nkey = 1\n')
+        with self.assertRaises(ConfigMergeError):
+            merge_toml('model = "a"\n', '[table."unclosed quote]\nkey = 1\n')
+        with self.assertRaises(ConfigMergeError):
+            merge_toml('model = "a"\n', '[table..empty_segment]\nkey = 1\n')
+        with self.assertRaises(ConfigMergeError):
+            merge_toml('model = "a"\n', '[table.]\nkey = 1\n')
+        with self.assertRaises(ConfigMergeError):
+            merge_toml('model = "a"\n', '[]\nkey = 1\n')
 
     def test_raises_on_unclosed_multiline_string(self) -> None:
         with self.assertRaises(ConfigMergeError):

@@ -91,23 +91,135 @@ def merge_json(repo_content: str, target_content: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def _validate_toml_table_name(name: str) -> None:
+    """Validate that name is composed of valid dot-separated TOML keys (bare or quoted)."""
+    idx = 0
+    n = len(name)
+    segment_count = 0
+
+    while idx < n:
+        while idx < n and name[idx].isspace():
+            idx += 1
+        if idx >= n:
+            break
+
+        char = name[idx]
+        if char == '"':
+            idx += 1
+            closed = False
+            while idx < n:
+                if name[idx] == "\\":
+                    idx += 2
+                    continue
+                if name[idx] == '"':
+                    idx += 1
+                    closed = True
+                    break
+                idx += 1
+            if not closed:
+                raise ConfigMergeError(f"Unclosed double quote in TOML section header: {name}")
+            segment_count += 1
+        elif char == "'":
+            idx += 1
+            closed = False
+            while idx < n:
+                if name[idx] == "'":
+                    idx += 1
+                    closed = True
+                    break
+                idx += 1
+            if not closed:
+                raise ConfigMergeError(f"Unclosed single quote in TOML section header: {name}")
+            segment_count += 1
+        elif char == ".":
+            raise ConfigMergeError(f"Empty key segment in TOML section header: {name}")
+        else:
+            start = idx
+            while idx < n and (name[idx].isalnum() or name[idx] in "_-"):
+                idx += 1
+            if idx == start:
+                raise ConfigMergeError(f"Invalid character '{char}' in TOML section header: {name}")
+            segment_count += 1
+
+        while idx < n and name[idx].isspace():
+            idx += 1
+
+        if idx < n:
+            if name[idx] != ".":
+                raise ConfigMergeError(f"Expected '.' separating keys in TOML section header: {name}")
+            idx += 1
+            if idx >= n or not name[idx:].strip():
+                raise ConfigMergeError(f"Trailing dot in TOML section header: {name}")
+
+    if segment_count == 0:
+        raise ConfigMergeError(f"Empty TOML section header: {name}")
+
+
 def _extract_header(line: str) -> tuple[str | None, str | None, str | None]:
     """Parse section header, type ('table' | 'array'), and table name.
 
-    Ignores trailing inline comments, e.g. '[agents] # settings' -> ('[agents]', 'table', 'agents').
+    Supports bare keys, quoted keys (such as file paths and IDs),
+    and ignores trailing inline comments.
     """
     stripped = line.strip()
     if not stripped.startswith("["):
         return None, None, None
-    m_array = re.match(r"^\[\[([A-Za-z0-9_.-]+)\]\](?:\s*#.*)?$", stripped)
-    if m_array:
-        name = m_array.group(1).strip()
-        return f"[[{name}]]", "array", name
-    m_table = re.match(r"^\[([A-Za-z0-9_.-]+)\](?:\s*#.*)?$", stripped)
-    if m_table:
-        name = m_table.group(1).strip()
-        return f"[{name}]", "table", name
-    raise ConfigMergeError(f"Malformed TOML section header: {stripped}")
+
+    is_array = stripped.startswith("[[")
+    bracket_len = 2 if is_array else 1
+
+    i = bracket_len
+    in_double = False
+    in_single = False
+    escaped = False
+    end_idx = -1
+
+    while i < len(stripped):
+        char = stripped[i]
+        if escaped:
+            escaped = False
+            i += 1
+            continue
+        if char == "\\" and in_double:
+            escaped = True
+            i += 1
+            continue
+        if char == '"' and not in_single:
+            in_double = not in_double
+            i += 1
+            continue
+        if char == "'" and not in_double:
+            in_single = not in_single
+            i += 1
+            continue
+        if not in_double and not in_single:
+            if is_array:
+                if char == "]" and i + 1 < len(stripped) and stripped[i + 1] == "]":
+                    end_idx = i
+                    break
+            else:
+                if char == "]":
+                    end_idx = i
+                    break
+        i += 1
+
+    if end_idx == -1 or in_double or in_single:
+        raise ConfigMergeError(f"Malformed TOML section header: {stripped}")
+
+    after_header = stripped[end_idx + bracket_len:].strip()
+    if after_header and not after_header.startswith("#"):
+        raise ConfigMergeError(f"Malformed TOML section header: {stripped}")
+
+    name = stripped[bracket_len:end_idx].strip()
+    if not name:
+        raise ConfigMergeError(f"Malformed TOML section header: {stripped}")
+
+    _validate_toml_table_name(name)
+
+    remainder = stripped[end_idx + bracket_len:]
+    header_str = f"[[{name}]]{remainder}" if is_array else f"[{name}]{remainder}"
+    header_type = "array" if is_array else "table"
+    return header_str, header_type, name
 
 
 def _is_multiline_continuation(raw: str) -> bool:
@@ -117,6 +229,7 @@ def _is_multiline_continuation(raw: str) -> bool:
     in_triple_single = False
     in_triple_double = False
     open_brackets = 0
+    open_braces = 0
     i = 0
     n = len(raw)
     while i < n:
@@ -141,6 +254,7 @@ def _is_multiline_continuation(raw: str) -> bool:
             in_double = not in_double
         elif char == "'" and not in_double:
             in_single = not in_single
+        elif not in_double and not in_single:
             if char == "#":
                 nl = raw.find("\n", i)
                 if nl == -1:
@@ -151,6 +265,10 @@ def _is_multiline_continuation(raw: str) -> bool:
                 open_brackets += 1
             elif char == "]":
                 open_brackets -= 1
+            elif char == "{":
+                open_braces += 1
+            elif char == "}":
+                open_braces -= 1
         i += 1
 
     return (
@@ -159,6 +277,7 @@ def _is_multiline_continuation(raw: str) -> bool:
         or in_single
         or in_double
         or open_brackets > 0
+        or open_braces > 0
     )
 
 
@@ -203,9 +322,16 @@ def _parse_toml_sections(content: str) -> list[dict[str, Any]]:
             i += 1
             continue
 
-        kv_match = re.match(r"^([A-Za-z0-9_-]+)\s*=", stripped)
+        kv_match = re.match(
+            r'^(?:([A-Za-z0-9_-]+)|"([^"\\]*(?:\\.[^"\\]*)*)"|\'([^\']*)\')\s*=',
+            stripped,
+        )
         if kv_match:
-            key = kv_match.group(1)
+            key = (
+                kv_match.group(1)
+                or (f'"{kv_match.group(2)}"' if kv_match.group(2) is not None else None)
+                or (f"'{kv_match.group(3)}'" if kv_match.group(3) is not None else None)
+            )
             raw = line
             while _is_multiline_continuation(raw) and i + 1 < len(lines):
                 i += 1
@@ -249,6 +375,8 @@ def merge_toml(repo_content: str, target_content: str) -> str:
     if not target_has_root and repo_root is not None:
         out_sections.append(repo_root)
 
+    replaced_repo_arrays_inserted = False
+
     for sec in target_sections:
         if sec["header_type"] is None:
             new_lines: list[str] = []
@@ -282,6 +410,10 @@ def merge_toml(repo_content: str, target_content: str) -> str:
                     for is_kv, k, raw in repo_table["lines"]
                     if is_kv and k is not None
                 }
+                trailing_comments: list[tuple[bool, str | None, str]] = []
+                while sec["lines"] and not sec["lines"][-1][0]:
+                    trailing_comments.insert(0, sec["lines"].pop())
+
                 new_lines = []
                 seen_keys = set()
                 for is_kv, key, raw in sec["lines"]:
@@ -293,19 +425,26 @@ def merge_toml(repo_content: str, target_content: str) -> str:
                 for is_kv, key, raw in repo_table["lines"]:
                     if is_kv and key is not None and key not in seen_keys:
                         new_lines.append(raw)
+                for _, _, raw in trailing_comments:
+                    new_lines.append(raw)
                 sec["lines"] = [(False, None, line) for line in new_lines]
             out_sections.append(sec)
 
         elif sec["header_type"] == "array":
-            if sec["name"] not in repo_array_names:
+            if sec["name"] in repo_array_names:
+                if not replaced_repo_arrays_inserted:
+                    out_sections.extend(repo_arrays)
+                    replaced_repo_arrays_inserted = True
+            else:
                 out_sections.append(sec)
+
+    if not replaced_repo_arrays_inserted:
+        for rsec in repo_arrays:
+            out_sections.append(rsec)
 
     for name, rsec in repo_tables.items():
         if name not in handled_tables:
             out_sections.append(rsec)
-
-    for rsec in repo_arrays:
-        out_sections.append(rsec)
 
     result: list[str] = []
     for sec in out_sections:
