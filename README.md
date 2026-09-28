@@ -82,10 +82,12 @@ library only — no virtualenv or pip installs at runtime). It performs three ma
 [Uninstall / Reset](#uninstall--reset)).
 
 ### 1. Sync Dotfiles
-Copies the dotfiles and agent configs to your home directory. Before overwriting any existing
-file, the original is saved into the run's archive; newly created files are tracked so they can
-be removed on uninstall. The Vim runtime tree includes the Solarized colorscheme and creates
-`~/.vim/backup`, `~/.vim/undo`, and `~/.vim/swap`.
+Copies dotfiles and agent workflows to your home directory:
+- **Executable knowledge assets** (skills, commands, prompts, and agent roles under `.claude/`, `.agents/`, `.codex/`, and `.gemini/`) are fully replaced with the latest versions from the repository.
+- **Machine configuration files** (`.claude/settings.json`, `.codex/config.toml`, `.gemini/antigravity-cli/settings.json`) are **merged**: incoming keys from the repository are updated, while machine-specific settings, local overrides, and unrecognized keys are preserved.
+- **Root dotfiles** (`.zshrc`, `.gitconfig`, `.vimrc`, etc.) are installed to `~`.
+
+Before modifying or overwriting any existing file, the original is saved into the run's archive; newly created files are tracked so they can be removed on uninstall. The Vim runtime tree includes the Solarized colorscheme and creates `~/.vim/backup`, `~/.vim/undo`, and `~/.vim/swap`.
 
 ### 2. Install Packages and Language Tooling
 - **GNU utilities**: `coreutils`, `findutils`, `gnu-sed`, `moreutils`
@@ -207,8 +209,7 @@ cd ~/Workspace/dotfiles
 ./setup.sh
 ```
 
-Each re-run creates its own timestamped archive, so you can always roll back to the state before
-the most recent run with `./setup.sh --uninstall`.
+Re-running setup replaces skills, slash commands, prompts, and agent personas with upstream updates, but merges configuration files (`.claude/settings.json`, `.codex/config.toml`, `.gemini/antigravity-cli/settings.json`) in-place so machine-specific customizations (such as local API keys, device permissions, or custom model overrides) are not lost. Each re-run creates its own timestamped archive, so you can always roll back to the state before the most recent run with `./setup.sh --uninstall`.
 
 ### Claude
 

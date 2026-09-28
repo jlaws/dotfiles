@@ -28,7 +28,7 @@ make verify   # check + test -- the full gate, and the only one that fails on au
 ```
 
 ### What setup.sh does:
-1. **Syncs dotfiles** to `~` (root dotfiles, `.vim/` runtime, and agent configs), archiving replaced files first
+1. **Syncs dotfiles and agent configurations** to `~` (root dotfiles, `.vim/` runtime, and agent skills/commands/prompts/agents replaced; machine-specific agent configuration files merged with repo keys), archiving replaced or merged originals first
 2. **Installs Homebrew packages**: coreutils, moreutils, findutils, fd, wget, just, vim, grep, jq, openssh, git, gh, autojump, mermaid-cli, poppler, agent-browser, uv, node, rg; then symlinks `gsha256sum` to `sha256sum`, downloads the Chrome binary `agent-browser` drives, installs the stable Rust toolchain and `rust-analyzer` through the official rustup installer, `typescript-language-server` and `typescript` via npm, the elan and Claude Code CLIs, and finishes with `brew cleanup`
 3. **Configures macOS**: ~200 `defaults` settings for Finder, Dock, Safari, security, etc., snapshotting each domain first
 
@@ -93,6 +93,7 @@ dotfiles/
 - macOS settings live in the `SETTINGS` registry in `macos_setup/macos_defaults.py` (one dict per setting: scope, domain, key, type, value); this single list drives both apply and revert
 - `macos_setup` is stdlib-only (no runtime pip deps) so it runs on a fresh Mac; keep the subprocess boundary behind the `Runner` seam for testability
 - Follow TDD for `macos_setup` changes; add/adjust `tests/` and keep `make test` + `make check` green
+- Agent configuration merges (`.claude/settings.json`, `.codex/config.toml`, `.gemini/antigravity-cli/settings.json`) run during `sync_agents`; they must remain Python 3.9 stdlib-only with zero runtime pip dependencies. Skills and commands are overwritten to prevent stale deleted assets from lingering.
 - Agent skills follow the [agentskills.io](https://agentskills.io/specification) spec (SKILL.md with YAML frontmatter)
 - `.claude/` is written for the Claude 5 generation and has intentionally diverged from `.agents/`, which serves Codex and Gemini. Asset sets are kept in parity, enforced by `tests/test_agent_config.py`. Declare any single-tree asset in that file's exception lists
 - **References are kept in parity too, by section rather than by byte.** Every file under `.claude/references/` has an `.agents/` twin at the same path exposing the same headings; bodies may differ, because the trees serve different tools. Edit one tree and you must edit the other. This check ships without an exception list by design — see `docs/adr/workflow/reference-tree-section-parity.md`

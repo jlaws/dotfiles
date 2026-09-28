@@ -1,14 +1,17 @@
 """Tests for macos_setup.dotfiles."""
 
 import hashlib
+import json
 import shutil
 import tempfile
 import unittest
 from pathlib import Path
 
 from macos_setup.archive import Archive
+from macos_setup.config_merge import ConfigMergeError
 from macos_setup.dotfiles import (
     apply_file,
+    apply_merged_file,
     file_revert_decision,
     remove_file,
     remove_path,
@@ -83,6 +86,139 @@ class ApplyFileTests(unittest.TestCase):
 
         self.assertEqual(dest.read_text(), "new content")
         self.assertEqual(self.archive.manifest["files"][0]["action"], "added")
+
+
+class ApplyMergedFileTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.archive = Archive.create(self.tmp / "arch", "ts")
+        self.src = self.tmp / "repo_settings.json"
+        self.src.write_text('{"outputStyle": "Concise", "newKey": true}\n')
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_existing_target_is_archived_and_merged_with_dest_sha_recorded(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        content = json.loads(dest.read_text())
+        self.assertEqual(content["outputStyle"], "Concise")
+        self.assertEqual(content["machineId"], "mac1")
+        self.assertTrue(content["newKey"])
+
+        archived = self.archive.files_dir / str(dest).lstrip("/")
+        self.assertEqual(archived.read_text(), '{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+
+        rec = self.archive.manifest["files"][0]
+        self.assertEqual(rec["dest"], str(dest))
+        self.assertEqual(rec["action"], "replaced")
+        self.assertEqual(rec["sha256"], sha256_file(dest))
+        self.assertNotEqual(rec["sha256"], sha256_file(self.src))
+
+    def test_absent_target_is_created_and_recorded_as_added(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        self.assertTrue(dest.exists())
+        rec = self.archive.manifest["files"][0]
+        self.assertEqual(rec["dest"], str(dest))
+        self.assertEqual(rec["action"], "added")
+        self.assertEqual(rec["sha256"], sha256_file(dest))
+
+    def test_apply_merged_file_atomic_write(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"outputStyle": "Verbose"}\n')
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        tmp_files = list(dest.parent.glob(".*.tmp"))
+        self.assertEqual(tmp_files, [])
+        self.assertTrue(dest.exists())
+
+    def test_malformed_target_is_archived_and_overwritten_with_repo_template(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"invalid_json": ')
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        self.assertEqual(dest.read_text(), self.src.read_text())
+        archived = self.archive.files_dir / str(dest).lstrip("/")
+        self.assertEqual(archived.read_text(), '{"invalid_json": ')
+
+    def test_revert_restores_pre_merge_backup(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+        summary = revert_files(self.archive)
+
+        self.assertEqual(summary.restored, [str(dest)])
+        self.assertEqual(dest.read_text(encoding="utf-8"), '{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+
+    def test_existing_target_is_archived_and_merged_toml(self) -> None:
+        src = self.tmp / "repo_config.toml"
+        src.write_text('model = "gpt-6-astra"\n[agents]\nmax_threads = 4\n', encoding="utf-8")
+        dest = self.tmp / "home" / ".codex" / "config.toml"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('model = "gpt-5"\nlocal_key = "val"\n[agents]\nmax_threads = 8\n', encoding="utf-8")
+
+        action = apply_merged_file(src, dest, self.archive, format_type="toml")
+
+        self.assertEqual(action, "replaced")
+        content = dest.read_text(encoding="utf-8")
+        self.assertIn('model = "gpt-6-astra"', content)
+        self.assertIn('local_key = "val"', content)
+        self.assertIn("max_threads = 4", content)
+        self.assertNotIn('model = "gpt-5"', content)
+
+    def test_malformed_target_toml_is_archived_and_reset_to_template(self) -> None:
+        src = self.tmp / "repo_config.toml"
+        src.write_text('model = "gpt-6-astra"\n', encoding="utf-8")
+        dest = self.tmp / "home" / ".codex" / "config.toml"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('[unclosed header\nkey = 1\n', encoding="utf-8")
+
+        action = apply_merged_file(src, dest, self.archive, format_type="toml")
+
+        self.assertEqual(action, "reset")
+        self.assertEqual(dest.read_text(encoding="utf-8"), src.read_text(encoding="utf-8"))
+        archived = self.archive.files_dir / str(dest).lstrip("/")
+        self.assertEqual(archived.read_text(encoding="utf-8"), '[unclosed header\nkey = 1\n')
+
+    def test_corrupt_binary_target_is_archived_and_reset_to_template(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_bytes(b"\x80\x81\x82 corrupt binary")
+
+        action = apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        self.assertEqual(action, "reset")
+        self.assertEqual(dest.read_text(encoding="utf-8"), self.src.read_text(encoding="utf-8"))
+
+    def test_unsupported_format_raises_value_error(self) -> None:
+        dest = self.tmp / "home" / "config.yaml"
+        with self.assertRaises(ValueError):
+            apply_merged_file(self.src, dest, self.archive, format_type="yaml")
+
+    def test_malformed_repo_source_raises_and_does_not_clobber_dest(self) -> None:
+        bad_src = self.tmp / "bad_src.json"
+        bad_src.write_text('{"unclosed": ', encoding="utf-8")
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"keepMe": true}\n', encoding="utf-8")
+
+        with self.assertRaises(ConfigMergeError):
+            apply_merged_file(bad_src, dest, self.archive, format_type="json")
+
+        self.assertEqual(dest.read_text(encoding="utf-8"), '{"keepMe": true}\n')
 
 
 class RemoveFileTests(unittest.TestCase):
@@ -192,6 +328,120 @@ class SyncAgentsTests(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
         return path
+
+    def test_sync_agents_merges_configs_and_replaces_skills(self) -> None:
+        repo_skill = self.repo / ".agents" / "skills" / "cmd-j-tdd" / "SKILL.md"
+        repo_skill.parent.mkdir(parents=True, exist_ok=True)
+        repo_skill.write_text("---\nname: cmd-j-tdd\nversion: 2\n---\n")
+
+        repo_claude_settings = self.repo / ".claude" / "settings.json"
+        repo_claude_settings.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude_settings.write_text('{"outputStyle": "Concise", "newKey": true}\n')
+
+        repo_codex_config = self.repo / ".codex" / "config.toml"
+        repo_codex_config.parent.mkdir(parents=True, exist_ok=True)
+        repo_codex_config.write_text('model = "gpt-6-astra"\n[agents]\nmax_threads = 6\n')
+
+        target_skill = self._write_target(
+            ".agents/skills/cmd-j-tdd/SKILL.md", "local custom skill edit"
+        )
+        target_claude_settings = self._write_target(
+            ".claude/settings.json",
+            '{"outputStyle": "Verbose", "enabledPlugins": {"my-plugin": true}}\n',
+        )
+        target_codex_config = self._write_target(
+            ".codex/config.toml",
+            'model = "gpt-5"\nmachine_id = "local1"\n[agents]\nmax_threads = 12\n',
+        )
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertIn("version: 2", target_skill.read_text())
+        self.assertNotIn("local custom skill edit", target_skill.read_text())
+
+        claude_res = json.loads(target_claude_settings.read_text())
+        self.assertEqual(claude_res["outputStyle"], "Concise")
+        self.assertTrue(claude_res["newKey"])
+        self.assertTrue(claude_res["enabledPlugins"]["my-plugin"])
+
+        codex_res = target_codex_config.read_text()
+        self.assertIn('model = "gpt-6-astra"', codex_res)
+        self.assertIn('machine_id = "local1"', codex_res)
+
+    def test_sync_agents_dry_run_previews_merge_without_writing(self) -> None:
+        target_claude = self._write_target(".claude/settings.json", '{"outputStyle": "Verbose"}\n')
+        repo_claude = self.repo / ".claude" / "settings.json"
+        repo_claude.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude.write_text('{"outputStyle": "Concise"}\n')
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+
+        self.assertTrue(
+            any(
+                "would merge" in line and ".claude/settings.json" in line
+                for line in captured.output
+            )
+        )
+        self.assertEqual(target_claude.read_text(), '{"outputStyle": "Verbose"}\n')
+        self.assertEqual(len(self.archive.manifest["files"]), 0)
+
+    def test_sync_agents_revert_restores_pre_merge_backup(self) -> None:
+        target_claude = self._write_target(".claude/settings.json", '{"local_setting": true}\n')
+        repo_claude = self.repo / ".claude" / "settings.json"
+        repo_claude.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude.write_text('{"repo_setting": true}\n')
+
+        sync_agents(self.repo, self.target, self.archive)
+        self.assertIn("repo_setting", target_claude.read_text())
+
+        summary = revert_files(self.archive)
+        self.assertIn(str(target_claude), summary.restored)
+        self.assertEqual(target_claude.read_text(encoding="utf-8"), '{"local_setting": true}\n')
+
+    def test_sync_agents_merges_gemini_settings(self) -> None:
+        repo_gemini = self.repo / ".gemini" / "antigravity-cli" / "settings.json"
+        repo_gemini.parent.mkdir(parents=True, exist_ok=True)
+        repo_gemini.write_text('{"permissions": {"allow": ["command(git)"]}}\n', encoding="utf-8")
+
+        target_gemini = self._write_target(
+            ".gemini/antigravity-cli/settings.json",
+            '{"permissions": {"allow": ["command(custom)"]}}\n',
+        )
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        data = json.loads(target_gemini.read_text(encoding="utf-8"))
+        self.assertIn("command(git)", data["permissions"]["allow"])
+        self.assertIn("command(custom)", data["permissions"]["allow"])
+
+    def test_sync_agents_dry_run_previews_would_sync_when_target_absent(self) -> None:
+        repo_claude = self.repo / ".claude" / "settings.json"
+        repo_claude.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude.write_text('{"outputStyle": "Concise"}\n', encoding="utf-8")
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+
+        self.assertTrue(
+            any(
+                "would sync" in line and ".claude/settings.json" in line
+                for line in captured.output
+            )
+        )
+
+    def test_sync_agents_revert_skips_user_modified_config(self) -> None:
+        target_claude = self._write_target(".claude/settings.json", '{"local_setting": true}\n')
+        repo_claude = self.repo / ".claude" / "settings.json"
+        repo_claude.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude.write_text('{"repo_setting": true}\n', encoding="utf-8")
+
+        sync_agents(self.repo, self.target, self.archive)
+        target_claude.write_text('{"user_customized": true}\n', encoding="utf-8")
+
+        summary = revert_files(self.archive)
+        self.assertIn(str(target_claude), summary.skipped)
+        self.assertEqual(target_claude.read_text(encoding="utf-8"), '{"user_customized": true}\n')
 
     def test_removes_cursor_agent_wrappers_and_orphaned_commands(self):
         cursor_file = self._write_target(".cursor/ai-tracking/tracking.db")
