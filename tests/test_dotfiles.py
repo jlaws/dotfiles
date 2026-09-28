@@ -1,6 +1,7 @@
 """Tests for macos_setup.dotfiles."""
 
 import hashlib
+import json
 import shutil
 import tempfile
 import unittest
@@ -9,6 +10,7 @@ from pathlib import Path
 from macos_setup.archive import Archive
 from macos_setup.dotfiles import (
     apply_file,
+    apply_merged_file,
     file_revert_decision,
     remove_file,
     remove_path,
@@ -83,6 +85,82 @@ class ApplyFileTests(unittest.TestCase):
 
         self.assertEqual(dest.read_text(), "new content")
         self.assertEqual(self.archive.manifest["files"][0]["action"], "added")
+
+
+class ApplyMergedFileTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.archive = Archive.create(self.tmp / "arch", "ts")
+        self.src = self.tmp / "repo_settings.json"
+        self.src.write_text('{"outputStyle": "Concise", "newKey": true}\n')
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_existing_target_is_archived_and_merged_with_dest_sha_recorded(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        content = json.loads(dest.read_text())
+        self.assertEqual(content["outputStyle"], "Concise")
+        self.assertEqual(content["machineId"], "mac1")
+        self.assertTrue(content["newKey"])
+
+        archived = self.archive.files_dir / str(dest).lstrip("/")
+        self.assertEqual(archived.read_text(), '{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+
+        rec = self.archive.manifest["files"][0]
+        self.assertEqual(rec["dest"], str(dest))
+        self.assertEqual(rec["action"], "replaced")
+        self.assertEqual(rec["sha256"], sha256_file(dest))
+        self.assertNotEqual(rec["sha256"], sha256_file(self.src))
+
+    def test_absent_target_is_created_and_recorded_as_added(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        self.assertTrue(dest.exists())
+        rec = self.archive.manifest["files"][0]
+        self.assertEqual(rec["dest"], str(dest))
+        self.assertEqual(rec["action"], "added")
+        self.assertEqual(rec["sha256"], sha256_file(dest))
+
+    def test_apply_merged_file_atomic_write(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"outputStyle": "Verbose"}\n')
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        tmp_files = list(dest.parent.glob(".*.tmp"))
+        self.assertEqual(tmp_files, [])
+        self.assertTrue(dest.exists())
+
+    def test_malformed_target_is_archived_and_overwritten_with_repo_template(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"invalid_json": ')
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        self.assertEqual(dest.read_text(), self.src.read_text())
+        archived = self.archive.files_dir / str(dest).lstrip("/")
+        self.assertEqual(archived.read_text(), '{"invalid_json": ')
+
+    def test_revert_restores_pre_merge_backup(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+
+        apply_merged_file(self.src, dest, self.archive, format_type="json")
+        summary = revert_files(self.archive)
+
+        self.assertEqual(summary.restored, [str(dest)])
+        self.assertEqual(dest.read_text(), '{"outputStyle": "Verbose", "machineId": "mac1"}\n')
 
 
 class RemoveFileTests(unittest.TestCase):

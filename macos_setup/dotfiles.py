@@ -9,11 +9,14 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import shutil
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from macos_setup.config_merge import ConfigMergeError, merge_json, merge_toml
 
 if TYPE_CHECKING:
     from macos_setup.archive import Archive
@@ -130,6 +133,50 @@ def apply_file(src: Path, dest: Path, archive: Archive) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dest)
     archive.record_file(str(dest), action, sha256_file(src))
+
+
+def apply_merged_file(src: Path, dest: Path, archive: Archive, format_type: str) -> None:
+    """Merge ``src`` into ``dest``, archiving any replaced original and recording dest SHA-256."""
+    merger = merge_json if format_type == "json" else merge_toml
+    repo_text = src.read_text(encoding="utf-8")
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+
+    if dest.exists():
+        target_text = dest.read_text(encoding="utf-8")
+        try:
+            merged_text = merger(repo_text, target_text)
+        except ConfigMergeError as exc:
+            _LOG.warning(
+                "Failed to parse %s (%s); archiving corrupt file and resetting to repo defaults",
+                dest,
+                exc,
+            )
+            merged_text = repo_text
+
+        backup = _archive_dest(archive, dest)
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(dest, backup)
+        action = "replaced"
+    else:
+        merged_text = repo_text
+        action = "added"
+
+    # Atomic write to temporary file with 0600 permissions
+    tmp_dest = dest.parent / f".{dest.name}.tmp"
+    try:
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        mode = 0o600
+        fd = os.open(tmp_dest, flags, mode)
+        with open(fd, "w", encoding="utf-8") as handle:
+            handle.write(merged_text)
+        tmp_dest.replace(dest)
+    except Exception:
+        if tmp_dest.exists():
+            tmp_dest.unlink()
+        raise
+
+    archive.record_file(str(dest), action, sha256_file(dest))
 
 
 def remove_file(dest: Path, archive: Archive) -> None:
