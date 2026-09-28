@@ -20,6 +20,15 @@ REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / ".claude" / "skills" / "skill-audit" / "scripts" / "memory.py"
 
 
+def _label(path: Path) -> str:
+    """Return a store path formatted with ~ when under home, matching memory.py label()."""
+    home = Path.home().resolve()
+    resolved = path.resolve()
+    if resolved == home or home in resolved.parents:
+        return "~/" + resolved.relative_to(home).as_posix()
+    return str(path)
+
+
 def memory_file(
     name: str, body: str = "Rule.", kind: str = "feedback", description: str = "d"
 ) -> str:
@@ -304,7 +313,7 @@ class MemoryCheckTests(_StoreMixin):
         )
         found = self.findings(one, two, expect=1)
         self.assertEqual(
-            sorted(f["store"] for f in found), sorted([str(one.resolve()), str(two.resolve())])
+            sorted(f["store"] for f in found), sorted([_label(one), _label(two)])
         )
 
     def test_text_report_names_the_check_and_file(self):
