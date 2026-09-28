@@ -7,6 +7,8 @@ Package installs are not reversed by ``--uninstall``: removing tools the user ma
 from __future__ import annotations
 
 import logging
+import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -42,7 +44,26 @@ _ELAN_INSTALL = (
     "| sh -s -- -y --default-toolchain none"
 )
 _CLAUDE_INSTALL = "curl -fsSL https://claude.ai/install.sh | bash"
+_CODEX_INSTALL = "curl -fsSL https://chatgpt.com/codex/install.sh | sh"
+_ANTIGRAVITY_INSTALL = "curl -fsSL https://antigravity.google/cli/install.sh | bash"
 _RUST_INSTALL = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+
+
+def _cargo_bin() -> Path:
+    """Return the Cargo bin directory, respecting CARGO_HOME if set."""
+    cargo_home = os.environ.get("CARGO_HOME")
+    if cargo_home:
+        return Path(cargo_home) / "bin"
+    return Path.home() / ".cargo" / "bin"
+
+
+def _ensure_cargo_path() -> None:
+    """Prepend the Cargo bin directory to os.environ['PATH'] if not present."""
+    cargo_bin = str(_cargo_bin())
+    current_path = os.environ.get("PATH", "")
+    paths = current_path.split(os.pathsep) if current_path else []
+    if cargo_bin not in paths:
+        os.environ["PATH"] = f"{cargo_bin}{os.pathsep}{current_path}" if current_path else cargo_bin
 
 
 def _run(runner: Runner, argv: list[str], *, dry_run: bool, check: bool = True) -> None:
@@ -87,14 +108,18 @@ def install_packages(runner: Runner, *, dry_run: bool = False) -> None:
     # stated as belief rather than fact.
     #
     # check=False because this is the one bootstrap step that pulls a large binary over the
-    # network, and it sits ahead of rustup, npm, elan, the Claude CLI, and `brew cleanup`. A flaky
-    # download should not take those with it. The `ln -sf` above is soft for the same reason.
+    # network, and it sits ahead of rustup, npm, elan, the CLI installers (Claude, Codex, Antigravity),
+    # and `brew cleanup`. A flaky download should not take those with it. The `ln -sf` above is
+    # soft for the same reason.
     _run(runner, ["agent-browser", "install"], dry_run=dry_run, check=False)
 
     _run(runner, ["bash", "-c", _RUST_INSTALL], dry_run=dry_run)
+    _ensure_cargo_path()
     _run(runner, ["rustup", "default", "stable"], dry_run=dry_run)
     _run(runner, ["rustup", "component", "add", "rust-analyzer"], dry_run=dry_run)
     _run(runner, ["npm", "install", "-g", "typescript-language-server", "typescript"], dry_run=dry_run)
     _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
     _run(runner, ["bash", "-c", _CLAUDE_INSTALL], dry_run=dry_run)
+    _run(runner, ["bash", "-c", _CODEX_INSTALL], dry_run=dry_run)
+    _run(runner, ["bash", "-c", _ANTIGRAVITY_INSTALL], dry_run=dry_run)
     _run(runner, ["brew", "cleanup"], dry_run=dry_run)
