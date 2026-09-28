@@ -62,6 +62,13 @@ AGENT_SYNC = [
     (".gemini/config/agents", ".gemini/config/agents"),
 ]
 
+# Agent configuration files that are merged with machine-specific settings rather than replaced.
+CONFIG_MERGE_POLICIES: dict[str, str] = {
+    ".claude/settings.json": "json",
+    ".codex/config.toml": "toml",
+    ".gemini/antigravity-cli/settings.json": "json",
+}
+
 # Stale files removed from the target after syncing (archived first so uninstall can restore).
 AGENT_REMOVALS = [
     ".cursor",
@@ -276,14 +283,28 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
     """Sync agent configs (Claude, Codex, Gemini, shared .agents) into ``target``."""
     _LOG.info("Syncing agent configuration to %s", target)
     synced = 0
+    merged = 0
     for src_rel, dest_rel in AGENT_SYNC:
         for src_file, dest_file in _iter_pairs(repo / src_rel, target / dest_rel):
-            if dry_run:
-                _LOG.info("would sync %s", dest_file)
-                continue
-            apply_file(src_file, dest_file, archive)
-            _LOG.debug("sync %s", dest_file)
-            synced += 1
+            rel_str = str(dest_file.relative_to(target))
+            if rel_str in CONFIG_MERGE_POLICIES:
+                fmt = CONFIG_MERGE_POLICIES[rel_str]
+                if dry_run:
+                    if dest_file.exists():
+                        _LOG.info("would merge %s", dest_file)
+                    else:
+                        _LOG.info("would sync %s", dest_file)
+                    continue
+                apply_merged_file(src_file, dest_file, archive, format_type=fmt)
+                _LOG.info("merged %s", dest_file)
+                merged += 1
+            else:
+                if dry_run:
+                    _LOG.info("would sync %s", dest_file)
+                    continue
+                apply_file(src_file, dest_file, archive)
+                _LOG.debug("sync %s", dest_file)
+                synced += 1
     # A removal deletes a file out of the user's home directory, so it is reported at INFO like
     # the dry-run branch rather than at DEBUG inside `remove_path`. Without this the preview was
     # louder than the real run: `--dry-run` listed every path while the live run said nothing, and
@@ -298,4 +319,10 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
             _LOG.info("removed stale %s", removal)
     if dry_run:
         return
-    _LOG.info("Synced %d agent config files to %s", synced, target)
+    _LOG.info(
+        "Synced %d agent config files to %s (%d merged, %d replaced)",
+        synced + merged,
+        target,
+        merged,
+        synced,
+    )

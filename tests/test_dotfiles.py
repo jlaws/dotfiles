@@ -271,6 +271,76 @@ class SyncAgentsTests(unittest.TestCase):
         path.write_text(content)
         return path
 
+    def test_sync_agents_merges_configs_and_replaces_skills(self) -> None:
+        repo_skill = self.repo / ".agents" / "skills" / "cmd-j-tdd" / "SKILL.md"
+        repo_skill.parent.mkdir(parents=True, exist_ok=True)
+        repo_skill.write_text("---\nname: cmd-j-tdd\nversion: 2\n---\n")
+
+        repo_claude_settings = self.repo / ".claude" / "settings.json"
+        repo_claude_settings.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude_settings.write_text('{"outputStyle": "Concise", "newKey": true}\n')
+
+        repo_codex_config = self.repo / ".codex" / "config.toml"
+        repo_codex_config.parent.mkdir(parents=True, exist_ok=True)
+        repo_codex_config.write_text('model = "gpt-6-astra"\n[agents]\nmax_threads = 6\n')
+
+        target_skill = self._write_target(
+            ".agents/skills/cmd-j-tdd/SKILL.md", "local custom skill edit"
+        )
+        target_claude_settings = self._write_target(
+            ".claude/settings.json",
+            '{"outputStyle": "Verbose", "enabledPlugins": {"my-plugin": true}}\n',
+        )
+        target_codex_config = self._write_target(
+            ".codex/config.toml",
+            'model = "gpt-5"\nmachine_id = "local1"\n[agents]\nmax_threads = 12\n',
+        )
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertIn("version: 2", target_skill.read_text())
+        self.assertNotIn("local custom skill edit", target_skill.read_text())
+
+        claude_res = json.loads(target_claude_settings.read_text())
+        self.assertEqual(claude_res["outputStyle"], "Concise")
+        self.assertTrue(claude_res["newKey"])
+        self.assertTrue(claude_res["enabledPlugins"]["my-plugin"])
+
+        codex_res = target_codex_config.read_text()
+        self.assertIn('model = "gpt-6-astra"', codex_res)
+        self.assertIn('machine_id = "local1"', codex_res)
+
+    def test_sync_agents_dry_run_previews_merge_without_writing(self) -> None:
+        target_claude = self._write_target(".claude/settings.json", '{"outputStyle": "Verbose"}\n')
+        repo_claude = self.repo / ".claude" / "settings.json"
+        repo_claude.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude.write_text('{"outputStyle": "Concise"}\n')
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+
+        self.assertTrue(
+            any(
+                "would merge" in line and ".claude/settings.json" in line
+                for line in captured.output
+            )
+        )
+        self.assertEqual(target_claude.read_text(), '{"outputStyle": "Verbose"}\n')
+        self.assertEqual(len(self.archive.manifest["files"]), 0)
+
+    def test_sync_agents_revert_restores_pre_merge_backup(self) -> None:
+        target_claude = self._write_target(".claude/settings.json", '{"local_setting": true}\n')
+        repo_claude = self.repo / ".claude" / "settings.json"
+        repo_claude.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude.write_text('{"repo_setting": true}\n')
+
+        sync_agents(self.repo, self.target, self.archive)
+        self.assertIn("repo_setting", target_claude.read_text())
+
+        summary = revert_files(self.archive)
+        self.assertIn(str(target_claude), summary.restored)
+        self.assertEqual(target_claude.read_text(), '{"local_setting": true}\n')
+
     def test_removes_cursor_agent_wrappers_and_orphaned_commands(self):
         cursor_file = self._write_target(".cursor/ai-tracking/tracking.db")
         agent_wrapper = self._write_target(
