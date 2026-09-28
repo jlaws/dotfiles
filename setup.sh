@@ -16,4 +16,8 @@
 
 set -euo pipefail
 cd "$(dirname "$0")"
+
+# Prepend Cargo bin directory so child python3 and subprocesses find installed toolchain
+export PATH="${CARGO_HOME:-$HOME/.cargo}/bin${PATH:+:$PATH}"
+
 exec python3 -m macos_setup "$@"
