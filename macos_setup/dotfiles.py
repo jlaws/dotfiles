@@ -142,48 +142,74 @@ def apply_file(src: Path, dest: Path, archive: Archive) -> None:
     archive.record_file(str(dest), action, sha256_file(src))
 
 
-def apply_merged_file(src: Path, dest: Path, archive: Archive, format_type: str) -> None:
-    """Merge ``src`` into ``dest``, archiving any replaced original and recording dest SHA-256."""
-    merger = merge_json if format_type == "json" else merge_toml
-    repo_text = src.read_text(encoding="utf-8")
+def apply_merged_file(src: Path, dest: Path, archive: Archive, format_type: str) -> str:
+    """Merge ``src`` into ``dest``, archiving any replaced original and recording dest SHA-256.
 
+    Args:
+        src: Source configuration template path from the repository.
+        dest: Target configuration path in the home directory.
+        archive: Active run archive tracking modified files.
+        format_type: Configuration format ('json' or 'toml').
+
+    Returns:
+        The action taken: 'replaced', 'added', or 'reset'.
+
+    Raises:
+        ValueError: If format_type is not 'json' or 'toml'.
+    """
+    if format_type == "json":
+        merger = merge_json
+    elif format_type == "toml":
+        merger = merge_toml
+    else:
+        raise ValueError(f"Unsupported configuration format: {format_type}")
+
+    repo_text = src.read_text(encoding="utf-8")
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     if dest.exists():
-        target_text = dest.read_text(encoding="utf-8")
         try:
+            target_text = dest.read_text(encoding="utf-8")
             merged_text = merger(repo_text, target_text)
-        except ConfigMergeError as exc:
+            action = "replaced"
+        except (ConfigMergeError, UnicodeDecodeError) as exc:
+            if "Malformed source" in str(exc):
+                raise
             _LOG.warning(
                 "Failed to parse %s (%s); archiving corrupt file and resetting to repo defaults",
                 dest,
                 exc,
             )
             merged_text = repo_text
+            action = "reset"
 
         backup = _archive_dest(archive, dest)
         backup.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(dest, backup)
-        action = "replaced"
     else:
         merged_text = repo_text
         action = "added"
 
-    # Atomic write to temporary file with 0600 permissions
+    # Atomic write to temporary file with strict 0600 permissions
     tmp_dest = dest.parent / f".{dest.name}.tmp"
+    if tmp_dest.exists() or tmp_dest.is_symlink():
+        tmp_dest.unlink()
     try:
-        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
         mode = 0o600
         fd = os.open(tmp_dest, flags, mode)
         with open(fd, "w", encoding="utf-8") as handle:
             handle.write(merged_text)
+        os.chmod(tmp_dest, 0o600)
         tmp_dest.replace(dest)
     except Exception:
-        if tmp_dest.exists():
+        if tmp_dest.exists() or tmp_dest.is_symlink():
             tmp_dest.unlink()
         raise
 
-    archive.record_file(str(dest), action, sha256_file(dest))
+    archive_action = "added" if action == "added" else "replaced"
+    archive.record_file(str(dest), archive_action, sha256_file(dest))
+    return action
 
 
 def remove_file(dest: Path, archive: Archive) -> None:
@@ -284,6 +310,9 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
     _LOG.info("Syncing agent configuration to %s", target)
     synced = 0
     merged = 0
+    would_sync = 0
+    would_merge = 0
+
     for src_rel, dest_rel in AGENT_SYNC:
         for src_file, dest_file in _iter_pairs(repo / src_rel, target / dest_rel):
             rel_str = str(dest_file.relative_to(target))
@@ -292,19 +321,30 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
                 if dry_run:
                     if dest_file.exists():
                         _LOG.info("would merge %s", dest_file)
+                        would_merge += 1
                     else:
                         _LOG.info("would sync %s", dest_file)
+                        would_sync += 1
                     continue
-                apply_merged_file(src_file, dest_file, archive, format_type=fmt)
-                _LOG.info("merged %s", dest_file)
-                merged += 1
+                action = apply_merged_file(src_file, dest_file, archive, format_type=fmt)
+                if action == "added":
+                    _LOG.info("added %s", dest_file)
+                    synced += 1
+                elif action == "reset":
+                    _LOG.warning("reset %s to repository defaults", dest_file)
+                    merged += 1
+                else:
+                    _LOG.info("merged %s", dest_file)
+                    merged += 1
             else:
                 if dry_run:
                     _LOG.info("would sync %s", dest_file)
+                    would_sync += 1
                     continue
                 apply_file(src_file, dest_file, archive)
                 _LOG.debug("sync %s", dest_file)
                 synced += 1
+
     # A removal deletes a file out of the user's home directory, so it is reported at INFO like
     # the dry-run branch rather than at DEBUG inside `remove_path`. Without this the preview was
     # louder than the real run: `--dry-run` listed every path while the live run said nothing, and
@@ -317,10 +357,19 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
         else:
             remove_path(removal, archive)
             _LOG.info("removed stale %s", removal)
+
     if dry_run:
+        _LOG.info(
+            "Would sync %d agent config files to %s (%d would merge, %d would sync)",
+            would_sync + would_merge,
+            target,
+            would_merge,
+            would_sync,
+        )
         return
+
     _LOG.info(
-        "Synced %d agent config files to %s (%d merged, %d replaced)",
+        "Synced %d agent config files to %s (%d merged, %d synced)",
         synced + merged,
         target,
         merged,

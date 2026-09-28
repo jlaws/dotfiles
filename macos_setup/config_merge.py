@@ -40,11 +40,36 @@ def _merge_dict(
                 merged[key] = repo_val
         else:
             merged[key] = repo_val
+
+    # Resolve allow/deny conflict: deny rules always take precedence
+    if (
+        "allow" in merged
+        and "deny" in merged
+        and isinstance(merged["allow"], list)
+        and isinstance(merged["deny"], list)
+    ):
+        if (path and path[-1] == "permissions") or (
+            not path and "permissions" in merged
+        ):
+            deny_set = set(merged["deny"])
+            merged["allow"] = [item for item in merged["allow"] if item not in deny_set]
+
     return merged
 
 
 def merge_json(repo_content: str, target_content: str) -> str:
-    """Merge JSON repo updates into target machine settings, preserving target keys."""
+    """Merge JSON repo updates into target machine settings, preserving target keys.
+
+    Args:
+        repo_content: Source configuration template from the repository.
+        target_content: Existing host configuration to update in-place.
+
+    Returns:
+        The merged JSON configuration string ending in a newline.
+
+    Raises:
+        ConfigMergeError: If either source or target contains invalid JSON syntax or non-object root.
+    """
     try:
         repo_data = json.loads(repo_content)
     except Exception as exc:
@@ -66,85 +91,156 @@ def merge_json(repo_content: str, target_content: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def _extract_header(line: str) -> tuple[str | None, str | None, str | None]:
+    """Parse section header, type ('table' | 'array'), and table name.
+
+    Ignores trailing inline comments, e.g. '[agents] # settings' -> ('[agents]', 'table', 'agents').
+    """
+    stripped = line.strip()
+    if not stripped.startswith("["):
+        return None, None, None
+    m_array = re.match(r"^\[\[([A-Za-z0-9_.-]+)\]\](?:\s*#.*)?$", stripped)
+    if m_array:
+        name = m_array.group(1).strip()
+        return f"[[{name}]]", "array", name
+    m_table = re.match(r"^\[([A-Za-z0-9_.-]+)\](?:\s*#.*)?$", stripped)
+    if m_table:
+        name = m_table.group(1).strip()
+        return f"[{name}]", "table", name
+    raise ConfigMergeError(f"Malformed TOML section header: {stripped}")
+
+
+def _is_multiline_continuation(raw: str) -> bool:
+    """Return True if raw line or block has an unclosed string or unclosed bracket."""
+    in_single = False
+    in_double = False
+    in_triple_single = False
+    in_triple_double = False
+    open_brackets = 0
+    i = 0
+    n = len(raw)
+    while i < n:
+        if not in_single and not in_double:
+            if not in_triple_single and raw.startswith('"""', i):
+                in_triple_double = not in_triple_double
+                i += 3
+                continue
+            if not in_triple_double and raw.startswith("'''", i):
+                in_triple_single = not in_triple_single
+                i += 3
+                continue
+        if in_triple_single or in_triple_double:
+            i += 1
+            continue
+
+        char = raw[i]
+        if char == "\\" and in_double:
+            i += 2
+            continue
+        if char == '"' and not in_single:
+            in_double = not in_double
+        elif char == "'" and not in_double:
+            in_single = not in_single
+            if char == "#":
+                nl = raw.find("\n", i)
+                if nl == -1:
+                    break
+                i = nl
+                continue
+            if char == "[":
+                open_brackets += 1
+            elif char == "]":
+                open_brackets -= 1
+        i += 1
+
+    return (
+        in_triple_single
+        or in_triple_double
+        or in_single
+        or in_double
+        or open_brackets > 0
+    )
+
+
 def _parse_toml_sections(content: str) -> list[dict[str, Any]]:
     sections: list[dict[str, Any]] = []
     current_header: str | None = None
     current_type: str | None = None
     current_name: str | None = None
     current_lines: list[tuple[bool, str | None, str]] = []
+    seen_tables: set[str] = set()
+
+    def _flush_section() -> None:
+        nonlocal current_header, current_type, current_name, current_lines
+        if current_header is not None or current_lines:
+            sections.append(
+                {
+                    "header": current_header,
+                    "header_type": current_type,
+                    "name": current_name,
+                    "lines": current_lines,
+                }
+            )
+            current_lines = []
 
     lines = content.splitlines(keepends=True)
     i = 0
     while i < len(lines):
         line = lines[i]
         stripped = line.strip()
-        if stripped.startswith("[[") and stripped.endswith("]]"):
-            if current_header is not None or current_lines:
-                sections.append(
-                    {
-                        "header": current_header,
-                        "header_type": current_type,
-                        "name": current_name,
-                        "lines": current_lines,
-                    }
-                )
-            current_header = stripped
-            current_type = "array"
-            current_name = stripped[2:-2].strip()
-            current_lines = []
-            i += 1
-            continue
-        if stripped.startswith("[") and stripped.endswith("]"):
-            if current_header is not None or current_lines:
-                sections.append(
-                    {
-                        "header": current_header,
-                        "header_type": current_type,
-                        "name": current_name,
-                        "lines": current_lines,
-                    }
-                )
-            current_header = stripped
-            current_type = "table"
-            current_name = stripped[1:-1].strip()
-            current_lines = []
+
+        header, header_type, name = _extract_header(line)
+        if header is not None:
+            _flush_section()
+            if header_type == "table":
+                if name in seen_tables:
+                    raise ConfigMergeError(f"Duplicate table header in TOML: {name}")
+                if name is not None:
+                    seen_tables.add(name)
+            current_header = header
+            current_type = header_type
+            current_name = name
             i += 1
             continue
 
         kv_match = re.match(r"^([A-Za-z0-9_-]+)\s*=", stripped)
-        if kv_match and not stripped.startswith("#"):
+        if kv_match:
             key = kv_match.group(1)
             raw = line
-            open_brackets = raw.count("[") - raw.count("]")
-            while open_brackets > 0 and i + 1 < len(lines):
+            while _is_multiline_continuation(raw) and i + 1 < len(lines):
                 i += 1
                 raw += lines[i]
-                open_brackets = raw.count("[") - raw.count("]")
+            if _is_multiline_continuation(raw):
+                raise ConfigMergeError(f"Unclosed multiline value for key: {key}")
             current_lines.append((True, key, raw))
         else:
             current_lines.append((False, None, line))
         i += 1
 
-    if current_header is not None or current_lines:
-        sections.append(
-            {
-                "header": current_header,
-                "header_type": current_type,
-                "name": current_name,
-                "lines": current_lines,
-            }
-        )
+    _flush_section()
     return sections
 
 
 def merge_toml(repo_content: str, target_content: str) -> str:
-    """Merge TOML repo updates into target machine settings, preserving target keys and comments."""
+    """Merge TOML repo updates into target machine settings, preserving target keys and comments.
+
+    Args:
+        repo_content: Source configuration template from the repository.
+        target_content: Existing host configuration to update in-place.
+
+    Returns:
+        The merged TOML configuration string ending in a newline.
+
+    Raises:
+        ConfigMergeError: If either source or target contains invalid TOML syntax.
+    """
     repo_sections = _parse_toml_sections(repo_content)
     target_sections = _parse_toml_sections(target_content)
 
     repo_root = next((s for s in repo_sections if s["header_type"] is None), None)
     repo_tables = {s["name"]: s for s in repo_sections if s["header_type"] == "table"}
     repo_arrays = [s for s in repo_sections if s["header_type"] == "array"]
+    repo_array_names = {a["name"] for a in repo_arrays}
 
     out_sections: list[dict[str, Any]] = []
     handled_tables: set[str] = set()
@@ -201,7 +297,6 @@ def merge_toml(repo_content: str, target_content: str) -> str:
             out_sections.append(sec)
 
         elif sec["header_type"] == "array":
-            repo_array_names = {a["name"] for a in repo_arrays}
             if sec["name"] not in repo_array_names:
                 out_sections.append(sec)
 

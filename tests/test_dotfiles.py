@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 
 from macos_setup.archive import Archive
+from macos_setup.config_merge import ConfigMergeError
 from macos_setup.dotfiles import (
     apply_file,
     apply_merged_file,
@@ -160,7 +161,64 @@ class ApplyMergedFileTests(unittest.TestCase):
         summary = revert_files(self.archive)
 
         self.assertEqual(summary.restored, [str(dest)])
-        self.assertEqual(dest.read_text(), '{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+        self.assertEqual(dest.read_text(encoding="utf-8"), '{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+
+    def test_existing_target_is_archived_and_merged_toml(self) -> None:
+        src = self.tmp / "repo_config.toml"
+        src.write_text('model = "gpt-6-astra"\n[agents]\nmax_threads = 4\n', encoding="utf-8")
+        dest = self.tmp / "home" / ".codex" / "config.toml"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('model = "gpt-5"\nlocal_key = "val"\n[agents]\nmax_threads = 8\n', encoding="utf-8")
+
+        action = apply_merged_file(src, dest, self.archive, format_type="toml")
+
+        self.assertEqual(action, "replaced")
+        content = dest.read_text(encoding="utf-8")
+        self.assertIn('model = "gpt-6-astra"', content)
+        self.assertIn('local_key = "val"', content)
+        self.assertIn("max_threads = 4", content)
+        self.assertNotIn('model = "gpt-5"', content)
+
+    def test_malformed_target_toml_is_archived_and_reset_to_template(self) -> None:
+        src = self.tmp / "repo_config.toml"
+        src.write_text('model = "gpt-6-astra"\n', encoding="utf-8")
+        dest = self.tmp / "home" / ".codex" / "config.toml"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('[unclosed header\nkey = 1\n', encoding="utf-8")
+
+        action = apply_merged_file(src, dest, self.archive, format_type="toml")
+
+        self.assertEqual(action, "reset")
+        self.assertEqual(dest.read_text(encoding="utf-8"), src.read_text(encoding="utf-8"))
+        archived = self.archive.files_dir / str(dest).lstrip("/")
+        self.assertEqual(archived.read_text(encoding="utf-8"), '[unclosed header\nkey = 1\n')
+
+    def test_corrupt_binary_target_is_archived_and_reset_to_template(self) -> None:
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_bytes(b"\x80\x81\x82 corrupt binary")
+
+        action = apply_merged_file(self.src, dest, self.archive, format_type="json")
+
+        self.assertEqual(action, "reset")
+        self.assertEqual(dest.read_text(encoding="utf-8"), self.src.read_text(encoding="utf-8"))
+
+    def test_unsupported_format_raises_value_error(self) -> None:
+        dest = self.tmp / "home" / "config.yaml"
+        with self.assertRaises(ValueError):
+            apply_merged_file(self.src, dest, self.archive, format_type="yaml")
+
+    def test_malformed_repo_source_raises_and_does_not_clobber_dest(self) -> None:
+        bad_src = self.tmp / "bad_src.json"
+        bad_src.write_text('{"unclosed": ', encoding="utf-8")
+        dest = self.tmp / "home" / ".claude" / "settings.json"
+        dest.parent.mkdir(parents=True)
+        dest.write_text('{"keepMe": true}\n', encoding="utf-8")
+
+        with self.assertRaises(ConfigMergeError):
+            apply_merged_file(bad_src, dest, self.archive, format_type="json")
+
+        self.assertEqual(dest.read_text(encoding="utf-8"), '{"keepMe": true}\n')
 
 
 class RemoveFileTests(unittest.TestCase):
@@ -339,7 +397,51 @@ class SyncAgentsTests(unittest.TestCase):
 
         summary = revert_files(self.archive)
         self.assertIn(str(target_claude), summary.restored)
-        self.assertEqual(target_claude.read_text(), '{"local_setting": true}\n')
+        self.assertEqual(target_claude.read_text(encoding="utf-8"), '{"local_setting": true}\n')
+
+    def test_sync_agents_merges_gemini_settings(self) -> None:
+        repo_gemini = self.repo / ".gemini" / "antigravity-cli" / "settings.json"
+        repo_gemini.parent.mkdir(parents=True, exist_ok=True)
+        repo_gemini.write_text('{"permissions": {"allow": ["command(git)"]}}\n', encoding="utf-8")
+
+        target_gemini = self._write_target(
+            ".gemini/antigravity-cli/settings.json",
+            '{"permissions": {"allow": ["command(custom)"]}}\n',
+        )
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        data = json.loads(target_gemini.read_text(encoding="utf-8"))
+        self.assertIn("command(git)", data["permissions"]["allow"])
+        self.assertIn("command(custom)", data["permissions"]["allow"])
+
+    def test_sync_agents_dry_run_previews_would_sync_when_target_absent(self) -> None:
+        repo_claude = self.repo / ".claude" / "settings.json"
+        repo_claude.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude.write_text('{"outputStyle": "Concise"}\n', encoding="utf-8")
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+
+        self.assertTrue(
+            any(
+                "would sync" in line and ".claude/settings.json" in line
+                for line in captured.output
+            )
+        )
+
+    def test_sync_agents_revert_skips_user_modified_config(self) -> None:
+        target_claude = self._write_target(".claude/settings.json", '{"local_setting": true}\n')
+        repo_claude = self.repo / ".claude" / "settings.json"
+        repo_claude.parent.mkdir(parents=True, exist_ok=True)
+        repo_claude.write_text('{"repo_setting": true}\n', encoding="utf-8")
+
+        sync_agents(self.repo, self.target, self.archive)
+        target_claude.write_text('{"user_customized": true}\n', encoding="utf-8")
+
+        summary = revert_files(self.archive)
+        self.assertIn(str(target_claude), summary.skipped)
+        self.assertEqual(target_claude.read_text(encoding="utf-8"), '{"user_customized": true}\n')
 
     def test_removes_cursor_agent_wrappers_and_orphaned_commands(self):
         cursor_file = self._write_target(".cursor/ai-tracking/tracking.db")

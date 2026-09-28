@@ -36,7 +36,7 @@ We will divide agent synchronization into two lifecycle policies:
    - For `.toml`, merging uses a minimal stdlib-only section/key parser and serializer that preserves existing machine tables, keys, and comments without requiring `tomllib` or external packages. Hooks are replaced with repo hooks.
    - If a target configuration file contains invalid syntax, it is archived to `~/.dotfile-archive/` with a warning, and overwritten with the clean repository template.
 
-Before applying the merge, the existing destination file is copied to the run's archive (`<archive>/files/`) and tracked in `manifest.json` with action `"replaced"` and the SHA256 of the merged result. Revert via `./setup.sh --uninstall` restores the user's pre-merge configuration if the file has not been altered post-setup.
+When a target configuration file is absent, it is copied directly and recorded as `"added"`. When present, before applying the merge, the existing destination file is copied to the run's archive (`<archive>/files/`) and tracked in `manifest.json` with action `"replaced"` (or `"reset"` if malformed) and the SHA256 of the applied result. Revert via `./setup.sh --uninstall` restores the user's pre-merge configuration if the file has not been altered post-setup.
 
 ## Rationale
 
@@ -60,8 +60,8 @@ Overwriting skills and commands while merging configs aligns with their distinct
 
 ## Enforcement
 
-- Owner: `macos_setup/dotfiles.py`
-- Pinned by: `tests/test_dotfiles.py` and `tests/test_adr.py`
+- Owner: `macos_setup/dotfiles.py`, `macos_setup/config_merge.py`
+- Pinned by: `tests/test_config_merge.py`, `tests/test_dotfiles.py`, and `tests/test_adr.py`
 
 ## Reversal Conditions
 
