@@ -189,7 +189,7 @@ const mockResponse = {
 - **Tests pass but integration fails** - Mock incomplete, real API complete
 - **False confidence** - Test proves nothing about real behavior
 
-**The Iron Rule:** Mock the COMPLETE data structure as it exists in reality, not just fields your immediate test uses.
+**The rule:** Mock the complete data structure as it exists in reality, not just the fields your immediate test uses; downstream code reads the rest.
 
 **The fix:**
 ```typescript
@@ -210,12 +210,12 @@ BEFORE creating mock responses:
 
   Actions:
     1. Examine actual API response from docs/examples
-    2. Include ALL fields system might consume downstream
+    2. Include every field the system might consume downstream
     3. Verify mock matches real response schema completely
 
   Why:
-    If you're creating a mock, you must understand the ENTIRE structure
-    Partial mocks fail silently when code depends on omitted fields
+    Partial mocks fail silently when code depends on omitted fields,
+    so a mock has to carry the whole structure, not only what this test reads
 
   If uncertain: Include all documented fields
 ```

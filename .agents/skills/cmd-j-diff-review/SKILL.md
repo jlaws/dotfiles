@@ -498,7 +498,7 @@ Agent:     Agent reports -> Check VCS diff -> Verify changes -> Report actual st
 
 **Run the gate before:** any success/completion claim, any positive statement about work state, committing, PR creation, task completion, moving to next task, delegating to agents.
 
-**No shortcuts. Run the command. Read the output. THEN claim the result.**
+**Claim a result only after reading the output of the command that proves it; a claim without that output is a guess.**
 
 ---
 

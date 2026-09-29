@@ -54,7 +54,7 @@ Before proposing any fix, decide where the fault actually lives:
 | Checker / oracle | The assertion or expected value is wrong | The test's expectation |
 | Environment | Config, deps, versions, network | Environment, not code |
 
-A harness, checker, or environment fault is **never** fixed by changing product code. Misclassifying the locus is the most common cause of thrashing.
+Fix a harness, checker, or environment fault where it lives; changing product code to make it pass hides the real fault. Misclassifying the locus is the most common cause of thrashing.
 
 **1. Read Error Messages Carefully**
 - Read stack traces completely; note line numbers, file paths, error codes
@@ -218,7 +218,7 @@ For language-specific debugging tools (breakpoints, profilers, stack traces), se
 | "I see the problem" | Seeing symptoms ≠ understanding root cause |
 | "Just increase the pool size" | Treating symptoms hides the leak |
 
-## Surface Errors, Do Not Mask Them
+## Surface Errors
 
 | Masking Pattern | Do Instead |
 |---|---|
