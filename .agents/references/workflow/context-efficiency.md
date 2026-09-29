@@ -231,5 +231,5 @@ When context pressure builds, Claude Code compacts (summarizes) earlier conversa
 
 - **skill:code-agent-meta-patterns** — CLAUDE.md design, context management
 - **skill:session-handoff** — handoff file creation before context pressure
-- **reference:llm-application-patterns** — token reduction in LLM applications
+- **reference:llm-application-patterns** — token reduction, prompt caching, and cost levers in LLM applications
 - **reference:code-efficiency-ladder** — the same economy applied to what gets built rather than what enters context
