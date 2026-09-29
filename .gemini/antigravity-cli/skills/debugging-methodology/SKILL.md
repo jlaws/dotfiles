@@ -17,9 +17,9 @@ Random fixes waste time and create new bugs. Complete Phase 1 before proposing f
 
 ## Debugging Directness
 
-- Never speculate about a bug without reading the relevant code first.
+- Read the relevant code before naming a cause; a guess sends the fix the wrong way.
 - State what you found, where (file:line), and the fix. One pass.
-- If the cause is unclear: say so explicitly. Do not guess.
+- If the cause is unclear: say so explicitly instead of guessing.
 - No preamble, no hedging. Finding first, explanation after.
 
 ## The Two-Attempt Rule
@@ -218,7 +218,7 @@ For language-specific debugging tools (breakpoints, profilers, stack traces), se
 | "I see the problem" | Seeing symptoms ≠ understanding root cause |
 | "Just increase the pool size" | Treating symptoms hides the leak |
 
-## Never Mask Errors
+## Surface Errors, Do Not Mask Them
 
 | Masking Pattern | Do Instead |
 |---|---|
@@ -228,7 +228,7 @@ For language-specific debugging tools (breakpoints, profilers, stack traces), se
 | Try-catch wrapping entire function | Catch specific exceptions at boundaries |
 | Defensive null checks hiding broken contracts | Fix the broken contract upstream |
 
-If unfixable now: log it, track it, surface it. Never silence it.
+If unfixable now: log it, track it, surface it. A silenced error hides the next bug.
 
 ## Quick Debugging Checklist
 

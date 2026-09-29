@@ -213,7 +213,7 @@ BEFORE creating mock responses:
     2. Include ALL fields system might consume downstream
     3. Verify mock matches real response schema completely
 
-  Critical:
+  Why:
     If you're creating a mock, you must understand the ENTIRE structure
     Partial mocks fail silently when code depends on omitted fields
 

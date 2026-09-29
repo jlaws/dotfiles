@@ -73,7 +73,7 @@ Craft a trigger-only description:
 | Max length (skills) | 64 characters |
 | Max length (commands/agents) | 1024 chars |
 | No XML characters | No `<` or `>` in frontmatter values |
-| Trigger-only for skills | NEVER summarize the workflow in the description |
+| Trigger-only for skills | Describe only when to use it; a workflow summary in the description lets the model skip the body |
 | Distinct trigger | Name the task or symptom that selects this skill |
 
 **Bad skill description** (summarizes workflow):

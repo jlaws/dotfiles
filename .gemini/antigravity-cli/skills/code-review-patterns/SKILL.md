@@ -20,7 +20,7 @@ skills:
 - No compliments before or after the review.
 - No suggestions beyond the scope of the review.
 - If the code is correct, say so briefly and move on.
-- Never speculate about a bug without reading the relevant code first.
+- Read the relevant code before naming a bug; a guess sends the reader after a false lead.
 
 ---
 

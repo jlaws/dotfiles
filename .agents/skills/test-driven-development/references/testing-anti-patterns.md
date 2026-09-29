@@ -13,9 +13,9 @@ Tests must verify real behavior, not mock behavior. Mocks are a means to isolate
 ## The Iron Laws
 
 ```
-1. NEVER test mock behavior
-2. NEVER add test-only methods to production classes
-3. NEVER mock without understanding dependencies
+1. Assert on real behavior; a test of mock behavior proves only that the mock exists
+2. Keep test-only methods out of production classes; they ship and mislead callers
+3. Understand a dependency before mocking it; a wrong mock passes while the real call fails
 ```
 
 ## Anti-Pattern 1: Testing Mock Behavior
@@ -218,7 +218,7 @@ BEFORE creating mock responses:
     2. Include ALL fields system might consume downstream
     3. Verify mock matches real response schema completely
 
-  Critical:
+  Why:
     If you're creating a mock, you must understand the ENTIRE structure
     Partial mocks fail silently when code depends on omitted fields
 

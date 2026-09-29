@@ -155,7 +155,7 @@ If the root cause traces through multiple upstream callers and you cannot isolat
 
 ---
 
-## Never Mask Errors
+## Surface Errors, Do Not Mask Them
 
 | Masking Pattern | Do Instead |
 |---|---|
@@ -165,4 +165,4 @@ If the root cause traces through multiple upstream callers and you cannot isolat
 | Try-catch wrapping entire function | Catch specific exceptions at boundaries |
 | Defensive null checks hiding broken contracts | Fix the broken contract upstream |
 
-If unfixable now: log it, track it, surface it. Never silence it.
+If unfixable now: log it, track it, surface it. A silenced error hides the next bug.

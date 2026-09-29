@@ -138,7 +138,9 @@ Pattern: check token count -> if over limit, keep system prompt + last K turns -
 
 ### Token Reduction Techniques
 
-| Technique | How | Savings |
+Savings are unmeasured estimates from general practice, not from a benchmark here; measure on your own workload before relying on them.
+
+| Technique | How | Estimated savings |
 |-----------|-----|---------|
 | Two-phase retrieval | Search/filter first, fetch only relevant items | 50-80% fewer input tokens |
 | Filter parameters | Request only needed fields from APIs (`fields=id,name`) | 30-60% per response |
@@ -148,13 +150,24 @@ Pattern: check token count -> if over limit, keep system prompt + last K turns -
 
 ### Stable Prefix / KV Cache
 
-LLM providers cache the key-value computations for identical prompt prefixes. When your system prompt is identical across requests, subsequent requests skip recomputing those tokens.
+LLM providers cache the key-value computations for identical prompt prefixes. When your system prompt is identical across requests, subsequent requests skip recomputing those tokens. Anthropic's cache read must be byte-exact across the whole prefix; one changed byte misses everything after it.
 
 **Rules:**
 - Keep system instructions identical across sessions (no timestamps, counters, per-request IDs)
 - Place dynamic content (user query, conversation history) at the END, not the beginning
 - Reorder tool definitions consistently (alphabetical or by frequency)
 - Prompt template changes invalidate the entire cache — version prompts deliberately
+- Do not change effort or thinking settings mid-conversation; they sit in the prefix and break it
+- Send mid-session instruction updates as new messages, not edits to the system prompt
+- Mark rarely used tools `defer_loading` so they stay out of the cached prefix and load through tool search on demand
+- Pre-warm with a `max_tokens: 0` request plus an explicit cache breakpoint (for example at session start) so the first real request hits a warm cache
+- Default TTL is 5 minutes, counted from the start of the request; use the 1-hour TTL when calls arrive further apart
+
+### Cost Levers and Effort
+
+Order to try them, per Anthropic's Claude Platform cost guide (claude.com/blog, 2026-09-08): caching, trimming context, bounding output, then the Batch API for unattended work. Remove verification rituals, emphasis boosters ("CRITICAL", "maximally thorough"), and fixed step scaffolds from prompts; they add tokens on models that already reason natively.
+
+Effort trades cost for score. Anthropic's example: Fable 5 scored 11.5% at low effort for $5.35 per task and 30.9% at max for $19.00. Its claim that a newer model at low effort often beats an older one at high effort is per-benchmark, not general. Reported total savings were 24-73% across four benchmarks (SWE-bench Verified ~24%, LegalBench ~67%, OfficeQA Pro ~72%, tau2-bench retail ~73%); these are Anthropic's numbers on its own tasks. The `effort` defaults in this repo's commands are set by judgment, not by a local A/B.
 
 ## RAG Integration
 

@@ -494,7 +494,7 @@ Agent:     Agent reports -> Check VCS diff -> Verify changes -> Report actual st
 
 ### When To Apply
 
-**ALWAYS before:** Any success/completion claim, any positive statement about work state, committing, PR creation, task completion, moving to next task, delegating to agents.
+**Run the gate before:** any success/completion claim, any positive statement about work state, committing, PR creation, task completion, moving to next task, delegating to agents.
 
 **No shortcuts. Run the command. Read the output. THEN claim the result.**
 
