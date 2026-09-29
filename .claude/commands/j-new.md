@@ -38,8 +38,11 @@ consult (`Glob(".claude/references/*/")`)? Persistent memory scope, if any?
 
 Leave `model` unset so the asset inherits the session model. Set it only when a specific tier is
 genuinely required; tier aliases (`opus`, `sonnet`, `haiku`, `fable`) float across model generations, so
-prefer an alias over a pinned ID. Set `effort` when the work is reliably cheaper (`low`, `medium`) or
-reliably demanding (`xhigh`).
+prefer an alias over a pinned ID. Set `effort` when the work is reliably cheaper (`low`, `medium`),
+substantial but procedure-driven (`high`: scaffolding, a fixed-rubric analysis), or reliably demanding
+(`xhigh`: open-ended design, security review). These tiers are set by judgment, not measured. An
+override may also cost a prompt-cache miss, because Anthropic renders effort into the cached prefix
+(unverified for Claude Code command overrides); skip it when the gain is marginal.
 
 ## Phase 3: Draft the description
 

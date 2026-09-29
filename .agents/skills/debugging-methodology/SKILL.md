@@ -17,9 +17,9 @@ Random fixes waste time and create new bugs. Complete Phase 1 before proposing f
 
 ## Debugging Directness
 
-- Never speculate about a bug without reading the relevant code first.
+- Read the relevant code before naming a cause; a guess sends the fix the wrong way.
 - State what you found, where (file:line), and the fix. One pass.
-- If the cause is unclear: say so explicitly. Do not guess.
+- If the cause is unclear: say so explicitly instead of guessing.
 - No preamble, no hedging. Finding first, explanation after.
 
 ## The Two-Attempt Rule
@@ -54,7 +54,7 @@ Before proposing any fix, decide where the fault actually lives:
 | Checker / oracle | The assertion or expected value is wrong | The test's expectation |
 | Environment | Config, deps, versions, network | Environment, not code |
 
-A harness, checker, or environment fault is **never** fixed by changing product code. Misclassifying the locus is the most common cause of thrashing.
+Fix a harness, checker, or environment fault where it lives; changing product code to make it pass hides the real fault. Misclassifying the locus is the most common cause of thrashing.
 
 **1. Read Error Messages Carefully**
 - Read stack traces completely; note line numbers, file paths, error codes
@@ -218,7 +218,7 @@ For language-specific debugging tools (breakpoints, profilers, stack traces), se
 | "I see the problem" | Seeing symptoms ≠ understanding root cause |
 | "Just increase the pool size" | Treating symptoms hides the leak |
 
-## Never Mask Errors
+## Surface Errors
 
 | Masking Pattern | Do Instead |
 |---|---|
@@ -228,7 +228,7 @@ For language-specific debugging tools (breakpoints, profilers, stack traces), se
 | Try-catch wrapping entire function | Catch specific exceptions at boundaries |
 | Defensive null checks hiding broken contracts | Fix the broken contract upstream |
 
-If unfixable now: log it, track it, surface it. Never silence it.
+If unfixable now: log it, track it, surface it. A silenced error hides the next bug.
 
 ## Quick Debugging Checklist
 

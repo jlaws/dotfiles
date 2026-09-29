@@ -117,8 +117,8 @@ Agent:     Agent reports -> Check VCS diff -> Verify changes -> Report actual st
 
 ## When To Apply
 
-**ALWAYS before:** Any success/completion claim, any positive statement about work state, committing, PR creation, task completion, moving to next task, delegating to agents.
+**Run the gate before:** any success/completion claim, any positive statement about work state, committing, PR creation, task completion, moving to next task, delegating to agents.
 
 For any change that ships (feature, behavior change, refactor/rename, new KB asset), a documentation decision is part of "complete" — see `documentation-validation`.
 
-**No shortcuts. Run the command. Read the output. THEN claim the result.**
+**Claim a result only after reading the output of the command that proves it; a claim without that output is a guess.**

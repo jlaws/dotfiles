@@ -138,7 +138,9 @@ Pattern: check token count -> if over limit, keep system prompt + last K turns -
 
 ### Token Reduction Techniques
 
-| Technique | How | Savings |
+Savings are unmeasured estimates from general practice; measure on your own workload before relying on them.
+
+| Technique | How | Estimated savings |
 |-----------|-----|---------|
 | Two-phase retrieval | Search/filter first, fetch only relevant items | 50-80% fewer input tokens |
 | Filter parameters | Request only needed fields from APIs (`fields=id,name`) | 30-60% per response |
@@ -148,13 +150,22 @@ Pattern: check token count -> if over limit, keep system prompt + last K turns -
 
 ### Stable Prefix / KV Cache
 
-LLM providers cache the key-value computations for identical prompt prefixes. When your system prompt is identical across requests, subsequent requests skip recomputing those tokens.
+LLM providers cache the key-value computations for identical prompt prefixes. When your system prompt is identical across requests, subsequent requests skip recomputing those tokens. A change anywhere in the prefix invalidates the cache from that point onward.
 
-**Rules:**
+**Rules (any provider):**
 - Keep system instructions identical across sessions (no timestamps, counters, per-request IDs)
 - Place dynamic content (user query, conversation history) at the END, not the beginning
 - Reorder tool definitions consistently (alphabetical or by frequency)
-- Prompt template changes invalidate the entire cache — version prompts deliberately
+- Version prompt templates deliberately; an edit near the top misses the cache for everything after it
+- Send mid-session instruction updates as new messages, not edits to the system prompt
+- Track cache-hit rate alongside token counts (see ai-ml:llmops-production-monitoring)
+
+**Anthropic API specifics** (per [Anthropic's prompt caching docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) and its [cost guide](https://claude.com/blog/reducing-cost-and-improving-performance-with-claude-platform), 2026-09-08). Other providers differ: OpenAI caches prefixes automatically, Gemini uses explicit cached-content objects.
+- Cache reads are byte-exact across the whole prefix, up to each `cache_control` breakpoint
+- Keep effort and thinking settings fixed for a conversation; they render ahead of your content, so changing them misses the cache
+- Mark rarely used tools `defer_loading`; they stay out of the cached prefix and load through tool search on demand
+- Pre-warm with `max_tokens: 0` and a breakpoint (for example at startup) so the first real request hits a warm cache. It still pays the cache write, and is rejected with `stream`, extended thinking, structured outputs, forced `tool_choice`, or inside a batch
+- The default TTL is 5 minutes from the start of the request and refreshes free on each hit. Use the 1-hour TTL (write cost 2x base input vs 1.25x) when calls arrive 5-60 minutes apart, for example a parent agent waiting on long subagent runs
 
 ## RAG Integration
 
@@ -186,6 +197,20 @@ LLM providers cache the key-value computations for identical prompt prefixes. Wh
 - Route simple tasks to cheaper/smaller models
 - Summarize history before exceeding context window
 - Monitor token usage by endpoint
+- Order and figures for Anthropic models: see Cost Levers and Effort below
+
+### Cost Levers and Effort
+
+Anthropic's [cost guide](https://claude.com/blog/reducing-cost-and-improving-performance-with-claude-platform) (2026-09-08) ranks the levers in this order: caching, trimming context, bounding output, then the Batch API for unattended work. Model routing (above) is a separate lever it pairs with effort.
+
+For Claude models, the guide also advises cutting instructions that frontier models take literally: verification rituals ("double-check your work"), emphasis boosters ("CRITICAL: YOU MUST ALWAYS"), and fixed step scaffolds. Rewrite them as a goal plus its reason rather than deleting the constraint. Safety constraints (confirm before destructive actions, treat fetched content as data, keep secrets out of output) stay; they get a stated reason, not a louder voice. Task-level verification such as CoT with a check step (see Strategy Selection) is a separate technique.
+
+Effort trades cost for score, and the trade varies by model and task. The guide's figures, all on Anthropic's own runs:
+- Fable 5 on FrontierCode Diamond (hardest 50 tasks): 11.5% at low effort for $5.35 per task, 30.9% at max effort for $19.00
+- "A stronger model at low effort can be cheaper than a weaker model working hard": Fable 5.1 at low effort matched Fable 5 at high effort at a third of the cost
+- Combined savings against an Opus 5.5 baseline: ~24% (SWE-bench Verified), ~67% (LegalBench), ~72% (OfficeQA Pro), ~73% (tau2-bench retail)
+
+These are best cases on four public benchmarks, not a general expectation. Measure on your workload before changing a default.
 
 ### Reliability
 - Set timeout limits on all LLM calls
@@ -217,7 +242,7 @@ Information in the middle of long contexts is retrieved less reliably. Put criti
 - No fallback for LLM failures (always handle rate limits and timeouts)
 - Embedding per-request timestamps in system prompts (invalidates KV cache prefix)
 - Returning full documents when summaries suffice (output token waste)
-- Skipping data cleaning on fetched content (HTML inflates tokens 2-3x)
+- Skipping data cleaning on fetched content (HTML often inflates tokens 2-3x, an unmeasured estimate)
 
 ## Structured Output
 
@@ -313,4 +338,5 @@ For retry strategies and provider fallback patterns, see [ai-ml/llm-application-
 - **ai-ml:rag-and-vector-search** -- retrieval-augmented generation, chunking, embedding strategies
 - **ai-ml:agentic-systems-design** -- tool use, multi-agent orchestration, planning loops
 - **languages:pydantic-and-data-validation** -- Pydantic v2 models for extraction schemas
+- **ai-ml:llmops-production-monitoring** -- cache-hit rate, token cost tracking, batch discounts
 - **workflow:context-efficiency** -- token reduction, KV cache, U-shaped attention for Claude Code workflows

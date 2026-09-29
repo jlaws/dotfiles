@@ -13,9 +13,9 @@ Tests must verify real behavior, not mock behavior. Mocks are a means to isolate
 ## The Iron Laws
 
 ```
-1. NEVER test mock behavior
-2. NEVER add test-only methods to production classes
-3. NEVER mock without understanding dependencies
+1. Assert on real behavior; a test of mock behavior proves only that the mock exists
+2. Keep test-only methods out of production classes; they ship and mislead callers
+3. Understand a dependency before mocking it; a wrong mock passes while the real call fails
 ```
 
 ## Anti-Pattern 1: Testing Mock Behavior
@@ -194,7 +194,7 @@ const mockResponse = {
 - **Tests pass but integration fails** - Mock incomplete, real API complete
 - **False confidence** - Test proves nothing about real behavior
 
-**The Iron Rule:** Mock the COMPLETE data structure as it exists in reality, not just fields your immediate test uses.
+**The rule:** Mock the complete data structure as it exists in reality, not just the fields your immediate test uses; downstream code reads the rest.
 
 **The fix:**
 ```typescript
@@ -215,12 +215,12 @@ BEFORE creating mock responses:
 
   Actions:
     1. Examine actual API response from docs/examples
-    2. Include ALL fields system might consume downstream
+    2. Include every field the system might consume downstream
     3. Verify mock matches real response schema completely
 
-  Critical:
-    If you're creating a mock, you must understand the ENTIRE structure
-    Partial mocks fail silently when code depends on omitted fields
+  Why:
+    Partial mocks fail silently when code depends on omitted fields,
+    so a mock has to carry the whole structure, not only what this test reads
 
   If uncertain: Include all documented fields
 ```

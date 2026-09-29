@@ -47,7 +47,7 @@ Before proposing any fix, decide where the fault actually lives:
 | Checker / oracle | The assertion or expected value is wrong | The test's expectation |
 | Environment | Config, deps, versions, network | Environment, not code |
 
-A harness, checker, or environment fault is **never** fixed by changing product code. Misclassifying the locus is the most common cause of thrashing.
+Fix a harness, checker, or environment fault where it lives; changing product code to make it pass hides the real fault. Misclassifying the locus is the most common cause of thrashing.
 
 **1. Reproduce Consistently**
 - Can you trigger it reliably? Exact steps? Minimal reproduction?
@@ -155,7 +155,7 @@ If the root cause traces through multiple upstream callers and you cannot isolat
 
 ---
 
-## Never Mask Errors
+## Surface Errors
 
 | Masking Pattern | Do Instead |
 |---|---|
@@ -165,4 +165,4 @@ If the root cause traces through multiple upstream callers and you cannot isolat
 | Try-catch wrapping entire function | Catch specific exceptions at boundaries |
 | Defensive null checks hiding broken contracts | Fix the broken contract upstream |
 
-If unfixable now: log it, track it, surface it. Never silence it.
+If unfixable now: log it, track it, surface it. A silenced error hides the next bug.

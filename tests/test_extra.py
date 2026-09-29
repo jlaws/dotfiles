@@ -10,7 +10,7 @@ EXTRA_PATH = REPO_ROOT / ".extra"
 
 class ExtraFileLimitTests(unittest.TestCase):
     def test_zsh_raises_ulimit(self):
-        cmd = f"source {EXTRA_PATH} 2>/dev/null\nulimit -n"
+        cmd = f"ulimit -Sn 256\nsource {EXTRA_PATH} 2>/dev/null\nulimit -n"
         result = subprocess.run(
             ["zsh", "-c", cmd],
             capture_output=True,
@@ -22,7 +22,7 @@ class ExtraFileLimitTests(unittest.TestCase):
         self.assertEqual(limit, 65536)
 
     def test_bash_raises_ulimit(self):
-        cmd = f"source {EXTRA_PATH} 2>/dev/null\nulimit -n"
+        cmd = f"ulimit -Sn 256\nsource {EXTRA_PATH} 2>/dev/null\nulimit -n"
         result = subprocess.run(
             ["bash", "-c", cmd],
             capture_output=True,

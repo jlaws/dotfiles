@@ -12,8 +12,8 @@ description: "Use when output risks truncation, stubs, or omitted sections."
 ## The Iron Law
 
 ```
-NEVER TRUNCATE. NEVER STUB. NEVER DEFER.
-If you started it, finish it.
+Finish what you start: no truncation, no stubs, no deferral.
+A partial artifact reads as complete and fails when someone relies on it.
 ```
 
 ## Banned Code Patterns

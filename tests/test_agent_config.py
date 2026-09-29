@@ -1274,20 +1274,42 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         agents_skills = REPO / ".agents" / "skills"
         gemini_skills = REPO / ".gemini" / "antigravity-cli" / "skills"
         compared = 0
-        for source in sorted(agents_skills.glob("*/SKILL.md")):
-            name = source.parent.name
+        supporting = 0
+        for skill_dir in sorted(path.parent for path in agents_skills.glob("*/SKILL.md")):
+            name = skill_dir.name
             if name.startswith("cmd-j-"):
                 continue
-            mirror = gemini_skills / name / "SKILL.md"
-            with self.subTest(skill=name):
-                self.assertTrue(mirror.is_file(), f"{name} has no Gemini copy")
-                self.assertEqual(
-                    source.read_text(encoding="utf-8"),
-                    mirror.read_text(encoding="utf-8"),
-                    f"{name}: the .agents and .gemini copies have diverged",
-                )
+            # Every file ships to Gemini, not just SKILL.md: a skill's references drift the same way.
+            for source in sorted(path for path in skill_dir.rglob("*") if path.is_file()):
+                rel = source.relative_to(agents_skills)
+                mirror = gemini_skills / rel
+                with self.subTest(file=str(rel)):
+                    self.assertTrue(mirror.is_file(), f"{rel} has no Gemini copy")
+                    self.assertEqual(
+                        source.read_bytes(),
+                        mirror.read_bytes(),
+                        f"{rel}: the .agents and .gemini copies have diverged",
+                    )
+                if source.name != "SKILL.md":
+                    supporting += 1
             compared += 1
         self.assertGreater(compared, 0, "no shared skills compared; the check is vacuous")
+        self.assertGreater(supporting, 0, "no supporting files compared; the rglob is vacuous")
+
+    def test_claude_command_effort_is_a_supported_level(self):
+        """`effort:` is free text to YAML, so a typo loads silently and the command runs at the
+        session default. Pin the value set, not each command's choice: the tiers are judgment
+        calls documented in j-new, and restating them here would only copy the source."""
+        allowed = {"low", "medium", "high", "xhigh", "max"}
+        effort = re.compile(r"^effort:\s*(\S+)\s*$", re.MULTILINE)
+        checked = 0
+        for path in sorted((REPO / ".claude" / "commands").glob("*.md")):
+            frontmatter = path.read_text(encoding="utf-8").split("---", 2)[1]
+            for value in effort.findall(frontmatter):
+                with self.subTest(command=path.name):
+                    self.assertIn(value, allowed, f"{path.name}: unsupported effort {value!r}")
+                checked += 1
+        self.assertGreater(checked, 0, "no command sets effort; the check is vacuous")
 
 
 if __name__ == "__main__":

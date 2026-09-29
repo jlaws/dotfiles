@@ -40,7 +40,7 @@ Separate files for: heavy reference (100+ lines), reusable tools. Keep everythin
 
 **Frontmatter:** Only `name` (letters/numbers/hyphens) and `description` (at most 64 characters, third-person, starts with "Use when...")
 
-**CRITICAL:** Description = triggering conditions ONLY. Never summarize the skill's workflow in description. Testing showed Claude follows description shortcuts instead of reading skill body.
+**Description = triggering conditions only.** Leave the workflow out of the description: testing showed Claude follows description shortcuts instead of reading the skill body.
 
 ```yaml
 # BAD: Summarizes workflow
