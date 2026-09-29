@@ -26,7 +26,9 @@ def _label(path: Path) -> str:
     resolved = path.resolve()
     if resolved == home or home in resolved.parents:
         return "~/" + resolved.relative_to(home).as_posix()
-    return str(path)
+    # memory.py labels the resolved store (it dedupes symlinked stores), so on macOS a temp dir
+    # under /var reports as /private/var. Compare against the same resolved form.
+    return str(resolved)
 
 
 def memory_file(
