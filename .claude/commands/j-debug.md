@@ -17,4 +17,4 @@ Before investigating, gather diagnostic context:
 
 Then invoke the `debugging-methodology` skill via the Skill tool and apply the Four Phases (root cause investigation → pattern analysis → hypothesis and testing → implementation). When the cause is unclear, use the Structured Hypothesis Investigation section to enumerate and test 3-5 hypotheses; independent hypotheses may be investigated in parallel via subagents.
 
-Once the root cause is found, you may delegate the durable regression test to the `test-writer` agent via the Task tool. Verify it fails before the fix and passes after.
+Once the root cause is found, you may delegate the durable regression test to the `test-writer` agent via the Agent tool. Verify it fails before the fix and passes after.

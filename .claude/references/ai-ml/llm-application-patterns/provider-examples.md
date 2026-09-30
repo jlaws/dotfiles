@@ -2,9 +2,9 @@
 
 Extended code examples for each structured output provider. For method selection and quick-reference, see the [Structured Output section](../llm-application-patterns.md#structured-output) in the parent reference.
 
-`OPENAI_MODEL` below stands in for whichever model alias you configure. Prefer undated
-aliases (Anthropic's `claude-sonnet-5`, `claude-opus-5`) over date-pinned snapshot IDs --
-aliases float across model generations, pinned snapshots go stale and eventually 404.
+`OPENAI_MODEL` and `MODEL` (Anthropic) below stand in for whichever model IDs you configure. Read model IDs from
+config rather than scattering literals: an ID names one model and does not advance to the
+next generation, so the upgrade is a one-line config change.
 
 ## OpenAI Structured Outputs
 
@@ -46,48 +46,40 @@ else:
     result = message.parsed
 ```
 
-## Anthropic tool_use -- Multiple Extractions
+## Anthropic Structured Outputs -- Multiple Extractions
 
-Extract multiple entity types from a single document.
+Extract multiple entity types from a single document with one nested model.
 
 ```python
-extraction_tool = {
-    "name": "extract_entities",
-    "description": "Extract all people, organizations, and locations mentioned.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "people": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "role": {"type": "string"},
-                        "mentioned_context": {"type": "string"},
-                    },
-                    "required": ["name"],
-                },
-            },
-            "organizations": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "type": {"type": "string"},
-                    },
-                    "required": ["name"],
-                },
-            },
-            "locations": {
-                "type": "array",
-                "items": {"type": "string"},
-            },
-        },
-        "required": ["people", "organizations", "locations"],
-    },
-}
+import anthropic
+from pydantic import BaseModel
+
+MODEL = "claude-sonnet-5-5"  # from config
+
+class Person(BaseModel):
+    name: str
+    role: str | None = None
+    mentioned_context: str | None = None
+
+class Organization(BaseModel):
+    name: str
+    type: str | None = None
+
+class Entities(BaseModel):
+    people: list[Person]
+    organizations: list[Organization]
+    locations: list[str]
+
+client = anthropic.Anthropic()
+response = client.messages.parse(
+    model=MODEL,
+    max_tokens=16000,
+    messages=[{"role": "user", "content": f"Extract all people, organizations, and locations mentioned:\n\n{text}"}],
+    output_format=Entities,
+)
+entities = response.parsed_output  # Entities, or None on refusal or truncation
+if entities is None:
+    raise ValueError(f"no structured output (stop_reason={response.stop_reason})")
 ```
 
 ## Instructor Library Patterns
@@ -95,7 +87,7 @@ extraction_tool = {
 Works with both OpenAI and Anthropic. Adds automatic retry, validation, and streaming.
 
 ```bash
-pip install instructor
+pip install "instructor>=1.17"
 ```
 
 ### Basic Usage
@@ -133,11 +125,13 @@ user = client.chat.completions.create(
 import instructor
 import anthropic
 
-client = instructor.from_anthropic(anthropic.Anthropic())
+# JSON_SCHEMA uses Anthropic structured outputs. The default tools mode forces a tool
+# call, which current Claude models reject.
+client = instructor.from_anthropic(anthropic.Anthropic(), mode=instructor.Mode.JSON_SCHEMA)
 
 user = client.messages.create(
-    model="claude-sonnet-5",
-    max_tokens=1024,
+    model=MODEL,
+    max_tokens=16000,
     response_model=UserInfo,
     messages=[{"role": "user", "content": f"Extract user info: {text}"}],
 )

@@ -179,7 +179,7 @@ lint and test commands. See `documentation-validation`.
 | `memory` | N/A | N/A | Optional (user/project/local) |
 | `color`, `maxTurns`, `permissionMode` | N/A | N/A | Optional |
 
-Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Task, Skill.
+Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Agent, Skill. Write `Agent`, not its retired name `Task`.
 
 `compatibility` is not a Claude Code field and does nothing — do not emit it.
 

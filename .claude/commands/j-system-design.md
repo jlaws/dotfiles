@@ -14,7 +14,7 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
 - If `$ARGUMENTS` is empty, ask the user for a system description.
 
-**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`) via the Task tool and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
+**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`) via the Agent tool and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
 
 ## Design Process
 
@@ -37,7 +37,7 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 3. Identify existing architecture patterns, APIs, data models
 
 **Step 4 -- Delegate perspectives to specialist agents (recommended when the system is large):**
-Hand each Phase 2 perspective to its agent via the Task tool, in parallel — they load the relevant skills + `references/` libraries and return findings:
+Hand each Phase 2 perspective to its agent via the Agent tool, in parallel — they load the relevant skills + `references/` libraries and return findings:
 - Component Architecture, API Design -> `architecture-specialist`
 - Data Architecture -> `data-engineer`
 - Security & Operations -> `security-reviewer` (security) + `devops-engineer` (deployment/observability)
