@@ -51,7 +51,8 @@ VALID_TOOLS = {
     "NotebookEdit",
     "WebFetch",
     "WebSearch",
-    "Task",
+    "Agent",
+    "Task",  # pre-2.1.63 name for Agent; Claude Code still accepts it as an alias
 }
 
 # Codex reads shared skill metadata from a budgeted listing; only that tree is constrained.

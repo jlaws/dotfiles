@@ -1,7 +1,7 @@
 ---
 name: dispatching-parallel-agents
 description: "Use when independent tasks can run concurrently."
-allowed-tools: Task, Read, Grep, Glob, Bash
+allowed-tools: Agent, Read, Grep, Glob, Bash
 ---
 
 # Dispatching Parallel Agents
