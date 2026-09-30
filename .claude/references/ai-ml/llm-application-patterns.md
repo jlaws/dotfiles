@@ -251,7 +251,7 @@ Information in the middle of long contexts is retrieved less reliably. Put criti
 | Method | Provider | Guarantees Schema? | Best For |
 |--------|----------|-------------------|----------|
 | **OpenAI Structured Outputs** | OpenAI | Yes (constrained decoding) | Production extraction with OpenAI models |
-| **Anthropic tool_use** | Anthropic | Yes (schema-validated) | Extraction with Claude models |
+| **Anthropic Structured Outputs** | Anthropic | Yes (constrained decoding) | Production extraction with Claude models |
 | **Instructor** | Any (wrapper) | Yes (retry + validation) | Multi-provider, complex validation |
 | **Outlines** | Local models | Yes (constrained decoding) | Open-source models, custom grammars |
 | **JSON mode** | OpenAI/others | JSON only (no schema) | Simple cases, no strict schema |
@@ -260,32 +260,27 @@ Information in the middle of long contexts is retrieved less reliably. Put criti
 
 ### Quick Start -- Anthropic
 
-Force the model to call a "tool" matching your desired schema. No actual tool execution needed.
+Pass a Pydantic model; `messages.parse` constrains the output to its schema and validates it.
 
 ```python
+from typing import Literal
+
 import anthropic
+from pydantic import BaseModel, Field
+
+class CompanyInfo(BaseModel):
+    company_name: str
+    revenue_millions: float | None = Field(None, description="Revenue in millions USD")
+    sentiment: Literal["positive", "negative", "neutral"]
 
 client = anthropic.Anthropic()
-response = client.messages.create(
-    model="claude-sonnet-5",
-    max_tokens=1024,
-    tools=[{
-        "name": "extract_info",
-        "description": "Extract structured information from text",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "company_name": {"type": "string"},
-                "revenue_millions": {"type": "number", "description": "Revenue in millions USD"},
-                "sentiment": {"type": "string", "enum": ["positive", "negative", "neutral"]},
-            },
-            "required": ["company_name", "sentiment"],
-        },
-    }],
-    tool_choice={"type": "tool", "name": "extract_info"},
+response = client.messages.parse(
+    model="claude-sonnet-5-5",
+    max_tokens=16000,
     messages=[{"role": "user", "content": f"Extract info from: {text}"}],
+    output_format=CompanyInfo,
 )
-result = response.content[0].input  # Parsed dict
+result = response.parsed_output  # CompanyInfo instance
 ```
 
 ### Quick Start -- OpenAI
@@ -325,7 +320,7 @@ For anti-patterns catalog and Pydantic validation strategies, see [ai-ml/llm-app
 ### Structured Output Gotchas
 
 - **OpenAI strict mode** requires `additionalProperties: false` and all fields in `required`. Use Pydantic defaults -- fields still appear in `required` but the model can output `null`.
-- **Anthropic `tool_choice`** forces a tool call even on empty input. Validate for garbage extractions.
+- **Forced `tool_choice`** (`any` / `tool`) returns a 400 on current Claude models; use structured outputs for extraction, or `strict: true` under `tool_choice: auto` when a real tool is involved.
 - **Temperature**: Use `temperature=0` for extraction. Higher temperature = creative but wrong values.
 - **Nested arrays (3+ levels)**: Models struggle. Flatten or extract in multiple passes.
 - **Pydantic V2 required**: Instructor and OpenAI SDK need V2. Key changes: `@field_validator` replaces `@validator`, `model_dump()` replaces `.dict()`.
