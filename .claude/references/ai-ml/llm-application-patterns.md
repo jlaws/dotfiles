@@ -70,9 +70,9 @@ import anthropic
 
 client = anthropic.Anthropic()
 
-# Undated aliases float across model generations -- prefer them over
-# date-pinned snapshot IDs, which go stale.
-MODEL = "claude-sonnet-5"
+# Model IDs name one model; they do not advance to the next generation.
+# Keep the ID in config and bump it when a new model ships.
+MODEL = "claude-sonnet-5-5"
 
 tools = [
     {

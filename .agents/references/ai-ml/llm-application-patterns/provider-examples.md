@@ -2,9 +2,9 @@
 
 Extended code examples for each structured output provider. For method selection and quick-reference, see the [Structured Output section](../llm-application-patterns.md#structured-output) in the parent reference.
 
-`OPENAI_MODEL` below stands in for whichever model alias you configure. Prefer undated
-aliases (Anthropic's `claude-sonnet-5`, `claude-opus-5`) over date-pinned snapshot IDs --
-aliases float across model generations, pinned snapshots go stale and eventually 404.
+`OPENAI_MODEL` below stands in for whichever model ID you configure. Read model IDs from
+config rather than scattering literals: an ID names one model and does not advance to the
+next generation, so the upgrade is a one-line config change.
 
 ## OpenAI Structured Outputs
 
