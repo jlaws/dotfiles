@@ -247,7 +247,7 @@ For long-context eval, models perform best on information at the beginning and e
 
 ### Common Mistakes
 - Comparing models evaluated with different tokenizers (affects token-level metrics)
-- Using `temperature > 0` during eval (introduces variance between runs)
+- Using `temperature > 0` during eval on models that accept sampling params (introduces variance between runs; on current Claude models, fix effort and repeat runs instead)
 - Not normalizing answers before exact match (whitespace, articles, casing)
 - Reporting mean without confidence intervals on small eval sets
 - Evaluating instruction-tuned models with base-model prompts (or vice versa)

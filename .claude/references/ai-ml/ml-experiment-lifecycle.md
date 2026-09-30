@@ -23,7 +23,7 @@
 
 - LLM-as-judge: always validate with human agreement checks before trusting
 - Pairwise comparison (A vs B) more reliable than absolute scoring
-- Use temperature=0 for judge calls; run each judgment 3x for stability
+- Use temperature=0 for judge calls where the model accepts it (current Claude models reject non-default sampling; fix effort instead); run each judgment 3x for stability
 - Track judge consistency (self-agreement rate) as a meta-metric
 
 ## Experiment Tracking
