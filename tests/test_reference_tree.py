@@ -150,5 +150,102 @@ class AgentModelPinTests(unittest.TestCase):
             self.assertIn(alias, message)
 
 
+class ToolNameTests(unittest.TestCase):
+    """SK-F10 and AG-F7: a current tool name passes, an unknown or retired one warns.
+
+    The real tree declares only valid names, so it cannot show that the check fires. A synthetic
+    tree does. `Task` counts as retired: Claude Code renamed it to `Agent` and this tree uses the
+    new name, so a stale `Task` should surface rather than pass as an alias.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def tree(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for sub in ("agents", "skills", "commands", "references"):
+            (root / ".claude" / sub).mkdir(parents=True)
+        return root
+
+    def skill_findings(self, tools: str):
+        root = self.tree()
+        folder = root / ".claude" / "skills" / "probe"
+        folder.mkdir()
+        (folder / "SKILL.md").write_text(
+            "---\nname: probe\ndescription: Use when probing the audit.\n"
+            f"allowed-tools: {tools}\n---\n\nBody.\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_skills()
+        return [f.message for f in audit.findings if f.check == "SK-F10"]
+
+    def agent_findings(self, tools: str):
+        root = self.tree()
+        (root / ".claude" / "agents" / "probe.md").write_text(
+            "---\nname: probe\ndescription: Use when probing the audit.\nmodel: sonnet\n"
+            f"tools: {tools}\n---\n\n" + "word " * 30 + "\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_agents()
+        return [f.message for f in audit.findings if f.check == "AG-F7"]
+
+    def test_current_tool_names_are_accepted(self):
+        for tools in ("Agent", "Skill", "Read, Agent, Bash"):
+            with self.subTest(tools=tools):
+                self.assertEqual(self.skill_findings(tools), [])
+                self.assertEqual(self.agent_findings(tools), [])
+
+    def test_an_unknown_name_warns_and_is_named(self):
+        self.assertEqual(
+            self.skill_findings("Read, Agent, Bogus"), ["unknown allowed-tools: Bogus"]
+        )
+        self.assertEqual(self.agent_findings("Read, Bogus"), ["unknown tools: Bogus"])
+
+    def test_the_retired_task_name_warns(self):
+        self.assertEqual(self.skill_findings("Task, Read"), ["unknown allowed-tools: Task"])
+        self.assertEqual(self.agent_findings("Task"), ["unknown tools: Task"])
+
+
+class ReferenceCitationTests(unittest.TestCase):
+    """XR-7: a citation must name `references/<category>/<file>.md` from the reference root.
+
+    A sibling-relative `references/<file>.md` inside the same category used to pass because the
+    check also tried the citing file's own directory. Root `CLAUDE.md` names the root-relative
+    form as the one XR-7 validates, so the sibling form is now a finding.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def findings_for(self, citation: str):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for sub in ("agents", "skills", "commands"):
+            (root / ".claude" / sub).mkdir(parents=True)
+        docs = root / ".claude" / "references" / "documentation"
+        docs.mkdir(parents=True)
+        (docs / "readme-template.md").write_text("# Template\n")
+        (docs / "writing.md").write_text(f"# Writing\n\nSee {citation} for the template.\n")
+        audit = self.audit_module.Audit(root)
+        audit.check_references()
+        return [f.message for f in audit.findings if f.check == "XR-7"]
+
+    def test_the_root_relative_form_resolves(self):
+        self.assertEqual(self.findings_for("references/documentation/readme-template.md"), [])
+
+    def test_the_sibling_relative_form_is_a_finding(self):
+        findings = self.findings_for("references/readme-template.md")
+        self.assertEqual(len(findings), 1)
+        self.assertIn("actual location references/documentation/readme-template.md", findings[0])
+
+    def test_a_dangling_citation_is_a_finding(self):
+        self.assertEqual(len(self.findings_for("references/documentation/missing.md")), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

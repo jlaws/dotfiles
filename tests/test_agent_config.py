@@ -697,9 +697,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 if line.lstrip().startswith(("-", "*")) and PINNED_MODEL.search(line)
             ]
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertEqual(
-                    pinned, [], f"{path.name} pins an unapproved model version"
-                )
+                self.assertEqual(pinned, [], f"{path.name} pins an unapproved model version")
 
     def test_codex_model_allowlist_matches_only_exact_selected_names(self):
         for name in ("gpt-6-sol", "gpt-6-astra"):
@@ -1211,6 +1209,25 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertEqual(
             offenders, [], "shared references cite the Claude tree:\n" + "\n".join(offenders)
         )
+
+    def test_shared_reference_citations_resolve_from_the_reference_root(self):
+        """XR-7 validates `references/<category>/<file>.md` citations in the Claude tree only.
+        The shared tree carries the same citations, so check them here: each must resolve from
+        `.agents/references/`, not from the citing file's own directory."""
+        _, agents = REFERENCE_TREES
+        citation = re.compile(r"(?<![\w./-])references/([\w./-]+\.md)")
+        dangling = []
+        cited = 0
+        for agents_file in sorted(agents.rglob("*.md")):
+            rel = agents_file.relative_to(REPO)
+            lines = agents_file.read_text(encoding="utf-8").splitlines()
+            for n, line in enumerate(lines, 1):
+                for target in citation.findall(line):
+                    cited += 1
+                    if not (agents / target).is_file():
+                        dangling.append(f"{rel}:{n}: references/{target}")
+        self.assertGreater(cited, 0, "no shared citations found; the check is vacuous")
+        self.assertEqual(dangling, [], "shared citations do not resolve:\n" + "\n".join(dangling))
 
     def test_existing_code_discipline_is_one_document_in_every_tree(self):
         """Four copies, one section set and one body. Two paste the text rather than linking it,

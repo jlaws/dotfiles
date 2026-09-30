@@ -52,7 +52,7 @@ VALID_TOOLS = {
     "WebFetch",
     "WebSearch",
     "Agent",
-    "Task",  # pre-2.1.63 name for Agent; Claude Code still accepts it as an alias
+    "Skill",
 }
 
 # Codex reads shared skill metadata from a budgeted listing; only that tree is constrained.
@@ -417,7 +417,7 @@ class Audit:
         for lineno, line in enumerate(text.splitlines(), 1):
             for target in set(REF_PATH.findall(line)):
                 rel = target[len("references/") :]
-                if (root / rel).exists() or (path.parent / rel).exists():
+                if (root / rel).exists():
                     continue
                 actual = self.reference_stems.get(Path(rel).stem)
                 hint = f"; actual location references/{actual.relative_to(root)}" if actual else ""
