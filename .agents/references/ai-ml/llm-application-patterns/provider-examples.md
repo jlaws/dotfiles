@@ -136,8 +136,9 @@ import anthropic
 client = instructor.from_anthropic(anthropic.Anthropic())
 
 user = client.messages.create(
-    model="claude-sonnet-5",
-    max_tokens=1024,
+    model="claude-sonnet-5-5",
+    max_tokens=16000,
+    tool_choice={"type": "auto"},  # Instructor forces a tool by default; that 400s on current Claude models
     response_model=UserInfo,
     messages=[{"role": "user", "content": f"Extract user info: {text}"}],
 )

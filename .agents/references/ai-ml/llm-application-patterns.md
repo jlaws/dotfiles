@@ -100,12 +100,12 @@ def agent_loop(question: str, max_steps: int = 5) -> str:
 
     for _ in range(max_steps):
         response = client.messages.create(
-            model=MODEL, max_tokens=1024,
+            model=MODEL, max_tokens=16000,
             tools=tools, messages=messages,
         )
 
         if response.stop_reason == "end_turn":
-            return response.content[0].text
+            return next(b.text for b in response.content if b.type == "text")
 
         # Execute tool calls
         tool_results = []

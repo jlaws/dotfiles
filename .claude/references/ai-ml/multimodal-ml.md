@@ -36,8 +36,8 @@ with open("chart.png", "rb") as f:
     image_data = base64.standard_b64encode(f.read()).decode()
 
 response = client.messages.create(
-    model="claude-sonnet-5",
-    max_tokens=1024,
+    model="claude-sonnet-5-5",
+    max_tokens=16000,
     messages=[{
         "role": "user",
         "content": [
