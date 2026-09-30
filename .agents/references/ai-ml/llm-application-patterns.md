@@ -58,6 +58,8 @@ Let me think step by step:"""
 
 "Let's think step by step" works for large models (70B+). Smaller models often produce plausible-sounding but wrong reasoning. Verify CoT actually helps on your task before committing.
 
+On reasoning models (Claude with adaptive thinking, and similar), skip the CoT phrase: the model reasons in thinking blocks, and `effort` sets the depth.
+
 ### Structured Output
 
 See the dedicated [Structured Output](#structured-output) section below for method selection, schema design, and gotchas.
