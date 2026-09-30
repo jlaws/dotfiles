@@ -9,7 +9,7 @@ Scope: $ARGUMENTS
 
 If no arguments provided, analyzes both global and local CLAUDE.md against last 20 conversations.
 
-**You may delegate independent analysis passes (per CLAUDE.md file or per perspective) to subagents via the Task tool and run them in parallel. Synthesize and verify their output before presenting.**
+**You may delegate independent analysis passes (per CLAUDE.md file or per perspective) to subagents via the Agent tool and run them in parallel. Synthesize and verify their output before presenting.**
 
 Load these before analyzing:
 - Load skill `analysis-output-patterns` for output structure rules

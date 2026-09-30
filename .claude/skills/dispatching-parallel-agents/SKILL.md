@@ -24,7 +24,7 @@ allowed-tools: Task, Read, Grep, Glob, Bash
 
 ## The Dispatch Mechanism
 
-**Multiple subagent (Task tool) calls in a single message run in parallel.** Sequential messages do not.
+**Multiple subagent (Agent tool) calls in a single message run in parallel.** Sequential messages do not.
 
 Each brief must be:
 

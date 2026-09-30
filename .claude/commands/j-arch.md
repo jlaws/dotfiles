@@ -15,7 +15,7 @@ Before starting, gather diagnostic context:
 3. **Check architecture documentation** for existing ADRs (glob `docs/adr/**/*.md`), design docs, or README architecture sections.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a component, scope to that; otherwise scan for src/, services/, api/, or similar directories).
 
-For deep architecture guidance, delegate to the `architecture-specialist` agent via the Task tool, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `references/architecture/` library, then returns specific guidance. Verify its output against the codebase before presenting.
+For deep architecture guidance, delegate to the `architecture-specialist` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `references/architecture/` library, then returns specific guidance. Verify its output against the codebase before presenting.
 
 If the consultation reaches a significant architecture decision, offer to capture it as an ADR (see the `architecture-decision-records` reference) in `docs/adr/<topic>/<slug>.md`. If an ADR already covers the decision, update it in place — revise the Decision, add the previous approach to `## Ruled Out` with its reason and date, and bump `updated` — rather than writing a second file. Skip minor or easily reversible changes.
 

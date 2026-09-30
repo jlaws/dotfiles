@@ -23,7 +23,7 @@ Before analyzing, resolve and fetch the paper, then gather its resources in para
 
 1. **Resolve the paper**: If given a title or arxiv ID (not a URL), search the web for the canonical paper page (arxiv abs, conference proceedings, or publisher page).
 2. **Fetch the paper content**: Get the full paper text for analysis.
-3. **Gather resources in parallel**: The searches below are independent. **Delegate them to `research-analyst` subagents via the Task tool and run them concurrently in a single message.** Give each subagent a self-contained brief (paper title, authors, arxiv ID) and ask it to return the exact links it finds, or "None found".
+3. **Gather resources in parallel**: The searches below are independent. **Delegate them to `research-analyst` subagents via the Agent tool and run them concurrently in a single message.** Give each subagent a self-contained brief (paper title, authors, arxiv ID) and ask it to return the exact links it finds, or "None found".
 
    | Resource group | Agent | Returns |
    |---|---|---|

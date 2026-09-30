@@ -24,7 +24,7 @@ Apply STRIDE threat modeling, risk scoring, SAST tool selection, and compliance 
 
 ### References
 
-For deep code-level vulnerability review, delegate to the `security-reviewer` agent via the Task tool, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting. For the review protocol itself — threat-model-before-scanning, execution-verify N/N, an independent grader, and the patch-validation gate — follow references/security/vulnerability-review-pipeline.md.
+For deep code-level vulnerability review, delegate to the `security-reviewer` agent via the Agent tool, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting. For the review protocol itself — threat-model-before-scanning, execution-verify N/N, an independent grader, and the patch-validation gate — follow references/security/vulnerability-review-pipeline.md.
 
 When the target includes AI/ML components, also read `references/ai-ml/ai-safety-and-alignment` for AI-specific security and safety considerations.
 

@@ -24,6 +24,6 @@ Load relevant references based on what the diagnostic context reveals:
 - `references/architecture/error-handling-patterns` -- error hierarchy, logging levels, resilience patterns
 - `references/business/kpi-dashboard-design` -- dashboard hierarchy, KPI framework
 
-For deep observability design, you may delegate to the `devops-engineer` agent via the Task tool (it loads the `references/devops/` library incl. observability, sre-practices, incident-management). Verify its output before presenting.
+For deep observability design, you may delegate to the `devops-engineer` agent via the Agent tool (it loads the `references/devops/` library incl. observability, sre-practices, incident-management). Verify its output before presenting.
 
 Help with: $ARGUMENTS
