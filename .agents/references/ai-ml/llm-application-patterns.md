@@ -19,7 +19,7 @@
 | Task Type | Strategy | Avoid |
 |-----------|----------|-------|
 | Classification | Few-shot with labels | CoT (overthinks simple tasks) |
-| Reasoning / Math | CoT with verification | Zero-shot (unreliable) |
+| Reasoning / Math | CoT with verification; on reasoning models, thinking + `effort` instead | Zero-shot (unreliable) |
 | Multi-step tasks | ReAct / tool-use | Single-shot (misses steps) |
 | Extraction | Structured output + schema | Free-form (inconsistent) |
 | Creative | System prompt + constraints | Over-constraining |
@@ -79,7 +79,7 @@ MODEL = "claude-sonnet-5-5"
 tools = [
     {
         "name": "search_database",
-        "description": "Search internal knowledge base. Returns relevant documents.",
+        "description": "Search the internal knowledge base by keyword. Returns up to 5 matching documents with titles and snippets. Use for company-specific facts; it does not cover the public web.",
         "input_schema": {
             "type": "object",
             "properties": {"query": {"type": "string"}},
@@ -88,7 +88,7 @@ tools = [
     },
     {
         "name": "calculate",
-        "description": "Evaluate a math expression.",
+        "description": "Evaluate an arithmetic expression (+ - * / ** and parentheses) and return the number. Use instead of computing by hand; it does not solve equations or handle units.",
         "input_schema": {
             "type": "object",
             "properties": {"expression": {"type": "string"}},
@@ -102,12 +102,12 @@ def agent_loop(question: str, max_steps: int = 5) -> str:
 
     for _ in range(max_steps):
         response = client.messages.create(
-            model=MODEL, max_tokens=16000,
+            model=MODEL, max_tokens=16000,  # thinking shares this budget
             tools=tools, messages=messages,
         )
 
         if response.stop_reason == "end_turn":
-            return next(b.text for b in response.content if b.type == "text")
+            return "".join(b.text for b in response.content if b.type == "text")
 
         # Execute tool calls
         tool_results = []
@@ -187,15 +187,15 @@ LLM providers cache the key-value computations for identical prompt prefixes. Wh
 
 ## Prompt Versioning & Evaluation
 
-- Version prompts by hashing `template + model + temperature` (SHA256 prefix)
-- Store as dataclass with `name`, `template`, `model`, `temperature`, `version`
+- Version prompts by hashing `template + model + generation settings` (temperature, or effort and thinking on Claude; SHA256 prefix)
+- Store as dataclass with `name`, `template`, `model`, `settings`, `version`
 - Evaluate by running test cases through the prompt, comparing predictions to expected values
 - Track accuracy per version to detect regressions when prompts change
 
 ## Production Guardrails
 
 ### Cost Control
-- Cache identical queries (hash prompt + model + temperature)
+- Cache identical queries (hash prompt + model + generation settings)
 - Route simple tasks to cheaper/smaller models
 - Summarize history before exceeding context window
 - Monitor token usage by endpoint
@@ -262,7 +262,7 @@ Information in the middle of long contexts is retrieved less reliably. Put criti
 
 ### Quick Start -- Anthropic
 
-Pass a Pydantic model; `messages.parse` constrains the output to its schema and validates it.
+Pass a Pydantic model; `messages.parse` constrains the output to its schema and validates it. That guarantees shape, not truth: required fields get filled even on empty or adversarial input, so validate values too.
 
 ```python
 from typing import Literal
@@ -275,21 +275,25 @@ class CompanyInfo(BaseModel):
     revenue_millions: float | None = Field(None, description="Revenue in millions USD")
     sentiment: Literal["positive", "negative", "neutral"]
 
+MODEL = "claude-sonnet-5-5"  # from config
+
 client = anthropic.Anthropic()
 response = client.messages.parse(
-    model="claude-sonnet-5-5",
+    model=MODEL,
     max_tokens=16000,
     messages=[{"role": "user", "content": f"Extract info from: {text}"}],
     output_format=CompanyInfo,
 )
-result = response.parsed_output  # CompanyInfo instance
+result = response.parsed_output  # CompanyInfo, or None on refusal or truncation
+if result is None:
+    raise ValueError(f"no structured output (stop_reason={response.stop_reason})")
 ```
 
 ### Quick Start -- OpenAI
 
 ```python
 from openai import OpenAI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 class CompanyInfo(BaseModel):
     company_name: str
@@ -298,7 +302,7 @@ class CompanyInfo(BaseModel):
 
 client = OpenAI()
 completion = client.beta.chat.completions.parse(
-    model=OPENAI_MODEL,  # current OpenAI model alias, from config
+    model=OPENAI_MODEL,  # current OpenAI model ID, from config
     messages=[{"role": "user", "content": f"Extract info from: {text}"}],
     response_format=CompanyInfo,
 )
@@ -322,8 +326,8 @@ For anti-patterns catalog and Pydantic validation strategies, see [ai-ml/llm-app
 ### Structured Output Gotchas
 
 - **OpenAI strict mode** requires `additionalProperties: false` and all fields in `required`. Use Pydantic defaults -- fields still appear in `required` but the model can output `null`.
-- **Forced `tool_choice`** (`any` / `tool`) returns a 400 on current Claude models; use structured outputs for extraction, or `strict: true` under `tool_choice: auto` when a real tool is involved.
-- **Temperature**: On providers and models that accept sampling parameters, use `temperature=0` for extraction. Current Claude models reject non-default sampling values; rely on the schema instead.
+- **Forced `tool_choice`** (`any` / `tool`) returns a 400 on Claude Opus 5.5, Sonnet 5.5, and Fable 5.1; use structured outputs for extraction, or `strict: true` under `tool_choice: auto` when a real tool is involved.
+- **Temperature**: On providers and models that accept sampling parameters, use `temperature=0` for extraction. Current Claude models (Opus 4.7 and later, Sonnet 5 and later, Fable) reject non-default sampling values; rely on the schema for shape and validate values.
 - **Nested arrays (3+ levels)**: Models struggle. Flatten or extract in multiple passes.
 - **Pydantic V2 required**: Instructor and OpenAI SDK need V2. Key changes: `@field_validator` replaces `@validator`, `model_dump()` replaces `.dict()`.
 - **Long documents**: Chunk first, extract per chunk, merge/deduplicate. Don't rely on truncation.
