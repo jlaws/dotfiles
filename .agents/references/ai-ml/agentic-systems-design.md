@@ -174,8 +174,8 @@ Return only a number."""}],
 **Tool description rules**:
 - Start with a verb: "Search", "Create", "Calculate", "Retrieve"
 - Mention return format: "Returns a JSON list of...", "Returns a single..."
-- Include example inputs in description when format is ambiguous
-- Keep under 200 words; models parse long descriptions less reliably
+- Say when to use the tool and when not to, what each parameter means, and what it does not return
+- Make ambiguous formats explicit in the parameter schema (enums, descriptions) rather than with examples in the description
 
 ### Error Handling in Tool Results
 
