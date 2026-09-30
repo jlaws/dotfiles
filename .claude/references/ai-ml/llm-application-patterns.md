@@ -321,7 +321,7 @@ For anti-patterns catalog and Pydantic validation strategies, see [ai-ml/llm-app
 
 - **OpenAI strict mode** requires `additionalProperties: false` and all fields in `required`. Use Pydantic defaults -- fields still appear in `required` but the model can output `null`.
 - **Forced `tool_choice`** (`any` / `tool`) returns a 400 on current Claude models; use structured outputs for extraction, or `strict: true` under `tool_choice: auto` when a real tool is involved.
-- **Temperature**: Use `temperature=0` for extraction. Higher temperature = creative but wrong values.
+- **Temperature**: On providers and models that accept sampling parameters, use `temperature=0` for extraction. Current Claude models reject non-default sampling values; rely on the schema instead.
 - **Nested arrays (3+ levels)**: Models struggle. Flatten or extract in multiple passes.
 - **Pydantic V2 required**: Instructor and OpenAI SDK need V2. Key changes: `@field_validator` replaces `@validator`, `model_dump()` replaces `.dict()`.
 - **Long documents**: Chunk first, extract per chunk, merge/deduplicate. Don't rely on truncation.
