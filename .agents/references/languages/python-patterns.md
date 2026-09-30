@@ -51,7 +51,7 @@ select = ["E", "F", "I", "N", "W", "UP"]
 
 ## uv Workflows
 
-See references/uv-workflows.md for uv commands, Docker multi-stage builds, CI integration, and workspace setup.
+See references/languages/uv-workflows.md for uv commands, Docker multi-stage builds, CI integration, and workspace setup.
 
 ## Project Scaffolding
 
@@ -82,11 +82,11 @@ See references/uv-workflows.md for uv commands, Docker multi-stage builds, CI in
 
 ## Async Patterns
 
-See references/async-patterns.md for async decision table, gather/TaskGroup, semaphore, timeouts, and cheat sheet.
+See references/languages/async-patterns.md for async decision table, gather/TaskGroup, semaphore, timeouts, and cheat sheet.
 
 ## Profiling & Performance
 
-See references/python-performance.md for profiling tools, tracemalloc, caching decisions, __slots__, and batch I/O patterns.
+See references/languages/python-performance.md for profiling tools, tracemalloc, caching decisions, __slots__, and batch I/O patterns.
 
 ## Packaging
 

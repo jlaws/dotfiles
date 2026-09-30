@@ -17,19 +17,19 @@ Pick the right doc type first. Wrong format = wasted effort.
 
 ## README Structure
 
-See references/readme-template.md for README template, rules, and newcomer guidance.
+See references/documentation/readme-template.md for README template, rules, and newcomer guidance.
 
 ## API Documentation Patterns
 
-See references/api-doc-template.md for endpoint documentation template and rules.
+See references/documentation/api-doc-template.md for endpoint documentation template and rules.
 
 ## Quickstart Structure
 
-See references/quickstart-template.md for quickstart template and rules.
+See references/documentation/quickstart-template.md for quickstart template and rules.
 
 ## Changelog Patterns
 
-See references/changelog-patterns.md for Keep a Changelog format, styles, and rules.
+See references/documentation/changelog-patterns.md for Keep a Changelog format, styles, and rules.
 
 ## Writing Style Guide
 

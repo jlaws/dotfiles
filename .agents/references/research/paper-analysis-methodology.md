@@ -102,7 +102,7 @@ Virtually re-implement the paper mentally. Challenge everything.
 
 ## Output Template
 
-See references/output-template.md for the complete paper analysis markdown template and process guidelines.
+See references/research/output-template.md for the complete paper analysis markdown template and process guidelines.
 
 ## References
 

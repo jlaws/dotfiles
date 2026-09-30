@@ -136,11 +136,11 @@ licensee detect .
 
 ## Dependabot & Renovate Configuration
 
-See references/dependabot-renovate-config.md for Dependabot and Renovate configuration templates.
+See references/security/dependabot-renovate-config.md for Dependabot and Renovate configuration templates.
 
 ## CI Integration & Supply Chain Security
 
-See references/ci-and-supply-chain.md for CI pipeline integration, severity gating, supply chain attack patterns, and version pinning strategies.
+See references/security/ci-and-supply-chain.md for CI pipeline integration, severity gating, supply chain attack patterns, and version pinning strategies.
 
 ## Gotchas
 
