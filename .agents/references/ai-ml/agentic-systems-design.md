@@ -23,7 +23,14 @@ The default pattern. Model alternates between reasoning (think) and acting (tool
 ```python
 import anthropic
 
+MODEL = "claude-sonnet-5-5"  # from config
 client = anthropic.Anthropic()
+
+
+def text_of(message) -> str:
+    """Join the text blocks; thinking and tool_use blocks carry no answer text."""
+    return "".join(b.text for b in message.content if b.type == "text")
+
 
 def react_agent(question: str, tools: list[dict], max_steps: int = 10) -> str:
     system = """You are a helpful agent. For each step:
@@ -35,7 +42,7 @@ def react_agent(question: str, tools: list[dict], max_steps: int = 10) -> str:
 
     for step in range(max_steps):
         response = client.messages.create(
-            model="claude-sonnet-5-5",
+            model=MODEL,
             max_tokens=16000,
             system=system,
             tools=tools,
@@ -43,8 +50,7 @@ def react_agent(question: str, tools: list[dict], max_steps: int = 10) -> str:
         )
 
         if response.stop_reason == "end_turn":
-            text_blocks = [b.text for b in response.content if b.type == "text"]
-            return "\n".join(text_blocks)
+            return text_of(response)
 
         # Process tool calls
         tool_results = []
@@ -71,14 +77,14 @@ Separate planning from execution. Model generates a plan upfront, then executes 
 def plan_and_execute(question: str, tools: list[dict]) -> str:
     # Phase 1: Generate plan
     plan_response = client.messages.create(
-        model="claude-sonnet-5-5",
+        model=MODEL,
         max_tokens=16000,
         messages=[{"role": "user", "content": f"""Create a step-by-step plan to answer this question.
 Return a numbered list of steps. Each step should be a single action.
 
 Question: {question}"""}],
     )
-    plan = next(b.text for b in plan_response.content if b.type == "text")
+    plan = text_of(plan_response)
 
     # Phase 2: Execute each step
     context = []
@@ -92,7 +98,7 @@ Question: {question}"""}],
 
     # Phase 3: Synthesize
     synthesis = client.messages.create(
-        model="claude-sonnet-5-5",
+        model=MODEL,
         max_tokens=16000,
         messages=[{"role": "user", "content": f"""Original question: {question}
 Execution results:
@@ -100,7 +106,7 @@ Execution results:
 
 Synthesize a final answer."""}],
     )
-    return next(b.text for b in synthesis.content if b.type == "text")
+    return text_of(synthesis)
 ```
 
 ### Tree-of-Thought
@@ -111,18 +117,18 @@ Generate multiple reasoning paths, evaluate each, expand the most promising.
 def tree_of_thought(problem: str, breadth: int = 3, depth: int = 3) -> str:
     def generate_thoughts(state: str, n: int) -> list[str]:
         response = client.messages.create(
-            model="claude-sonnet-5-5",
+            model=MODEL,
             max_tokens=16000,
             messages=[{"role": "user", "content": f"""Problem: {problem}
 Current reasoning: {state}
 
 Generate {n} distinct next reasoning steps. Return each on a new line prefixed with [THOUGHT]."""}],
         )
-        return parse_thoughts(next(b.text for b in response.content if b.type == "text"))
+        return parse_thoughts(text_of(response))
 
     def evaluate_thought(state: str) -> float:
         response = client.messages.create(
-            model="claude-sonnet-5-5",
+            model=MODEL,
             max_tokens=16000,
             messages=[{"role": "user", "content": f"""Rate this reasoning path from 0.0 to 1.0 for correctness and progress toward solving: {problem}
 
@@ -130,7 +136,7 @@ Reasoning: {state}
 
 Return only a number."""}],
         )
-        return float(next(b.text for b in response.content if b.type == "text").strip())
+        return float(text_of(response).strip())
 
     # BFS with pruning
     current_states = [""]
@@ -156,7 +162,7 @@ Return only a number."""}],
 # Good: specific description, constrained types, clear required fields
 {
     "name": "search_orders",
-    "description": "Search customer orders by order ID, customer email, or date range. Returns up to 10 matching orders with status and total.",
+    "description": "Search customer orders by order ID, customer email, or date range; provide at least one. Returns up to 10 matching orders with status and total, not line items or payment details. Use for order lookups, not for product or inventory questions.",
     "input_schema": {
         "type": "object",
         "properties": {
@@ -224,14 +230,14 @@ def supervisor_agent(question: str, specialists: dict[str, callable]) -> str:
     messages = [{"role": "user", "content": question}]
     for _ in range(10):
         response = client.messages.create(
-            model="claude-sonnet-5-5",
+            model=MODEL,
             max_tokens=16000,
             system="You are a supervisor. Break the task into sub-tasks and delegate to specialists. Synthesize results.",
             tools=router_tools,
             messages=messages,
         )
         if response.stop_reason == "end_turn":
-            return next(b.text for b in response.content if b.type == "text")
+            return text_of(response)
 
         tool_results = []
         for block in response.content:
@@ -257,28 +263,28 @@ def debate_agents(question: str, rounds: int = 2) -> str:
 
     for r in range(rounds):
         pro_msg = client.messages.create(
-            model="claude-sonnet-5-5", max_tokens=16000,
+            model=MODEL, max_tokens=16000,
             system="You argue FOR the proposition. Be specific and cite evidence.",
             messages=[{"role": "user", "content": f"Question: {question}\nRound {r+1}. Previous debate:\n{format_debate(pro_history, con_history)}"}],
         )
-        pro = next(b.text for b in pro_msg.content if b.type == "text")
+        pro = text_of(pro_msg)
         pro_history.append(pro)
 
         con_msg = client.messages.create(
-            model="claude-sonnet-5-5", max_tokens=16000,
+            model=MODEL, max_tokens=16000,
             system="You argue AGAINST the proposition. Counter the pro arguments specifically.",
             messages=[{"role": "user", "content": f"Question: {question}\nRound {r+1}. Previous debate:\n{format_debate(pro_history, con_history)}"}],
         )
-        con = next(b.text for b in con_msg.content if b.type == "text")
+        con = text_of(con_msg)
         con_history.append(con)
 
     # Judge synthesizes
     verdict = client.messages.create(
-        model="claude-sonnet-5-5", max_tokens=16000,
+        model=MODEL, max_tokens=16000,
         system="You are an impartial judge. Evaluate both sides and give a final verdict with reasoning.",
         messages=[{"role": "user", "content": f"Question: {question}\n\nFull debate:\n{format_debate(pro_history, con_history)}"}],
     )
-    return next(b.text for b in verdict.content if b.type == "text")
+    return text_of(verdict)
 ```
 
 ## Agent Evaluation
@@ -321,7 +327,7 @@ def evaluate_agent(agent_fn, test_cases: list[dict]) -> dict:
 |-----------|---------|-----|
 | **Max iterations** | 10-15 | Prevents infinite loops |
 | **Timeout** | 60-120s total | Caps wall-clock time |
-| **Token budget** | 50K-100K per task | Caps cost per execution |
+| **Token budget** | 50K-100K per task | Caps cost per execution. Enforce it by summing `response.usage` across calls; the per-call `max_tokens` leaves thinking headroom and does not cap the task |
 | **Human-in-the-loop** | On destructive actions | Prevents irreversible damage |
 | **Tool allowlist** | Explicit per agent | Limits blast radius |
 | **Output validation** | Schema check on final output | Ensures usable result |

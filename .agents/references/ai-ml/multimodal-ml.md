@@ -28,12 +28,13 @@ Default recommendation: Late fusion (contrastive) for retrieval/matching. Early 
 # Anthropic -- image analysis
 import anthropic, base64
 
+MODEL = "claude-sonnet-5-5"  # from config
 client = anthropic.Anthropic()
 with open("chart.png", "rb") as f:
     image_data = base64.standard_b64encode(f.read()).decode()
 
 response = client.messages.create(
-    model="claude-sonnet-5-5",
+    model=MODEL,
     max_tokens=16000,
     messages=[{
         "role": "user",
@@ -51,7 +52,7 @@ from openai import OpenAI
 
 client = OpenAI()
 response = client.chat.completions.create(
-    model=OPENAI_MODEL,  # current OpenAI vision model alias, from config
+    model=OPENAI_MODEL,  # current OpenAI vision model ID, from config
     messages=[{
         "role": "user",
         "content": [

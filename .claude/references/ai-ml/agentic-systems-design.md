@@ -36,7 +36,7 @@ Generate multiple reasoning paths, evaluate each, expand the most promising. BFS
 # Good: specific description, constrained types, clear required fields
 {
     "name": "search_orders",
-    "description": "Search customer orders by order ID, customer email, or date range. Returns up to 10 matching orders with status and total.",
+    "description": "Search customer orders by order ID, customer email, or date range; provide at least one. Returns up to 10 matching orders with status and total, not line items or payment details. Use for order lookups, not for product or inventory questions.",
     "input_schema": {
         "type": "object",
         "properties": {
@@ -100,7 +100,7 @@ Two agents argue for/against, a judge decides.
 |-----------|---------|-----|
 | **Max iterations** | 10-15 | Prevents infinite loops |
 | **Timeout** | 60-120s total | Caps wall-clock time |
-| **Token budget** | 50K-100K per task | Caps cost per execution |
+| **Token budget** | 50K-100K per task | Caps cost per execution. Enforce it by summing `response.usage` across calls; the per-call `max_tokens` leaves thinking headroom and does not cap the task |
 | **Human-in-the-loop** | On destructive actions | Prevents irreversible damage |
 | **Tool allowlist** | Explicit per agent | Limits blast radius |
 | **Output validation** | Schema check on final output | Ensures usable result |
