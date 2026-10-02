@@ -181,12 +181,23 @@ class CommandModelTests(unittest.TestCase):
         return [f for f in audit.findings if f.check == "CM-F7"]
 
     def test_a_command_without_model_is_clean(self):
-        self.assertEqual(self.findings_for("effort: high\n"), [])
+        self.assertEqual(self.findings_for("effort: low\n"), [])
 
-    def test_a_command_with_model_warns(self):
+    def test_a_command_with_model_warns_and_names_the_value(self):
+        """`inherit` warns too: it is a redundant line, and the fix is the same deletion."""
         for value in ("opus", "sonnet", "inherit"):
             with self.subTest(value=value):
                 findings = self.findings_for("model: " + value + "\n")
+                self.assertEqual(len(findings), 1, findings)
+                self.assertEqual(findings[0].severity, self.audit_module.WARN)
+                self.assertIn("`model: " + value + "`", findings[0].message)
+
+    def test_a_bare_or_empty_model_still_warns(self):
+        """`frontmatter` stores "" for a bare `model:`. CM-F7 tests key presence, unlike AG-F8's
+        truthiness, because the remedy for a command is deleting the line either way."""
+        for spelling in ("model:\n", "model: \n", 'model: ""\n'):
+            with self.subTest(spelling=spelling):
+                findings = self.findings_for(spelling)
                 self.assertEqual(len(findings), 1, findings)
                 self.assertEqual(findings[0].severity, self.audit_module.WARN)
 
