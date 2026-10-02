@@ -1056,6 +1056,18 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             agents[1], re.compile(r'^default_subagent_reasoning_effort = "high"$', re.MULTILINE)
         )
 
+    def test_codex_spawn_depth_matches_its_stated_cap(self):
+        """config.toml `max_depth` and AGENTS.md "Max spawn depth is N" must agree."""
+        content = (REPO / ".codex" / "config.toml").read_text()
+        agents = re.search(r"(?ms)^\[agents\]\n(.*?)(?=^\[|\Z)", content)
+        assert agents is not None
+        depth = re.search(r"^max_depth = (\d+)$", agents[1], re.MULTILINE)
+        stated = re.search(r"Max spawn depth is (\d+)", (REPO / ".codex" / "AGENTS.md").read_text())
+        self.assertIsNotNone(depth, "[agents] must set max_depth")
+        self.assertIsNotNone(stated, "AGENTS.md must state the spawn-depth cap")
+        assert depth is not None and stated is not None
+        self.assertEqual(depth[1], stated[1])
+
     def test_codex_roles_allow_task_model_selection_at_high_effort(self):
         agents = sorted((REPO / ".codex" / "agents").glob("*.toml"))
         self.assertTrue(agents, "must exercise native Codex roles")

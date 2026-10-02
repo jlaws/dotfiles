@@ -9,7 +9,7 @@ approvals_reviewer = "auto_review"
 default_subagent_model = "gpt-6-sol"
 default_subagent_reasoning_effort = "high"
 max_threads = 6
-max_depth = 1
+max_depth = 2
 
 # Codex reads hooks either here or in .codex/hooks.json. log-prompt.sh synced from day one but was
 # never registered, so it had never fired while its Claude twin was wired the whole time. This
