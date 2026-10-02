@@ -1057,16 +1057,31 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         )
 
     def test_codex_spawn_depth_matches_its_stated_cap(self):
-        """config.toml `max_depth` and AGENTS.md "Max spawn depth is N" must agree."""
+        """config.toml `max_depth` equals the "Max spawn depth is N" every tree's config states."""
         content = (REPO / ".codex" / "config.toml").read_text()
         agents = re.search(r"(?ms)^\[agents\]\n(.*?)(?=^\[|\Z)", content)
+        self.assertIsNotNone(agents, "config.toml must have an [agents] table")
         assert agents is not None
-        depth = re.search(r"^max_depth = (\d+)$", agents[1], re.MULTILINE)
-        stated = re.search(r"Max spawn depth is (\d+)", (REPO / ".codex" / "AGENTS.md").read_text())
-        self.assertIsNotNone(depth, "[agents] must set max_depth")
-        self.assertIsNotNone(stated, "AGENTS.md must state the spawn-depth cap")
-        assert depth is not None and stated is not None
-        self.assertEqual(depth[1], stated[1])
+        depth = re.search(r"^max_depth\s*=\s*(\d+)\s*(?:#.*)?$", agents[1], re.MULTILINE)
+        self.assertIsNotNone(depth, "[agents] must set max_depth to an integer")
+        assert depth is not None
+        for config in (
+            REPO / ".codex" / "AGENTS.md",
+            REPO / ".claude" / "CLAUDE.md",
+            REPO / ".gemini" / "GEMINI.md",
+        ):
+            stated = re.findall(r"Max spawn depth is (\d+)", config.read_text())
+            with self.subTest(config=str(config.relative_to(REPO))):
+                self.assertEqual(
+                    stated, [depth[1]], "stated spawn depth must match .codex/config.toml max_depth"
+                )
+
+    def test_gemini_md_names_only_shipped_gemini_paths(self):
+        """Setup deletes the legacy agents/ and commands/ dirs, so GEMINI.md must not cite them."""
+        text = (REPO / ".gemini" / "GEMINI.md").read_text()
+        for legacy in ("~/.gemini/agents/", "~/.gemini/commands/"):
+            with self.subTest(path=legacy):
+                self.assertNotIn(legacy, text)
 
     def test_codex_roles_allow_task_model_selection_at_high_effort(self):
         agents = sorted((REPO / ".codex" / "agents").glob("*.toml"))
