@@ -35,11 +35,21 @@ SPECS = (
 # directory is free to hold an ADR slugged `template` or `readme`.
 SCAFFOLD = frozenset({"README.md", "template.md"})
 
-REQUIRED_KEYS = ("status", "topic", "created", "updated", "deciders")
+REQUIRED_KEYS = ("status", "topic", "created", "updated")
 
-# A replaced decision is edited in place and a dead one is deleted, so neither end of a supersede
-# link can exist. A file carrying one is a tombstone that should have been removed.
-BANNED_KEYS = ("supersedes", "superseded-by")
+# Keys the format retired, each with the reason its failure message gives. A replaced
+# decision is edited in place and a dead one is deleted, so neither end of a supersede link
+# can exist; a file carrying one is a tombstone that should have been removed. `git log`
+# already records who wrote a record, so a `deciders` list only duplicated it.
+RETIRED_KEYS = {
+    "supersedes": "a superseded ADR is deleted, not linked",
+    "superseded-by": "a superseded ADR is deleted, not linked",
+    "deciders": "git log records who wrote the record",
+}
+
+# Every template and example in the spec sits in a ```markdown or ```yaml fence that opens
+# with its frontmatter. No template nests a fence, so the first closing ``` ends the block.
+FRONTMATTER_FENCE = re.compile(r"```(?:markdown|yaml)\n(.*?)```", re.DOTALL)
 
 LIVE_STATUSES = frozenset({"proposed", "accepted"})
 
@@ -96,7 +106,7 @@ def adr_paths() -> list[Path]:
 def frontmatter(text: str) -> dict[str, str]:
     """The YAML block between the leading `---` fences, as raw string values.
 
-    Deliberately not a YAML parser: the frontmatter is five flat scalar keys, and this repo ships
+    Deliberately not a YAML parser: the frontmatter is four flat scalar keys, and this repo ships
     no runtime pip dependencies, so there is no yaml module to reach for. It is strict about the
     closing fence, though -- without that check an unterminated block reads the whole document as
     frontmatter, which both invents keys from body lines and reports a malformed record as valid.
@@ -175,15 +185,13 @@ class AdrFrontmatterTests(unittest.TestCase):
                     f"{rel}: status {fields['status']!r} not in {sorted(LIVE_STATUSES)}",
                 )
 
-    def test_no_adr_carries_a_supersede_link(self):
+    def test_no_adr_carries_a_retired_key(self):
         for path in adr_paths():
             with self.subTest(path=path.relative_to(REPO)):
                 fields = frontmatter(path.read_text(encoding="utf-8"))
-                present = [key for key in BANNED_KEYS if key in fields]
+                present = {key: why for key, why in RETIRED_KEYS.items() if key in fields}
                 self.assertFalse(
-                    present,
-                    f"{path.relative_to(REPO)}: retired frontmatter {present}; a superseded ADR is "
-                    "deleted, not linked",
+                    present, f"{path.relative_to(REPO)}: retired frontmatter {present}"
                 )
 
     def test_updated_is_never_before_created(self):
@@ -315,6 +323,21 @@ class AdrTemplateTests(unittest.TestCase):
                     wanted,
                     found,
                     f"docs/adr/template.md has drifted from the Standard ADR template in {rel}",
+                )
+
+    def test_no_spec_template_carries_a_retired_key(self):
+        """Only the Standard block is pinned to template.md. The Frontmatter example and the
+        Lightweight and Y-Statement templates are not, so a retired key left in one of them gets
+        copied into the next ADR written from it."""
+        for spec in SPECS:
+            rel = spec.relative_to(REPO)
+            blocks = FRONTMATTER_FENCE.findall(spec.read_text(encoding="utf-8"))
+            parsed = [fields for fields in map(frontmatter, blocks) if fields]
+            with self.subTest(spec=rel):
+                self.assertTrue(parsed, f"{rel}: no fenced frontmatter found; check is vacuous")
+                present = sorted(key for key in RETIRED_KEYS if any(key in f for f in parsed))
+                self.assertFalse(
+                    present, f"{rel}: a template carries retired frontmatter {present}"
                 )
 
 

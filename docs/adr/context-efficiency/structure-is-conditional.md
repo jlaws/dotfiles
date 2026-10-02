@@ -3,7 +3,6 @@ status: accepted
 topic: context-efficiency
 created: 2026-09-12
 updated: 2026-09-13
-deciders: ["@jlaws"]
 ---
 # Structure preference is conditional on what the question asks for
 

@@ -3,7 +3,6 @@ status: accepted
 topic: workflow
 created: 2026-09-12
 updated: 2026-09-13
-deciders: ["@jlaws"]
 ---
 # Thorough about quality dimensions, lazy about new scope
 

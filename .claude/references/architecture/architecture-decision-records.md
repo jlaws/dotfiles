@@ -60,7 +60,6 @@ status: accepted        # proposed | accepted
 topic: data
 created: 2026-03-01     # record first written; never changes
 updated: 2026-09-13     # last substantive edit
-deciders: ["@name"]
 ---
 ```
 
@@ -125,7 +124,6 @@ status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-deciders: ["@name"]
 ---
 # [Title]
 
@@ -172,7 +170,6 @@ status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-deciders: ["@name"]
 ---
 # [Title]
 
@@ -207,7 +204,6 @@ status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-deciders: ["@name"]
 ---
 In the context of **[situation]**,
 facing **[problem]**,

@@ -3,7 +3,6 @@ status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-deciders: ["@name"]
 ---
 # [Title]
 
