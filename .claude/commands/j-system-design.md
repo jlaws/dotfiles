@@ -2,7 +2,6 @@
 name: j-system-design
 description: "Comprehensive system design suite — produce architecture documents covering multiple perspectives. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /j-arch instead)."
 argument-hint: "<system-description>"
-effort: xhigh
 ---
 
 Load skill `design-first` for design-before-implementation discipline.

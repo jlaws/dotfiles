@@ -40,11 +40,13 @@ other than the session's makes that turn a model switch, and the switch re-reads
 uncached (`CM-F7` warns on a command that sets it). Agents and `context: fork` skills start a fresh
 context, so a tier pin costs no cache there. Agents set one (`AG-F8`): an alias (`opus`, `sonnet`,
 `haiku`, `fable`) or `inherit`, never a pinned ID, because aliases float across model generations.
-Set `effort` when the work is reliably cheaper (`low`, `medium`), substantial but procedure-driven
-(`high`: scaffolding, a fixed-rubric analysis), or reliably demanding (`xhigh`: open-ended design,
-security review). These tiers are set by judgment, not measured. On first-party Claude models that
-support per-message effort, an override keeps the prompt cache; on Bedrock, Vertex, and gateways it
-re-reads the history, so skip it there when the gain is marginal.
+Set `effort` on a command only to lower it (`low`, `medium`) for reliably cheap, procedural work;
+otherwise leave it unset so the command runs at the session's effort. Raising it buys little for its
+cost: in Anthropic's measurements `xhigh` cost 2.5x `high` for 1.4 points on long-horizon coding
+(Opus 5.5), and knowledge work gained nothing above `medium` (Fable 5). The lowered tiers are set by
+judgment, not measured. On first-party Claude models that support per-message effort, an override
+keeps the prompt cache; on Bedrock, Vertex, and gateways it re-reads the history, so skip it there
+when the gain is marginal.
 
 ## Phase 3: Draft the description
 
@@ -175,7 +177,7 @@ lint and test commands. See `documentation-validation`.
 | `tools` | N/A | N/A | Recommended |
 | `skills` | N/A | Optional (deps) | Optional (preload) |
 | `model` | Avoid (`CM-F7`) | Only with `context: fork` | Required (alias, `AG-F8`) |
-| `effort` | Optional | Optional | Optional |
+| `effort` | Lower only (`low`, `medium`) | Optional | Optional |
 | `paths` | N/A | Optional | N/A |
 | `disable-model-invocation`, `user-invocable` | N/A | Optional | N/A |
 | `context: fork`, `agent` | N/A | Optional | N/A |

@@ -27,10 +27,15 @@ cache.
 ## Decision
 
 Commands never set `model`; they inherit the session model. A tier pin belongs only on an asset that
-starts a fresh context: agents (required by `AG-F8`) and `context: fork` skills. Commands keep
-`effort`. Audit check `CM-F7` warns on a command that sets `model`, and `make test` fails on the
-warning. Inline skills follow the same rule through `j-new` and `writing-skills` guidance; no skill
-sets `model` today.
+starts a fresh context: agents (required by `AG-F8`) and `context: fork` skills. Audit check
+`CM-F7` warns on a command that sets `model`, and `make test` fails on the warning. Inline skills
+follow the same rule through `j-new` and `writing-skills` guidance; no skill sets `model` today.
+
+Commands also inherit the session's effort. A command sets `effort` only to lower it (`low`,
+`medium`) for cheap, procedural work; it never raises it. In Anthropic's measurements `xhigh` cost
+2.5x `high` for 1.4 points on long-horizon coding (Opus 5.5), and knowledge work gained nothing
+above `medium` (Fable 5). Effort overrides keep the cache on first-party Opus 5.5, Sonnet 5.5, and
+Fable 5.1, so the lowered tiers cost nothing to keep.
 
 ## Consequences
 
@@ -39,8 +44,9 @@ parent's model. `j-new` and the commands agree.
 **Accepted**: commands that were pinned to `sonnet` for unattended work now run on the session
 model. To route them cheaper, start the session with `claude --model sonnet`, or delegate the bulk
 to a sonnet-pinned agent. Commands that were pinned to `opus` for design work run on whatever the
-session uses, including Sonnet. The `effort` values were chosen alongside the old pins and now apply
-to the session model.
+session uses, including Sonnet. Commands that were pinned to `high` or `xhigh` (design, debugging,
+review, and audit commands) now run at the session's effort; raise it for the session with `/effort`
+when a task needs more.
 
 ## Ruled Out
 
@@ -49,6 +55,7 @@ to the session model.
 | Keep the pins | Each mid-session invocation re-reads the whole history uncached, and the pin covers only the first turn of an interactive command | 2026-10-02 |
 | Allowlist single-turn commands usually run in a fresh session | "Usually fresh" cannot be enforced, and the list decays | 2026-10-02 |
 | Pin every command to the current session model | Breaks the day the session model changes, and repeats one choice in every command | 2026-10-02 |
+| Keep `high` and `xhigh` effort pins on demanding commands | Set by judgment and never measured; the measured `xhigh` gain was 1.4 points for 2.5x the cost of `high`, and the session already runs at `high` | 2026-10-02 |
 
 ## Reversal Conditions
 
