@@ -1314,20 +1314,32 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertGreater(supporting, 0, "no supporting files compared; the rglob is vacuous")
 
     def test_fix_loops_stop_after_two_rounds(self):
-        """Fix loops end after two open rounds, matching CLAUDE.md's stop-after-two-attempts rule."""
-        surfaces = (
-            REPO / ".claude" / "skills" / "subagent-driven-development" / "SKILL.md",
-            REPO / ".agents" / "skills" / "subagent-driven-development" / "SKILL.md",
-            REPO / ".gemini" / "antigravity-cli" / "skills" / "subagent-driven-development" / "SKILL.md",
-            REPO / ".claude" / "references" / "workflow" / "task-execution-checklists.md",
-            REPO / ".agents" / "references" / "workflow" / "task-execution-checklists.md",
+        """Fix loops end after two open rounds and halt rather than mark the task done.
+
+        Matches CLAUDE.md's stop-after-two-attempts rule. Each surface pins its own stop sentence,
+        counted, so deleting one of a checklist's two bounds fails too.
+        """
+        sdd = ("skills", "subagent-driven-development", "SKILL.md")
+        checklist = ("references", "workflow", "task-execution-checklists.md")
+        sdd_stop = "Stop after two fix rounds that leave a Critical/Important finding open"
+        sdd_halt = "do not mark the task done, start the next task, or commit the phase"
+        checklist_stop = (
+            "If issues remain after two fix rounds, stop, report them, and do not mark the task "
+            "complete."
         )
-        for path in surfaces:
+        surfaces = {
+            REPO.joinpath(".claude", *sdd): {sdd_stop: 1, sdd_halt: 1},
+            REPO.joinpath(".agents", *sdd): {sdd_stop: 1, sdd_halt: 1},
+            REPO.joinpath(".gemini", "antigravity-cli", *sdd): {sdd_stop: 1, sdd_halt: 1},
+            REPO.joinpath(".claude", *checklist): {checklist_stop: 2},
+            REPO.joinpath(".agents", *checklist): {checklist_stop: 2},
+        }
+        for path, expected in surfaces.items():
             text = path.read_text(encoding="utf-8")
-            with self.subTest(path=str(path)):
-                self.assertNotIn("Repeat until clean", text)
-                self.assertNotIn("Repeat until pass", text)
-                self.assertIn("after two fix rounds", text)
+            with self.subTest(path=str(path.relative_to(REPO))):
+                self.assertIsNone(re.search(r"(?i)repeat until (clean|pass)", text))
+                for sentence, count in expected.items():
+                    self.assertEqual(text.count(sentence), count, sentence)
 
     def test_claude_command_effort_only_lowers_the_session_level(self):
         """`effort:` is free text to YAML, so a typo loads silently and the command runs at the
