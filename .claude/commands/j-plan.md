@@ -2,8 +2,6 @@
 name: j-plan
 description: "Research-orchestrated implementation planning - parallel specialist lenses, then a phase-skeletoned TDD plan with exact paths, verification commands, and PR boundaries. Use when you have requirements and need a plan before coding. Do NOT use for executing an existing plan (use /j-execute-plan) or exploring what to build (use /j-brainstorm)."
 argument-hint: "<spec or feature description>"
-model: opus
-effort: xhigh
 ---
 
 Spec: $ARGUMENTS

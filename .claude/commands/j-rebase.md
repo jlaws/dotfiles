@@ -2,7 +2,6 @@
 name: j-rebase
 description: "Squash a branch to one commit, rebase onto latest origin/main, verify the merged code with targeted tests, and force-push to the open PR. Use when an open PR needs to be refreshed against main. Do NOT use on main/master, or before a PR exists (use /j-create-pr)."
 argument-hint: "[squash commit message]"
-model: opus
 ---
 
 Collapse the current branch to one commit, rebase it onto the latest `origin/main`, verify the merged result with targeted tests, and force-push to the open PR. Stay on the branch — do NOT merge to main or clean up.

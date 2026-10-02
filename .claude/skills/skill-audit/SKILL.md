@@ -141,8 +141,8 @@ most expensive form of this. Check commands against the skills they overlap.
 **Stale model facts.** Pinned model IDs, capability claims about specific tiers, and effort defaults
 carried over from an older generation. Tier aliases (`opus`, `sonnet`, `haiku`, `fable`) float safely,
 as does `inherit`, which defers to the parent rather than naming a tier; full IDs like
-`claude-sonnet-4-5-20250929` do not. `AG-F8` enforces this for agents. Commands also carry `model:`
-and are not checked, so read those by hand.
+`claude-sonnet-4-5-20250929` do not. `AG-F8` enforces this for agents. `CM-F7` warns on any
+command that sets `model:`; commands inherit the session model.
 
 **Unsourced numbers.** A percentage or multiplier reads as measured fact and the reader acts on it.
 Distinguish a claim ("tables are ~40% more efficient") from a threshold ("min 80% coverage") or a

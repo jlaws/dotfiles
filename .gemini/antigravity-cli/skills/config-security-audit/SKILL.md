@@ -52,7 +52,7 @@ Track each as PASS / WARN / FAIL. Report actual values (redacted) on failure. Ex
 
 ## Process
 
-1. Enumerate the scope files (Glob per tree).
+1. Enumerate the scope files (Glob per tree), and record any you could not read.
 2. Run the checks (Grep patterns for A and B; read prose for C).
 3. Report grouped by severity; redact any secret you surface — show only the match location and type, never the value.
 4. Exit non-zero if any CRITICAL finding exists (a leaked secret or a destructive auto-approve).
@@ -62,11 +62,12 @@ Track each as PASS / WARN / FAIL. Report actual values (redacted) on failure. Ex
 ```
 Config Security Audit
 =====================
+Scanned:      {n} files across {trees}; unreadable: {paths or none}
 Secrets:      {n} checks | {pass} pass | {fail} fail
 Permissions:  {n} checks | {pass} pass | {warn} warn | {fail} fail
 Injection:    {n} checks | {pass} pass | {warn} warn | {fail} fail
 ---------------------------------------------------------------
-Result: PASS | CONCERNS | FAIL   (FAIL exits non-zero)
+Result: PASS | CONCERNS | FAIL | BLOCKED   (FAIL exits non-zero; BLOCKED when a scope path was unreadable)
 ```
 
 List each finding as `[SEVERITY] CHECK-ID: file:line — what (redacted)`.

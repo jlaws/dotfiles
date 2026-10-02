@@ -334,6 +334,16 @@ class Audit:
             description = fields.get("description", "")
             if description and not TRIGGER.search(description):
                 self.add(WARN, "CM-F6", command, "`description` states no triggering condition")
+            # Key presence, not truthiness: a bare `model:` is still a line to delete.
+            if "model" in fields:
+                self.add(
+                    WARN,
+                    "CM-F7",
+                    command,
+                    f"sets `model: {fields['model']}`; remove it so the command inherits the "
+                    "session model (a model other than the session's re-reads the conversation "
+                    "uncached)",
+                )
 
             body = self.body(text)
             if len(body.split()) < 10:

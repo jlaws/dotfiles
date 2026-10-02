@@ -1313,11 +1313,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertGreater(compared, 0, "no shared skills compared; the check is vacuous")
         self.assertGreater(supporting, 0, "no supporting files compared; the rglob is vacuous")
 
-    def test_claude_command_effort_is_a_supported_level(self):
+    def test_claude_command_effort_only_lowers_the_session_level(self):
         """`effort:` is free text to YAML, so a typo loads silently and the command runs at the
-        session default. Pin the value set, not each command's choice: the tiers are judgment
-        calls documented in j-new, and restating them here would only copy the source."""
-        allowed = {"low", "medium", "high", "xhigh", "max"}
+        session default. Commands only lower effort (docs/adr/workflow/
+        commands-inherit-the-session-model.md): raising it was never measured to pay, so `high`,
+        `xhigh`, and `max` fail here. Pin the value set, not each command's choice."""
+        allowed = {"low", "medium"}
         effort = re.compile(r"^effort:\s*(\S+)\s*$", re.MULTILINE)
         checked = 0
         for path in sorted((REPO / ".claude" / "commands").glob("*.md")):

@@ -132,6 +132,7 @@ For each `.md` file under `.claude/commands/`:
 | CM-F4 | `description` field exists | FAIL | Required |
 | CM-F5 | `description` under 1024 chars | WARN | Keep concise |
 | CM-F6 | `description` includes WHAT + WHEN trigger | WARN | Discoverability |
+| CM-F7 | Claude commands do not set `model` | WARN | A command runs inside the conversation; a different model re-reads the whole history uncached. Codex and Gemini command copies carry no `model` |
 
 **Content**
 

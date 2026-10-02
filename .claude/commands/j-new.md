@@ -2,7 +2,6 @@
 name: j-new
 description: "Scaffold a new .claude/ command, skill, or agent with correct structure and best practices. Use when creating any new .claude/ asset. Do NOT use for editing existing assets (edit directly)."
 argument-hint: "<type: command|skill|agent> [name]"
-model: sonnet
 ---
 
 Load skill `writing-skills` before scaffolding — it holds the authoring criteria this command applies.
@@ -36,13 +35,18 @@ to certain files (`paths:`)?
 **Agent:** which tools, which skills to preload, and which `.claude/references/` categories should it
 consult (`Glob(".claude/references/*/")`)? Persistent memory scope, if any?
 
-Leave `model` unset so the asset inherits the session model. Set it only when a specific tier is
-genuinely required; tier aliases (`opus`, `sonnet`, `haiku`, `fable`) float across model generations, so
-prefer an alias over a pinned ID. Set `effort` when the work is reliably cheaper (`low`, `medium`),
-substantial but procedure-driven (`high`: scaffolding, a fixed-rubric analysis), or reliably demanding
-(`xhigh`: open-ended design, security review). These tiers are set by judgment, not measured. An
-override may also cost a prompt-cache miss, because Anthropic renders effort into the cached prefix
-(unverified for Claude Code command overrides); skip it when the gain is marginal.
+Leave `model` unset on commands and inline skills. They run inside the conversation, so a `model`
+other than the session's makes that turn a model switch, and the switch re-reads the whole history
+uncached (`CM-F7` warns on a command that sets it). Agents and `context: fork` skills start a fresh
+context, so a tier pin costs no cache there. Agents set one (`AG-F8`): an alias (`opus`, `sonnet`,
+`haiku`, `fable`) or `inherit`, never a pinned ID, because aliases float across model generations.
+Set `effort` on a command or inline skill only to lower it (`low`, `medium`) for reliably cheap,
+procedural work; otherwise leave it unset so it runs at the session's effort. Raising it buys little for its
+cost: in Anthropic's measurements `xhigh` cost 2.5x `high` for 1.4 points on long-horizon coding
+(Opus 5.5), and knowledge work gained nothing above `medium` (Fable 5). The lowered tiers are set by
+judgment, not measured. On first-party Claude models that support per-message effort, an override
+keeps the prompt cache; on Bedrock, Vertex, and gateways it re-reads the history, so skip it there
+when the gain is marginal.
 
 ## Phase 3: Draft the description
 
@@ -172,7 +176,8 @@ lint and test commands. See `documentation-validation`.
 | `allowed-tools` / `disallowed-tools` | N/A | Recommended | N/A |
 | `tools` | N/A | N/A | Recommended |
 | `skills` | N/A | Optional (deps) | Optional (preload) |
-| `model`, `effort` | Optional | Optional | Optional |
+| `model` | Avoid (`CM-F7`) | Only with `context: fork` | Required (alias, `AG-F8`) |
+| `effort` | Lower only (`low`, `medium`) | Lower only inline; any with `context: fork` | Optional |
 | `paths` | N/A | Optional | N/A |
 | `disable-model-invocation`, `user-invocable` | N/A | Optional | N/A |
 | `context: fork`, `agent` | N/A | Optional | N/A |
