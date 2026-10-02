@@ -24,7 +24,7 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 make check    # ruff check + ty (via .venv)
 make fix      # auto-fix + format
 make test     # stdlib unittest suite (python -m unittest)
-make verify   # check + test -- the full gate, and the only one that fails on audit WARN findings
+make verify   # check + test -- the full gate (make test alone already fails on audit WARN findings)
 ```
 
 ### What setup.sh does:

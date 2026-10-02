@@ -92,7 +92,7 @@ This rule applies to `run_shell_command` calls only -- not to Dockerfile `RUN` l
 
 ## Execution Model
 
-Use subagents to parallelize independent work and to delegate to specialist agents (`~/.gemini/agents/`, invoked via `@agent-<name>`) when a task matches their domain -- commands gather context, then invoke the matching agent. Prefer delegation for well-scoped, independent subtasks and run them in parallel when they don't depend on each other; keep tightly-coupled or sequential work in a single context. A subagent reporting "success" is not proof -- verify its output against source evidence (see `verification-before-completion`).
+Use subagents to parallelize independent work and to delegate to specialist agents (`~/.gemini/config/agents/`, invoked via `@agent-<name>`) when a task matches their domain -- commands gather context, then invoke the matching agent. Prefer delegation for well-scoped, independent subtasks and run them in parallel when they don't depend on each other; keep tightly-coupled or sequential work in a single context. A subagent reporting "success" is not proof -- verify its output against source evidence (see `verification-before-completion`).
 
 - **Parallel dispatch**: for concurrent independent work, load the `dispatching-parallel-agents` skill (`~/.agents/skills/dispatching-parallel-agents/SKILL.md`).
 - **Report contract**: a dispatched agent returns one concise report -- prose cut, findings and evidence intact (`subagent-report-contract`). Nothing is archived, so re-dispatch when a report is too thin.
@@ -143,8 +143,8 @@ When working in a git worktree:
 ## Knowledge Base Structure
 - **`~/.agents/skills/`**: `$cmd-j-*` entry points and workflows loaded on demand
 - **`~/.agents/references/`**: Domain knowledge loaded on-demand by agents and commands
-- **`~/.gemini/agents/`**: Specialist subagents that read from `~/.agents/references/`
-- **`~/.gemini/commands/`**: Slash commands (TOML) that gather context then invoke agents/skills
+- **`~/.gemini/config/agents/`**: Specialist subagents that read from `~/.agents/references/`
+- **`~/.gemini/antigravity-cli/skills/j-*/`**: `/j-*` slash-command skills that gather context then invoke agents/skills
 
 ---
 
