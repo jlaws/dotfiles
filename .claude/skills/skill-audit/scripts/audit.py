@@ -334,6 +334,14 @@ class Audit:
             description = fields.get("description", "")
             if description and not TRIGGER.search(description):
                 self.add(WARN, "CM-F6", command, "`description` states no triggering condition")
+            if "model" in fields:
+                self.add(
+                    WARN,
+                    "CM-F7",
+                    command,
+                    "sets `model`; commands inherit the session model, and a switch re-reads "
+                    "the conversation uncached",
+                )
 
             body = self.body(text)
             if len(body.split()) < 10:

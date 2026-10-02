@@ -2,7 +2,6 @@
 name: j-init
 description: "Scaffold a repository for Claude, Codex, and Gemini -- agent config, project settings, toolchain, and supporting docs, derived from what the repo already has. Use when starting a new project, when a repo has no agent config, or when its config is stale or partial. Do NOT use for creating knowledge-base assets such as commands or skills (use /j-new)."
 argument-hint: "<path to the repository, or a description of the project to create>"
-model: opus
 effort: high
 ---
 

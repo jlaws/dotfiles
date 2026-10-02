@@ -150,6 +150,47 @@ class AgentModelPinTests(unittest.TestCase):
             self.assertIn(alias, message)
 
 
+class CommandModelTests(unittest.TestCase):
+    """CM-F7: a command that sets `model` warns; one that leaves it unset is clean.
+
+    A command runs inside the conversation, so a `model` other than the session's is a model switch
+    that re-reads the whole history uncached (docs/adr/workflow/commands-inherit-the-session-model.md).
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def findings_for(self, frontmatter: str):
+        """Audit a throwaway tree holding one command, and return only its CM-F7 findings."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for sub in ("commands", "skills", "agents"):
+            (root / ".claude" / sub).mkdir(parents=True)
+        (root / ".claude" / "commands" / "j-probe.md").write_text(
+            "---\nname: j-probe\n"
+            'description: "Probe the audit. Use when testing CM-F7."\n'
+            + frontmatter
+            + "---\n\n"
+            + "word " * 30
+            + "\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_commands()
+        return [f for f in audit.findings if f.check == "CM-F7"]
+
+    def test_a_command_without_model_is_clean(self):
+        self.assertEqual(self.findings_for("effort: high\n"), [])
+
+    def test_a_command_with_model_warns(self):
+        for value in ("opus", "sonnet", "inherit"):
+            with self.subTest(value=value):
+                findings = self.findings_for("model: " + value + "\n")
+                self.assertEqual(len(findings), 1, findings)
+                self.assertEqual(findings[0].severity, self.audit_module.WARN)
+
+
 class ToolNameTests(unittest.TestCase):
     """SK-F10 and AG-F7: a current tool name passes, an unknown or retired one warns.
 
