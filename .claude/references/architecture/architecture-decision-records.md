@@ -76,7 +76,8 @@ Three invariants:
   holding only the frontmatter still knows the topic. On mismatch the directory wins; fix the field.
 
 There are no `supersedes` or `superseded-by` fields. A superseded ADR is deleted, so there is no file
-at either end of the link.
+at either end of the link. There is no `deciders` or author field either: `git log` records who wrote
+and revised the record, and a hand-kept name list only drifts from it.
 
 ## Keeping an ADR Current
 
