@@ -73,6 +73,33 @@ def has_unterminated_fence(text: str) -> bool:
     return bool(fence)
 
 
+def fenced_blocks(text: str) -> list[tuple[int, str]]:
+    """`(1-indexed line of the opening fence, body)` for every closed fenced code block.
+
+    Any info string counts -- ```markdown, ```md, a bare ```, a ~~~ fence -- so re-tagging a block
+    cannot move it out of a caller's view. The body excludes both fence lines. A block still open at
+    end of file is not returned; callers catch that with `has_unterminated_fence`.
+    """
+    out: list[tuple[int, str]] = []
+    fence = ""
+    start = 0
+    body: list[str] = []
+    for number, line in enumerate(text.splitlines(), 1):
+        stripped = line.lstrip()
+        if stripped.startswith(FENCE):
+            token = stripped[:3]
+            if not fence:
+                fence, start, body = token, number, []
+                continue
+            if token == fence:
+                out.append((start, "".join(f"{kept}\n" for kept in body)))
+                fence = ""
+                continue
+        if fence:
+            body.append(line)
+    return out
+
+
 def lines_outside_fences(text: str) -> list[tuple[int, str]]:
     """`(1-indexed line number, line)` for every line not inside a fenced code block.
 

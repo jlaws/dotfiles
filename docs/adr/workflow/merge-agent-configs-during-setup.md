@@ -3,7 +3,6 @@ status: accepted
 topic: workflow
 created: 2026-09-28
 updated: 2026-09-28
-deciders: ["@jlaws"]
 ---
 # Merge agent machine configs during setup, overwrite skills and commands
 

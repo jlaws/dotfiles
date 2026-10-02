@@ -3,7 +3,6 @@ status: accepted
 topic: workflow
 created: 2026-09-13
 updated: 2026-09-13
-deciders: ["@jlaws"]
 ---
 # ADRs are living documents, and dead ones are deleted
 

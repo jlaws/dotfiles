@@ -3,7 +3,6 @@ status: accepted
 topic: context-efficiency
 created: 2026-09-21
 updated: 2026-09-21
-deciders: ["@jlaws"]
 ---
 # Hooks do not restate always-loaded guidance
 

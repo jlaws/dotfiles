@@ -60,7 +60,6 @@ status: accepted        # proposed | accepted
 topic: data
 created: 2026-03-01     # record first written; never changes
 updated: 2026-09-13     # last substantive edit
-deciders: ["@name"]
 ---
 ```
 
@@ -76,7 +75,8 @@ Three invariants:
   holding only the frontmatter still knows the topic. On mismatch the directory wins; fix the field.
 
 There are no `supersedes` or `superseded-by` fields. A superseded ADR is deleted, so there is no file
-at either end of the link.
+at either end of the link. There is no `deciders` or author field either: `git log` records who wrote
+and revised the record, and a hand-kept name list only drifts from it.
 
 ## Keeping an ADR Current
 
@@ -124,7 +124,6 @@ status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-deciders: ["@name"]
 ---
 # [Title]
 
@@ -171,7 +170,6 @@ status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-deciders: ["@name"]
 ---
 # [Title]
 
@@ -206,7 +204,6 @@ status: proposed
 topic: [topic]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-deciders: ["@name"]
 ---
 In the context of **[situation]**,
 facing **[problem]**,
@@ -278,7 +275,7 @@ decisions, and every file in it is asserted to be currently true.
 
 ### Definition of Done
 
-A decision is done when it has: **evidence** for the choice, the **criteria and alternatives** considered, **agreement** from the deciders, a written **ADR (documentation)**, and a **realization/review plan** (how it gets built and when it is revisited).
+A decision is done when it has: **evidence** for the choice, the **criteria and alternatives** considered, **agreement** from the people making the decision, a written **ADR (documentation)**, and a **realization/review plan** (how it gets built and when it is revisited).
 
 ## Do's and Don'ts
 
