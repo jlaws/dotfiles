@@ -77,8 +77,9 @@ tool calls costs more to delegate than to do, and a subagent should never be spa
 double-check your own work.
 
 - Pick the tier with the lowest cost per completed task, not per token: a cheap tier that fails pays
-  twice. Use a floating alias (`opus`, `sonnet`, `haiku`, `fable`) rather than a pinned model ID so it
-  survives a model generation.
+  twice. Without data, take the cheapest tier whose output a test or check verifies. Use a floating
+  alias (`opus`, `sonnet`, `haiku`, `fable`) rather than a pinned model ID so it survives a model
+  generation.
 - One capable subagent beats several redundant ones. Keep spawn counts low.
 - Max spawn depth is 2: parent, subagent, one more tier.
 - A subagent doing bulk mechanical work should not spawn further subagents. If it needs to, the task was

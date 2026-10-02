@@ -100,7 +100,7 @@ Two agents argue for/against, a judge decides.
 |-----------|---------|-----|
 | **Max iterations** | 10-15 | Prevents infinite loops |
 | **Timeout** | 60-120s total | Caps wall-clock time |
-| **Token budget** | 50K-100K per task | Caps cost per execution. A client-side cap cuts runs off and still bills them; a model-visible task budget, where the API offers one, lets the model economize instead. Enforce a hard cap by pricing `response.usage` across calls; the per-call `max_tokens` is a safety cap, not a task cap |
+| **Token budget** | Near the p90 of observed tokens per task (Anthropic's task budget floor: 20K) | Caps cost per execution. A client-side cap cuts runs off and still bills them; a model-visible task budget, where the API offers one, lets the model economize instead. For a hard dollar cap, price `response.usage` across calls; the per-call `max_tokens` is a safety cap, not a task cap |
 | **Human-in-the-loop** | On destructive actions | Prevents irreversible damage |
 | **Tool allowlist** | Explicit per agent | Limits blast radius |
 | **Output validation** | Schema check on final output | Ensures usable result |
