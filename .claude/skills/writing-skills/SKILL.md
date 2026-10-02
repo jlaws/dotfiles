@@ -116,7 +116,7 @@ Where a choice exists, give one default with an escape hatch rather than a menu 
 | Field | Use |
 |---|---|
 | `allowed-tools` / `disallowed-tools` | Scope tool access for the turn |
-| `model`, `effort` | Override tier or reasoning depth; tier aliases float across model generations |
+| `model`, `effort` | Override tier or reasoning depth; tier aliases float across model generations. Set `model` only with `context: fork`: inline, a different model re-reads the conversation uncached |
 | `paths` | Glob-gate the skill so it loads only for matching files |
 | `disable-model-invocation` | Keep it out of the always-loaded listing; user-invocable only |
 | `context: fork`, `agent` | Run in an isolated subagent context |
