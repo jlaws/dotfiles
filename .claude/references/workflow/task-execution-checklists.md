@@ -36,7 +36,7 @@ While implementing:
 
 Verify the implementation matches the specification — nothing more, nothing less.
 
-**CRITICAL: Do not trust your own summary. Read the actual code.**
+Read the actual code rather than your own summary of it: the summary records what you meant to write, and the gap between the two is what this review exists to find.
 
 **Missing requirements:**
 - Did I implement everything requested?

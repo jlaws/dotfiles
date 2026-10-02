@@ -12,7 +12,7 @@
 | **Multi-agent debate** | Tasks needing verification, fact-checking | High | High |
 | **Multi-agent chain** | Sequential pipeline, each agent transforms output | Medium | Medium-High |
 
-**Decision rule**: Start with single-agent ReAct. Escalate to plan-and-execute if the agent frequently fails mid-task. Use multi-agent only when a single model cannot hold all required expertise in context.
+**Decision rule**: Start with single-agent ReAct. Escalate to plan-and-execute if the agent frequently fails mid-task. Use multi-agent only when a single model cannot hold all required expertise in context. On cost, a frontier lead with cheaper workers saved money only on work larger than one context window or with a long cost tail on routine tasks; otherwise the lead's model alone at lower effort came out ahead (see ai-ml:llm-application-patterns, Multi-Model Strategies).
 
 ## Planning Patterns
 
@@ -91,7 +91,7 @@ Two agents argue for/against, a judge decides.
 | **Task completion** | Did the agent solve the problem? | Human eval or automated check against gold answer |
 | **Tool accuracy** | Did it call the right tools with right args? | Compare tool call trace to expected trace |
 | **Step efficiency** | How many steps to solve? | Count tool calls; compare to optimal path |
-| **Cost** | Total tokens consumed | Sum input + output tokens across all turns |
+| **Cost per solved task** | What does each passing task cost? | Price all five usage classes (uncached input, 5m and 1h cache writes, cache reads, output) across the task's calls; divide total spend by tasks that pass |
 | **Hallucination rate** | Did it fabricate tool results or facts? | Check claims against tool outputs |
 
 ## Guardrails
@@ -100,7 +100,7 @@ Two agents argue for/against, a judge decides.
 |-----------|---------|-----|
 | **Max iterations** | 10-15 | Prevents infinite loops |
 | **Timeout** | 60-120s total | Caps wall-clock time |
-| **Token budget** | 50K-100K per task | Caps cost per execution. Enforce it by summing `response.usage` across calls; the per-call `max_tokens` leaves thinking headroom and does not cap the task |
+| **Token budget** | 50K-100K per task | Caps cost per execution. A client-side cap cuts runs off and still bills them; a model-visible task budget, where the API offers one, lets the model economize instead. Enforce a hard cap by pricing `response.usage` across calls; the per-call `max_tokens` is a safety cap, not a task cap |
 | **Human-in-the-loop** | On destructive actions | Prevents irreversible damage |
 | **Tool allowlist** | Explicit per agent | Limits blast radius |
 | **Output validation** | Schema check on final output | Ensures usable result |
