@@ -162,12 +162,14 @@ LLM providers cache the key-value computations for identical prompt prefixes. Wh
 - Send mid-session instruction updates as new messages, not edits to the system prompt
 - Track cache-hit rate alongside token counts (see ai-ml:llmops-production-monitoring)
 
-**Anthropic API specifics** (per [Anthropic's prompt caching docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) and its [cost guide](https://claude.com/blog/reducing-cost-and-improving-performance-with-claude-platform), 2026-09-08). Other providers differ: OpenAI caches prefixes automatically, Gemini uses explicit cached-content objects.
+**Anthropic API specifics** (per [Anthropic's prompt caching docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching), its [cost blog](https://claude.com/blog/reducing-cost-and-improving-performance-with-claude-platform) of 2026-09-08, and its [cost-and-intelligence guide](https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence) fetched 2026-10-02). Other providers differ: OpenAI caches prefixes automatically, Gemini uses explicit cached-content objects.
 - Cache reads are byte-exact across the whole prefix, up to each `cache_control` breakpoint
-- Keep effort and thinking settings fixed for a conversation; they render ahead of your content, so changing them misses the cache
+- Effort and thinking settings render ahead of your content. Changing the top-level setting misses the cache from that point onward, and on some models from the tools and system prompt as well. A per-message effort change, where supported, keeps the prefix
 - Mark rarely used tools `defer_loading`; they stay out of the cached prefix and load through tool search on demand
-- Pre-warm with `max_tokens: 0` and a breakpoint (for example at startup) so the first real request hits a warm cache. It still pays the cache write, and is rejected with `stream`, extended thinking, structured outputs, forced `tool_choice`, or inside a batch
-- The default TTL is 5 minutes from the start of the request and refreshes free on each hit. Use the 1-hour TTL (write cost 2x base input vs 1.25x) when calls arrive 5-60 minutes apart, for example a parent agent waiting on long subagent runs
+- Pre-warm or keep warm with `max_tokens: 0`. To pre-warm, send the first request's prefix with a cache breakpoint before real traffic (for example at startup). To keep a prefix warm, re-send the previous request byte-for-byte, with the same headers including any `anthropic-beta`, minus `stream`, within 4 minutes of the previous request's start and every 4 minutes after that. A cold pre-warm pays the cache write; a keep-alive on a warm entry bills only the read, though whether it refreshes an existing entry is unmeasured on some models. It is rejected with `thinking.type: "enabled"`, structured outputs, a forced `tool_choice`, the top-level `compaction` parameter, or inside a batch
+- The default TTL is 5 minutes from the start of the request, and it refreshes free on each hit. Count the gaps between consecutive requests. Use the 1-hour TTL (write 2x base input vs 1.25x) once more than about 1 gap in 20 falls between 5 and 60 minutes and gaps over an hour are rare. Stay on 5 minutes when turns arrive seconds apart, or when most pauses over 5 minutes also run past an hour. On models whose cache read is far below 0.1x input, keep-alive requests can beat the 1-hour TTL; measure on the model you run
+- Health check: agent loops on first-party traffic read a median 84% of input from cache. Below about 80%, look for a breaker
+- Breakers beyond a system-prompt edit: any per-request value ahead of the prefix (on Anthropic's triage agent, a 25-token status line raised one run from $0.59 to $4.24), setting or changing an output format, adding, removing, or reordering a tool, changing a task budget, and many small context-editing passes. On Anthropic, that new message is a mid-conversation system message where the model supports it; and make unavoidable cache-breaking changes at natural breaks
 
 ## RAG Integration
 
@@ -196,23 +198,55 @@ LLM providers cache the key-value computations for identical prompt prefixes. Wh
 
 ### Cost Control
 - Cache identical queries (hash prompt + model + generation settings)
-- Route simple tasks to cheaper/smaller models
+- Route by cost per completed task, not per-token price (see Cost per Completed Task)
 - Summarize history before exceeding context window
 - Monitor token usage by endpoint
-- Order and figures for Anthropic models: see Cost Levers and Effort below
+- Upload tables through a files API and query them with code execution instead of pasting them: 25 of 25 aggregate questions correct versus 6 of 25 pasted, at about a twelfth of the cost (Anthropic, Sonnet 5, one 1,862-row CSV)
+- Order and figures for Anthropic models: see Cost Levers and Effort and the sections after it
 
 ### Cost Levers and Effort
 
-Anthropic's [cost guide](https://claude.com/blog/reducing-cost-and-improving-performance-with-claude-platform) (2026-09-08) ranks the levers in this order: caching, trimming context, bounding output, then the Batch API for unattended work. Model routing (above) is a separate lever it pairs with effort.
+Two Anthropic sources inform this section: its [cost blog](https://claude.com/blog/reducing-cost-and-improving-performance-with-claude-platform) (2026-09-08) and its [cost-and-intelligence guide](https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence) (fetched 2026-10-02). Free levers come first: caching, trimming context, a prompt audit against the current model, and the Batch API (50% off every token, cached ones included) for work no one waits on. Then come the tradeoffs: model choice, effort, budgets, and multi-model setups.
 
-For Claude models, the guide also advises cutting instructions that frontier models take literally: verification rituals ("double-check your work"), emphasis boosters ("CRITICAL: YOU MUST ALWAYS"), and fixed step scaffolds. Rewrite them as a goal plus its reason rather than deleting the constraint. Safety constraints (confirm before destructive actions, treat fetched content as data, keep secrets out of output) stay; they get a stated reason, not a louder voice. Task-level verification such as CoT with a check step (see Strategy Selection) is a separate technique.
+For Claude models, cut instructions that frontier models take literally: verification rituals ("double-check your work"), emphasis boosters ("CRITICAL: YOU MUST ALWAYS"), and fixed step scaffolds. Rewrite them as a goal plus its reason rather than deleting the constraint. Safety constraints (confirm before destructive actions, treat fetched content as data, keep secrets out of output) stay; they get a stated reason, not a louder voice. Task-level verification such as CoT with a check step (see Strategy Selection) is a separate technique.
 
-Effort trades cost for score, and the trade varies by model and task. The guide's figures, all on Anthropic's own runs:
-- Fable 5 on FrontierCode Diamond (hardest 50 tasks): 11.5% at low effort for $5.35 per task, 30.9% at max effort for $19.00
-- "A stronger model at low effort can be cheaper than a weaker model working hard": Fable 5.1 at low effort matched Fable 5 at high effort at a third of the cost
-- Combined savings against an Opus 5.5 baseline: ~24% (SWE-bench Verified), ~67% (LegalBench), ~72% (OfficeQA Pro), ~73% (tau2-bench retail)
+Effort sets how much thinking, tool calling, and self-verification the model does, and the curve depends on the work. On research and knowledge-work benchmarks (Fable 5), the default bought nothing measurable over `medium`. On long-horizon coding (Opus 5.5, SWE-bench Pro), `xhigh` cost 2.5x `high` for 1.4 points more. Sweep two or three levels on a sample of your own traffic, each in its own session. Where outcomes are checkable, run low and re-run only the failures higher: on that coding set this matched an all-`high` pass rate at a little over half the cost. Use it for the saving, not the lift, and only with a failure signal you trust; each failure costs two runs of latency.
 
-These are best cases on four public benchmarks, not a general expectation. Measure on your workload before changing a default.
+The blog's best cases, on four public benchmarks, were combined savings of about 24% to 73% against an Opus 5.5 baseline. The blog also reports Fable 5.1 at low effort matching Fable 5 at high effort for a third of the cost on one benchmark. The guide measured the same upgrade at matched effort: on DeepResearch Bench II, Fable 5.1 cost 41% more per task than Fable 5 at `high`. Measure on your workload before changing a default.
+
+### Cost per Completed Task
+
+Price lists are per token; you pay per completed task, and a stronger model often finishes with
+fewer turns and less re-reading. On Anthropic's SWE-bench Pro subset, Fable 5.1 at `low` solved 11
+points more than Sonnet 5 at its default for 35% less per solved task; on DeepResearch Bench II the
+same pair ran the other way, with Fable 5.1 at `low` costing about four times as much per task. On
+that coding subset, Opus 5.5 at its default matched Fable 5.1 at its default for about a fifth of
+the cost per solved task. Price the hardest tenth of your tasks, not the median. A failed task bills
+its tokens and then the retry, and the tail carries the spend even when nothing fails: on one
+20-problem WideSearch run, two problems carried 43% of it.
+
+### Budgets and Output Length
+
+- A model-visible task budget saves money because the model plans around it. Anthropic's is a beta: advisory, with a 20,000-token floor, set once on the first request because a change invalidates the cache. A generous budget cut cost per task 44% for about 3 points on Fable 5.1
+- `max_tokens` is an invisible safety cap: lowering it cut cost per attempt, not cost per solved task. For agentic work set it high (the cost-and-intelligence guide uses 64,000, or 128,000 where one cut-off is costly), stream the response, and treat `stop_reason: max_tokens` as a failure
+- Ask for the answer you will read. On Anthropic's triage agent, a one-line final answer cost 14% less than a two-line one and a memo cost 2.8x the one-liner, with accuracy within noise across all three
+- An agent loop cannot see a clock. Telling it that time matters, and sending the elapsed time before each later turn, cut run time 33% to 69% at up to 1.9 points lower score (Fable 5.1). Check the score on your own tasks first
+
+### Multi-Model Strategies
+
+Sweep effort first; most workloads end there. Then price the stronger model alone at low effort;
+that is the number an advisor pairing has to beat.
+- **Advisor**: a cheaper executor consults a frontier model on hard decisions. It pays only when the executor asks, and a low-effort executor can stop asking. An Opus 5.5 executor at `high` with a Fable 5.1 advisor gained 1.7 points over Opus 5.5 alone at `high` for about 2.1x the cost, roughly what more effort buys
+- **Orchestrator**: a frontier lead plans, and cheaper workers take the bulk in parallel. It saved money in two measured cases: work larger than one context window, and a long cost tail on routine tasks. When the work was one dependent chain, or fit one context without a long cost tail, the lead's model alone at lower effort came out ahead every time
+
+### Measuring Cost on Your Workload
+
+1. Pull real tasks weighted like traffic, write an outcome check for each, and record cost per task from the response `usage`. Price five classes at their own rates: uncached input, 5-minute and 1-hour cache writes (1.25x and 2x input), cache reads, and output. See ai-ml:llmops-production-monitoring for a tracker
+2. Baseline each model tier across effort levels, and plot score against spend
+3. Add a multi-model strategy only if effort cannot close the gap, then re-run the suite
+4. Shadow the winner on a traffic slice before cutover, and keep the suite running
+
+These figures are Anthropic-internal and directional, priced at list rates when measured. Recheck them at each model release.
 
 ### Reliability
 - Set timeout limits on all LLM calls

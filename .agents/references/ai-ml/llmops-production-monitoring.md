@@ -5,7 +5,7 @@
 | Concern | Tool/Approach | When to Use |
 |---------|---------------|-------------|
 | **Prompt/response logging** | Structured logger + object store | Always; foundation for all other monitoring |
-| **Cost tracking** | Token counter + price table | Always; prevents budget blowouts |
+| **Cost tracking** | Usage classes + price table | Always; prevents budget blowouts |
 | **Latency monitoring** | Histogram metrics (P50/P95/P99) | Always; SLA compliance |
 | **Output quality drift** | Embedding distance over time | After stable baseline established |
 | **Safety/guardrails** | Input/output classifier pipeline | User-facing applications |
@@ -66,23 +66,66 @@ def logged_llm_call(client, messages: list, model: str, **kwargs) -> tuple:
 ## Token Counting and Cost Tracking
 
 ```python
-# Price per 1M tokens (input, output). Populate from the provider's current
-# pricing page and keep it in config, not code -- rates and model lineups
-# change often enough that a table pinned in source goes stale silently.
-PRICE_TABLE: dict[str, tuple[float, float]] = load_price_table()
+# Per-1M-token rates by usage class, from the provider's current pricing page.
+# Keep them in config, not code -- rates and lineups change often enough that a
+# table pinned in source goes stale silently. Store each rate, not a multiplier:
+# the cache-read discount differs by model. Field names below are Anthropic's
+# `usage` object (pass the raw `response.usage`); other providers name the
+# cached classes differently. Not priced here: the Batch API's 50% discount,
+# server-tool fees (web search, code execution), and tokens reported only in
+# `usage.iterations` when the advisor tool or compaction is on -- sum those
+# entries too, or cost reads low.
+# Keys: input, cache_write_5m, cache_write_1h, cache_read, output
+PRICE_TABLE: dict[str, dict[str, float]] = load_price_table()
+
+@dataclass
+class TaskCost:
+    cost_usd: float = 0.0
+    cache_read: int = 0
+    total_input: int = 0  # uncached input + cache reads + cache writes
+    passed: bool | None = None  # set by the task's outcome check
 
 @dataclass
 class CostTracker:
+    """In-process, one per run: flush and drop it when the run ends."""
     total_cost_usd: float = 0.0
-    calls_by_model: dict = field(default_factory=dict)
+    by_task: dict[str, TaskCost] = field(default_factory=dict)
 
-    def record(self, model: str, input_tokens: int, output_tokens: int) -> float:
-        in_price, out_price = PRICE_TABLE.get(model, (0.0, 0.0))
-        cost = (input_tokens * in_price + output_tokens * out_price) / 1_000_000
+    def record(self, task_id: str, model: str, usage: "anthropic.types.Usage") -> float:
+        # KeyError on an unpriced model, not a silent $0. Catch it at the call
+        # site, log it, and count it, so a new model ID is loud but not fatal.
+        p = PRICE_TABLE[model]
+        read = usage.cache_read_input_tokens or 0
+        written = usage.cache_creation_input_tokens or 0  # 5m + 1h writes
+        split = usage.cache_creation  # None on responses without the TTL split
+        write_1h = (split.ephemeral_1h_input_tokens or 0) if split else 0
+        cost = (
+            usage.input_tokens * p["input"]
+            + (written - write_1h) * p["cache_write_5m"]
+            + write_1h * p["cache_write_1h"]
+            + read * p["cache_read"]
+            + usage.output_tokens * p["output"]
+        ) / 1_000_000
         self.total_cost_usd += cost
-        entry = self.calls_by_model.setdefault(model, {"calls": 0, "cost": 0.0})
-        entry["calls"] += 1; entry["cost"] += cost
+        task = self.by_task.setdefault(task_id, TaskCost())
+        task.cost_usd += cost
+        task.cache_read += read
+        task.total_input += usage.input_tokens + read + written
         return cost
+
+    def mark(self, task_id: str, passed: bool) -> None:
+        self.by_task.setdefault(task_id, TaskCost()).passed = passed
+
+    def cost_per_solved_task(self) -> float | None:
+        """Spend on scored tasks over the tasks that passed; None until one passes."""
+        scored = [t for t in self.by_task.values() if t.passed is not None]
+        solved = sum(1 for t in scored if t.passed)
+        return sum(t.cost_usd for t in scored) / solved if solved else None
+
+    def cache_read_share(self) -> float | None:
+        """Aggregate over the run, not per task: a short task reads ~0% by design."""
+        total = sum(t.total_input for t in self.by_task.values())
+        return sum(t.cache_read for t in self.by_task.values()) / total if total else None
 
 def count_tokens_openai(text: str, model: str) -> int:
     """OpenAI models only -- tiktoken is OpenAI's tokenizer."""
@@ -91,6 +134,8 @@ def count_tokens_openai(text: str, model: str) -> int:
     except KeyError: enc = tiktoken.get_encoding("cl100k_base")
     return len(enc.encode(text))
 ```
+
+Call `mark()` from each task's outcome check. Alert on cache-read share in aggregate, not per task: healthy agent loops read a median 84% of their input from cache over a day of traffic, and a run below about 0.8 has something breaking the cache (see ai-ml:llm-application-patterns, Stable Prefix / KV Cache). For dashboards, export cache-read and total-input tokens as counters labeled by model, never by task ID (see the cardinality gotcha below), and alert on their rate ratio.
 
 For non-OpenAI models, use that provider's own token-counting endpoint (for Claude,
 `client.messages.count_tokens(model=..., messages=...)`). Do not reach for `tiktoken`
