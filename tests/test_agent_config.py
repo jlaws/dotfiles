@@ -1313,6 +1313,22 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertGreater(compared, 0, "no shared skills compared; the check is vacuous")
         self.assertGreater(supporting, 0, "no supporting files compared; the rglob is vacuous")
 
+    def test_fix_loops_stop_after_two_rounds(self):
+        """Fix loops end after two open rounds, matching CLAUDE.md's stop-after-two-attempts rule."""
+        surfaces = (
+            REPO / ".claude" / "skills" / "subagent-driven-development" / "SKILL.md",
+            REPO / ".agents" / "skills" / "subagent-driven-development" / "SKILL.md",
+            REPO / ".gemini" / "antigravity-cli" / "skills" / "subagent-driven-development" / "SKILL.md",
+            REPO / ".claude" / "references" / "workflow" / "task-execution-checklists.md",
+            REPO / ".agents" / "references" / "workflow" / "task-execution-checklists.md",
+        )
+        for path in surfaces:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=str(path)):
+                self.assertNotIn("Repeat until clean", text)
+                self.assertNotIn("Repeat until pass", text)
+                self.assertIn("after two fix rounds", text)
+
     def test_claude_command_effort_only_lowers_the_session_level(self):
         """`effort:` is free text to YAML, so a typo loads silently and the command runs at the
         session default. Commands only lower effort (docs/adr/workflow/

@@ -8,9 +8,9 @@ For each task in a plan, follow this cycle:
 
 1. **Implement** — follow the Implementation Checklist below
 2. **Spec compliance check** — use the Spec Compliance Checklist below
-3. **If spec issues:** fix and re-check. Repeat until pass.
+3. **If spec issues:** fix and re-check. If issues remain after two fix rounds, stop and report them.
 4. **Code quality check** — use the Code Quality Checklist below (only after spec compliance passes)
-5. **If quality issues:** fix and re-check. Repeat until pass.
+5. **If quality issues:** fix and re-check. If issues remain after two fix rounds, stop and report them.
 6. **Mark task complete**, move to next
 
 ---

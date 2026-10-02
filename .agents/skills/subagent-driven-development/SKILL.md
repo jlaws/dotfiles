@@ -41,7 +41,7 @@ For each task in order:
    - **Spec compliance** — does the diff satisfy the task brief's behavioral check and acceptance? Flag any acceptance item that **cannot be confirmed from the diff alone** for the orchestrator to resolve — never assume it holds. Treat any **unrequested addition** (extra code, deps, files beyond the brief) as a finding: scope creep is a failure, not a bonus.
    - **Code quality** — smells, edge cases, error handling, naming, test quality.
    Reviewer output is a severity-labeled findings list (Critical / Important / Nit).
-6. **Fix loop.** If Critical/Important findings exist, dispatch a fix subagent with the findings file, then re-review. Repeat until clean. Never dismiss findings pre-emptively in the reviewer prompt.
+6. **Fix loop.** If Critical/Important findings exist, dispatch a fix subagent with the findings file, then re-review. Never dismiss findings pre-emptively in the reviewer prompt. Stop after two fix rounds that leave a Critical/Important finding open: report the task as blocked with the findings file and `git status`, and leave the working tree as it is.
 7. **Mark the task done** in the ledger. When it is the phase's last task, run the phase's acceptance check, commit the phase, and record the SHA against the phase.
 
 ### Step 2: Final Whole-Branch Review
