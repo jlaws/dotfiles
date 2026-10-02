@@ -275,7 +275,7 @@ decisions, and every file in it is asserted to be currently true.
 
 ### Definition of Done
 
-A decision is done when it has: **evidence** for the choice, the **criteria and alternatives** considered, **agreement** from the deciders, a written **ADR (documentation)**, and a **realization/review plan** (how it gets built and when it is revisited).
+A decision is done when it has: **evidence** for the choice, the **criteria and alternatives** considered, **agreement** from the people making the decision, a written **ADR (documentation)**, and a **realization/review plan** (how it gets built and when it is revisited).
 
 ## Do's and Don'ts
 

@@ -16,7 +16,12 @@ import re
 import unittest
 from pathlib import Path
 
-from tests.markdown import has_unterminated_fence, heading_texts, lines_outside_fences
+from tests.markdown import (
+    fenced_blocks,
+    has_unterminated_fence,
+    heading_texts,
+    lines_outside_fences,
+)
 
 REPO = Path(__file__).resolve().parents[1]
 ADR_ROOT = REPO / "docs" / "adr"
@@ -46,10 +51,6 @@ RETIRED_KEYS = {
     "superseded-by": "a superseded ADR is deleted, not linked",
     "deciders": "git log records who wrote the record",
 }
-
-# Every template and example in the spec sits in a ```markdown or ```yaml fence that opens
-# with its frontmatter. No template nests a fence, so the first closing ``` ends the block.
-FRONTMATTER_FENCE = re.compile(r"```(?:markdown|yaml)\n(.*?)```", re.DOTALL)
 
 LIVE_STATUSES = frozenset({"proposed", "accepted"})
 
@@ -106,7 +107,7 @@ def adr_paths() -> list[Path]:
 def frontmatter(text: str) -> dict[str, str]:
     """The YAML block between the leading `---` fences, as raw string values.
 
-    Deliberately not a YAML parser: the frontmatter is four flat scalar keys, and this repo ships
+    Deliberately not a YAML parser: the frontmatter is a few flat scalar keys, and this repo ships
     no runtime pip dependencies, so there is no yaml module to reach for. It is strict about the
     closing fence, though -- without that check an unterminated block reads the whole document as
     frontmatter, which both invents keys from body lines and reports a malformed record as valid.
@@ -123,6 +124,30 @@ def frontmatter(text: str) -> dict[str, str]:
         if sep:
             fields[key.strip()] = YAML_COMMENT.sub("", value.strip())
     return {}
+
+
+def retired_keys(fields: dict[str, str]) -> dict[str, str]:
+    """The retired keys present in `fields`, each mapped to its reason.
+
+    Compared casefolded: YAML keys are case-sensitive, but `Deciders:` is the same retired field
+    to anyone copying a template.
+    """
+    present = {key.casefold() for key in fields}
+    return {key: why for key, why in RETIRED_KEYS.items() if key in present}
+
+
+def template_frontmatter(text: str) -> list[tuple[int, dict[str, str]]]:
+    """`(opening fence line, fields)` for every fenced block that opens with `---`.
+
+    The fence tag does not matter, and a block that opens like frontmatter but fails to parse
+    comes back with empty fields instead of being dropped. Either way a template cannot fall out
+    of the retired-key check without the caller seeing it.
+    """
+    return [
+        (line, frontmatter(body))
+        for line, body in fenced_blocks(text)
+        if body.startswith("---\n")
+    ]
 
 
 def sections(text: str) -> dict[str, list[str]]:
@@ -189,7 +214,7 @@ class AdrFrontmatterTests(unittest.TestCase):
         for path in adr_paths():
             with self.subTest(path=path.relative_to(REPO)):
                 fields = frontmatter(path.read_text(encoding="utf-8"))
-                present = {key: why for key, why in RETIRED_KEYS.items() if key in fields}
+                present = retired_keys(fields)
                 self.assertFalse(
                     present, f"{path.relative_to(REPO)}: retired frontmatter {present}"
                 )
@@ -331,19 +356,25 @@ class AdrTemplateTests(unittest.TestCase):
         copied into the next ADR written from it."""
         for spec in SPECS:
             rel = spec.relative_to(REPO)
-            blocks = FRONTMATTER_FENCE.findall(spec.read_text(encoding="utf-8"))
-            parsed = [fields for fields in map(frontmatter, blocks) if fields]
+            text = spec.read_text(encoding="utf-8")
+            blocks = template_frontmatter(text)
             with self.subTest(spec=rel):
-                self.assertTrue(parsed, f"{rel}: no fenced frontmatter found; check is vacuous")
-                present = sorted(key for key in RETIRED_KEYS if any(key in f for f in parsed))
                 self.assertFalse(
-                    present, f"{rel}: a template carries retired frontmatter {present}"
+                    has_unterminated_fence(text), f"{rel}: an unclosed fence hides templates"
                 )
+                self.assertTrue(blocks, f"{rel}: no fenced frontmatter found; check is vacuous")
+            for line, fields in blocks:
+                with self.subTest(spec=rel, line=line):
+                    self.assertTrue(fields, f"{rel}:{line}: fenced frontmatter does not parse")
+                    present = retired_keys(fields)
+                    self.assertFalse(
+                        present, f"{rel}:{line}: template carries retired frontmatter {present}"
+                    )
 
 
 class ParserTests(unittest.TestCase):
     """The two hand-rolled readers above carry every other test in this file. Their edge cases are
-    asserted here rather than left to whatever the four live ADRs happen to exercise."""
+    asserted here rather than left to whatever the live ADRs happen to exercise."""
 
     def test_frontmatter_reads_a_well_formed_block(self):
         self.assertEqual(
@@ -364,6 +395,17 @@ class ParserTests(unittest.TestCase):
             ),
             {"status": "accepted", "created": "2026-03-01"},
         )
+
+    def test_template_frontmatter_keeps_retagged_and_malformed_blocks(self):
+        text = (
+            "```md\n---\nDeciders: x\n---\n```\n"
+            "~~~yaml\n---\nstatus: proposed\n~~~\n"
+            "```\nnot frontmatter\n```\n"
+        )
+        blocks = template_frontmatter(text)
+        self.assertEqual([line for line, _fields in blocks], [1, 6])
+        self.assertEqual(retired_keys(blocks[0][1]), {"deciders": RETIRED_KEYS["deciders"]})
+        self.assertEqual(blocks[1][1], {}, "an unclosed frontmatter block must not parse")
 
     def test_unterminated_fence_is_detected(self):
         self.assertTrue(has_unterminated_fence("```\nx\n\n## Amendment Log\n"))
