@@ -175,5 +175,5 @@ finalized plan has no open-questions section.**
 ## Step 6: Hand off
 
 Present the completed plan to the user for approval. Alongside it, summarize which lenses ran, what each surfaced, and
-the plan's PR boundaries. Once approved, `writing-plans`' Execution Handoff applies: /j-execute-plan
-runs it and picks the mode from the plan.
+the plan's PR boundaries. Once approved, `writing-plans`' Execution Handoff applies: execute the plan in
+this session through /j-execute-plan, which picks the mode from the plan.

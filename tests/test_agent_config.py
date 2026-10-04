@@ -59,6 +59,8 @@ J_PLAN_COMMANDS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md",
 )
 
+CLAUDE_J_PLAN_COMMAND = REPO / ".claude" / "commands" / "j-plan.md"
+
 PLAN_STORAGE_SKILLS = (REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md",)
 
 PLAN_EXECUTION_CONSUMERS = (
@@ -69,6 +71,19 @@ PLAN_EXECUTION_CONSUMERS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-execute-plan" / "SKILL.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-next" / "SKILL.md",
 )
+
+# Owns "inline or subagents" for plan execution; every consumer above points here.
+EXECUTION_MODE_OWNERS = tuple(
+    root / "subagent-driven-development" / "SKILL.md"
+    for root in (
+        REPO / ".claude" / "skills",
+        REPO / ".agents" / "skills",
+        REPO / ".gemini" / "antigravity-cli" / "skills",
+    )
+)
+
+# The pre-change handoff menu; none of it may come back once the executor picks the mode.
+MODE_MENU_PHRASES = ("Which approach?", "Execute in new session", "a new session, or")
 
 CLAUDE_PLAN_EXECUTION_COMMANDS = (
     REPO / ".claude" / "commands" / "j-execute-plan.md",
@@ -945,6 +960,10 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("modification times", content)
                 self.assertIn("even when there is only one", content)
                 self.assertIn("MUST NOT execute a discovered plan without confirmation", content)
+                self.assertIn("owned by the current user", content)
+                self.assertIn("confirm a discovered plan path", content)
+                # Codex and Gemini have no Claude plan directory to fall back on.
+                self.assertNotIn("~/.claude/plans/", content)
 
     def test_plan_execution_runs_to_the_pr_without_pausing(self):
         # A mid-PR "ready for feedback" stop asks for review the PR already provides.
@@ -958,18 +977,29 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("blocking question", path.read_text())
 
     def test_plan_execution_mode_is_chosen_not_asked(self):
-        # The executor picks inline or subagent mode from the plan; one skill owns the rule.
+        # The executor picks inline or subagent mode from the plan; one section owns the rule.
+        for path in EXECUTION_MODE_OWNERS:
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("## Execution Mode\n", content)
+                self.assertIn("without asking", content)
+                self.assertIn("Decision Log", content)
         for path in (*PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS):
             content = path.read_text()
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertIn("subagent-driven-development", content)
-                self.assertIn("Mode Selection", content)
+                self.assertRegex(content, r"`subagent-driven-development`,\s+Execution Mode")
                 self.assertIn("without asking", content)
-        for path in PLAN_WORKFLOW_SKILLS:
+        for path in (*PLAN_WORKFLOW_SKILLS, *J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND):
+            content = path.read_text()
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertNotIn("Which approach?", path.read_text())
-        gemini = REPO / ".gemini" / "antigravity-cli" / "skills" / "j-execute-plan" / "SKILL.md"
-        self.assertNotIn("~/.claude/plans/", gemini.read_text())
+                for phrase in MODE_MENU_PHRASES:
+                    self.assertNotIn(phrase, content)
+
+    def test_codex_surfaces_name_codex_command_syntax(self):
+        # Codex invokes commands as `$cmd-j-*`; a bare `/j-*` names nothing it can run.
+        for path in (REPO / ".codex" / "AGENTS.md", REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md"):
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotRegex(path.read_text(), r"`/j-execute-plan|`/j-next|Run /j-execute-plan")
 
     def test_active_plan_commands_use_the_persisted_locations(self):
         for path in ACTIVE_PLAN_CONSUMERS:

@@ -245,14 +245,15 @@ Before handing off, review the finished plan against this checklist and fix any 
 
 ## Execution Handoff
 
-After the self-review, hand off with the saved path and the command that runs it. `/j-execute-plan`
-chooses inline or subagent mode from the plan, so there is no mode to ask about:
+After the self-review, report the saved path. Once the user approves the plan, execute it in this
+session by following the execute-plan command (`$cmd-j-execute-plan` in Codex, /j-execute-plan in Gemini) for that path; it picks inline or subagent mode from the plan, so
+there is no mode to ask about. Before approval, stop at:
 
 ```
-Plan saved to `<plan-file-path>`. Run /j-execute-plan <plan-file-path>.
+Plan saved to `<plan-file-path>`. Execute it with the execute-plan command.
 ```
 
-Each PR boundary's phases run to green, then the PR opens. Where a plan spans several PRs, `/j-next`
+Each PR boundary's phases run to green, then the PR opens. Where a plan spans several PRs, the next-part command (`$cmd-j-next` in Codex, /j-next in Gemini)
 picks up the next boundary once the previous one merges.
 
 ## Common Mistakes

@@ -139,7 +139,7 @@ When working in a git worktree:
 - Parallel dispatch: for concurrent independent work, load the `dispatching-parallel-agents` skill.
 - A dispatched agent returns one concise report -- prose cut, findings and evidence intact
   (`subagent-report-contract`). Nothing is archived, so re-dispatch when a report is too thin.
-- Plan execution modes: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) -- `/j-execute-plan` picks one from the plan without asking. Once a multi-PR plan's earlier PR merges, `/j-next` branches off the updated main and runs the next part.
+- Plan execution modes: execute a written plan inline in batches (`executing-plans`) or with a fresh subagent per task (`subagent-driven-development`) -- `$cmd-j-execute-plan` picks one from the plan without asking. Once a multi-PR plan's earlier PR merges, `$cmd-j-next` branches off the updated main and runs the next part.
 
 ## Task Delegation
 

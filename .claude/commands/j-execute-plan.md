@@ -4,9 +4,10 @@ description: "Execute a written implementation plan task-by-task with verificati
 argument-hint: "<path to plan file>"
 ---
 
-Read the plan file below and review it critically for gaps or contradictions before starting. Then pick the execution mode without asking: apply `subagent-driven-development`, Mode Selection, to the
-plan and state the mode plus the signals that decided it in one line. Load `executing-plans` for inline
-batches or `subagent-driven-development` for a fresh subagent per task, then follow that skill exactly
+Read the plan file below and review it critically for gaps or contradictions before starting.
+Then pick the execution mode without asking: apply `subagent-driven-development`, Execution Mode,
+which states the choice and logs it. Load `executing-plans` for inline batches or
+`subagent-driven-development` for a fresh subagent per task, then follow that skill exactly
 (maintain the plan's living-document ledger, verify each step, stop and ask on blockers).
 
 Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask) or when the PR is open for review.
