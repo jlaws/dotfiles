@@ -156,5 +156,5 @@ finalized plan has no open-questions section.**
 ## Step 6: Hand off
 
 Call `ExitPlanMode` for approval. Alongside it, summarize which lenses ran, what each surfaced, and
-the plan's PR boundaries. Once approved, `writing-plans`' Execution Handoff options apply - inline
-via /j-execute-plan, subagents, a new session, or manual.
+the plan's PR boundaries. Once approved, `writing-plans`' Execution Handoff applies: /j-execute-plan
+runs it and picks the mode from the plan.
