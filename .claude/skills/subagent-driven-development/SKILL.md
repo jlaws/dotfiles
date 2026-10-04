@@ -12,14 +12,19 @@ skills:
 
 Each task runs in an isolated subagent context instead of inheriting session history. The orchestrator (you) stays thin: dispatch, review, integrate. This keeps the main context small enough to run for hours without compaction.
 
-## When to Use (vs `executing-plans`)
+## Execution Mode
 
-| Signal | Use `subagent-driven-development` | Use `executing-plans` (inline) |
-|--------|-----------------------------------|-------------------------------|
-| Plan size | Large (many tasks, long) | Small / medium |
-| Task coupling | Mostly independent | Tightly coupled, shared state |
-| Context pressure | High — inline would compact | Low |
-| Task specs | Complete, self-contained | Need live back-and-forth |
+Read the plan's current PR boundary and pick the mode yourself, without asking. Weigh the signals
+together; there is no task-count threshold.
+
+| Signal | Subagents (this skill) | Inline (`executing-plans`) |
+|--------|------------------------|----------------------------|
+| Task specs | Complete and self-contained: files, steps, acceptance | Need live back-and-forth |
+| Coupling | Mostly disjoint files, little hand-off between tasks | Shared files, later tasks consume earlier output |
+| Context pressure | Inline would exhaust context: many tasks, or large files to read | Fits comfortably in one context |
+
+Inline on a tie. State the mode and what decided it (the signals, or "tie") in one line, record the
+same line as a Decision Log entry, then start.
 
 Both modes share the same living-document ledger (below). This skill is the *dispatch* mode; `executing-plans` is the *inline batch* mode.
 

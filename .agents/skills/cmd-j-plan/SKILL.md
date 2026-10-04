@@ -177,5 +177,5 @@ question. **The finalized plan has no open-questions section.**
 
 Report `Plan saved to <plan-file-path>` first. Present the plan for approval, and summarize which
 lenses ran, what each surfaced, and the plan's PR boundaries. Once approved, `writing-plans`'
-Execution Handoff options apply — inline via `$cmd-j-execute-plan`, subagents, a new session, or
-manual.
+Execution Handoff applies: execute the plan in this session through `$cmd-j-execute-plan`, which
+picks the mode from the plan.

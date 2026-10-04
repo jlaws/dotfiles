@@ -63,7 +63,7 @@ Name the branch from the next part's phases, `type/short-description`.
 
 Load the skills these phases actually need, then execute:
 
-- `executing-plans` (inline batches) or `subagent-driven-development` (fresh subagent per task) - same choice as /j-execute-plan: inline for small or tightly-coupled work, subagents for large or mostly-independent tasks. State which you picked and why.
+- `executing-plans` (inline batches) or `subagent-driven-development` (fresh subagent per task) - same choice as /j-execute-plan, made without asking by `subagent-driven-development`, Execution Mode, which states the choice and logs it.
 - `test-driven-development` for each TDD phase.
 - `documentation-validation` for the per-phase doc deltas.
 - Whatever domain skill the phases name.

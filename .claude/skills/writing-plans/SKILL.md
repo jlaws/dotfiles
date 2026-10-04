@@ -222,7 +222,7 @@ git commit -m "feat: add specific feature"
 
 ## Self-Review (before handoff)
 
-Before presenting execution options, review the finished plan against this checklist and fix any gap:
+Before handing off, review the finished plan against this checklist and fix any gap:
 
 - **Spec coverage** - every requirement maps to at least one task; nothing dropped.
 - **Placeholder scan** - no "TBD", "add validation", "handle edge cases", or "choose appropriate X" remains; every decision is made in the plan. A step phrased "check whether", "if it turns out", "decide during", or "re-check after" is an unresolved question in disguise: resolve it now.
@@ -237,27 +237,16 @@ Before presenting execution options, review the finished plan against this check
 
 ## Execution Handoff
 
-After the self-review, present execution options:
+After the self-review, report the saved path. Once the user approves the plan, execute it in this
+session by following /j-execute-plan for that path; it picks inline or subagent mode from the plan, so
+there is no mode to ask about. Before approval, stop at:
 
 ```
-Plan saved to `<plan-file-path>`. Execution options:
-
-1. **Execute now (inline)** - work through tasks in batches, running to the PR without pausing
-   (uses executing-plans skill; run via /j-execute-plan)
-
-2. **Execute via subagents** - fresh agent per task with per-task spec + quality review
-   (uses subagent-driven-development skill; best for large or independent-task plans)
-
-3. **Execute in new session** - open a new session and load executing-plans
-   (fresh context per batch)
-
-4. **Manual** - you execute the plan yourself
-
-Which approach?
+Plan saved to `<plan-file-path>`. Execute it with /j-execute-plan <plan-file-path>.
 ```
 
-Options 1-3 all end the same way: each PR boundary's phases run to green, then the PR opens. Where a
-plan spans several PRs, `/j-next` picks up the next boundary once the previous one merges.
+Each PR boundary's phases run to green, then the PR opens. Where a plan spans several PRs, `/j-next`
+picks up the next boundary once the previous one merges.
 
 ## Common Mistakes
 

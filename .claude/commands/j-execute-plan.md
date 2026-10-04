@@ -1,15 +1,14 @@
 ---
 name: j-execute-plan
-description: "Execute a written implementation plan task-by-task with verification gates — inline batches or a fresh subagent per task. Use when you have a saved plan ready to implement. Do NOT use for creating the plan (use /j-plan) or ad-hoc changes without a plan."
+description: "Execute a written implementation plan task-by-task with verification gates — inline batches or a fresh subagent per task, picked from the plan. Use when you have a saved plan ready to implement. Do NOT use for creating the plan (use /j-plan) or ad-hoc changes without a plan."
 argument-hint: "<path to plan file>"
 ---
 
-Read the plan file below and review it critically for gaps or contradictions before starting. Then pick the execution mode:
-
-- **Inline batches** — load the `executing-plans` skill. Best for small/medium, tightly-coupled plans.
-- **Subagent per task** — load the `subagent-driven-development` skill. Best for large plans with mostly-independent tasks, or when inline execution would exhaust context.
-
-Default to inline unless the plan is large or the tasks are clearly independent; state which mode you chose and why, then follow that skill exactly (maintain the plan's living-document ledger, verify each step, stop and ask on blockers).
+Read the plan file below and review it critically for gaps or contradictions before starting.
+Then pick the execution mode without asking: apply `subagent-driven-development`, Execution Mode,
+which states the choice and logs it. Load `executing-plans` for inline batches or
+`subagent-driven-development` for a fresh subagent per task, then follow that skill exactly
+(maintain the plan's living-document ledger, verify each step, stop and ask on blockers).
 
 Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask) or when the PR is open for review.
 

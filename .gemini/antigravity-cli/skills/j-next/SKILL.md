@@ -5,20 +5,17 @@ description: "Advance a multi-PR plan to its next part -- confirm the last part 
 
 # Next
 
-## Step 0: Discover the active plan
-
-Discover all regular, non-symlink plan files under:
-1. `scratchpad/plans/`
-2. `${TMPDIR:-/tmp}/j-plan/<repo-id>/`
-
-Display full paths and modification times, even when there is only one.
-You MUST NOT execute a discovered plan without confirmation from the user.
-
 Advance a multi-PR plan to its next part: confirm the previous part landed on `origin/main`, start a clean branch off the updated trunk, execute the next PR boundary's phases, and open the PR.
 
 Plan file: $ARGUMENTS
 
-If no path provided, use the plan file that plan mode assigned this session. Outside plan mode, check `~/.claude/plans/` for entries prefixed with this repo's name -- that directory is shared across every project, so a plan from another repo is not a candidate. Ask if more than one fits.
+If no path is provided, discover regular, non-symlink plan files in `scratchpad/plans/`, then
+`${TMPDIR:-/tmp}/j-plan/<repo-id>/` (under `/tmp/j-plan/` when `TMPDIR` is unset). Skip the temp
+location unless `j-plan/` and `<repo-id>/` are each a non-symlink directory owned by the current user;
+on a shared `/tmp` another user can plant plans there. Show the full paths and modification times, then
+ask the user to confirm the chosen path even when there is only one candidate.
+**MUST NOT execute a discovered plan without confirmation.** If there are none, ask for a path.
+Conversation context is not a plan-file substitute.
 
 ## Phase 1: Read the plan, find the next part
 
@@ -73,7 +70,7 @@ Name the branch from the next part's phases, `type/short-description`.
 
 Load the skills these phases actually need, then execute:
 
-- `executing-plans` (inline batches) or `subagent-driven-development` (fresh subagent per task) -- same choice as /j-execute-plan: inline for small or tightly-coupled work, subagents for large or mostly-independent tasks. State which you picked and why.
+- `executing-plans` (inline batches) or `subagent-driven-development` (fresh subagent per task) -- same choice as /j-execute-plan, made without asking by `subagent-driven-development`, Execution Mode, which states the choice and logs it.
 - `test-driven-development` for each TDD phase.
 - `documentation-validation` for the per-phase doc deltas.
 - Whatever domain skill the phases name.
@@ -84,7 +81,7 @@ Maintain the plan file's living-document sections as you go -- `## Progress` wit
 
 Honor the plan's validation gate before moving on, and stop on failure per `executing-plans`.
 
-Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask) or when the PR is open for review.
+Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask), to confirm a discovered plan path, or when the PR is open for review.
 
 ## Phase 5: Open the PR
 
