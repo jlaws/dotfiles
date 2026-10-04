@@ -144,7 +144,7 @@ When working in a git worktree:
 ## Task Delegation
 
 Choose the model by the assigned task, not the agent's role:
-- Default to `gpt-6-sol` with `high` effort for exploration, implementation, tests, docs, routine diagnosis, reviews, and PR work.
+- Default to `gpt-6.1-sol` with `high` effort for exploration, implementation, tests, docs, routine diagnosis, reviews, and PR work.
 - Use `gpt-6-astra` with `high` effort for creating or evaluating implementation plans, architecture decisions, or complex diagnosis with unresolved interactions across systems. State the task-specific reason when selecting Astra.
 - Gathering facts for a plan and conducting a final review do not automatically qualify for Astra. This policy takes precedence over generic workflow model tiers.
 - Pass the selected model and `high` effort when dispatching. Use a fresh context or a bounded context fork when required to apply model overrides; a full-history fork inherits the parent's model.
