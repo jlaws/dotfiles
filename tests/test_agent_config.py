@@ -271,7 +271,7 @@ PINNED_MODEL = re.compile(
 )
 # The user chose these exact Codex models. Keep the exception narrow: a dated variant or another
 # generation must still fail the stale-model guard, as must either name in another tool's ladder.
-CODEX_SELECTED_MODELS = re.compile(r"(?<![\w.-])gpt-6-(?:sol|astra)(?![\w.-])")
+CODEX_SELECTED_MODELS = re.compile(r"(?<![\w.-])(?:gpt-6\.1-sol|gpt-6-astra)(?![\w.-])")
 
 # Every asset whose run ends on a pull request. Each reports the URL; `create-pr` additionally has
 # to look for an already-open PR the way `finishing-branch` does, instead of always creating one.
@@ -715,10 +715,10 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertEqual(pinned, [], f"{path.name} pins an unapproved model version")
 
     def test_codex_model_allowlist_matches_only_exact_selected_names(self):
-        for name in ("gpt-6-sol", "gpt-6-astra"):
+        for name in ("gpt-6.1-sol", "gpt-6-astra"):
             with self.subTest(name=name):
                 self.assertEqual(CODEX_SELECTED_MODELS.sub("", f"`{name}`"), "``")
-        for name in ("gpt-6-luna", "gpt-5.6-sol", "gpt-6-sol-2026-09-28", "gpt-6-astra-pro"):
+        for name in ("gpt-6-sol", "gpt-6-luna", "gpt-5.6-sol", "gpt-6.1-sol-2026-09-28", "gpt-6-astra-pro"):
             with self.subTest(name=name):
                 self.assertIsNotNone(PINNED_MODEL.search(CODEX_SELECTED_MODELS.sub("", name)))
 
@@ -1088,16 +1088,16 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertRegex(content, CODEX_DESCRIPTION)
                 self.assertRegex(content, CODEX_INSTRUCTIONS)
 
-    def test_codex_subagents_default_to_sol_high(self):
+    def test_codex_subagents_default_to_sol_medium(self):
         content = (REPO / ".codex" / "config.toml").read_text()
         agents = re.search(r"(?ms)^\[agents\]\n(.*?)(?=^\[|\Z)", content)
         self.assertIsNotNone(agents, "subagent defaults must live under [agents]")
         assert agents is not None
         self.assertRegex(
-            agents[1], re.compile(r'^default_subagent_model = "gpt-6-sol"$', re.MULTILINE)
+            agents[1], re.compile(r'^default_subagent_model = "gpt-6\.1-sol"$', re.MULTILINE)
         )
         self.assertRegex(
-            agents[1], re.compile(r'^default_subagent_reasoning_effort = "high"$', re.MULTILINE)
+            agents[1], re.compile(r'^default_subagent_reasoning_effort = "medium"$', re.MULTILINE)
         )
 
     def test_codex_spawn_depth_matches_its_stated_cap(self):

@@ -221,7 +221,7 @@ The `.claude/` directory is self-contained with `/j-*` commands, specialist agen
 
 The `.codex/` directory contains Codex-native agents, prompts, hooks, and command rules. Reusable workflows and `$cmd-j-*` command skills live under `.agents/`, which Codex discovers directly. For example, invoke `$cmd-j-tdd` or `$cmd-j-plan` in Codex. The files under `.codex/prompts/` remain available through `/prompts:j-tdd` style slash commands.
 
-Codex subagents default to `gpt-6-sol` with `high` reasoning effort through the
+Codex subagents default to `gpt-6.1-sol` with `medium` reasoning effort through the
 `[agents]` defaults in `.codex/config.toml`. Select `gpt-6-astra` with `high` effort
 for substantive planning, architecture decisions, or complex diagnosis across systems.
 Selection follows the assigned task rather than the agent role; routine work and final reviews
