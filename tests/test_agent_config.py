@@ -957,6 +957,20 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("blocking question", path.read_text())
 
+    def test_plan_execution_mode_is_chosen_not_asked(self):
+        # The executor picks inline or subagent mode from the plan; one skill owns the rule.
+        for path in (*PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS):
+            content = path.read_text()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("subagent-driven-development", content)
+                self.assertIn("Mode Selection", content)
+                self.assertIn("without asking", content)
+        for path in PLAN_WORKFLOW_SKILLS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotIn("Which approach?", path.read_text())
+        gemini = REPO / ".gemini" / "antigravity-cli" / "skills" / "j-execute-plan" / "SKILL.md"
+        self.assertNotIn("~/.claude/plans/", gemini.read_text())
+
     def test_active_plan_commands_use_the_persisted_locations(self):
         for path in ACTIVE_PLAN_CONSUMERS:
             content = path.read_text()
