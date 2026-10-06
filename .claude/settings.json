@@ -130,5 +130,6 @@
   },
   "remoteControlAtStartup": true,
   "autoDreamEnabled": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "skipWorkflowUsageWarning": true
 }
