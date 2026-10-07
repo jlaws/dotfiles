@@ -41,15 +41,15 @@ Squash first, then rebase — a single commit resolves each conflict once instea
 ## Phase 3: Rebase onto main
 
 1. `git rebase origin/main`.
-2. On conflict, integrate rather than pick a side. Every behavior from the squashed commit must survive, rewritten to work against the updated trunk — this is the whole point. Taking `--ours` or `--theirs` wholesale is a failure, not a resolution. Re-read each resolved file end to end and confirm the branch's intent is intact, then `git add <files>` and `git rebase --continue`.
+2. On conflict, integrate rather than pick a side. Every behavior from the squashed commit must survive, rewritten to work against the updated trunk — this is the whole point. Taking `--ours` or `--theirs` wholesale is a failure, not a resolution. Before staging anything, run `git diff --name-only --diff-filter=U` and record the output as `CONFLICTED`; `git add` clears it. Re-read each resolved file end to end and confirm the branch's intent is intact, then `git add <files>` and `git rebase --continue`. If the rebase finishes without stopping, `CONFLICTED` is empty.
 3. Even with zero textual conflicts, inspect `git diff origin/main...HEAD` for semantic drift — the branch may call APIs that `main` renamed, moved, or deleted.
 4. If a conflict cannot be resolved with confidence, run `git rebase --abort` and hand the branch back untouched with an explanation. Never guess at a resolution.
 
 ## Phase 4: Targeted Verify and Repair
 
-1. `git diff --name-only origin/main..HEAD` — the merged file set.
-2. Run only the tests that directly cover those files. Do NOT run the full suite, a whole-repo lint, or a full build — the point is a fast gate on what actually changed.
-3. If a changed file has no covering test, name it in the report rather than passing over it silently.
+1. The test set is `CONFLICTED` from Phase 3 plus any file you edited to fix semantic drift. Run the tests that directly cover those files and the code that imports or calls what the resolution changed. This verifies the conflict resolution; the branch itself was tested before the PR. If the set is empty, run no tests: the Phase 3 drift inspection and the `git diff --check` in step 7 are the gate.
+2. Do NOT run the full suite, a whole-repo lint, or a full build unless the branch and `main` overlapped significantly. That call is yours: judge it from the conflicts and the drift inspection, and state the reason in the report when you escalate.
+3. If a file in the test set has no covering test, name it in the report rather than passing over it silently.
 4. Apply the `documentation-validation` gate: confirm product docs and any KB self-docs match this branch's changes, or declare N/A with a reason. Passing tests do not prove docs are current.
 
 5. A failed check blocks the push, not repair work. MUST diagnose and fix recoverable whitespace, formatting, test, and documentation failures within the branch's work without asking for confirmation. An extra blank line introduced during conflict resolution is yours to fix, not a reason to hand work back to the user. Never weaken or skip checks to obtain a pass.
@@ -71,12 +71,12 @@ Squash first, then rebase — a single commit resolves each conflict once instea
    <2-3 bullets of what changed>
 
    ## Test Plan
-   - [x] <targeted tests that ran, and their result>
+   - [x] <conflicted files, the tests that ran against them and their result, or "clean rebase, no conflicts">
    EOF
    )"
    ```
    Write a real body — never `--fill`. Carry over any reviewer-relevant detail from the old body that still applies.
-2. Stay on `BRANCH`. Report the PR URL, the commit count (1), files changed, which targeted tests ran with their result, and the Phase 2 recovery SHA.
+2. Stay on `BRANCH`. Report the PR URL, the commit count (1), files changed, `CONFLICTED`, which targeted tests ran with their result (or that none ran because the rebase was clean), whether the full suite ran and why, and the Phase 2 recovery SHA.
 
 ### Cross-References
 
