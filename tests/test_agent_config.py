@@ -850,7 +850,15 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for path in REBASE_COMMANDS:
             text = path.read_text(encoding="utf-8")
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertIn("git diff --name-only --diff-filter=U", text)
+                capture = "git diff --name-only --diff-filter=U"
+                self.assertIn(capture, text)
+                # `git add` clears the unmerged list, so the capture has to come first.
+                self.assertLess(text.index(capture), text.index("git add <files>"))
+                self.assertIn("The test set is `CONFLICTED` plus `DRIFT`", text)
+                # After the rebase, `origin/main...HEAD` shows only the branch's side.
+                self.assertIn('git diff "$BASE" origin/main', text)
+                self.assertIn("whether the full suite ran and why", text)
+                self.assertNotIn("git diff --name-only origin/main..HEAD", text)
                 self.assertNotIn("the merged file set", text)
 
     def test_shared_skills_carry_no_upstream_superpowers_paths(self):
