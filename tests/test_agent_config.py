@@ -341,6 +341,14 @@ BRANCH_BASE_REF_DOCS = (
     REPO / ".gemini" / "GEMINI.md",
 )
 
+# A rebase's risk is its conflict resolutions; every copy scopes verification to them.
+REBASE_COMMANDS = (
+    REPO / ".claude" / "commands" / "j-rebase.md",
+    REPO / ".codex" / "prompts" / "j-rebase.md",
+    REPO / ".agents" / "skills" / "cmd-j-rebase" / "SKILL.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-rebase" / "SKILL.md",
+)
+
 # Two trees, one table of contents. Bodies may differ -- `.claude/` is written for a generation
 # `.agents/` does not serve -- but a heading in one tree and not the other means a reader of the
 # other tree cannot find the topic at all. See docs/adr/workflow/reference-tree-section-parity.md.
@@ -837,6 +845,21 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 )
                 stale = [line.strip() for line in lines if "git merge-base HEAD main" in line]
                 self.assertEqual(stale, [], f"{path.name}: merge-base against local main")
+
+    def test_rebase_verification_is_scoped_to_conflicted_files(self):
+        for path in REBASE_COMMANDS:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                capture = "git diff --name-only --diff-filter=U"
+                self.assertIn(capture, text)
+                # `git add` clears the unmerged list, so the capture has to come first.
+                self.assertLess(text.index(capture), text.index("git add <files>"))
+                self.assertIn("The test set is `CONFLICTED` plus `DRIFT`", text)
+                # After the rebase, `origin/main...HEAD` shows only the branch's side.
+                self.assertIn('git diff "$BASE" origin/main', text)
+                self.assertIn("whether the full suite ran and why", text)
+                self.assertNotIn("git diff --name-only origin/main..HEAD", text)
+                self.assertNotIn("the merged file set", text)
 
     def test_shared_skills_carry_no_upstream_superpowers_paths(self):
         """`.agents/` was seeded from obra/superpowers; its paths and cross-reference
