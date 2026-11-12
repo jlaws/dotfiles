@@ -118,6 +118,13 @@ def applicable(settings: list[Setting], macos_version: str) -> list[Setting]:
     ]
 
 
+def split_by_privilege(settings: list[Setting]) -> tuple[list[Setting], list[Setting]]:
+    """Return ``(per_user, system_wide)``: user/host-scope settings, then sudo-scope settings."""
+    per_user = [s for s in settings if s.scope != "sudo"]
+    system_wide = [s for s in settings if s.scope == "sudo"]
+    return per_user, system_wide
+
+
 def domain_snapshot_name(domain: str) -> str:
     """Return a filesystem-safe filename for a domain's plist snapshot."""
     safe = domain.strip("/").replace("/", "_")
@@ -169,7 +176,13 @@ def apply_defaults(
     *,
     dry_run: bool = False,
 ) -> None:
-    """Apply settings, snapshotting each domain first and recording originals + applied values."""
+    """Apply settings, snapshotting each domain first and recording originals + applied values.
+
+    A write that fails (for example a sandboxed app's container that macOS privacy protection
+    blocks until the terminal has Full Disk Access) is logged and skipped; the rest still apply.
+    Only settings that were written are recorded, so revert never touches a skipped key.
+    """
+    failed: list[str] = []
     for scope, domain, group in _group_by_domain(applicable(settings, macos_version)):
         if dry_run:
             for setting in group:
@@ -181,14 +194,26 @@ def apply_defaults(
         before = export_domain(runner, scope, domain)
         snapshot = archive.domains_dir / domain_snapshot_name(domain)
         snapshot.write_bytes(plistlib.dumps(before))
+        written: list[Setting] = []
         for setting in group:
-            runner.run(
+            result = runner.run(
                 _defaults_argv(scope, ["write", domain, setting.key, *build_write_args(setting)]),
                 sudo=(scope == "sudo"),
+                capture=True,
+                check=False,
             )
+            if not result.ok:
+                _LOG.warning(
+                    "could not set %s %s: %s", domain, setting.key, result.stderr.strip()
+                )
+                failed.append(f"{domain} {setting.key}")
+                continue
+            written.append(setting)
             _LOG.debug("set %s %s", domain, setting.key)
+        if not written:
+            continue
         after = export_domain(runner, scope, domain)
-        for setting in group:
+        for setting in written:
             archive.record_setting(
                 scope,
                 domain,
@@ -196,15 +221,34 @@ def apply_defaults(
                 present=setting.key in before,
                 applied=after.get(setting.key),
             )
+    if failed:
+        _LOG.warning(
+            "Skipped %d setting(s) macOS refused to write. Sandboxed apps (e.g. TextEdit) need "
+            "Full Disk Access for your terminal (System Settings > Privacy & Security); "
+            "grant it and re-run with -m to apply them.",
+            len(failed),
+        )
     if not dry_run:
         archive.save()
 
 
-def revert_defaults(archive: Archive, runner: Runner, *, dry_run: bool = False) -> RevertSummary:
-    """Revert recorded settings, importing the merged domain only for keys setup still owns."""
+def revert_defaults(
+    archive: Archive,
+    runner: Runner,
+    *,
+    dry_run: bool = False,
+    sudo: bool | None = None,
+) -> RevertSummary:
+    """Revert recorded settings, importing the merged domain only for keys setup still owns.
+
+    ``sudo`` limits the revert to sudo-scope records (True) or user/host-scope records (False);
+    None reverts every record.
+    """
     summary = RevertSummary()
     groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for record in archive.manifest.get("settings", []):
+        if sudo is not None and (record["scope"] == "sudo") != sudo:
+            continue
         groups.setdefault((record["scope"], record["domain"]), []).append(record)
 
     for (scope, domain), records in groups.items():

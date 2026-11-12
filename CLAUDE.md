@@ -28,9 +28,11 @@ make verify   # check + test -- the full gate (make test alone already fails on 
 ```
 
 ### What setup.sh does:
+Steps run in privilege order: every per-user change first (archive saved), then Homebrew (needs an admin-group account; skipped with a warning otherwise), then one `sudo` prompt for system-wide settings. Cancelling the prompt keeps the per-user changes; uninstall follows the same order.
+
 1. **Syncs dotfiles and agent configurations** to `~` (root dotfiles, `.vim/` runtime, and agent skills/commands/prompts/agents replaced; machine-specific agent configuration files merged with repo keys), archiving replaced or merged originals first
-2. **Installs Homebrew packages**: coreutils, moreutils, findutils, fd, wget, just, vim, grep, jq, openssh, git, gh, autojump, mermaid-cli, poppler, agent-browser, uv, node, rg; then symlinks `gsha256sum` to `sha256sum`, downloads the Chrome binary `agent-browser` drives, installs the stable Rust toolchain and `rust-analyzer` through the official rustup installer, `typescript-language-server` and `typescript` via npm, the elan and Claude Code CLIs, and finishes with `brew cleanup`
-3. **Configures macOS**: ~200 `defaults` settings for Finder, Dock, Safari, security, etc., snapshotting each domain first
+2. **Installs tooling**: per-user first (stable Rust toolchain and `rust-analyzer` via the official rustup installer, and elan; the Claude Code, Codex, and Antigravity CLIs are not installed), then Homebrew packages: coreutils, moreutils, findutils, fd, wget, just, vim, grep, jq, openssh, git, gh, autojump, mermaid-cli, poppler, agent-browser, uv, node, rg; then symlinks `gsha256sum` to `sha256sum`, downloads the Chrome binary `agent-browser` drives, installs `typescript-language-server` and `typescript` via npm, and finishes with `brew cleanup`
+3. **Configures macOS**: ~200 `defaults` settings for Finder, Dock, Safari, security, etc., snapshotting each domain first; user/host-scope settings and `~/Library` apply with the per-user steps, `sudo`-scope settings and system items (`pmset`, `nvram`, firewall, `/Volumes`) after the `sudo` prompt
 
 Every run writes a timestamped archive to `~/.dotfile-archive/<timestamp>/` (files, per-domain
 plist snapshots, `manifest.json`). `--uninstall` reverts a run; reverts are **guarded** — a file

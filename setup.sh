@@ -6,6 +6,10 @@
 # (sync dotfiles, install packages, configure macOS, archive, and uninstall)
 # lives there. Run `./setup.sh --help` for usage.
 #
+# Steps run in privilege order: per-user changes first, then Homebrew (admin
+# group), then a single sudo prompt for system-wide settings. Cancel the prompt
+# to keep only the per-user changes.
+#
 # Examples:
 #   ./setup.sh                # Interactive: run all steps
 #   ./setup.sh -cb            # Sync agent config + install Homebrew packages

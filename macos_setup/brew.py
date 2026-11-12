@@ -1,4 +1,4 @@
-"""Install Homebrew packages and language tooling (mirrors the original install step).
+"""Install per-user tooling, then Homebrew packages (which need an admin-group account).
 
 Package installs are not reversed by ``--uninstall``: removing tools the user may now depend on
 (git, node, vim) is riskier than leaving them. This module only applies.
@@ -43,9 +43,6 @@ _ELAN_INSTALL = (
     "curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh "
     "| sh -s -- -y --default-toolchain none"
 )
-_CLAUDE_INSTALL = "curl -fsSL https://claude.ai/install.sh | bash"
-_CODEX_INSTALL = "curl -fsSL https://chatgpt.com/codex/install.sh | sh"
-_ANTIGRAVITY_INSTALL = "curl -fsSL https://antigravity.google/cli/install.sh | bash"
 _RUST_INSTALL = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
 
@@ -75,16 +72,46 @@ def _run(runner: Runner, argv: list[str], *, dry_run: bool, check: bool = True) 
     runner.run(argv, check=check)
 
 
-def install_packages(runner: Runner, *, dry_run: bool = False) -> None:
-    """Update Homebrew, install packages and language servers, then clean up.
+def install_user_tooling(runner: Runner, *, dry_run: bool = False) -> None:
+    """Install per-user toolchains and CLIs under ``~`` (no admin rights or Homebrew needed)."""
+    _run(runner, ["bash", "-c", _RUST_INSTALL], dry_run=dry_run)
+    _ensure_cargo_path()
+    _run(runner, ["rustup", "default", "stable"], dry_run=dry_run)
+    _run(runner, ["rustup", "component", "add", "rust-analyzer"], dry_run=dry_run)
+    _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
 
-    Raises:
-        RuntimeError: If Homebrew is not installed.
+
+def brew_writable(runner: Runner) -> bool:
+    """Return True when Homebrew is installed and this user can write to its repository.
+
+    Homebrew's tree is owned by the installing admin with group ``admin``; a standard user
+    can read it but cannot ``brew install``. Checking write access up front lets setup skip
+    the Homebrew step with a warning instead of failing partway.
     """
     if not runner.run(["brew", "--version"], capture=True, check=False).ok:
-        message = "Homebrew is required but not installed. Install it from https://brew.sh first."
-        _LOG.error(message)
-        raise RuntimeError(message)
+        _LOG.warning(
+            "Skipped Homebrew packages: Homebrew is not installed (see https://brew.sh)."
+        )
+        return False
+    repo = runner.run(["brew", "--repository"], capture=True, check=False).stdout.strip()
+    if not repo or not runner.run(["test", "-w", repo], check=False).ok:
+        _LOG.warning(
+            "Skipped Homebrew packages: %s is not writable by this user "
+            "(Homebrew needs an account in the admin group).",
+            repo or "the Homebrew repository",
+        )
+        return False
+    return True
+
+
+def install_packages(runner: Runner, *, dry_run: bool = False) -> bool:
+    """Update Homebrew, install packages and brew-backed tooling, then clean up.
+
+    Needs an account that can write the Homebrew prefix (the admin group). When Homebrew is
+    missing or not writable, logs a warning and returns False without changing anything.
+    """
+    if not brew_writable(runner):
+        return False
 
     _run(runner, ["brew", "update"], dry_run=dry_run)
     _run(runner, ["brew", "upgrade"], dry_run=dry_run)
@@ -108,18 +135,11 @@ def install_packages(runner: Runner, *, dry_run: bool = False) -> None:
     # stated as belief rather than fact.
     #
     # check=False because this is the one bootstrap step that pulls a large binary over the
-    # network, and it sits ahead of rustup, npm, elan, the CLI installers (Claude, Codex, Antigravity),
-    # and `brew cleanup`. A flaky download should not take those with it. The `ln -sf` above is
-    # soft for the same reason.
+    # network, and it sits ahead of the npm language servers and `brew cleanup`. A flaky download
+    # should not take those with it. The `ln -sf` above is soft for the same reason.
     _run(runner, ["agent-browser", "install"], dry_run=dry_run, check=False)
 
-    _run(runner, ["bash", "-c", _RUST_INSTALL], dry_run=dry_run)
-    _ensure_cargo_path()
-    _run(runner, ["rustup", "default", "stable"], dry_run=dry_run)
-    _run(runner, ["rustup", "component", "add", "rust-analyzer"], dry_run=dry_run)
+    # npm comes from the brew `node` formula, so its global prefix is the Homebrew prefix.
     _run(runner, ["npm", "install", "-g", "typescript-language-server", "typescript"], dry_run=dry_run)
-    _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
-    _run(runner, ["bash", "-c", _CLAUDE_INSTALL], dry_run=dry_run)
-    _run(runner, ["bash", "-c", _CODEX_INSTALL], dry_run=dry_run)
-    _run(runner, ["bash", "-c", _ANTIGRAVITY_INSTALL], dry_run=dry_run)
     _run(runner, ["brew", "cleanup"], dry_run=dry_run)
+    return True

@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from macos_setup.brew import install_packages
+from macos_setup.brew import brew_writable, install_packages, install_user_tooling
 from macos_setup.shell import CompletedResult
 from tests.fakes import FakeRunner
 
@@ -17,7 +17,16 @@ def _brew_ok(argv):
         return CompletedResult(0, "Homebrew 4.0.0", "")
     if argv == ["brew", "--prefix"]:
         return CompletedResult(0, "/opt/homebrew\n", "")
+    if argv == ["brew", "--repository"]:
+        return CompletedResult(0, "/opt/homebrew\n", "")
     return CompletedResult(0, "", "")
+
+
+def _brew_readonly(argv):
+    """Homebrew installed by an admin; the current (standard) user cannot write to it."""
+    if argv == ["test", "-w", "/opt/homebrew"]:
+        return CompletedResult(1, "", "")
+    return _brew_ok(argv)
 
 
 class InstallPackagesTests(unittest.TestCase):
@@ -30,16 +39,38 @@ class InstallPackagesTests(unittest.TestCase):
         else:
             os.environ.pop("PATH", None)
 
-    def test_raises_when_brew_missing(self):
+    def test_missing_brew_skips_with_warning(self):
         runner = FakeRunner(lambda argv: CompletedResult(1, "", "not found"))
-        with self.assertRaises(RuntimeError):
-            install_packages(runner)
+        with self.assertLogs("macos_setup.brew", level="WARNING"):
+            self.assertFalse(install_packages(runner))
+        self.assertFalse(any(argv[:2] == ["brew", "install"] for argv in runner.argv_list()))
 
-    def test_missing_brew_logs_error(self):
-        runner = FakeRunner(lambda argv: CompletedResult(1, "", "not found"))
-        with self.assertLogs("macos_setup.brew", level="ERROR"):
-            with self.assertRaises(RuntimeError):
-                install_packages(runner)
+    def test_unwritable_brew_skips_with_warning(self):
+        """A standard (non-admin) user can run `brew --version` but not `brew install`."""
+        runner = FakeRunner(_brew_readonly)
+        with self.assertLogs("macos_setup.brew", level="WARNING") as cm:
+            self.assertFalse(install_packages(runner))
+        self.assertTrue(any("admin" in line for line in cm.output))
+        argvs = runner.argv_list()
+        self.assertFalse(any(argv[:2] in (["brew", "install"], ["brew", "update"]) for argv in argvs))
+        self.assertNotIn(["npm", "install", "-g", "typescript-language-server", "typescript"], argvs)
+
+    def test_brew_writable_true_for_admin(self):
+        self.assertTrue(brew_writable(FakeRunner(_brew_ok)))
+
+    def test_install_packages_never_uses_sudo(self):
+        runner = FakeRunner(_brew_ok)
+        install_packages(runner)
+        self.assertFalse(any(call["sudo"] for call in runner.calls))
+
+    def test_user_tooling_needs_no_homebrew(self):
+        """rustup, elan, and the agent CLIs install under ~, so a standard user gets them."""
+        runner = FakeRunner()
+        install_user_tooling(runner)
+        argvs = runner.argv_list()
+        self.assertFalse(any(argv[0] in ("brew", "npm") for argv in argvs))
+        self.assertFalse(any(call["sudo"] for call in runner.calls))
+        self.assertIn(["rustup", "default", "stable"], argvs)
 
     def test_runs_update_install_and_cleanup_in_order(self):
         runner = FakeRunner(_brew_ok)
@@ -106,8 +137,8 @@ class InstallPackagesTests(unittest.TestCase):
 
     def test_a_failed_chrome_download_does_not_abort_the_rest_of_the_install(self):
         """`agent-browser install` is the one bootstrap step that pulls a large binary over the
-        network, and it runs ahead of rustup, npm, elan, and the Claude CLI. A flaky download must
-        not take those with it, so it is the one install step that passes check=False.
+        network, and it runs ahead of npm and `brew cleanup`. A flaky download must
+        not take the npm language servers or `brew cleanup` with it, so it passes check=False.
         """
 
         def handler(argv):
@@ -115,13 +146,13 @@ class InstallPackagesTests(unittest.TestCase):
                 return CompletedResult(1, "", "network unreachable")
             return None
 
-        runner = FakeRunner(handler)
+        runner = FakeRunner(lambda argv: handler(argv) or _brew_ok(argv))
         install_packages(runner, dry_run=False)
 
         argvs = runner.argv_list()
         self.assertIn(["agent-browser", "install"], argvs)
         # Everything sequenced after it still ran.
-        self.assertIn(["rustup", "default", "stable"], argvs)
+        self.assertIn(["npm", "install", "-g", "typescript-language-server", "typescript"], argvs)
         self.assertIn(["brew", "cleanup"], argvs)
 
     def test_regression_rust_analyzer_comes_from_rustup_not_brew(self):
@@ -133,11 +164,12 @@ class InstallPackagesTests(unittest.TestCase):
         The mechanism changed in f15fcf5: rustup used to be a brew formula, invoked through an
         absolute `$(brew --prefix rustup)/bin/rustup` path, and is now the official installer from
         sh.rustup.rs followed by a bare `rustup`. The bare call resolves through PATH
-        (`~/.cargo/bin`), which `install_packages` ensures is prepended to `os.environ["PATH"]`.
+        (`~/.cargo/bin`), which `install_user_tooling` ensures is prepended to `os.environ["PATH"]`.
         This guards against the wrong source for rust-analyzer and guarantees binary resolvability.
         """
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
+        install_user_tooling(runner)
 
         argvs = runner.argv_list()
         rust_install = ["bash", "-c", "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"]
@@ -203,7 +235,7 @@ class InstallPackagesTests(unittest.TestCase):
                     f"/fake/home/.cargo/bin{os.pathsep}/usr/bin",
                 )
 
-    def test_install_packages_ensures_cargo_path_before_rustup(self) -> None:
+    def test_user_tooling_ensures_cargo_path_before_rustup(self) -> None:
         call_order: list[str] = []
 
         def record_ensure() -> None:
@@ -216,20 +248,21 @@ class InstallPackagesTests(unittest.TestCase):
 
         runner = FakeRunner(handler)
         with mock.patch("macos_setup.brew._ensure_cargo_path", side_effect=record_ensure):
-            install_packages(runner)
+            install_user_tooling(runner)
 
         self.assertIn("ensure_path", call_order)
         self.assertIn("rustup", call_order)
         self.assertLess(call_order.index("ensure_path"), call_order.index("rustup"))
 
-    def test_installs_ai_agent_clis(self) -> None:
+    def test_does_not_install_ai_agent_clis(self) -> None:
+        """Claude Code, Codex, and Antigravity CLIs are installed by the user, not by setup."""
         runner = FakeRunner(_brew_ok)
+        install_user_tooling(runner)
         install_packages(runner)
 
-        argvs = runner.argv_list()
-        self.assertIn(["bash", "-c", "curl -fsSL https://claude.ai/install.sh | bash"], argvs)
-        self.assertIn(["bash", "-c", "curl -fsSL https://chatgpt.com/codex/install.sh | sh"], argvs)
-        self.assertIn(["bash", "-c", "curl -fsSL https://antigravity.google/cli/install.sh | bash"], argvs)
+        commands = [" ".join(argv) for argv in runner.argv_list()]
+        for name in ("claude.ai/install", "codex", "antigravity"):
+            self.assertFalse(any(name in command for command in commands), name)
 
     def test_install_logs_info_per_package(self):
         runner = FakeRunner(_brew_ok)

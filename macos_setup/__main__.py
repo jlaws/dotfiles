@@ -2,6 +2,10 @@
 
 ``setup.sh`` execs ``python3 -m macos_setup``. Install steps archive what they change; ``--uninstall``
 reverts a run (guarded). ``--dry-run`` previews without writing. See ``README.md`` for usage.
+
+Work is ordered by privilege: per-user changes run and are archived first, Homebrew (admin group)
+next, and the single ``sudo`` prompt last. A standard user, or one who cancels the password
+prompt, still ends with every per-user change applied.
 """
 
 from __future__ import annotations
@@ -15,12 +19,18 @@ from datetime import datetime
 from pathlib import Path
 
 from macos_setup.archive import Archive, resolve_archive
-from macos_setup.brew import install_packages
+from macos_setup.brew import install_packages, install_user_tooling
 from macos_setup.dotfiles import revert_files, sync_agents, sync_dotfiles
 from macos_setup.logging_setup import configure_logging
-from macos_setup.macos_defaults import SETTINGS, apply_defaults, revert_defaults
+from macos_setup.macos_defaults import SETTINGS, apply_defaults, revert_defaults, split_by_privilege
 from macos_setup.shell import Runner
-from macos_setup.system import apply_system, revert_system
+from macos_setup.system import (
+    apply_system,
+    apply_user_system,
+    has_system_wide,
+    revert_system,
+    revert_user_system,
+)
 
 # Not `logging.getLogger(__name__)`: when this file runs as the entry point (`python3 -m
 # macos_setup`), Python sets `__name__` to the literal string "__main__", which would create an
@@ -65,11 +75,6 @@ class Actions:
     def run_all(self) -> bool:
         """Whether every install step is selected (the no-flags default)."""
         return all([self.dotfiles, self.agents, self.brew, self.macos, self.restart])
-
-    @property
-    def needs_sudo(self) -> bool:
-        """Whether the selected install steps require administrator privileges."""
-        return self.brew or self.macos or self.restart
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -166,13 +171,26 @@ def _start_sudo_keepalive(runner: Runner) -> None:
     thread.start()
 
 
-def _preflight(runner: Runner) -> None:
-    """Close System Settings and acquire administrator privileges."""
+_SUDO_SKIPPED = "Skipped system-wide settings (no administrator privileges); per-user changes applied."
+
+
+def _close_system_settings(runner: Runner) -> None:
+    """Quit System Settings so it does not overwrite the preferences being changed."""
     runner.run(
         ["osascript", "-e", 'tell application "System Settings" to quit'], check=False
     )
-    runner.run(["sudo", "-v"], check=False)
-    _start_sudo_keepalive(runner)
+
+
+def _acquire_sudo(runner: Runner) -> bool:
+    """Ask for administrator privileges; return False when denied, failed, or cancelled."""
+    _LOG.info("System-wide settings need administrator privileges.")
+    try:
+        ok = runner.run(["sudo", "-v"], check=False).ok
+    except KeyboardInterrupt:
+        ok = False
+    if ok:
+        _start_sudo_keepalive(runner)
+    return ok
 
 
 def restart_apps(runner: Runner, *, dry_run: bool = False) -> None:
@@ -200,7 +218,7 @@ def _list_archives(root: Path) -> None:
         print(f"  {name}")
 
 
-def _uninstall(archive_root: Path, actions: Actions, runner: Runner) -> int:
+def _uninstall(archive_root: Path, actions: Actions, runner: Runner, home: Path) -> int:
     """Revert a previously archived run."""
     try:
         path = resolve_archive(archive_root, actions.uninstall_ref)
@@ -215,10 +233,16 @@ def _uninstall(archive_root: Path, actions: Actions, runner: Runner) -> int:
     archive = Archive.load(path)
     touched_macos = bool(archive.manifest.get("settings") or archive.manifest.get("system"))
     if touched_macos and not actions.dry_run:
-        _preflight(runner)
+        _close_system_settings(runner)
     revert_files(archive, dry_run=actions.dry_run)
-    revert_defaults(archive, runner, dry_run=actions.dry_run)
-    revert_system(archive, runner, dry_run=actions.dry_run)
+    revert_defaults(archive, runner, dry_run=actions.dry_run, sudo=False)
+    revert_user_system(archive, runner, home, dry_run=actions.dry_run)
+    if has_system_wide(archive):
+        if actions.dry_run or _acquire_sudo(runner):
+            revert_defaults(archive, runner, dry_run=actions.dry_run, sudo=True)
+            revert_system(archive, runner, dry_run=actions.dry_run)
+        else:
+            _LOG.warning(_SUDO_SKIPPED)
     if touched_macos and not actions.dry_run:
         restart_apps(runner)
     _LOG.info("Reverted from %s", path)
@@ -232,9 +256,6 @@ def _install(actions: Actions, runner: Runner, repo: Path, home: Path, archive_r
     ):
         _LOG.warning("Aborted.")
         return 1
-    if actions.needs_sudo and not actions.dry_run:
-        _preflight(runner)
-
     target = Path(actions.project) if actions.project else home
     if actions.dry_run:
         archive = Archive.in_memory(_timestamp())
@@ -242,16 +263,36 @@ def _install(actions: Actions, runner: Runner, repo: Path, home: Path, archive_r
         archive = Archive.create(archive_root, _timestamp())
         archive.manifest["macos_version"] = _macos_version(runner)
 
+    per_user, system_wide = split_by_privilege(SETTINGS)
+    version = _macos_version(runner) if actions.macos else ""
+
+    # 1. Per-user changes: no admin group, no sudo.
     if actions.dotfiles:
         sync_dotfiles(repo, home, archive, dry_run=actions.dry_run)
     if actions.agents:
         sync_agents(repo, target, archive, dry_run=actions.dry_run)
     if actions.brew:
-        install_packages(runner, dry_run=actions.dry_run)
+        install_user_tooling(runner, dry_run=actions.dry_run)
     if actions.macos:
-        version = _macos_version(runner)
-        apply_defaults(SETTINGS, archive, runner, version, dry_run=actions.dry_run)
-        apply_system(archive, runner, home, dry_run=actions.dry_run)
+        if not actions.dry_run:
+            _close_system_settings(runner)
+        apply_defaults(per_user, archive, runner, version, dry_run=actions.dry_run)
+        apply_user_system(archive, runner, home, dry_run=actions.dry_run)
+    if not actions.dry_run:
+        archive.save()
+
+    # 2. Homebrew: needs a writable prefix (admin group); skipped with a warning otherwise.
+    if actions.brew:
+        install_packages(runner, dry_run=actions.dry_run)
+
+    # 3. System-wide changes: the one sudo prompt, last, so cancelling it loses nothing above.
+    if actions.macos:
+        if actions.dry_run or _acquire_sudo(runner):
+            apply_defaults(system_wide, archive, runner, version, dry_run=actions.dry_run)
+            apply_system(archive, runner, home, dry_run=actions.dry_run)
+        else:
+            _LOG.warning(_SUDO_SKIPPED)
+
     if actions.restart:
         restart_apps(runner, dry_run=actions.dry_run)
     if not actions.dry_run:
@@ -285,7 +326,7 @@ def main(
         _list_archives(archive_root)
         return 0
     if actions.uninstall:
-        return _uninstall(archive_root, actions, runner)
+        return _uninstall(archive_root, actions, runner, home)
     return _install(actions, runner, repo, home, archive_root)
 
 

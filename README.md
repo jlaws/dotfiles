@@ -81,6 +81,16 @@ library only — no virtualenv or pip installs at runtime). It performs three ma
 **archives every file and setting it changes** so a run can be undone later (see
 [Uninstall / Reset](#uninstall--reset)).
 
+### Privilege order
+Steps run in privilege order, so a standard (non-admin) user can apply everything that is theirs:
+1. **Per-user** (no admin rights): dotfiles, agent configuration, per-user tooling (rustup,
+   elan), per-user macOS preferences, revealing `~/Library`. The
+   archive is saved before moving on.
+2. **Homebrew** (admin group): Homebrew must be writable by the current user. If it is missing or
+   not writable, this step is skipped with a warning.
+3. **System-wide** (`sudo`): the admin password is requested once, at the end. Cancel or fail the
+   prompt to skip these settings and keep only the per-user changes. The run still exits 0.
+
 ### 1. Sync Dotfiles
 Copies dotfiles and agent workflows to your home directory:
 - **Executable knowledge assets** (skills, commands, prompts, and agent roles under `.claude/`, `.agents/`, `.codex/`, and `.gemini/`) are fully replaced with the latest versions from the repository.
@@ -97,9 +107,11 @@ Before modifying or overwriting any existing file, the original is saved into th
 - **Language tools**: `uv`
 - **Rust tooling**: `rustup`, stable toolchain, `rust-analyzer` component
 - **Language servers**: `node`, `pyright`
-- **AI agent tooling**: Claude Code, Codex, Antigravity CLI
+- **AI agent CLIs**: not installed. Install Claude Code, Codex, or Antigravity yourself; setup only syncs their config.
 
-Homebrew packages are **not** removed on uninstall.
+Rust and elan install under `~` and need no admin rights. Homebrew formulae,
+`agent-browser install`, and the npm language servers need a writable Homebrew prefix. Homebrew
+packages are **not** removed on uninstall.
 
 ### 3. Configure macOS
 Sets hundreds of macOS preferences including:
@@ -111,7 +123,11 @@ Sets hundreds of macOS preferences including:
 - **Security**: Password required immediately after sleep
 
 Before each setting is changed, its prior value (and a full snapshot of the affected preference
-domain) is recorded in the archive so it can be restored.
+domain) is recorded in the archive so it can be restored. Per-user preferences are applied first;
+system-wide ones (`sudo`-scope defaults, `pmset`, `nvram`, `systemsetup`, firewall, `/Volumes`)
+run only after the admin password prompt. A setting macOS refuses to write (for example TextEdit's
+sandboxed preferences when the terminal lacks Full Disk Access) is skipped with a warning and not
+recorded; grant Full Disk Access and re-run `./setup.sh -m` to apply it.
 
 ## Uninstall / Reset
 
@@ -132,7 +148,9 @@ matches what setup applied. If you changed it afterward, it is left untouched an
 newly added are removed. System-level settings (`pmset`, `nvram`, `systemsetup`, firewall) are
 reverted on a best-effort basis — readable values are restored, and anything that can't be read
 back precisely is returned to a known macOS default and logged. Empty parent directories created
-while installing managed files are retained.
+while installing managed files are retained. Uninstall follows the same privilege order: per-user
+reverts run first, and the admin password is requested only if the run changed system-wide
+settings.
 
 ## Manual Configuration
 

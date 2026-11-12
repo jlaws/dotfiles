@@ -191,9 +191,22 @@ def apply_system(archive: Archive, runner: Runner, home: Path, *, dry_run: bool 
 
     _apply_pmset(archive, runner, dry_run=dry_run)
     _apply_restartfreeze(archive, runner, dry_run=dry_run)
-    _apply_chflags(archive, runner, home, dry_run=dry_run)
+    _apply_chflags_volumes(archive, runner, dry_run=dry_run)
     if not dry_run:
         archive.save()
+
+
+def apply_user_system(archive: Archive, runner: Runner, home: Path, *, dry_run: bool = False) -> None:
+    """Apply the system-level settings a standard user can change: reveal ``~/Library``."""
+    if dry_run:
+        _LOG.info("would reveal ~/Library")
+        return
+    archive.record_system("chflags:library", present=True, original="hidden", applied="nohidden")
+    library = str(home / "Library")
+    runner.run(["chflags", "nohidden", library], check=False)
+    runner.run(["xattr", "-d", "com.apple.FinderInfo", library], check=False)
+    _LOG.info("revealed ~/Library")
+    archive.save()
 
 
 def _apply_pmset(archive: Archive, runner: Runner, *, dry_run: bool) -> None:
@@ -228,22 +241,33 @@ def _apply_restartfreeze(archive: Archive, runner: Runner, *, dry_run: bool) -> 
     _LOG.info("set systemsetup:restartfreeze")
 
 
-def _apply_chflags(archive: Archive, runner: Runner, home: Path, *, dry_run: bool) -> None:
-    """Reveal ~/Library and /Volumes (default macOS state is hidden)."""
+def _apply_chflags_volumes(archive: Archive, runner: Runner, *, dry_run: bool) -> None:
+    """Reveal /Volumes (default macOS state is hidden)."""
     if dry_run:
-        _LOG.info("would reveal ~/Library and /Volumes")
+        _LOG.info("would reveal /Volumes")
         return
-    archive.record_system("chflags:library", present=True, original="hidden", applied="nohidden")
     archive.record_system("chflags:volumes", present=True, original="hidden", applied="nohidden")
-    library = str(home / "Library")
-    runner.run(["chflags", "nohidden", library], check=False)
-    runner.run(["xattr", "-d", "com.apple.FinderInfo", library], check=False)
     runner.run(["chflags", "nohidden", "/Volumes"], sudo=True, check=False)
-    _LOG.info("revealed ~/Library and /Volumes")
+    _LOG.info("revealed /Volumes")
+
+
+def revert_user_system(archive: Archive, runner: Runner, home: Path, *, dry_run: bool = False) -> None:
+    """Re-hide ``~/Library`` if setup revealed it (no administrator privileges needed)."""
+    names = {record["name"] for record in archive.manifest.get("system", [])}
+    if "chflags:library" in names and not dry_run:
+        runner.run(["chflags", "hidden", str(home / "Library")], check=False)
+        _LOG.info("revert chflags ~/Library (re-hidden, best-effort)")
+
+
+def has_system_wide(archive: Archive) -> bool:
+    """Return True when the archive recorded anything whose revert needs administrator privileges."""
+    names = {record["name"] for record in archive.manifest.get("system", [])}
+    sudo_settings = any(r["scope"] == "sudo" for r in archive.manifest.get("settings", []))
+    return sudo_settings or bool(names - {"chflags:library"})
 
 
 def revert_system(archive: Archive, runner: Runner, *, dry_run: bool = False) -> None:
-    """Best-effort revert of system settings, guarded where the value reads back."""
+    """Best-effort revert of system-wide settings (needs sudo), guarded where the value reads back."""
     records = {record["name"]: record for record in archive.manifest.get("system", [])}
     home = Path.home()
 
@@ -262,10 +286,9 @@ def revert_system(archive: Archive, runner: Runner, *, dry_run: bool = False) ->
 
     if "pmset" in records:
         _revert_pmset(records["pmset"], runner, dry_run=dry_run)
-    if "chflags:library" in records and not dry_run:
-        runner.run(["chflags", "hidden", str(home / "Library")], check=False)
+    if "chflags:volumes" in records and not dry_run:
         runner.run(["chflags", "hidden", "/Volumes"], sudo=True, check=False)
-        _LOG.info("revert chflags (re-hidden, best-effort)")
+        _LOG.info("revert chflags /Volumes (re-hidden, best-effort)")
     if "systemsetup:restartfreeze" in records:
         _LOG.warning("skip systemsetup:restartfreeze (no getter; left as-is)")
 
