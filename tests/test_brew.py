@@ -254,19 +254,15 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertIn("rustup", call_order)
         self.assertLess(call_order.index("ensure_path"), call_order.index("rustup"))
 
-    def test_installs_ai_agent_clis(self) -> None:
-        runner = FakeRunner()
+    def test_does_not_install_ai_agent_clis(self) -> None:
+        """Claude Code, Codex, and Antigravity CLIs are installed by the user, not by setup."""
+        runner = FakeRunner(_brew_ok)
         install_user_tooling(runner)
+        install_packages(runner)
 
-        argvs = runner.argv_list()
-        self.assertIn(["bash", "-c", "curl -fsSL https://claude.ai/install.sh | bash"], argvs)
-        self.assertIn(["bash", "-c", "curl -fsSL https://antigravity.google/cli/install.sh | bash"], argvs)
-
-    def test_does_not_install_codex_cli_by_default(self) -> None:
-        runner = FakeRunner()
-        install_user_tooling(runner)
-
-        self.assertFalse(any("codex" in " ".join(argv) for argv in runner.argv_list()))
+        commands = [" ".join(argv) for argv in runner.argv_list()]
+        for name in ("claude.ai/install", "codex", "antigravity"):
+            self.assertFalse(any(name in command for command in commands), name)
 
     def test_install_logs_info_per_package(self):
         runner = FakeRunner(_brew_ok)

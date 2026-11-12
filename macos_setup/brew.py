@@ -43,8 +43,6 @@ _ELAN_INSTALL = (
     "curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh "
     "| sh -s -- -y --default-toolchain none"
 )
-_CLAUDE_INSTALL = "curl -fsSL https://claude.ai/install.sh | bash"
-_ANTIGRAVITY_INSTALL = "curl -fsSL https://antigravity.google/cli/install.sh | bash"
 _RUST_INSTALL = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
 
@@ -81,8 +79,6 @@ def install_user_tooling(runner: Runner, *, dry_run: bool = False) -> None:
     _run(runner, ["rustup", "default", "stable"], dry_run=dry_run)
     _run(runner, ["rustup", "component", "add", "rust-analyzer"], dry_run=dry_run)
     _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
-    _run(runner, ["bash", "-c", _CLAUDE_INSTALL], dry_run=dry_run)
-    _run(runner, ["bash", "-c", _ANTIGRAVITY_INSTALL], dry_run=dry_run)
 
 
 def brew_writable(runner: Runner) -> bool:
