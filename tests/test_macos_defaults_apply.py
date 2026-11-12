@@ -121,6 +121,40 @@ class SplitByPrivilegeTests(unittest.TestCase):
         self.assertTrue(all(s.scope == "sudo" for s in system_wide))
 
 
+class ApplyDefaultsWriteFailureTests(unittest.TestCase):
+    """A protected domain (e.g. TextEdit's sandbox container without Full Disk Access) must not
+    abort the run: `defaults write` exits 1 with "Could not write domain ...; exiting"."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_failed_write_is_skipped_and_not_recorded(self):
+        fake = FakeDefaults({"com.apple.dock": {}})
+
+        def handler(argv):
+            if argv[:3] == ["defaults", "write", "com.apple.TextEdit"]:
+                return CompletedResult(1, "", "Could not write domain com.apple.TextEdit; exiting")
+            return fake.handle(argv)
+
+        runner = FakeRunner(handler)
+        archive = Archive.create(self.tmp, "ts")
+        settings = [
+            Setting("com.apple.TextEdit", "RichText", "int", 0),
+            Setting("com.apple.dock", "tilesize", "int", 36),
+        ]
+
+        with self.assertLogs("macos_setup.macos_defaults", level="WARNING") as cm:
+            apply_defaults(settings, archive, runner, "14.0")
+
+        self.assertEqual(fake.state["com.apple.dock"]["tilesize"], 36)
+        recorded = [(r["domain"], r["key"]) for r in archive.manifest["settings"]]
+        self.assertEqual(recorded, [("com.apple.dock", "tilesize")])
+        self.assertTrue(any("Full Disk Access" in line for line in cm.output))
+
+
 class RevertDefaultsTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())

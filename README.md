@@ -125,7 +125,9 @@ Sets hundreds of macOS preferences including:
 Before each setting is changed, its prior value (and a full snapshot of the affected preference
 domain) is recorded in the archive so it can be restored. Per-user preferences are applied first;
 system-wide ones (`sudo`-scope defaults, `pmset`, `nvram`, `systemsetup`, firewall, `/Volumes`)
-run only after the admin password prompt.
+run only after the admin password prompt. A setting macOS refuses to write (for example TextEdit's
+sandboxed preferences when the terminal lacks Full Disk Access) is skipped with a warning and not
+recorded; grant Full Disk Access and re-run `./setup.sh -m` to apply it.
 
 ## Uninstall / Reset
 

@@ -176,7 +176,13 @@ def apply_defaults(
     *,
     dry_run: bool = False,
 ) -> None:
-    """Apply settings, snapshotting each domain first and recording originals + applied values."""
+    """Apply settings, snapshotting each domain first and recording originals + applied values.
+
+    A write that fails (for example a sandboxed app's container that macOS privacy protection
+    blocks until the terminal has Full Disk Access) is logged and skipped; the rest still apply.
+    Only settings that were written are recorded, so revert never touches a skipped key.
+    """
+    failed: list[str] = []
     for scope, domain, group in _group_by_domain(applicable(settings, macos_version)):
         if dry_run:
             for setting in group:
@@ -188,14 +194,26 @@ def apply_defaults(
         before = export_domain(runner, scope, domain)
         snapshot = archive.domains_dir / domain_snapshot_name(domain)
         snapshot.write_bytes(plistlib.dumps(before))
+        written: list[Setting] = []
         for setting in group:
-            runner.run(
+            result = runner.run(
                 _defaults_argv(scope, ["write", domain, setting.key, *build_write_args(setting)]),
                 sudo=(scope == "sudo"),
+                capture=True,
+                check=False,
             )
+            if not result.ok:
+                _LOG.warning(
+                    "could not set %s %s: %s", domain, setting.key, result.stderr.strip()
+                )
+                failed.append(f"{domain} {setting.key}")
+                continue
+            written.append(setting)
             _LOG.debug("set %s %s", domain, setting.key)
+        if not written:
+            continue
         after = export_domain(runner, scope, domain)
-        for setting in group:
+        for setting in written:
             archive.record_setting(
                 scope,
                 domain,
@@ -203,6 +221,13 @@ def apply_defaults(
                 present=setting.key in before,
                 applied=after.get(setting.key),
             )
+    if failed:
+        _LOG.warning(
+            "Skipped %d setting(s) macOS refused to write. Sandboxed apps (e.g. TextEdit) need "
+            "Full Disk Access for your terminal (System Settings > Privacy & Security); "
+            "grant it and re-run with -m to apply them.",
+            len(failed),
+        )
     if not dry_run:
         archive.save()
 
