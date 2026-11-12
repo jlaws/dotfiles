@@ -44,7 +44,6 @@ _ELAN_INSTALL = (
     "| sh -s -- -y --default-toolchain none"
 )
 _CLAUDE_INSTALL = "curl -fsSL https://claude.ai/install.sh | bash"
-_CODEX_INSTALL = "curl -fsSL https://chatgpt.com/codex/install.sh | sh"
 _ANTIGRAVITY_INSTALL = "curl -fsSL https://antigravity.google/cli/install.sh | bash"
 _RUST_INSTALL = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
@@ -83,7 +82,6 @@ def install_user_tooling(runner: Runner, *, dry_run: bool = False) -> None:
     _run(runner, ["rustup", "component", "add", "rust-analyzer"], dry_run=dry_run)
     _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
     _run(runner, ["bash", "-c", _CLAUDE_INSTALL], dry_run=dry_run)
-    _run(runner, ["bash", "-c", _CODEX_INSTALL], dry_run=dry_run)
     _run(runner, ["bash", "-c", _ANTIGRAVITY_INSTALL], dry_run=dry_run)
 
 

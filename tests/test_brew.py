@@ -260,8 +260,13 @@ class InstallPackagesTests(unittest.TestCase):
 
         argvs = runner.argv_list()
         self.assertIn(["bash", "-c", "curl -fsSL https://claude.ai/install.sh | bash"], argvs)
-        self.assertIn(["bash", "-c", "curl -fsSL https://chatgpt.com/codex/install.sh | sh"], argvs)
         self.assertIn(["bash", "-c", "curl -fsSL https://antigravity.google/cli/install.sh | bash"], argvs)
+
+    def test_does_not_install_codex_cli_by_default(self) -> None:
+        runner = FakeRunner()
+        install_user_tooling(runner)
+
+        self.assertFalse(any("codex" in " ".join(argv) for argv in runner.argv_list()))
 
     def test_install_logs_info_per_package(self):
         runner = FakeRunner(_brew_ok)

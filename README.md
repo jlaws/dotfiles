@@ -84,7 +84,7 @@ library only — no virtualenv or pip installs at runtime). It performs three ma
 ### Privilege order
 Steps run in privilege order, so a standard (non-admin) user can apply everything that is theirs:
 1. **Per-user** (no admin rights): dotfiles, agent configuration, per-user tooling (rustup,
-   elan, Claude Code, Codex, Antigravity), per-user macOS preferences, revealing `~/Library`. The
+   elan, Claude Code, Antigravity), per-user macOS preferences, revealing `~/Library`. The
    archive is saved before moving on.
 2. **Homebrew** (admin group): Homebrew must be writable by the current user. If it is missing or
    not writable, this step is skipped with a warning.
@@ -107,7 +107,7 @@ Before modifying or overwriting any existing file, the original is saved into th
 - **Language tools**: `uv`
 - **Rust tooling**: `rustup`, stable toolchain, `rust-analyzer` component
 - **Language servers**: `node`, `pyright`
-- **AI agent tooling**: Claude Code, Codex, Antigravity CLI
+- **AI agent tooling**: Claude Code, Antigravity CLI (Codex is not installed; install it yourself if you want it)
 
 Rust, elan, and the AI agent CLIs install under `~` and need no admin rights. Homebrew formulae,
 `agent-browser install`, and the npm language servers need a writable Homebrew prefix. Homebrew
