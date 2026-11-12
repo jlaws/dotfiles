@@ -7,7 +7,13 @@ import unittest
 from pathlib import Path
 
 from macos_setup.archive import Archive
-from macos_setup.macos_defaults import Setting, apply_defaults, revert_defaults
+from macos_setup.macos_defaults import (
+    SETTINGS,
+    Setting,
+    apply_defaults,
+    revert_defaults,
+    split_by_privilege,
+)
 from macos_setup.shell import CompletedResult
 from tests.fakes import FakeRunner
 
@@ -106,6 +112,15 @@ class ApplyDefaultsTests(unittest.TestCase):
         self.assertFalse(any(c[:2] == ["defaults", "write"] for c in runner.argv_list()))
 
 
+class SplitByPrivilegeTests(unittest.TestCase):
+    def test_partitions_registry_by_sudo_scope(self):
+        per_user, system_wide = split_by_privilege(SETTINGS)
+        self.assertEqual(len(per_user) + len(system_wide), len(SETTINGS))
+        self.assertTrue(per_user and system_wide)
+        self.assertTrue(all(s.scope in ("user", "host") for s in per_user))
+        self.assertTrue(all(s.scope == "sudo" for s in system_wide))
+
+
 class RevertDefaultsTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -133,6 +148,17 @@ class RevertDefaultsTests(unittest.TestCase):
         self.assertNotIn("autohide", fake.state["com.apple.dock"])
         self.assertIn(("com.apple.dock", "tilesize"), summary.reverted)
         self.assertIn(("com.apple.dock", "autohide"), summary.reverted)
+
+    def test_revert_limited_to_scope(self):
+        fake = FakeDefaults({"com.apple.dock": {"tilesize": 48}})
+        archive, runner = self._apply(fake)
+
+        summary = revert_defaults(archive, runner, sudo=True)
+
+        self.assertEqual(summary.reverted, [])
+        self.assertEqual(fake.state["com.apple.dock"]["tilesize"], 36)
+        summary = revert_defaults(archive, runner, sudo=False)
+        self.assertEqual(fake.state["com.apple.dock"]["tilesize"], 48)
 
     def test_revert_skips_user_modified(self):
         fake = FakeDefaults({"com.apple.dock": {"tilesize": 48}})

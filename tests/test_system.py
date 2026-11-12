@@ -9,11 +9,14 @@ from macos_setup.archive import Archive
 from macos_setup.shell import CompletedResult
 from macos_setup.system import (
     apply_system,
+    apply_user_system,
+    has_system_wide,
     parse_firewall_state,
     parse_nvram_value,
     parse_pmset_custom,
     parse_timezone,
     revert_system,
+    revert_user_system,
 )
 from tests.fakes import FakeRunner
 
@@ -100,6 +103,47 @@ class ApplySystemTests(unittest.TestCase):
 
         self.assertNotIn(["nvram", "SystemAudioVolume= "], runner.argv_list())
 
+    def test_system_wide_apply_leaves_home_library_alone(self):
+        runner = FakeRunner(_reader)
+        archive = Archive.create(self.tmp, "ts")
+
+        apply_system(archive, runner, self.tmp)
+
+        self.assertNotIn(["chflags", "nohidden", str(self.tmp / "Library")], runner.argv_list())
+        self.assertIn(
+            {"argv": ["chflags", "nohidden", "/Volumes"], "sudo": True, "capture": False, "check": False},
+            runner.calls,
+        )
+
+
+class ApplyUserSystemTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_reveals_library_without_sudo(self):
+        runner = FakeRunner()
+        archive = Archive.create(self.tmp, "ts")
+
+        apply_user_system(archive, runner, self.tmp)
+
+        self.assertIn(["chflags", "nohidden", str(self.tmp / "Library")], runner.argv_list())
+        self.assertFalse(any(call["sudo"] for call in runner.calls))
+        self.assertEqual([r["name"] for r in archive.manifest["system"]], ["chflags:library"])
+        self.assertFalse(has_system_wide(archive))
+
+    def test_revert_rehides_library_without_sudo(self):
+        archive = Archive.create(self.tmp, "ts")
+        archive.record_system("chflags:library", present=True, original="hidden", applied="nohidden")
+        runner = FakeRunner()
+
+        revert_user_system(archive, runner, self.tmp)
+
+        self.assertEqual(runner.argv_list(), [["chflags", "hidden", str(self.tmp / "Library")]])
+        self.assertFalse(any(call["sudo"] for call in runner.calls))
+
 
 class RevertSystemTests(unittest.TestCase):
     def setUp(self):
@@ -145,6 +189,23 @@ class RevertSystemTests(unittest.TestCase):
         with self.assertLogs("macos_setup.system", level="WARNING") as cm:
             revert_system(archive, runner)
         self.assertTrue(any("user-modified" in line for line in cm.output))
+
+    def test_has_system_wide_for_sudo_records(self):
+        archive = Archive.create(self.tmp, "ts")
+        archive.record_system("chflags:volumes", present=True, original="hidden", applied="nohidden")
+        self.assertTrue(has_system_wide(archive))
+
+    def test_legacy_archive_rehides_volumes_with_sudo(self):
+        """Archives from before the split record both chflags keys; /Volumes still reverts."""
+        archive = Archive.create(self.tmp, "ts")
+        archive.record_system("chflags:library", present=True, original="hidden", applied="nohidden")
+        archive.record_system("chflags:volumes", present=True, original="hidden", applied="nohidden")
+        runner = FakeRunner()
+
+        revert_system(archive, runner)
+
+        hide = [c for c in runner.calls if c["argv"][:2] == ["chflags", "hidden"]]
+        self.assertEqual([(c["argv"][2], c["sudo"]) for c in hide], [("/Volumes", True)])
 
     def test_restore_logs_info(self):
         archive = Archive.create(self.tmp, "ts")

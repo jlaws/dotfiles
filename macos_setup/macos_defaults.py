@@ -118,6 +118,13 @@ def applicable(settings: list[Setting], macos_version: str) -> list[Setting]:
     ]
 
 
+def split_by_privilege(settings: list[Setting]) -> tuple[list[Setting], list[Setting]]:
+    """Return ``(per_user, system_wide)``: user/host-scope settings, then sudo-scope settings."""
+    per_user = [s for s in settings if s.scope != "sudo"]
+    system_wide = [s for s in settings if s.scope == "sudo"]
+    return per_user, system_wide
+
+
 def domain_snapshot_name(domain: str) -> str:
     """Return a filesystem-safe filename for a domain's plist snapshot."""
     safe = domain.strip("/").replace("/", "_")
@@ -200,11 +207,23 @@ def apply_defaults(
         archive.save()
 
 
-def revert_defaults(archive: Archive, runner: Runner, *, dry_run: bool = False) -> RevertSummary:
-    """Revert recorded settings, importing the merged domain only for keys setup still owns."""
+def revert_defaults(
+    archive: Archive,
+    runner: Runner,
+    *,
+    dry_run: bool = False,
+    sudo: bool | None = None,
+) -> RevertSummary:
+    """Revert recorded settings, importing the merged domain only for keys setup still owns.
+
+    ``sudo`` limits the revert to sudo-scope records (True) or user/host-scope records (False);
+    None reverts every record.
+    """
     summary = RevertSummary()
     groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for record in archive.manifest.get("settings", []):
+        if sudo is not None and (record["scope"] == "sudo") != sudo:
+            continue
         groups.setdefault((record["scope"], record["domain"]), []).append(record)
 
     for (scope, domain), records in groups.items():
