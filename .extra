@@ -15,9 +15,12 @@ unset current_limit
 
 # PATH additions
 export PATH="$HOME/.local/bin:$PATH"
-export PATH="/Users/jlaws/.antigravity/antigravity/bin:$PATH"
+[ -d "$HOME/.antigravity/antigravity/bin" ] && export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
 export PATH="/usr/local/sbin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
-export PATH="${HOMEBREW_PREFIX}/opt/openssl/bin:$PATH"
+# HOMEBREW_PREFIX comes from `brew shellenv`; without it this entry would be /opt/openssl/bin.
+if [ -n "${HOMEBREW_PREFIX:-}" ] && [ -d "$HOMEBREW_PREFIX/opt/openssl/bin" ]; then
+	export PATH="$HOMEBREW_PREFIX/opt/openssl/bin:$PATH"
+fi
 
 # AWS
 export AWS_SDK_LOAD_CONFIG=true

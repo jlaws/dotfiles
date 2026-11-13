@@ -74,10 +74,23 @@ HIST_STAMPS="yyyy-mm-dd"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git)
 
-# Homebrew completions
-fpath=(~/.zfunc /opt/homebrew/share/zsh/site-functions $fpath)
+# Homebrew: a login shell usually has HOMEBREW_PREFIX from `brew shellenv` in ~/.zprofile.
+# Fall back to the standard Apple Silicon and Intel prefixes so a shell without it still works.
+if [[ -z ${HOMEBREW_PREFIX:-} ]]; then
+  for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    if [[ -x $_brew ]]; then
+      eval "$("$_brew" shellenv)"
+      break
+    fi
+  done
+  unset _brew
+fi
 
-source $ZSH/oh-my-zsh.sh
+# Homebrew completions
+fpath=(~/.zfunc ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share/zsh/site-functions} $fpath)
+
+# Oh My Zsh is a manual prerequisite (see README); start a plain shell without it.
+[[ -f $ZSH/oh-my-zsh.sh ]] && source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
@@ -107,8 +120,10 @@ source $ZSH/oh-my-zsh.sh
 
 
 # extra
-source ~/.extra
-source ~/.work
+[[ -f ~/.extra ]] && source ~/.extra
+# Optional machine-local settings, not tracked here.
+[[ -f ~/.work ]] && source ~/.work
+true
 
 export GPG_TTY=$(tty)
 
