@@ -274,10 +274,6 @@ Skills are synchronized to `~/.gemini/antigravity-cli/skills/` to match Antigrav
 | `swift-lsp` | Swift | Xcode (bundled) |
 | `rust-analyzer-lsp` | Rust | `rustup component add rust-analyzer` (manual) |
 
-## Credits
-
-Built on the shoulders of others. See [REFERENCES.md](REFERENCES.md) for sources of inspiration and borrowed patterns — dotfiles lineage, the agent knowledge base, and vendored files.
-
 **Workflow Plugins:**
 
 | Plugin | Adds |
@@ -285,12 +281,6 @@ Built on the shoulders of others. See [REFERENCES.md](REFERENCES.md) for sources
 | `commit-commands` | `/commit`, `/commit-push-pr`, `/clean_gone` |
 | `claude-md-management` | `/revise-claude-md` for CLAUDE.md maintenance |
 
-Install after running `setup.sh` launch claude and run:
-```bash
-/plugin install pyright-lsp@claude-plugin-directory
-/plugin install typescript-lsp@claude-plugin-directory
-/plugin install swift-lsp@claude-plugin-directory
-/plugin install rust-analyzer-lsp@claude-plugin-directory
-/plugin install commit-commands@claude-plugin-directory
-/plugin install claude-md-management@claude-plugin-directory
-```
+## Credits
+
+Built on the shoulders of others. See [REFERENCES.md](REFERENCES.md) for sources of inspiration and borrowed patterns — dotfiles lineage, the agent knowledge base, and vendored files.
