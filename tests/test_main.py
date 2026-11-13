@@ -214,7 +214,6 @@ class PrivilegeOrderTests(unittest.TestCase):
         sudo_prompt = self._index(calls, lambda c: c["argv"] == ["sudo", "-v"])
         first_brew = self._index(calls, lambda c: c["argv"][:2] == ["brew", "update"])
         last_brew = self._index(calls, lambda c: c["argv"] == ["brew", "cleanup"])
-        last_rustup = self._index(calls, lambda c: c["argv"][0] == "rustup", last=True)
         last_user_write = self._index(
             calls,
             lambda c: c["argv"][:2] == ["defaults", "write"] and not c["sudo"],
@@ -224,7 +223,7 @@ class PrivilegeOrderTests(unittest.TestCase):
             calls, lambda c: c["argv"] == ["chflags", "nohidden", str(self.home / "Library")]
         )
         first_sudo = self._index(calls, lambda c: c["sudo"])
-        for user_step in (last_rustup, last_user_write, library):
+        for user_step in (last_user_write, library):
             self.assertLess(user_step, first_brew)
         self.assertLess(last_brew, sudo_prompt)
         self.assertLess(sudo_prompt, first_sudo)
@@ -236,7 +235,7 @@ class PrivilegeOrderTests(unittest.TestCase):
                 self._main([*flags, "-f"], runner)
                 self.assertNotIn(["sudo", "-v"], runner.argv_list())
 
-    def test_standard_user_skips_brew_but_keeps_user_tooling(self):
+    def test_standard_user_skips_brew(self):
         def handler(argv):
             if argv[:2] == ["test", "-w"]:
                 return CompletedResult(1, "", "")
@@ -248,8 +247,8 @@ class PrivilegeOrderTests(unittest.TestCase):
 
         argvs = runner.argv_list()
         self.assertEqual(code, 0)
-        self.assertIn(["rustup", "default", "stable"], argvs)
         self.assertNotIn(["brew", "install", "coreutils"], argvs)
+        self.assertFalse(any(argv and argv[0] == "rustup" for argv in argvs))
 
     def test_declined_sudo_keeps_per_user_changes(self):
         def handler(argv):

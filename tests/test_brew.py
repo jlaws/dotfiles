@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-import os
 import unittest
-from pathlib import Path
-from unittest import mock
 
-from macos_setup.brew import brew_writable, install_packages, install_user_tooling
+from macos_setup.brew import brew_writable, install_packages
 from macos_setup.shell import CompletedResult
 from tests.fakes import FakeRunner
 
@@ -30,15 +27,6 @@ def _brew_readonly(argv):
 
 
 class InstallPackagesTests(unittest.TestCase):
-    def setUp(self) -> None:
-        self._orig_path = os.environ.get("PATH")
-
-    def tearDown(self) -> None:
-        if self._orig_path is not None:
-            os.environ["PATH"] = self._orig_path
-        else:
-            os.environ.pop("PATH", None)
-
     def test_missing_brew_skips_with_warning(self):
         runner = FakeRunner(lambda argv: CompletedResult(1, "", "not found"))
         with self.assertLogs("macos_setup.brew", level="WARNING"):
@@ -62,15 +50,6 @@ class InstallPackagesTests(unittest.TestCase):
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
         self.assertFalse(any(call["sudo"] for call in runner.calls))
-
-    def test_user_tooling_needs_no_homebrew(self):
-        """rustup, elan, and the agent CLIs install under ~, so a standard user gets them."""
-        runner = FakeRunner()
-        install_user_tooling(runner)
-        argvs = runner.argv_list()
-        self.assertFalse(any(argv[0] in ("brew", "npm") for argv in argvs))
-        self.assertFalse(any(call["sudo"] for call in runner.calls))
-        self.assertIn(["rustup", "default", "stable"], argvs)
 
     def test_runs_update_install_and_cleanup_in_order(self):
         runner = FakeRunner(_brew_ok)
@@ -155,109 +134,23 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertIn(["npm", "install", "-g", "typescript-language-server", "typescript"], argvs)
         self.assertIn(["brew", "cleanup"], argvs)
 
-    def test_regression_rust_analyzer_comes_from_rustup_not_brew(self):
-        """rust-analyzer must come from `rustup component add`, never `brew install rust-analyzer`.
+    def test_installs_no_rust_or_lean_tooling(self):
+        """Setup installs no rustup, rust-analyzer, or elan; projects pin their own toolchains.
 
-        A brew-installed rust-analyzer shadows the toolchain's own copy on PATH and then drifts
-        from the active toolchain. That is the original regression and it still applies.
-
-        The mechanism changed in f15fcf5: rustup used to be a brew formula, invoked through an
-        absolute `$(brew --prefix rustup)/bin/rustup` path, and is now the official installer from
-        sh.rustup.rs followed by a bare `rustup`. The bare call resolves through PATH
-        (`~/.cargo/bin`), which `install_user_tooling` ensures is prepended to `os.environ["PATH"]`.
-        This guards against the wrong source for rust-analyzer and guarantees binary resolvability.
+        A brew rust-analyzer or rustup would also shadow the toolchain's own copy on PATH.
         """
+        import macos_setup.brew as brew
+
+        self.assertFalse(hasattr(brew, "install_user_tooling"))
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
-        install_user_tooling(runner)
-
-        argvs = runner.argv_list()
-        rust_install = ["bash", "-c", "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"]
-        self.assertNotIn(["brew", "install", "rust-analyzer"], argvs)
-        self.assertNotIn(["brew", "install", "rustup"], argvs)
-        self.assertIn(rust_install, argvs)
-        self.assertIn(["rustup", "default", "stable"], argvs)
-        self.assertIn(["rustup", "component", "add", "rust-analyzer"], argvs)
-        self.assertLess(
-            argvs.index(rust_install),
-            argvs.index(["rustup", "default", "stable"]),
-        )
-        self.assertLess(
-            argvs.index(["rustup", "default", "stable"]),
-            argvs.index(["rustup", "component", "add", "rust-analyzer"]),
-        )
-
-    def test_ensure_cargo_path_prepends_to_path(self) -> None:
-        from macos_setup.brew import _ensure_cargo_path
-
-        fake_home = Path("/fake/home")
-        with mock.patch("pathlib.Path.home", return_value=fake_home):
-            with mock.patch.dict(os.environ, {"PATH": "/usr/bin:/bin"}, clear=True):
-                _ensure_cargo_path()
-                self.assertEqual(
-                    os.environ["PATH"],
-                    f"/fake/home/.cargo/bin{os.pathsep}/usr/bin:/bin",
-                )
-
-    def test_ensure_cargo_path_respects_cargo_home(self) -> None:
-        from macos_setup.brew import _ensure_cargo_path
-
-        with mock.patch.dict(
-            os.environ,
-            {"CARGO_HOME": "/custom/cargo", "PATH": "/usr/bin"},
-            clear=True,
-        ):
-            _ensure_cargo_path()
-            self.assertEqual(
-                os.environ["PATH"],
-                f"/custom/cargo/bin{os.pathsep}/usr/bin",
-            )
-
-    def test_ensure_cargo_path_handles_empty_path(self) -> None:
-        from macos_setup.brew import _ensure_cargo_path
-
-        fake_home = Path("/fake/home")
-        with mock.patch("pathlib.Path.home", return_value=fake_home):
-            with mock.patch.dict(os.environ, {}, clear=True):
-                _ensure_cargo_path()
-                self.assertEqual(os.environ["PATH"], "/fake/home/.cargo/bin")
-
-    def test_ensure_cargo_path_idempotent(self) -> None:
-        from macos_setup.brew import _ensure_cargo_path
-
-        fake_home = Path("/fake/home")
-        with mock.patch("pathlib.Path.home", return_value=fake_home):
-            with mock.patch.dict(os.environ, {"PATH": "/usr/bin"}, clear=True):
-                _ensure_cargo_path()
-                _ensure_cargo_path()
-                self.assertEqual(
-                    os.environ["PATH"],
-                    f"/fake/home/.cargo/bin{os.pathsep}/usr/bin",
-                )
-
-    def test_user_tooling_ensures_cargo_path_before_rustup(self) -> None:
-        call_order: list[str] = []
-
-        def record_ensure() -> None:
-            call_order.append("ensure_path")
-
-        def handler(argv: list[str]) -> CompletedResult | None:
-            if argv and argv[0] == "rustup":
-                call_order.append("rustup")
-            return _brew_ok(argv)
-
-        runner = FakeRunner(handler)
-        with mock.patch("macos_setup.brew._ensure_cargo_path", side_effect=record_ensure):
-            install_user_tooling(runner)
-
-        self.assertIn("ensure_path", call_order)
-        self.assertIn("rustup", call_order)
-        self.assertLess(call_order.index("ensure_path"), call_order.index("rustup"))
+        commands = [" ".join(argv) for argv in runner.argv_list()]
+        for name in ("rustup", "rust-analyzer", "elan", "sh.rustup.rs", "cargo"):
+            self.assertFalse(any(name in command for command in commands), name)
 
     def test_does_not_install_ai_agent_clis(self) -> None:
         """Claude Code, Codex, and Antigravity CLIs are installed by the user, not by setup."""
         runner = FakeRunner(_brew_ok)
-        install_user_tooling(runner)
         install_packages(runner)
 
         commands = [" ".join(argv) for argv in runner.argv_list()]

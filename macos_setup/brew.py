@@ -1,4 +1,4 @@
-"""Install per-user tooling, then Homebrew packages (which need an admin-group account).
+"""Install Homebrew packages (which need an admin-group account).
 
 Package installs are not reversed by ``--uninstall``: removing tools the user may now depend on
 (git, node, vim) is riskier than leaving them. This module only applies.
@@ -7,8 +7,6 @@ Package installs are not reversed by ``--uninstall``: removing tools the user ma
 from __future__ import annotations
 
 import logging
-import os
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -39,30 +37,6 @@ BREW_PACKAGES = [
     "rg",
 ]
 
-_ELAN_INSTALL = (
-    "curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh "
-    "| sh -s -- -y --default-toolchain none"
-)
-_RUST_INSTALL = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-
-
-def _cargo_bin() -> Path:
-    """Return the Cargo bin directory, respecting CARGO_HOME if set."""
-    cargo_home = os.environ.get("CARGO_HOME")
-    if cargo_home:
-        return Path(cargo_home) / "bin"
-    return Path.home() / ".cargo" / "bin"
-
-
-def _ensure_cargo_path() -> None:
-    """Prepend the Cargo bin directory to os.environ['PATH'] if not present."""
-    cargo_bin = str(_cargo_bin())
-    current_path = os.environ.get("PATH", "")
-    paths = current_path.split(os.pathsep) if current_path else []
-    if cargo_bin not in paths:
-        os.environ["PATH"] = f"{cargo_bin}{os.pathsep}{current_path}" if current_path else cargo_bin
-
-
 def _run(runner: Runner, argv: list[str], *, dry_run: bool, check: bool = True) -> None:
     """Run or, in dry-run mode, log a single install command."""
     if dry_run:
@@ -70,15 +44,6 @@ def _run(runner: Runner, argv: list[str], *, dry_run: bool, check: bool = True) 
         return
     _LOG.info("run: %s", " ".join(argv))
     runner.run(argv, check=check)
-
-
-def install_user_tooling(runner: Runner, *, dry_run: bool = False) -> None:
-    """Install per-user toolchains and CLIs under ``~`` (no admin rights or Homebrew needed)."""
-    _run(runner, ["bash", "-c", _RUST_INSTALL], dry_run=dry_run)
-    _ensure_cargo_path()
-    _run(runner, ["rustup", "default", "stable"], dry_run=dry_run)
-    _run(runner, ["rustup", "component", "add", "rust-analyzer"], dry_run=dry_run)
-    _run(runner, ["bash", "-c", _ELAN_INSTALL], dry_run=dry_run)
 
 
 def brew_writable(runner: Runner) -> bool:
