@@ -37,6 +37,7 @@ BREW_PACKAGES = [
     "rg",
 ]
 
+
 def _run(runner: Runner, argv: list[str], *, dry_run: bool, check: bool = True) -> None:
     """Run or, in dry-run mode, log a single install command."""
     if dry_run:

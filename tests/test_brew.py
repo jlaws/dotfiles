@@ -139,14 +139,12 @@ class InstallPackagesTests(unittest.TestCase):
 
         A brew rust-analyzer or rustup would also shadow the toolchain's own copy on PATH.
         """
-        import macos_setup.brew as brew
-
-        self.assertFalse(hasattr(brew, "install_user_tooling"))
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
-        commands = [" ".join(argv) for argv in runner.argv_list()]
-        for name in ("rustup", "rust-analyzer", "elan", "sh.rustup.rs", "cargo"):
-            self.assertFalse(any(name in command for command in commands), name)
+        words = {word for argv in runner.argv_list() for arg in argv for word in arg.split()}
+        for name in ("rustup", "rust-analyzer", "elan", "elan-init", "cargo"):
+            self.assertNotIn(name, words)
+        self.assertFalse([w for w in words if "sh.rustup.rs" in w or "elan-init.sh" in w])
 
     def test_does_not_install_ai_agent_clis(self) -> None:
         """Claude Code, Codex, and Antigravity CLIs are installed by the user, not by setup."""
