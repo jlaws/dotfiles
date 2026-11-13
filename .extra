@@ -39,12 +39,12 @@ export HSTR_CONFIG=hicolor
 # =============================================================================
 
 # Autojump
-[ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
-[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+if [ -n "${HOMEBREW_PREFIX:-}" ] && [ -f "$HOMEBREW_PREFIX/etc/profile.d/autojump.sh" ]; then
+	. "$HOMEBREW_PREFIX/etc/profile.d/autojump.sh"
+fi
 
-# Lean (elan)
+# Lean and Rust: user-installed (setup does not install elan or rustup)
 [ -f "$HOME/.elan/env" ] && . "$HOME/.elan/env"
-# Cargo
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 # Claude

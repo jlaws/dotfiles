@@ -76,8 +76,9 @@ plugins=(git)
 
 # Homebrew: a login shell usually has HOMEBREW_PREFIX from `brew shellenv` in ~/.zprofile.
 # Fall back to the standard Apple Silicon and Intel prefixes so a shell without it still works.
+# DOTFILES_BREW_CANDIDATES overrides the probe list (tests use it to stay off the host's brew).
 if [[ -z ${HOMEBREW_PREFIX:-} ]]; then
-  for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  for _brew in ${=DOTFILES_BREW_CANDIDATES:-/opt/homebrew/bin/brew /usr/local/bin/brew}; do
     if [[ -x $_brew ]]; then
       eval "$("$_brew" shellenv)"
       break
@@ -123,7 +124,6 @@ fpath=(~/.zfunc ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share/zsh/site-functions} $f
 [[ -f ~/.extra ]] && source ~/.extra
 # Optional machine-local settings, not tracked here.
 [[ -f ~/.work ]] && source ~/.work
-true
 
 export GPG_TTY=$(tty)
 
