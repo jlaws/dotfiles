@@ -19,7 +19,7 @@ from datetime import datetime
 from pathlib import Path
 
 from macos_setup.archive import Archive, resolve_archive
-from macos_setup.brew import install_packages, install_user_tooling
+from macos_setup.brew import install_packages
 from macos_setup.dotfiles import revert_files, sync_agents, sync_dotfiles
 from macos_setup.logging_setup import configure_logging
 from macos_setup.macos_defaults import SETTINGS, apply_defaults, revert_defaults, split_by_privilege
@@ -271,8 +271,6 @@ def _install(actions: Actions, runner: Runner, repo: Path, home: Path, archive_r
         sync_dotfiles(repo, home, archive, dry_run=actions.dry_run)
     if actions.agents:
         sync_agents(repo, target, archive, dry_run=actions.dry_run)
-    if actions.brew:
-        install_user_tooling(runner, dry_run=actions.dry_run)
     if actions.macos:
         if not actions.dry_run:
             _close_system_settings(runner)

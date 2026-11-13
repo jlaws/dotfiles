@@ -83,9 +83,8 @@ library only — no virtualenv or pip installs at runtime). It performs three ma
 
 ### Privilege order
 Steps run in privilege order, so a standard (non-admin) user can apply everything that is theirs:
-1. **Per-user** (no admin rights): dotfiles, agent configuration, per-user tooling (rustup,
-   elan), per-user macOS preferences, revealing `~/Library`. The
-   archive is saved before moving on.
+1. **Per-user** (no admin rights): dotfiles, agent configuration, per-user macOS preferences,
+   revealing `~/Library`. The archive is saved before moving on.
 2. **Homebrew** (admin group): Homebrew must be writable by the current user. If it is missing or
    not writable, this step is skipped with a warning.
 3. **System-wide** (`sudo`): the admin password is requested once, at the end. Cancel or fail the
@@ -100,18 +99,19 @@ Copies dotfiles and agent workflows to your home directory:
 Before modifying or overwriting any existing file, the original is saved into the run's archive; newly created files are tracked so they can be removed on uninstall. The Vim runtime tree includes the Solarized colorscheme and creates `~/.vim/backup`, `~/.vim/undo`, and `~/.vim/swap`.
 
 ### 2. Install Packages and Language Tooling
-- **GNU utilities**: `coreutils`, `findutils`, `gnu-sed`, `moreutils`
-- **Updated tools**: `vim`, `grep`, `openssh`, `screen`, `wget`
-- **Git tools**: `git`, `git-lfs`, `gh`
-- **Shell utilities**: `autojump`, `mermaid-cli`
-- **Language tools**: `uv`
-- **Rust tooling**: `rustup`, stable toolchain, `rust-analyzer` component
-- **Language servers**: `node`, `pyright`
+- **GNU utilities**: `coreutils`, `findutils`, `grep`, `moreutils`
+- **Updated tools**: `vim`, `openssh`, `wget`
+- **Git tools**: `git`, `gh`
+- **Search and shell utilities**: `fd`, `rg`, `jq`, `just`, `autojump`
+- **Documents and diagrams**: `mermaid-cli`, `poppler`
+- **Browser automation**: `agent-browser` (plus the Chrome binary it drives)
+- **Language tools**: `uv`, `node` (with `typescript-language-server` and `typescript` from npm)
+- **Rust and Lean**: not installed. Install rustup (with the `rust-analyzer` component) and elan
+  yourself, or let the project that needs them install its pinned versions.
 - **AI agent CLIs**: not installed. Install Claude Code, Codex, or Antigravity yourself; setup only syncs their config.
 
-Rust and elan install under `~` and need no admin rights. Homebrew formulae,
-`agent-browser install`, and the npm language servers need a writable Homebrew prefix. Homebrew
-packages are **not** removed on uninstall.
+Homebrew formulae, `agent-browser install`, and the npm language servers need a writable Homebrew
+prefix. Homebrew packages are **not** removed on uninstall.
 
 ### 3. Configure macOS
 Sets hundreds of macOS preferences including:
@@ -187,7 +187,7 @@ Tools and drag in `/Applications/Ghostty.app`.
 
 | File | Purpose |
 |------|---------|
-| `.zshrc` | Zsh configuration, loads Oh My Zsh and sources `.extra` |
+| `.zshrc` | Zsh configuration: resolves the Homebrew prefix, loads Oh My Zsh if installed, sources `.extra` |
 | `.extra` | Aliases, functions, PATH, open file descriptor limits (65,536), and environment variables |
 | `.gitconfig` | Git configuration (aliases, colors, defaults) |
 | `.gitignore` | Global gitignore patterns |
@@ -269,14 +269,10 @@ Skills are synchronized to `~/.gemini/antigravity-cli/skills/` to match Antigrav
 
 | Plugin | Language | Prerequisite |
 |--------|----------|-------------|
-| `pyright-lsp` | Python | `brew install pyright` (in setup.sh) |
+| `pyright-lsp` | Python | `brew install pyright` (manual) |
 | `typescript-lsp` | TS/JS | `npm install -g typescript-language-server typescript` (in setup.sh) |
 | `swift-lsp` | Swift | Xcode (bundled) |
-| `rust-analyzer-lsp` | Rust | `rustup component add rust-analyzer` (in setup.sh) |
-
-## Credits
-
-Built on the shoulders of others. See [REFERENCES.md](REFERENCES.md) for sources of inspiration and borrowed patterns — dotfiles lineage, the agent knowledge base, and vendored files.
+| `rust-analyzer-lsp` | Rust | `rustup component add rust-analyzer` (manual) |
 
 **Workflow Plugins:**
 
@@ -285,12 +281,6 @@ Built on the shoulders of others. See [REFERENCES.md](REFERENCES.md) for sources
 | `commit-commands` | `/commit`, `/commit-push-pr`, `/clean_gone` |
 | `claude-md-management` | `/revise-claude-md` for CLAUDE.md maintenance |
 
-Install after running `setup.sh` launch claude and run:
-```bash
-/plugin install pyright-lsp@claude-plugin-directory
-/plugin install typescript-lsp@claude-plugin-directory
-/plugin install swift-lsp@claude-plugin-directory
-/plugin install rust-analyzer-lsp@claude-plugin-directory
-/plugin install commit-commands@claude-plugin-directory
-/plugin install claude-md-management@claude-plugin-directory
-```
+## Credits
+
+Built on the shoulders of others. See [REFERENCES.md](REFERENCES.md) for sources of inspiration and borrowed patterns — dotfiles lineage, the agent knowledge base, and vendored files.
