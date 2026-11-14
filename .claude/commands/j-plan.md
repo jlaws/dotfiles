@@ -112,6 +112,7 @@ Before writing, run the **redesign gate**. Any of these means fix the design, no
 - Basic operations require coordination across components.
 - No clear error-handling strategy.
 - The design optimizes for hypothetical future requirements over current ones.
+- The design adds a feature, capability, or option the spec did not ask for. Do the bare minimum the spec requires; solve the original problem as concisely as possible (scope, not quality: `.claude/references/workflow/completeness-principle.md`, Where Thoroughness Stops).
 - "It depends" answers most questions about the design.
 - Every option for a decision is weak. Redesign the mechanism until one option is clearly right
   (often by making the bad state impossible to represent) rather than asking the user to pick
@@ -135,8 +136,8 @@ reversible choices and note them inline instead.
 Dispatch `code-reviewer` and `scope-reviewer` against the plan file in parallel, report-only, to
 find: placeholders and unresolved decisions, phases that are not bite-sized, missing or mis-ordered
 skeleton phases, a missing validation gate, phases that are horizontal layers rather than vertical
-slices, an easy-first rather than risk-first order, a significant decision left without an ADR, scope
-creep past the spec, and steps that are not idempotent. Fix what survives before Step 5.
+slices, an easy-first rather than risk-first order, a significant decision left without an ADR,
+a PR boundary well over the `writing-plans` size target without a stated reason, scope creep past the spec, and steps that are not idempotent. Fix what survives before Step 5.
 
 ## Step 5: Pull latest, then ask
 

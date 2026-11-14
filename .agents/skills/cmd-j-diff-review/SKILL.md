@@ -26,7 +26,7 @@ Use the diff-review workflow below to review: the user's provided input
 
 ##### Phase 1: Context (2-3 min)
 1. Read PR description and linked issue
-2. Check PR size (>400 lines? Ask to split)
+2. Check PR size (well over the 3-5k changed-line target with no stated reason? Ask to split)
 3. CI/CD status passing?
 4. Understand the business requirement
 

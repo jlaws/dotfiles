@@ -348,6 +348,12 @@ J_NEXT_COMMANDS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-next" / "SKILL.md",
 )
 
+CODE_REVIEW_PR_SIZE_SURFACES = (
+    *(root / "code-review-patterns" / "SKILL.md" for root in SKILL_TREE_ROOTS),
+    REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-diff-review.md",
+)
+
 # Local `main` can trail the remote, which makes a squash absorb commits that already landed.
 # Every branch workflow resolves its base through `origin/main` instead.
 BRANCH_BASE_REF_DOCS = (
@@ -843,6 +849,34 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("bug and task tracking mechanism", body)
                 self.assertNotIn("public tracker", body)
+
+    def test_plans_size_prs_for_review(self):
+        writing_plans = [p for p in PLAN_WORKFLOW_SKILLS if p.parent.name == "writing-plans"]
+        self.assertEqual(len(writing_plans), 3)
+        for path in writing_plans:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("3-5k changed lines", body)
+                self.assertIn("not a hard requirement", body)
+                self.assertNotIn("Default to one PR per plan", body)
+        for path in (*J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND):
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("size target", path.read_text(encoding="utf-8"))
+        for path in CODE_REVIEW_PR_SIZE_SURFACES:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotIn(">400 lines", body)
+                self.assertIn("3-5k", body)
+
+    def test_plan_surfaces_state_the_bare_minimum_rule(self):
+        # Scope, never quality: each statement cites the axis boundary the ladder ADR records.
+        execute = [p for p in (*PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS) if "execute-plan" in str(p)]
+        self.assertEqual(len(execute), 4)
+        for path in (*PLAN_WORKFLOW_SKILLS, *J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND, *execute):
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("bare minimum", body)
+                self.assertIn("Where Thoroughness Stops", body)
 
     def test_diff_review_maps_extensions_to_language_references(self):
         """Deleting the duplicate workflow from `code-review-patterns` also removed the only
