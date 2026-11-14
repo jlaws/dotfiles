@@ -775,6 +775,36 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     "unconditional" in body, f"{rel}: the PR link report is gated on a fix existing"
                 )
 
+    def test_diff_review_fixes_all_but_large_unrelated_findings(self):
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("large and unrelated", body)
+                self.assertIn("bug and task tracking mechanism", body)
+                self.assertIn("security findings included", body)
+                self.assertIn("another PR", body)
+                self.assertNotIn("future-work mechanism", body)
+                self.assertNotIn("Never create a new plan file", body)
+                self.assertNotIn("public tracker", body)
+
+    def test_diff_review_diffs_against_origin_main(self):
+        # Plan branches are cut from origin/main; a stale local main drags landed commits into review.
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("git diff origin/main...HEAD", body)
+                self.assertIsNone(re.search(r"(?<!origin/)\bmain\.\.\.?HEAD", body))
+
+    def test_diff_review_reviewers_start_from_a_clean_context(self):
+        # The orchestrating session is often the one that wrote the code; its history and intent stay out.
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("fresh context", body)
+                self.assertIn("a reviewer handed the author's intent tends to confirm it", body)
+                self.assertIn("Run `git diff origin/main...<HEAD SHA>` yourself", body)
+                self.assertNotIn("Read every changed file in full", body)
+
     def test_diff_review_maps_extensions_to_language_references(self):
         """Deleting the duplicate workflow from `code-review-patterns` also removed the only
         extension-to-reference mapping the Claude and Gemini commands had; their Step 3 named a
