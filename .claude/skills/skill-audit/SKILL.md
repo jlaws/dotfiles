@@ -175,10 +175,8 @@ only which assets exist in each tree, with single-tree assets declared explicitl
 
 Still worth checking by hand, because no test covers it:
 
-- every `cmd-j-*` shared skill has Claude, Codex, and Gemini command counterparts
-- native agent name sets match across the three tools
-- a renamed or removed asset leaves no dangling mention, and the CLAUDE.md Knowledge Base Structure
-  section plus the MEMORY.md index reflect the current asset set
+- a renamed or removed asset leaves no dangling mention, and the MEMORY.md index
+  reflects the current asset set
 - a `description` still matches what its body does after edits
 
 ## Report

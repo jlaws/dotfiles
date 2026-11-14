@@ -167,7 +167,7 @@ a new agent needs native definitions in all three tool trees; a shared workflow 
 `.agents/` and are not kept in sync -- only the asset sets are. Where a parity test guards those
 sets, the repo's own CLAUDE.md names it; declare any single-tree asset in that test's exception list.
 
-Update the CLAUDE.md Knowledge Base Structure section if the asset set changed, then run the repo's
+Update the GEMINI.md Knowledge Base Structure section if a new asset directory was added, then run the repo's
 lint and test commands. See `documentation-validation`.
 
 ### Frontmatter reference

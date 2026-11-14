@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-09-12
-updated: 2026-09-13
+updated: 2026-11-14
 ---
 # Reference trees share a section set, not a body
 
@@ -34,7 +34,7 @@ finds nothing, with no error anywhere to tell either of us.
 ## Decision
 
 We will use **heading-set parity**. For every path under `.claude/references/`, the `.agents/`
-file at the same path exists and yields the same ordered list of `##`/`###`/`####` headings.
+file at the same path exists and yields the same ordered list of headings at every level, H1 included (`tests/markdown.py` matches `#{1,6}`).
 Bodies may differ.
 
 The check ships without an exception list.

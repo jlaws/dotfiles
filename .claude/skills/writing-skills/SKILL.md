@@ -181,6 +181,6 @@ Classify the failure before choosing the fix. A skipped rule gets a prohibition 
 - [ ] Mechanical steps live in a script, not in prose
 - [ ] `description` is a trigger, and any `.agents/` copy fits the 64-character budget
 - [ ] Supporting files are referenced from SKILL.md
-- [ ] KB self-docs current: CLAUDE.md Knowledge Base Structure, and MEMORY.md if the asset set changed
+- [ ] KB self-docs current: the MEMORY.md index if the asset set changed
 - [ ] `cmd-j-*` skills have Claude, Codex, and Gemini command counterparts
 - [ ] The repo's lint and test commands pass

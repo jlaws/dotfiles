@@ -205,7 +205,7 @@ Verify links between assets resolve:
 |---|-------|-----|------|
 | DOC-1 | Parity: shared workflow/reference bodies match Claude copies; every `cmd-j-*` has three native command counterparts; native agent name sets match | WARN | Drift means one tool's assets are stale |
 | DOC-2 | Description reflects behavior — the `description` still matches what the body does after edits (no stale/misleading trigger) | WARN | Stale description misroutes invocation |
-| DOC-3 | Registration — a new or renamed asset is discoverable in `.claude/CLAUDE.md` Knowledge Base Structure (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
+| DOC-3 | Registration — a new or renamed asset lives in a directory the harness config lists (`.claude/CLAUDE.md` Knowledge base, `.gemini/GEMINI.md` Knowledge Base Structure) (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
 
 ## Phase 2H: Adoption (by hand, on request)
 

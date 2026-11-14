@@ -163,6 +163,7 @@ class Audit:
                 continue
             self._check_skill_frontmatter(skill, folder, fields)
             self._check_supporting_files(skill, folder, text)
+            self._check_reference_mentions(skill, text)
 
             if not self.had_findings(skill) and not self.had_findings(folder):
                 self.note_clean("Skills", folder.name)

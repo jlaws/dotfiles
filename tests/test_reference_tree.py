@@ -333,5 +333,38 @@ class SkillSizeTests(unittest.TestCase):
         self.assertIn(str(size), findings[0].message)
 
 
+class SkillReferenceMentionTests(unittest.TestCase):
+    """XR-2 also checks skills: a `references/...md` citation in a SKILL.md must resolve."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def findings_for(self, cited: str):
+        """Audit a tree with one real reference and one skill citing `cited`; return XR-2."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / ".claude" / "references" / "workflow").mkdir(parents=True)
+        (root / ".claude" / "references" / "workflow" / "real.md").write_text("# Real\n")
+        folder = root / ".claude" / "skills" / "probe"
+        folder.mkdir(parents=True)
+        (folder / "SKILL.md").write_text(
+            "---\nname: probe\ndescription: Use when probing the audit.\n---\n\n"
+            f"Read `{cited}` first.\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_skills()
+        return [f for f in audit.findings if f.check == "XR-2"]
+
+    def test_a_resolving_citation_is_clean(self):
+        self.assertEqual(self.findings_for("references/workflow/real.md"), [])
+
+    def test_a_dangling_citation_warns(self):
+        findings = self.findings_for("references/workflow/missing.md")
+        self.assertEqual(len(findings), 1, findings)
+        self.assertIn("missing.md", findings[0].message)
+
+
 if __name__ == "__main__":
     unittest.main()
