@@ -8,7 +8,7 @@ skills:
 
 # Subagent-Driven Development
 
-**Core principle:** Fresh subagent per task + per-task review (spec + quality) + broad final review = high quality, fast iteration.
+**Core principle:** Fresh subagent per task + per-task review (spec + quality) + a diff review at the boundary = high quality, fast iteration.
 
 Each task runs in an isolated subagent context instead of inheriting session history. The orchestrator (you) stays thin: dispatch, review, integrate. This keeps the main context small enough to run for hours without compaction.
 
@@ -49,9 +49,12 @@ For each task in order:
 6. **Fix loop.** If Critical/Important findings exist, dispatch a fix subagent with the findings file, then re-review. Never dismiss findings pre-emptively in the reviewer prompt. Stop after two fix rounds that leave a Critical/Important finding open: report the task as blocked with the findings file and `git status`, leave the working tree as it is, and stop the run: do not mark the task done, start the next task, or commit the phase until the user decides.
 7. **Otherwise, mark the task done** in the ledger. When it is the phase's last task, run the phase's acceptance check, commit the phase, and record the SHA against the phase.
 
-### Step 2: Final Whole-Branch Review
+### Step 2: Close the Boundary
 
-After all tasks: dispatch one reviewer over the entire branch diff (`git diff main...HEAD`) following the active environment's model policy (or the most capable model when no environment policy applies) for cross-cutting concerns no single-task review can see - architecture drift, integration gaps, inconsistent patterns, and stale documentation (apply `documentation-validation`). Resolve findings, then hand off to `finishing-branch`, which opens the PR without being asked.
+After all tasks, close the boundary as `executing-plans` Step 5 does: /j-diff-review reviews the whole
+branch, then opens the PR. For each rung-1 fix, dispatch a fix subagent with the finding; the
+orchestrator verifies and commits it. The ladder's two-attempt rule governs these fixes, not Step 1.6's
+two-round stop.
 
 ## File-Based Handoffs
 
@@ -109,4 +112,4 @@ Maintain the same living-document sections as `executing-plans`, in the plan fil
 **Receives plans from:** `writing-plans`
 **Alternative to:** `executing-plans` (inline mode) — same ledger, different dispatch
 **Uses:** `verification-before-completion` for every verdict; `dispatching-parallel-agents` when independent tasks can run concurrently
-**Hands off to:** `finishing-branch` after the final review — which opens the PR, it does not ask whether to
+**Hands off to:** /j-diff-review after the last task; its Step 7 opens the PR

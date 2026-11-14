@@ -128,6 +128,6 @@ Wait for that exact word, then `git checkout <base-branch>` and `git branch -D <
 
 ## Integration
 
-**Called by:** `executing-plans` (Step 5) and `subagent-driven-development` after the final review
+**Called by:** the diff-review command's Step 7 when no PR is open, which `executing-plans` (Step 5) and `subagent-driven-development` (Step 2) run at each plan boundary
 **Pairs with:** `using-git-worktrees` for worktree cleanup — note that worktree agents return on-branch and never call this skill
 **Uses:** `documentation-validation` before pushing

@@ -10,9 +10,9 @@ which states the choice and logs it. Load `executing-plans` for inline batches o
 `subagent-driven-development` for a fresh subagent per task, then follow that skill exactly
 (maintain the plan's living-document ledger, verify each step, stop and ask on blockers).
 
-Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask) or when the PR is open for review.
+Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask) or when /j-diff-review has reported the PR URL.
 
-Each PR boundary ends by opening the PR — that is `finishing-branch`'s default and needs no prompting. Where the plan spans several PRs, stop after each one and wait for review; /j-next resumes at the next boundary.
+Each PR boundary ends with /j-diff-review (`executing-plans`, Step 5). It fixes everything it finds except large and unrelated items, which it files in the repository's own tracker; then it opens the PR or pushes to the open one, and reports the PR URL and whether another PR remains in the plan. Where the plan spans several PRs, stop after each one and wait for review; /j-next resumes at the next boundary.
 
 Plan file: $ARGUMENTS
 

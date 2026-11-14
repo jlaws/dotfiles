@@ -126,7 +126,7 @@ Extend an existing benchmark where one covers the surface; add a new one where n
 
 ### PR Boundaries
 
-One commit per phase. Every unit of plan work ends in a pull request, opened automatically once its phases pass their gates - the executor does not stop to ask whether to open one. An opened PR is a stop point: no side work until review.
+One commit per phase. Every unit of plan work ends in a pull request, opened automatically once its phases pass their gates and the diff review closes the boundary - the executor does not stop to ask whether to open one. An opened PR is a stop point: no side work until review.
 
 **Default to one PR per plan.** Split into multiple PRs only when a group of phases is independently shippable and the combined diff is too large to review as one, and state that reason in the plan. Each PR must land the tree in a valid state: its doc updates and its code updates ship together, so `post-ship-doc-sync` and a diff review find nothing stale. After each PR, **wait for review** before starting the next.
 
@@ -216,7 +216,7 @@ git commit -m "feat: add specific feature"
 - **Idempotent steps** - every step safely re-runnable. `CREATE TABLE IF NOT EXISTS`, not `CREATE TABLE`. `mkdir -p`, not `mkdir`. If a step fails midway, re-running it from the top must not corrupt state.
 - **Resolve all ambiguities** - no "choose appropriate X" or "use a suitable library". Every decision is made in the plan. Research what the code or primary docs can answer; run what can be measured now. A decision-gate phase is only for a measurement planning cannot reach.
 - **Risks closed with evidence** - every named risk gets a row in the header's Risks table naming the evidence that closes it (a file:line, a measurement, an inspection) or the test that will catch it. A risk whose mitigation is "measure first" is unfinished research.
-- **Findings filed, not listed** - an unrelated defect found while planning goes to the project's tracker; the plan names the entry. The plan holds no "recorded, not fixed" list. A security defect never goes to a public tracker: report it to the user, or through the project's private advisory channel.
+- **Findings filed, not listed** - an unrelated defect found while planning goes to the repository's bug and task tracking mechanism, found and followed as the diff-review command's Step 6 describes; the plan names the entry. The plan holds no "recorded, not fixed" list.
 - **Requirements, not history** - the plan states what to build and why. Decision history and review back-and-forth go in ADRs or nowhere.
 - **No follow-up tail** - in-scope work is planned in full. No HANDOFF phase and no "known follow-ups" section for accepted scope.
 - **Documentation task** - if the change alters public surface or documented behavior, include an explicit doc-update task; don't leave docs implicit. See `documentation-validation`.
@@ -253,7 +253,7 @@ there is no mode to ask about. Before approval, stop at:
 Plan saved to `<plan-file-path>`. Execute it with the execute-plan command.
 ```
 
-Each PR boundary's phases run to green, then the PR opens. Where a plan spans several PRs, the next-part command (`$cmd-j-next` in Codex, /j-next in Gemini)
+Each PR boundary's phases run to green, then the diff review fixes what it finds and opens the PR. Where a plan spans several PRs, the next-part command (`$cmd-j-next` in Codex, /j-next in Gemini)
 picks up the next boundary once the previous one merges.
 
 ## Common Mistakes

@@ -5,7 +5,7 @@ description: "Use when executing a written plan in one working context."
 
 # Executing Plans
 
-**Core principle:** Batch execution with evidence per batch. Review happens on the PR.
+**Core principle:** Batch execution with evidence per batch. Each boundary closes with a diff review; people review the PR.
 
 ## The Process
 
@@ -79,7 +79,7 @@ After each batch, present evidence artifacts - not summaries:
 After all tasks are done and verified:
 - Run full test suite one final time
 - Validate documentation with the `documentation-validation` skill - product docs and KB self-docs current, or N/A with reason
-- Load `finishing-branch` skill and follow it (verify → validate docs → open the PR)
+- Run the diff-review command (`$cmd-j-diff-review` in Codex, /j-diff-review in Gemini) on the branch and follow it through Step 7: it fixes what it finds, files large and unrelated items in the repository's tracker, opens the PR or pushes to the open one, and reports the PR URL and whether another PR remains
 
 A completed unit of plan work ends in a pull request, opened without being asked. For a plan with PR
 boundaries, that is the end of each boundary, not just the last one - push the PR, then wait for review
@@ -87,7 +87,7 @@ before the next boundary rather than running on.
 
 ## When to Stop and Ask
 
-These conditions, and an opened PR at a PR boundary, are the only reasons to stop.
+These conditions, and the diff-review report at a PR boundary, are the only reasons to stop.
 
 **STOP executing immediately when:**
 - A test fails and the fix isn't obvious from the plan
@@ -136,6 +136,6 @@ Starting Task 4 (Write API endpoints)...
 ## Integration
 
 **Receives plans from:** `writing-plans`
-**Hands off to:** `finishing-branch` when all tasks complete - which opens the PR, it does not ask whether to
+**Hands off to:** the diff-review command when all tasks complete; its Step 7 opens the PR without asking
 **Uses:** `verification-before-completion` for each verification step
 **Alternative mode:** `subagent-driven-development` - dispatches a fresh subagent per task instead of executing inline. Its Execution Mode section decides between the two. Both share the same living-document ledger.

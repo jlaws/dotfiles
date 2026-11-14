@@ -328,6 +328,26 @@ DIFF_REVIEW_DISPATCHERS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
 )
 
+SKILL_TREE_ROOTS = (
+    REPO / ".claude" / "skills",
+    REPO / ".agents" / "skills",
+    REPO / ".gemini" / "antigravity-cli" / "skills",
+)
+
+# Both execution modes close a plan boundary through the diff review, whose Step 7 opens the PR.
+EXECUTION_CLOSE_OWNERS = tuple(
+    root / skill / "SKILL.md"
+    for root in SKILL_TREE_ROOTS
+    for skill in ("executing-plans", "subagent-driven-development")
+)
+
+J_NEXT_COMMANDS = (
+    REPO / ".claude" / "commands" / "j-next.md",
+    REPO / ".agents" / "skills" / "cmd-j-next" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-next.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-next" / "SKILL.md",
+)
+
 # Local `main` can trail the remote, which makes a squash absorb commits that already landed.
 # Every branch workflow resolves its base through `origin/main` instead.
 BRANCH_BASE_REF_DOCS = (
@@ -804,6 +824,25 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("a reviewer handed the author's intent tends to confirm it", body)
                 self.assertIn("Run `git diff origin/main...<HEAD SHA>` yourself", body)
                 self.assertNotIn("Read every changed file in full", body)
+
+    def test_plan_boundaries_close_with_the_diff_review(self):
+        """One close per boundary: the diff review runs, then its Step 7 opens the PR."""
+        for path in (*EXECUTION_CLOSE_OWNERS, *PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS):
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("j-diff-review", body)
+                self.assertNotIn("Load `finishing-branch` skill and follow it", body)
+                self.assertNotIn("Final Whole-Branch Review", body)
+        for path in J_NEXT_COMMANDS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotIn("create-pr", path.read_text(encoding="utf-8"))
+        writing_plans = [p for p in PLAN_WORKFLOW_SKILLS if p.parent.name == "writing-plans"]
+        self.assertEqual(len(writing_plans), 3)
+        for path in writing_plans:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("bug and task tracking mechanism", body)
+                self.assertNotIn("public tracker", body)
 
     def test_diff_review_maps_extensions_to_language_references(self):
         """Deleting the duplicate workflow from `code-review-patterns` also removed the only
