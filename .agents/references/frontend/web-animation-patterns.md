@@ -43,18 +43,25 @@ function flipAnimate(el: HTMLElement, update: () => void) {
 
 ## Reduced Motion
 
+Reduced motion means fewer and gentler animations, not none. Remove translation, scaling, parallax, and autoplaying loops. Keep short opacity and color changes that confirm an action or show state. A global `0.01ms` duration kill erases that feedback too.
+
 ```css
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+    /* transforms and size changes jump; fades and color changes keep their timing */
+    transition-property: opacity, color, background-color, border-color, box-shadow !important;
+  }
+  /* Spatial motion: run to the final keyframe at once, so fill-mode: forwards entrances end visible */
+  [data-motion="spatial"] {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 ```
 
 ```typescript
-// Framer Motion respects this automatically, or override:
+// Motion ignores this by default (MotionConfig reducedMotion="never"); opt in with <MotionConfig reducedMotion="user">, or read it directly:
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 ```
 

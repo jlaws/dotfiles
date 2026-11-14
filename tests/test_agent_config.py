@@ -1725,6 +1725,19 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for phrase in ("Keep each claim's strength", "AI-use disclosure"):
             self._assert_all_contain(command("j-paper"), phrase)
 
+    def test_ui_guidance_is_scoped_and_diagrams_accessible(self):
+        def frontend(name):
+            return tuple(
+                REPO / tree / "references" / "frontend" / name for tree in (".claude", ".agents")
+            )
+
+        self._assert_all_contain(frontend("premium-design-aesthetics.md"), "**The brief wins.**")
+        self._assert_all_contain(frontend("web-animation-patterns.md"), "fewer and gentler")
+        self._assert_all_contain(
+            tuple(root / "html-report-authoring" / "SKILL.md" for root in SKILL_TREE_ROOTS),
+            "aria-labelledby",
+        )
+
     def test_claude_command_effort_only_lowers_the_session_level(self):
         """`effort:` is free text to YAML, so a typo loads silently and the command runs at the
         session default. Commands only lower effort (docs/adr/workflow/
