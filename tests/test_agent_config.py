@@ -1703,6 +1703,28 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             "demonstrated impact",
         )
 
+    def test_paper_surfaces_carry_harvest_checks(self):
+        def command(name):
+            return (
+                REPO / ".claude" / "commands" / f"{name}.md",
+                REPO / ".codex" / "prompts" / f"{name}.md",
+                REPO / ".agents" / "skills" / f"cmd-{name}" / "SKILL.md",
+                REPO / ".gemini" / "antigravity-cli" / "skills" / name / "SKILL.md",
+            )
+
+        def research(name):
+            return tuple(
+                REPO / tree / "references" / "research" / name for tree in (".claude", ".agents")
+            )
+
+        analysis = command("j-paper-analysis")
+        self._assert_all_contain(
+            (*research("paper-analysis-methodology.md"), *analysis), "Number provenance"
+        )
+        self._assert_all_contain((*research("output-template.md"), *analysis), "Linchpin check")
+        for phrase in ("Keep each claim's strength", "AI-use disclosure"):
+            self._assert_all_contain(command("j-paper"), phrase)
+
     def test_claude_command_effort_only_lowers_the_session_level(self):
         """`effort:` is free text to YAML, so a typo loads silently and the command runs at the
         session default. Commands only lower effort (docs/adr/workflow/

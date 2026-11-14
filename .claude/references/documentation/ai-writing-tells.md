@@ -75,7 +75,7 @@ proves anything either way. Treat the table as habits to revise, not a score to 
 2. Scan for the strong tells first: staging, stock words, template shape. Rewrite the sentence, not the
    word; a swapped synonym keeps the shape.
 3. Read each paragraph for rhythm. If every sentence runs about the same length, split one and combine two.
-4. Check that no fact, number, citation, or claim changed or disappeared.
+4. Check that no fact, number, citation, or claim changed, disappeared, or changed strength. Cutting a stacked hedge must not turn "may be associated with" into "causes"; keep one hedge rather than none.
 5. Leave code, LaTeX commands (`\cite`, `\ref`, `\label`), paths, and link targets byte-identical.
 
 ## When Not To Act
@@ -85,6 +85,7 @@ proves anything either way. Treat the table as habits to revise, not a score to 
 - Quotations, titles, proper names, and text that discusses a phrase keep their wording.
 - Never invent detail, anecdote, or opinion to sound human. With nothing specific to say, write a
   shorter, plainer sentence.
+- A writing sample from the user outranks this catalog: match its sentence length, word choice, and punctuation even where it uses a listed tell.
 
 ## Papers
 
