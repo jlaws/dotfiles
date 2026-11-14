@@ -49,14 +49,20 @@ Before proposing any fix, decide where the fault actually lives:
 
 Fix a harness, checker, or environment fault where it lives; changing product code to make it pass hides the real fault. Misclassifying the locus is the most common cause of thrashing.
 
-**1. Reproduce Consistently**
-- Can you trigger it reliably? Exact steps? Minimal reproduction?
-- If not reproducible, gather more data - don't guess
-- For intermittent issues: add logging with timestamps, stress test, look for race conditions
+**1. Build a Red-Capable Loop**
+- Before any hypothesis, build one command you can run that fails on the user's exact symptom: a test, a script, or a request. No red-capable command, no Phase 2.
+- Run it once and record the failure. A loop that asserts a different symptom proves nothing about this one.
+- Shrink the repro until every remaining element is load-bearing.
+- For a flaky bug, raise the failure rate first (loop it, stress it, pin the seed or the clock) until a fix can be judged.
+- If no seam exists to observe the symptom, report that as a finding instead of guessing.
 - Reproduce before you plan the fix, not only before you write it. A fix plan built on a traced but
   unreproduced cause fixes the wrong thing. In the plan, separate observed facts from hypotheses.
 
-**2. Check Recent Changes**
+**2. Locate the Failing Boundary**
+- When data crosses several components (service, queue, worker, store), log what enters and leaves each boundary once, then run the loop. The first boundary with wrong output is where to look.
+- Tag every temporary log with one unique prefix, such as `[DEBUG-4f2a]`, so cleanup is one `rg`.
+
+**3. Check Recent Changes**
 ```bash
 git log --oneline -20                    # Recent commits
 git diff HEAD~5 -- src/                  # Recent code changes

@@ -44,6 +44,14 @@ Prefer decisions that are easy to change over ones that are "optimal." Architect
 4. **Test Independence**: Core testable without infrastructure
 5. **Rich Domain Models**: Behavior with data, not anemic entities
 
+## Module Depth
+
+- **The interface is the test surface**: test at the deepest interface, then delete the shallow unit tests it replaces.
+- **Two adapters make a seam**: one adapter is a hypothetical seam. Do not add a port for one implementation.
+- **Classify each dependency**: in-process (call it), local and substitutable (use the real thing in tests), remote and owned (port plus adapter), true external (mock at the boundary).
+
+Source: John Ousterhout, *A Philosophy of Software Design*, via mattpocock/skills `codebase-design`.
+
 ## Pitfalls
 
 - **Anemic Domain**: Entities with only data, no behavior

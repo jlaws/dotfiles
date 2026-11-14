@@ -173,6 +173,8 @@ Capture new rationalizations verbatim. For each, add:
 
 Re-test after each refactor. Continue until no new rationalizations.
 
+Explicit negation fits a skipped rule only. Classify the failure before choosing the fix. A skipped rule gets a prohibition with its reason. A wrong output shape gets a positive recipe that states the target, because a "don't" names the unwanted shape and invites it. An omitted element gets a checklist item. Every step ends in a completion criterion that is checkable and exhaustive; a vague bound invites stopping early.
+
 ### Meta-Testing
 
 After agent chooses wrong: "You read the skill and chose wrong. How could it be clearer?"

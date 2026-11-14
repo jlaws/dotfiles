@@ -74,6 +74,10 @@ Fixes #${ISSUE_NUMBER} by implementing proper error handling.
 - [x] Added new unit tests
 - [x] Manual testing completed
 
+## Merge Danger
+- Door: <one-way or two-way>; blast radius: <one word>
+- Revert: <how to undo it>
+
 ## Checklist
 - [x] Code follows project style guidelines
 - [x] Self-review completed

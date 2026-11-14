@@ -51,6 +51,20 @@ Structured checklists for code review, supplementing the main `skills/code-revie
 | Missing dark mode | No theme-aware styling; hardcoded light colors | Use semantic color tokens |
 | Accessibility gap | Missing aria-label, insufficient contrast ratio | Add labels; check WCAG AA (4.5:1 text, 3:1 large) |
 
+## Weakened Quality Bar
+
+An agent that hits a red check takes the cheapest road to green. Each move below can be legitimate, but it needs a stated reason in the PR. Tightening a bar can be silent; loosening one must be loud.
+
+| Pattern | Detection Signal | Fix |
+|---------|-----------------|-----|
+| Lowered bar | A threshold, budget, or coverage floor reduced; a check dropped from the fast CI stage | Restore it, or state why in the PR body |
+| Easier test | `.skip`, `xit`, or `@unittest.skip` added; a test file deleted; assertions removed or loosened | Restore the assertion and fix the code |
+| Silenced checker | New `@ts-ignore`, `eslint-disable`, `# noqa`, `# type: ignore`, `istanbul ignore`, `nosemgrep`, `gitleaks:allow` | Fix the finding; a kept suppression carries its reason on the same line |
+| Unfinished work | A stub that throws, an empty `catch`, a `TODO` where code should be | Finish it, or file it and say so in the PR |
+| New exception | An entry added to an allowlist, ignore file, or exception list without discussion | Remove it, or justify it in the PR |
+
+Where a metric has no target, ratchet it: record the current value and refuse to get worse.
+
 ## Documentation Currency
 
 | Pattern | Detection Signal | Fix |

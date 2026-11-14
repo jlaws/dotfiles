@@ -173,6 +173,8 @@ until they converge.
 Resist answering every failure with a stronger prohibition. When an agent skips a step, the usual
 cause is that the skill never said why the step mattered.
 
+Classify the failure before choosing the fix. A skipped rule gets a prohibition with its reason. A wrong output shape gets a positive recipe that states the target, because a "don't" names the unwanted shape and invites it. An omitted element gets a checklist item. Every step ends in a completion criterion that is checkable and exhaustive; a vague bound invites stopping early.
+
 ## Before you ship
 
 - [ ] Every section passes one of the four tests above

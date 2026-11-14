@@ -60,10 +60,12 @@ Fix a harness, checker, or environment fault where it lives; changing product co
 - Read stack traces completely; note line numbers, file paths, error codes
 - The error message often tells you exactly what's wrong — don't skim
 
-**2. Reproduce Consistently**
-- Can you trigger it reliably? Exact steps? Minimal reproduction?
-- If not reproducible, gather more data — don't guess
-- For intermittent issues: add logging with timestamps, stress test, look for race conditions
+**2. Build a Red-Capable Loop**
+- Before any hypothesis, build one command you can run that fails on the user's exact symptom: a test, a script, or a request. No red-capable command, no Phase 2.
+- Run it once and record the failure. A loop that asserts a different symptom proves nothing about this one.
+- Shrink the repro until every remaining element is load-bearing.
+- For a flaky bug, raise the failure rate first (loop it, stress it, pin the seed or the clock) until a fix can be judged.
+- If no seam exists to observe the symptom, report that as a finding instead of guessing.
 
 **3. Check Recent Changes**
 ```bash
@@ -75,6 +77,8 @@ git log --all --oneline -- <file>        # History of specific file
 **4. Gather Evidence at Each Layer**
 
 For multi-component systems, trace at every boundary:
+
+Tag every temporary log with one unique prefix, such as `[DEBUG-4f2a]`, so cleanup is one `rg`.
 
 ```bash
 # Trace data flow through each layer

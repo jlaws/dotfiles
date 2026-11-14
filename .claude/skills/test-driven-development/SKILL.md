@@ -55,7 +55,7 @@ Write the simplest code that satisfies the test, complete in one pass rather tha
 re-running. Do not add features, refactor neighbors, or improve beyond what the test asks.
 
 Then confirm the new test passes, the rest still pass, and the output is clean. If the new test still
-fails, fix the code rather than the test.
+fails, fix the code rather than the test. Name every failure in your report, including ones you did not cause.
 
 **Passing tests mean stop.** Do not polish code that already passes unless asked.
 
@@ -73,6 +73,8 @@ the next failing test.
 | **Shows intent** | Demonstrates the API you want | Obscures what the code should do |
 | **Tests logic** | Exercises a decision, transformation, or path | `expect(config.timeout).toBe(5000)` - restates the source |
 | **Targets production** | Tests real application code | Tests the helpers, factories, or fixtures |
+| **Names its break** | You can name the production change that would turn it red | No change you can name would make it fail |
+| **Independent oracle** | Expected values are literals or come from the spec | Expected value computed by the code under test or its helpers |
 
 ## When stuck
 

@@ -84,6 +84,10 @@ One orchestrator agent delegates to specialist agents. Expose delegation as a si
 
 Two agents argue for/against, a judge decides.
 
+### Fold or Keep a Subagent
+
+Fold a specialist into the main loop when it chains on another's output, touches the same data, or is usually called together with it; fold routers and planners the model can do itself. Keep a subagent for one of three reasons: its work would bloat the main context, it runs in parallel with context you can discard, or its tools conflict with the main agent's. Do not split agents by team or problem type; that copies the org chart, not the work. Fold one subagent at a time, and keep it only if the folded version scores worse on your evals.
+
 ## Agent Evaluation
 
 | Metric | What It Measures | How to Compute |
@@ -108,7 +112,7 @@ Two agents argue for/against, a judge decides.
 ## Gotchas
 
 ### Tool Description Quality
-Vague tool descriptions cause wrong tool selection. "Gets data" is bad. "Retrieves customer order history by email address, returning last 30 days of orders with status and totals" is good.
+Vague tool descriptions cause wrong tool selection. "Gets data" is bad. "Retrieves customer order history by email address, returning last 30 days of orders with status and totals" is good. Tool choice degrades once the prompt carries roughly 30-50 tool definitions (Anthropic's reported threshold). Past that, load tools on demand.
 
 ### Infinite Loops
 Agents can loop calling the same tool with the same args. Track call history and inject "You already called {tool} with these args. Try a different approach." after 2 duplicate calls.
@@ -120,7 +124,7 @@ Long agent runs accumulate tokens fast. Summarize older tool results once contex
 Models sometimes call tools when they already have the answer in context. Add "Only use a tool if you cannot answer from information you already have" to the system prompt.
 
 ### Multi-Agent Communication Overhead
-Each handoff between agents adds latency and token cost. Minimize cross-agent calls. If two agents always work together, merge them into one with a richer tool set.
+Each handoff between agents adds latency and token cost. Minimize cross-agent calls. See Fold or Keep a Subagent.
 
 ### Evaluation Pitfalls
 - Don't evaluate agents only on final answer; inspect the full tool call trace

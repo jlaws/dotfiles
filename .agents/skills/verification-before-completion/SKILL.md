@@ -42,6 +42,7 @@ BEFORE claiming any status:
 | Requirements met | Line-by-line checklist | Tests passing |
 | UI/web renders | Fresh page evidence: screenshot or asserted URL/title/DOM/a11y snapshot | "The code should render it" |
 | Docs current | Docs updated for the change, or N/A stated with reason | "Code works, docs later" |
+| Absence (not found, unused) | The scope searched: queries, sections read, filters applied | "Not found" from a capped or ignore-respecting search |
 
 For UI/web changes, prefer an accessibility-tree snapshot over raw HTML — semantic and far cheaper in tokens.
 

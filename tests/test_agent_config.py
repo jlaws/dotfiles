@@ -1638,6 +1638,54 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("one fix subagent", text)
                 self.assertIn("never downgrades a finding's severity", text)
 
+    def _assert_all_contain(self, paths, phrase):
+        for path in paths:
+            with self.subTest(path=str(path.relative_to(REPO)), phrase=phrase):
+                self.assertIn(phrase, path.read_text(encoding="utf-8"))
+
+    def test_review_surfaces_name_the_weakened_bar(self):
+        self._assert_all_contain(
+            (
+                REPO / ".claude" / "agents" / "code-reviewer.md",
+                REPO / ".codex" / "agents" / "code-reviewer.toml",
+                REPO / ".gemini" / "config" / "agents" / "code-reviewer.md",
+            ),
+            "Weakened Quality Bar",
+        )
+        self._assert_all_contain(
+            tuple(
+                REPO / tree / "references" / "workflow" / "review-checklists.md"
+                for tree in (".claude", ".agents")
+            ),
+            "## Weakened Quality Bar",
+        )
+
+    def test_diff_review_reads_review_md_from_the_base_branch(self):
+        self._assert_all_contain(DIFF_REVIEW_DISPATCHERS, "git show origin/main:REVIEW.md")
+
+    def test_debugging_starts_from_a_red_capable_loop(self):
+        self._assert_all_contain(
+            tuple(root / "debugging-methodology" / "SKILL.md" for root in SKILL_TREE_ROOTS),
+            "No red-capable command, no Phase 2",
+        )
+
+    def test_pr_bodies_state_merge_danger(self):
+        skills = tuple(
+            root / name / "SKILL.md"
+            for root in SKILL_TREE_ROOTS
+            for name in ("finishing-branch", "github-issue-resolution")
+        )
+        agents = (
+            REPO / ".claude" / "agents" / "create-pr.md",
+            REPO / ".codex" / "agents" / "create-pr.toml",
+            REPO / ".gemini" / "config" / "agents" / "create-pr.md",
+        )
+        diff_review = (
+            REPO / ".codex" / "prompts" / "j-diff-review.md",
+            REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
+        )
+        self._assert_all_contain((*skills, *agents, *diff_review), "Merge Danger")
+
     def test_claude_command_effort_only_lowers_the_session_level(self):
         """`effort:` is free text to YAML, so a typo loads silently and the command runs at the
         session default. Commands only lower effort (docs/adr/workflow/
