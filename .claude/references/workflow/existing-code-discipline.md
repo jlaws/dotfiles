@@ -8,6 +8,7 @@ Rules for working within an existing codebase. Complements code-quality (smells/
 - **Never introduce a new pattern** alongside an existing one without explicitly flagging the inconsistency
 - If the codebase uses pattern A for X, use pattern A — even if you prefer pattern B
 - If you believe a pattern should change, propose the migration as a separate task
+- **Check current docs for version-sensitive code** - before writing framework- or library-specific code, read the pinned version from the dependency file and the official docs page for that API at that version, not memory. Cite the page. Mark what the docs do not cover `UNVERIFIED`. When the docs and the existing code disagree, follow the code and flag the conflict.
 
 ## Understand Before Deleting
 

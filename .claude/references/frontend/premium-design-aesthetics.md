@@ -6,12 +6,25 @@ type: reference
 
 # Premium Frontend Design Aesthetics
 
+## Scope
+
+Name the surface mode before applying any rule here:
+
+| Mode | Examples | These rules |
+|---|---|---|
+| Persuade | Landing page, launch page, portfolio | Apply in full |
+| Experience | Game, editorial feature, interactive story | Apply in full |
+| Operate | Dashboard, admin, settings, internal tool | Scanability, consistency, and platform conventions outrank expression; system or workhorse fonts and restrained color are correct |
+| Read | Docs, articles, reports | Legibility first; system or text-optimized fonts |
+
+**The brief wins.** A pinned aesthetic, era, material, font, or palette overrides every default below, including the fingerprint list.
+
 ## Typography
 
 | Rule | Detail |
 |------|--------|
 | **Banned for premium contexts** | Inter, Roboto — too generic, AI default fingerprint |
-| **Preferred fonts** | Geist, Outfit, Cabinet Grotesk, Satoshi |
+| **Choosing a face** | Pick from the subject's world and name the reason; a fixed favorites list becomes the next fingerprint |
 | **Body text** | Off-black only: `#111111` or `#2F3437` — never pure `#000000` |
 | **Weight discipline** | Limit to 2 weights per component; avoid weight mixing for hierarchy |
 
@@ -39,6 +52,7 @@ type: reference
 - **Spacing over cards**: Use whitespace and borders for content separation before reaching for card components
 - **No shadow stacking**: One shadow level per elevation; nested shadows = visual noise
 - **Border discipline**: 1px borders at `opacity: 0.08–0.12` for subtle separation
+- **Browser-owned surfaces**: theme `::selection`, `caret-color`, focus rings, and `text-underline-offset` from the palette; set `font-variant-numeric: tabular-nums` on tabular data. Custom scrollbars only on Persuade, Experience, and Read surfaces.
 
 ## Interactive States
 
@@ -74,18 +88,28 @@ These patterns are signals that a UI was AI-generated without design oversight:
 - [ ] Round numbers in "social proof" (e.g., "10,000+ users", "99% uptime")
 - [ ] Pure black (`#000000`) body text
 - [ ] Centered hero with identical padding on all sides
+- [ ] Eyebrow or kicker label above a heading
+- [ ] Gradient text for emphasis (use weight or size)
+- [ ] Colored side-stripe border (`border-left` over 1px) on cards, callouts, or alerts
+- [ ] Nested cards, or icon-heading-text cards as the whole page structure
+- [ ] Hero-metric block: big number, small label, supporting stats, accent
+- [ ] Section numbers (01 / 02 / 03) that carry no sequence
+- [ ] Ghost card: a 1px border under a wide soft shadow
+- [ ] Emoji or Unicode glyphs standing in for an icon set
+- [ ] A modal for a task that needs neither interruption nor protected focus
 
 ## Audit Checklist
 
-Run this before shipping any UI:
+Run this before shipping any UI, relaxing the items the Scope table relaxes for its mode:
 
-1. Font: Is it Geist/Outfit/Cabinet Grotesk/Satoshi or equivalent?
-2. Color: Single accent, <80% saturation, warm neutrals?
-3. Text: Off-black (`#111`/`#2F3437`), never pure black?
-4. Layout: No equal 3-col grid? Mobile collapses correctly?
-5. States: All 4 states (loading, empty, error, success) implemented?
-6. Animation: Spring physics, GPU-safe properties only?
-7. AI fingerprints: Zero items from checklist above?
+1. Mode: Named the surface mode, and honored any pinned brief?
+2. Font: Chosen for the subject with a stated reason, not a default?
+3. Color: Single accent, <80% saturation, warm neutrals?
+4. Text: Off-black (`#111`/`#2F3437`), never pure black?
+5. Layout: No equal 3-col grid? Mobile collapses correctly?
+6. States: All 4 states (loading, empty, error, success) implemented?
+7. Animation: Spring physics, GPU-safe properties only?
+8. AI fingerprints: Zero items from checklist above?
 
 ## Cross-References
 

@@ -42,8 +42,9 @@ matters is that the shape is agreed before it is built, not that the document is
   rather than adjusting it. Anything a minute of searching settles is research you owe, not a question.
   A codebase that contradicts itself on one of those is worth raising.
 - Order questions by dependency — resolve the ones that unlock others first
+- **Ask why first** - when the request does not say why, ask that before anything else. It is the one question asked open, with no options or recommended answer, because a suggested reason gets accepted in place of the real one.
 - Focus on: purpose, constraints, success criteria, edge cases
-- Keep asking until you understand what you're building
+- Keep asking until you can predict the user's answers to the next three questions you would ask
 
 ### Phase 3: Propose Approaches
 

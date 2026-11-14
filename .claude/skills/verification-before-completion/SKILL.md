@@ -88,3 +88,4 @@ The tree can move under a review, so pin what you review:
 | Requirements met | The requirements, checked one by one |
 | UI renders | A fresh accessibility-tree snapshot - semantic and far cheaper than raw HTML |
 | Docs current | Docs updated, or an explicit N/A with a reason (see `documentation-validation`) |
+| Absence (not found, unused, not addressed) | The scope searched: queries run, sections read, filters and ignore rules applied. A filtered or partial search says what it excluded |

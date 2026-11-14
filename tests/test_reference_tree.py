@@ -299,5 +299,96 @@ class ReferenceCitationTests(unittest.TestCase):
         self.assertEqual(len(self.findings_for("references/documentation/missing.md")), 1)
 
 
+class SkillSizeTests(unittest.TestCase):
+    """SK-C6: a SKILL.md past the compaction re-attach window warns.
+
+    After auto-compaction Claude Code re-attaches only the first 5,000 tokens of each invoked
+    skill (code.claude.com/docs/en/skills). SKILL_SIZE_LIMIT is a byte proxy for that window.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def findings_for(self, size: int):
+        """Audit a throwaway tree holding one skill of `size` bytes; return its SK-C6 findings."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        folder = Path(tmp.name) / ".claude" / "skills" / "probe"
+        folder.mkdir(parents=True)
+        head = "---\nname: probe\ndescription: Use when probing the audit.\n---\n\n"
+        (folder / "SKILL.md").write_text(head + "x" * (size - len(head)))
+        audit = self.audit_module.Audit(Path(tmp.name))
+        audit.check_skills()
+        return [f for f in audit.findings if f.check == "SK-C6"]
+
+    def test_a_skill_at_the_limit_is_clean(self):
+        self.assertEqual(self.findings_for(self.audit_module.SKILL_SIZE_LIMIT), [])
+
+    def test_a_skill_over_the_limit_warns_with_its_size(self):
+        size = self.audit_module.SKILL_SIZE_LIMIT + 1
+        findings = self.findings_for(size)
+        self.assertEqual(len(findings), 1, findings)
+        self.assertEqual(findings[0].severity, self.audit_module.WARN)
+        self.assertIn(str(size), findings[0].message)
+
+    def test_the_limit_counts_bytes_not_characters(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        folder = Path(tmp.name) / ".claude" / "skills" / "probe"
+        folder.mkdir(parents=True)
+        head = "---\nname: probe\ndescription: Use when probing the audit.\n---\n\n"
+        limit = self.audit_module.SKILL_SIZE_LIMIT
+        # Exactly `limit` characters, but the two-byte "é" makes it limit + 1 bytes.
+        (folder / "SKILL.md").write_text(head + "x" * (limit - len(head) - 1) + "é", encoding="utf-8")
+        audit = self.audit_module.Audit(Path(tmp.name))
+        audit.check_skills()
+        findings = [f for f in audit.findings if f.check == "SK-C6"]
+        self.assertEqual(len(findings), 1, findings)
+        self.assertIn(str(limit + 1), findings[0].message)
+
+
+class SkillReferenceMentionTests(unittest.TestCase):
+    """XR-2 also checks skills: a `references/...md` citation in a SKILL.md must resolve."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def findings_for(self, cited: str, local: str | None = None):
+        """Audit a tree with one real reference and one skill citing `cited`; return XR-2.
+
+        `local` names a file to create in the skill's own references/ folder.
+        """
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / ".claude" / "references" / "workflow").mkdir(parents=True)
+        (root / ".claude" / "references" / "workflow" / "real.md").write_text("# Real\n")
+        folder = root / ".claude" / "skills" / "probe"
+        folder.mkdir(parents=True)
+        if local:
+            (folder / "references").mkdir()
+            (folder / "references" / local).write_text("# Local\n")
+        (folder / "SKILL.md").write_text(
+            "---\nname: probe\ndescription: Use when probing the audit.\n---\n\n"
+            f"Read `{cited}` first.\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_skills()
+        return [f for f in audit.findings if f.check == "XR-2"]
+
+    def test_a_resolving_citation_is_clean(self):
+        self.assertEqual(self.findings_for("references/workflow/real.md"), [])
+
+    def test_a_skill_local_citation_is_clean(self):
+        self.assertEqual(self.findings_for("references/local.md", local="local.md"), [])
+
+    def test_a_dangling_citation_warns(self):
+        findings = self.findings_for("references/workflow/missing.md")
+        self.assertEqual(len(findings), 1, findings)
+        self.assertIn("missing.md", findings[0].message)
+
+
 if __name__ == "__main__":
     unittest.main()

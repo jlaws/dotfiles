@@ -166,6 +166,8 @@ Action:
 3. **Isolation**: Dedicated runners, pin CPU freq, close other apps
 4. **Baseline**: Always compare against known baseline
 5. **Report**: Median + p95 + p99 (not just mean)
+6. **Keep only real wins**: keep a change only if it beats run-to-run variance and the suite stays green; neutral is a revert
+7. **Ledger**: record every idea tried, including reverts, so a dead idea is not retried
 
 ### pytest-benchmark
 

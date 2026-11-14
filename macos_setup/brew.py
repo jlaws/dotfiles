@@ -35,6 +35,7 @@ BREW_PACKAGES = [
     "uv",
     "node",
     "rg",
+    "mole",
 ]
 
 

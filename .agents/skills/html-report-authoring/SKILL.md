@@ -43,6 +43,8 @@ Render structure spatially instead of describing it in prose:
 - Sequences and dependencies → timeline.
 - Before/after or diffs → two-column with margin annotations.
 
+Diagrams earn their space. Draw one only if the reader learns more from it than from a paragraph or table. Keep each to about 9 nodes and 12 arrows; past that, split it into an overview and a detail. Delete any node or arrow whose removal loses nothing. Accent one or two focal nodes at most. Use orthogonal connectors, give arrow labels an opaque background with a small gap from the stroke, and never route an arrow behind a box it does not connect.
+
 ## Interactivity, Minimal JS
 
 - Prefer native elements: `<details>`/`<summary>` for collapse, `<dialog>` for modals.
@@ -59,6 +61,8 @@ Where the reader may act on content, add copy buttons ("copy as Markdown", "copy
 - Responsive: readable on a phone and a wide monitor.
 - Works in light and dark via `prefers-color-scheme` and CSS variables.
 - Readable typography: system font stack, comfortable line length and spacing.
+- Inline SVG carries `role="img"` and `aria-labelledby` naming its `<title>` and `<desc>`; `<title>` is the first child.
+- A wide SVG sits in its own `overflow-x: auto` wrapper with `min-width` equal to the viewBox width, so a phone scrolls the diagram, not the page.
 
 ## Skeleton Template
 
@@ -110,7 +114,9 @@ Where the reader may act on content, add copy buttons ("copy as Markdown", "copy
 
   <section id="diagram">
     <h2>Diagram</h2>
-    <svg viewBox="0 0 320 80" width="320" height="80" role="img" aria-label="A to B">
+    <svg viewBox="0 0 320 80" width="320" height="80" role="img" aria-labelledby="d1-t d1-d">
+      <title id="d1-t">A to B</title>
+      <desc id="d1-d">Input flows to output.</desc>
       <rect x="10" y="20" width="120" height="40" rx="6" fill="none" stroke="currentColor"/>
       <text x="70" y="45" text-anchor="middle" fill="currentColor">Input</text>
       <line x1="130" y1="40" x2="190" y2="40" stroke="currentColor" marker-end="url(#a)"/>

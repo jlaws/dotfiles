@@ -214,6 +214,8 @@ Before finalizing a bibliography or related-work section:
 - **Detect orphan citations** — every `\cite{key}` must resolve to a bib entry, and every bib entry should be cited at least once; report both directions.
 - **Never fabricate fields** — if authors, venue, or year cannot be confirmed, leave the field blank and mark it rather than guessing (see `confidence-scoring`).
 - **Anti-gaming self-review** — do not "pass" your own related-work by lowering the bar. If you cannot verify a citation, halt and report it as `UNVERIFIED` instead of asserting it.
+- **Check claim against passage** - existence is not support. Read the cited passage in the cited version (preprint, accepted manuscript, and proceedings can differ) and confirm it says what the sentence claims. A paywall, JS wall, or refused fetch is an access failure reported as `UNVERIFIED`, never as support. For a sentence with several sources, check each against what it is cited for.
+- **Check retraction status** - confirm the work is not retracted or corrected (publisher page, Retraction Watch) before relying on it.
 
 ## Gotchas and Anti-Patterns
 
@@ -250,7 +252,7 @@ Before finalizing a bibliography or related-work section:
 For broad, fact-checked reviews, fan out instead of searching linearly:
 
 - **Multi-angle fan-out** — search several ways in parallel (by method, by task, by author, by venue, by citation graph); each angle is blind to what the others surface.
-- **Per-claim verification** — extract atomic claims, then verify each against its sources independently; spawn N skeptics per high-stakes claim and keep only those that survive (see the adversarial pattern in `code-review-patterns`).
+- **Per-claim verification** — extract atomic claims, then verify each against its sources independently; spawn N skeptics per high-stakes claim and keep only those that survive (see the adversarial pattern in `code-review-patterns`). High-stakes means a headline conclusion, a number, a causal claim, a methods-critical claim, or a disputed one.
 - **Cited synthesis** — every sentence in the synthesis traces to a source; mark unverifiable claims `UNVERIFIED` (see `confidence-scoring`), never drop them silently.
 - **Completeness critic** — a final pass asks "what modality, source, or claim is missing?" and feeds the next round.
 

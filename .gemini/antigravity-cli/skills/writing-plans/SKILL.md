@@ -7,9 +7,9 @@ description: "Use when planning a multi-step implementation before coding."
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero codebase context. Document everything they need: which files to touch, complete code samples, how to test, exact commands with expected output. Bite-sized tasks. DRY. YAGNI. TDD. One commit per phase.
+A plan is the set of decisions the implementer cannot make alone: which files to touch, the interfaces each task consumes and produces, test names with their assertions, the spec's values, and exact commands with expected output. A plan whose code blocks are most of its length has written the code instead. Give a function body only when the signature, the tests, and the spec leave the algorithm open. Bite-sized tasks. DRY. YAGNI. TDD. One commit per phase.
 
-Target audience: skilled developer unfamiliar with your codebase and toolset.
+Target audience: a capable implementer with no context on this codebase.
 
 **Where the plan lives:** every plan is a disk-backed working artifact, never conversation-only state.
 
@@ -46,6 +46,8 @@ GOOD: "After this change, repeated API calls for the same resource return cached
 - Key modules: `path/to/relevant/` - [what it does]
 - Test runner: `command` (run from `directory/`)
 - Config: `path/to/config` - [relevant settings]
+
+**Global Constraints:** [rules from the spec that bind every task, copied verbatim]
 
 **Risks:**
 | Risk | Closed by |
@@ -148,14 +150,14 @@ Assume the system is pre-production unless the plan says otherwise. Breaking cha
 
 ## Bite-Sized Task Granularity
 
-Each step is one action (2-5 minutes):
+Each step is one action with a checkable result:
 
 - "Write the failing test" - step
 - "Run it to make sure it fails" - step
 - "Implement the minimal code to make the test pass" - step
 - "Run the tests and make sure they pass" - step
 
-If a step takes more than 5 minutes, split it further. The commit is the phase's final task, not a step inside every task.
+A task is the smallest unit that carries its own test cycle and is worth a fresh reviewer's gate. Split a task whose title needs "and". Fold setup and docs into the task that needs them. The commit is the phase's final task, not a step inside every task.
 
 ## Task Structure
 
@@ -172,6 +174,8 @@ GOOD: "`./bin/rails runner 'puts User.create!(name: \"test\").id'` prints an int
 - Modify: `exact/path/to/existing.ext:123-145`
 - Test: `tests/exact/path/to/test.ext`
 
+**Interfaces:** Consumes: [signatures this task uses from earlier tasks]. Produces: [signatures later tasks rely on].
+
 **Step 1: Write the failing test**
 
 ```language
@@ -185,11 +189,11 @@ def test_specific_behavior():
 Run: `test-command path/to/test::test_name`
 Expected: FAIL with "function not defined"
 
-**Step 3: Write minimal implementation**
+**Step 3: Implement to the signature**
 
 ```language
-def function(input):
-    return expected
+def function(input: InputType) -> OutputType: ...
+# Body only if the signature and the Step 1 assertions leave the algorithm open.
 ```
 
 **Step 4: Run test to verify it passes**
@@ -208,7 +212,7 @@ git commit -m "feat: add specific feature"
 ## Requirements
 
 - **Exact file paths** - always, no "add to the appropriate file"
-- **Complete code** - paste actual code, not "add validation here"
+- **Decisions, not transcripts** - signatures, test names with assertions, and the spec's values; never "add validation here". The bar is unambiguous, not complete: every step lets the implementer write exactly one reasonable thing.
 - **Exact commands** - with expected output, not "run the tests"
 - **TDD integration** - each task = failing test → verify fail → implement → verify pass
 - **Self-contained tasks** - each task can be understood and executed independently
@@ -229,6 +233,7 @@ git commit -m "feat: add specific feature"
   (`.agents/references/workflow/completeness-principle.md`, Where Thoroughness Stops). Fixing defects a
   review finds is not new scope.
 - **Risk-first vertical slices** - hardest or least-certain phase first; each phase testable end to end rather than a horizontal layer.
+- **Wide mechanical changes** - a change whose blast radius spans the codebase is the exception to vertical slicing. Sequence it expand-contract: add the new form beside the old, migrate in batches that each keep the suite green, then delete the old form. The old form lives only until the last batch; it is never a compatibility shim.
 - **Decisions persisted** - every significant, not-easily-reversible decision has an ADR task (`docs/adr/<topic>/<slug>.md`), updating an existing record in place rather than adding a second file; minor ones are noted inline. See `.agents/references/architecture/architecture-decision-records.md`.
 - **Assumptions stated** - the plan names its assumptions, numbered and falsifiable, across
   whichever rows apply. See `.agents/references/workflow/existing-code-discipline.md`.
@@ -242,7 +247,8 @@ Before handing off, review the finished plan against this checklist and fix any 
 - **Risk evidence** - every risk row names its closing evidence or catching test.
 - **No follow-up tail** - nothing in accepted scope is deferred to a HANDOFF or follow-ups section.
 - **Type/signature consistency** - function and type signatures match across every task that references them.
-- **Junior-engineer bar** - the plan is good enough only if an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing could execute it correctly. If any step relies on taste or unstated context, make it explicit. Name YAGNI and DRY as constraints where a task invites over-building.
+- **Decision scan** - every step lets the implementer write exactly one reasonable thing. A line that decides nothing is a gap; a function body the signature and tests already determine is a transcript. Fix both. Name YAGNI and DRY as constraints where a task invites over-building.
+- **Proportion** - compare the plan to the change it describes. If code blocks are most of the plan, it is a transcript: replace bodies with signatures, test names, and assertions, then check each step is still unambiguous.
 - **Documentation coverage** - a change that ships a public-surface or behavior change has a doc-update task, or the plan states docs are N/A with a reason.
 - **Skeleton conformance** - Phase 1 fetches and branches off `origin/main`, then writes docs; the last phase is the validation gate; every middle phase leads with its own doc delta.
 - **Validation gate stated** - a named benchmark and gate command, or an explicit N/A with a reason.
@@ -267,14 +273,15 @@ picks up the next boundary once the previous one merges.
 
 | Bad | Good |
 |-----|------|
-| "Add validation" | Complete validation code with specific checks |
-| "Update the tests" | Exact test code with expected assertions |
+| "Add validation" | The specific checks, as test assertions |
+| "Update the tests" | Exact test names with expected assertions |
 | "Run the test suite" | `npm test -- --grep "feature"` → Expected: 5 pass |
 | "Modify the config" | Exact config changes with file path and line numbers |
-| Tasks that take 30+ min | Split into 2-5 minute steps |
+| A task whose title needs "and" | Split it into two tasks |
 | Assuming reader knows the codebase | Explain where things are and why |
 | "Choose an appropriate cache strategy" | "Use `lru-cache` with TTL=300s, max=1000 entries" |
 | "Task complete when module works" | Behavioral check with exact command + expected output |
 | `CREATE TABLE users (...)` | `CREATE TABLE IF NOT EXISTS users (...)` |
 | "Implement the `Widget` abstraction" | Specify exact methods, signatures, return types |
 | "Set up the ORM" | Name the library, version, and config file path |
+| Code blocks that are most of the plan | Signatures, test names, assertions |

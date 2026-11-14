@@ -45,15 +45,16 @@ For each task in order:
 5. **Dispatch the task reviewer** (via the Agent tool). It MUST return **both** verdicts, **spec compliance first, then code quality**:
    - **Spec compliance** — does the diff satisfy the task brief's behavioral check and acceptance? Flag any acceptance item that **cannot be confirmed from the diff alone** for the orchestrator to resolve — never assume it holds. Treat any **unrequested addition** (extra code, deps, files beyond the brief) as a finding: scope creep is a failure, not a bonus.
    - **Code quality** — smells, edge cases, error handling, naming, test quality.
+   - An implementer's report is a claim, and its design rationale ("kept simple per YAGNI") is self-grading: a stated rationale never downgrades a finding's severity.
    Reviewer output is a severity-labeled findings list (Critical / Important / Nit).
-6. **Fix loop.** If Critical/Important findings exist, dispatch a fix subagent with the findings file, then re-review. Never dismiss findings pre-emptively in the reviewer prompt. Stop after two fix rounds that leave a Critical/Important finding open: report the task as blocked with the findings file and `git status`, leave the working tree as it is, and stop the run: do not mark the task done, start the next task, or commit the phase until the user decides.
+6. **Fix loop.** If Critical/Important findings exist, dispatch one fix subagent with the whole findings file, then re-review only the fix diff: the re-reviewer marks each prior finding ADDRESSED or NOT ADDRESSED and flags new breakage in that diff, without re-raising settled findings. Never dismiss findings pre-emptively in the reviewer prompt. Stop after two fix rounds that leave a Critical/Important finding open: report the task as blocked with the findings file and `git status`, leave the working tree as it is, and stop the run: do not mark the task done, start the next task, or commit the phase until the user decides.
 7. **Otherwise, mark the task done** in the ledger. When it is the phase's last task, run the phase's acceptance check, commit the phase, and record the SHA against the phase.
 
 ### Step 2: Close the Boundary
 
 After all tasks, close the boundary as `executing-plans` Step 5 does: /j-diff-review reviews the whole
-branch, then opens the PR. For each rung-1 fix, dispatch a fix subagent with the finding; the
-orchestrator verifies and commits it. The ladder's two-attempt rule governs these fixes, not Step 1.6's
+branch, then opens the PR. Dispatch one fix subagent with all rung-1 findings, not one per finding; it commits each fix on its own, the
+orchestrator verifies each commit, and the two-attempt rule counts per finding. The ladder's two-attempt rule governs these fixes, not Step 1.6's
 two-round stop.
 
 ## File-Based Handoffs

@@ -89,6 +89,7 @@ Virtually re-implement the paper mentally. Challenge everything.
    - Are baselines fair and up-to-date?
    - Is the evaluation protocol standard for the field?
    - Could the results be explained by confounding factors?
+   - Number provenance: are effect sizes suspiciously round (exactly 2x, zero variance across runs) or error bars identical across conditions? Does an ablation remove the claimed mechanism or only an incidental hyperparameter?
 5. **Reproducibility**: Could you reimplement this?
    - Are hyperparameters fully specified?
    - Is the data pipeline described?

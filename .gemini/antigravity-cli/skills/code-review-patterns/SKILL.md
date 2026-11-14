@@ -38,6 +38,7 @@ skills:
 - Does solution fit the problem? Simpler approaches?
 - Consistent with existing patterns? Will it scale?
 - Are there tests? Do they cover edge cases?
+- Does a refactor reduce complexity or only move it? Count the concepts a reader must hold before and after.
 
 #### Phase 3: Line-by-Line (10-20 min)
 - **Logic**: Edge cases, off-by-one, null checks, race conditions
@@ -60,6 +61,8 @@ skills:
 [suggestion]  - Alternative approach to consider
 [learning]    - Educational, no action needed
 ```
+
+Tag a finding `(pre-existing)` when no hunk in the diff introduces it, exposes it, or makes it stale (the same test as "unrelated" in `j-diff-review` Step 6). It keeps its severity; the tag only stops a base-branch bug from reading as this change's fault.
 
 ### Feedback Techniques
 

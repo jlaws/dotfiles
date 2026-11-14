@@ -115,7 +115,7 @@ npm test path/to/test.test.ts
 
 Confirm: test passes, other tests still pass, output pristine (no errors/warnings).
 
-**Test fails?** Fix code, not test. **Other tests fail?** Fix now.
+**Test fails?** Fix code, not test. **Other tests fail?** Fix now, and name every failure in your report, including ones you did not cause.
 
 ### REFACTOR - Clean Up
 
@@ -133,6 +133,8 @@ Then: next failing test for next behavior.
 | **Shows intent** | Demonstrates desired API | Obscures what code should do |
 | **Tests logic** | Exercises a decision, transformation, or path | `expect(config.timeout).toBe(5000)` -- restates source code |
 | **Targets production** | Tests real application code | Tests for test helpers, factories, or fixtures |
+| **Names its break** | You can name the production change that would turn it red | No change you can name would make it fail |
+| **Independent oracle** | Expected values are literals or come from the spec | Expected value computed by the code under test or its helpers |
 
 ## Common Rationalizations
 

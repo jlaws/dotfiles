@@ -34,7 +34,7 @@ You automate the full PR workflow. Follow these steps in order:
 - Run `git push -u origin <branch>`
 - Create PR with explicit title and body (never use `--fill`):
   - Title: the commit message or a summary of changes
-  - Body: bullet-point summary of what changed, derived from `git log --oneline main..<branch>`
+  - Body: bullet-point summary of what changed, derived from `git log --oneline main..<branch>`; a Test Plan with the verification that ran; and a Merge Danger section: one-way or two-way door, blast radius in one word, and how to revert
   - Run `gh pr create --title "<title>" --body "<body>"`
 
 ## 5. Output

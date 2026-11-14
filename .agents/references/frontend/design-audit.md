@@ -16,6 +16,18 @@ Structured checklist for evaluating UI quality across dimensions. Optionally sco
 - Optimistic UI where safe (undo available)
 - No content layout shift on load (CLS ≈ 0)
 
+## Triage and Severity
+
+Fix in this order, and do not perfect one corner while the rest sits below the bar:
+
+1. Broken or blocked tasks, data loss, misleading state, inaccessible paths
+2. Missing loading, empty, error, success, disabled, and permission states
+3. Flow, hierarchy, responsive, and design-system drift
+4. Visual and motion inconsistencies
+5. Code and asset cleanup
+
+Classify each drift by where its fix belongs: a missing token (fix the token), a one-off implementation (move it into the shared component), a conceptual mismatch (fix the flow), or a local defect (fix in place). Judge the rendered result at shipping sizes, and form your own assessment before reading any scanner's output, which anchors judgment.
+
 ## "AI Slop" Detection
 
 Red flags indicating AI-generated or low-effort design:

@@ -83,3 +83,4 @@ several later PRs, or reviewers report target-sized PRs as too large to review.
 
 - [Thorough about quality dimensions, lazy about new scope](code-ladder-vs-completeness.md)
 - [ADRs are living documents, and dead ones are deleted](adrs-are-living-documents.md)
+- [Plans record decisions, not code](plans-record-decisions-not-code.md)

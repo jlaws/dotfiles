@@ -1309,6 +1309,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         depth = re.search(r"^max_depth\s*=\s*(\d+)\s*(?:#.*)?$", agents[1], re.MULTILINE)
         self.assertIsNotNone(depth, "[agents] must set max_depth to an integer")
         assert depth is not None
+        claude_env = json.loads((REPO / ".claude" / "settings.json").read_text()).get("env", {})
+        self.assertEqual(
+            claude_env.get("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"), depth[1],
+            "Claude's spawn-depth setting must match .codex/config.toml max_depth",
+        )
         for config in (
             REPO / ".codex" / "AGENTS.md",
             REPO / ".claude" / "CLAUDE.md",
@@ -1611,6 +1616,132 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIsNone(re.search(r"(?i)repeat until (clean|pass)", text))
                 for sentence, count in expected.items():
                     self.assertEqual(text.count(sentence), count, sentence)
+
+    def test_plans_record_decisions_not_code(self):
+        """See docs/adr/workflow/plans-record-decisions-not-code.md."""
+        for rel in WRITING_PLANS_OWNERS:
+            text = (REPO / rel).read_text(encoding="utf-8")
+            with self.subTest(path=rel):
+                for phrase in ("set of decisions the implementer cannot make alone",
+                               "**Proportion**", "**Interfaces:**", "expand-contract"):
+                    self.assertIn(phrase, text)
+                for retired in ("**Complete code**", "Junior-engineer bar", "2-5 minutes"):
+                    self.assertNotIn(retired, text)
+
+    def test_plan_red_team_checks_cited_paths_and_comprehension(self):
+        for path in (*J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND):
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=str(path.relative_to(REPO))):
+                self.assertIn("cites as existing", text)
+                self.assertIn("cannot paraphrase", text)
+
+    def test_fix_loops_rereview_only_the_fix(self):
+        for path in EXECUTION_MODE_OWNERS:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=str(path.relative_to(REPO))):
+                self.assertIn("NOT ADDRESSED", text)
+                self.assertIn("one fix subagent", text)
+                self.assertIn("never downgrades a finding's severity", text)
+
+    def _assert_all_contain(self, paths, phrase):
+        for path in paths:
+            with self.subTest(path=str(path.relative_to(REPO)), phrase=phrase):
+                self.assertIn(phrase, path.read_text(encoding="utf-8"))
+
+    def test_review_surfaces_name_the_weakened_bar(self):
+        self._assert_all_contain(
+            (
+                REPO / ".claude" / "agents" / "code-reviewer.md",
+                REPO / ".codex" / "agents" / "code-reviewer.toml",
+                REPO / ".gemini" / "config" / "agents" / "code-reviewer.md",
+            ),
+            "Weakened Quality Bar",
+        )
+        self._assert_all_contain(
+            tuple(
+                REPO / tree / "references" / "workflow" / "review-checklists.md"
+                for tree in (".claude", ".agents")
+            ),
+            "## Weakened Quality Bar",
+        )
+
+    def test_diff_review_reads_review_md_from_the_base_branch(self):
+        self._assert_all_contain(DIFF_REVIEW_DISPATCHERS, "git show origin/main:REVIEW.md")
+
+    def test_debugging_starts_from_a_red_capable_loop(self):
+        self._assert_all_contain(
+            tuple(root / "debugging-methodology" / "SKILL.md" for root in SKILL_TREE_ROOTS),
+            "No red-capable command, no Phase 2",
+        )
+
+    def test_pr_bodies_state_merge_danger(self):
+        skills = tuple(
+            root / name / "SKILL.md"
+            for root in SKILL_TREE_ROOTS
+            for name in ("finishing-branch", "github-issue-resolution")
+        )
+        agents = (
+            REPO / ".claude" / "agents" / "create-pr.md",
+            REPO / ".codex" / "agents" / "create-pr.toml",
+            REPO / ".gemini" / "config" / "agents" / "create-pr.md",
+        )
+        diff_review = (
+            REPO / ".codex" / "prompts" / "j-diff-review.md",
+            REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
+        )
+        self._assert_all_contain((*skills, *agents, *diff_review), "Merge Danger")
+
+    def test_security_findings_carry_a_state(self):
+        self._assert_all_contain(
+            tuple(
+                REPO / tree / "references" / "security" / "vulnerability-review-pipeline.md"
+                for tree in (".claude", ".agents")
+            ),
+            "## Finding States",
+        )
+        self._assert_all_contain(
+            (
+                REPO / ".claude" / "agents" / "security-reviewer.md",
+                REPO / ".codex" / "agents" / "security-reviewer.toml",
+                REPO / ".gemini" / "config" / "agents" / "security-reviewer.md",
+            ),
+            "demonstrated impact",
+        )
+
+    def test_paper_surfaces_carry_harvest_checks(self):
+        def command(name):
+            return (
+                REPO / ".claude" / "commands" / f"{name}.md",
+                REPO / ".codex" / "prompts" / f"{name}.md",
+                REPO / ".agents" / "skills" / f"cmd-{name}" / "SKILL.md",
+                REPO / ".gemini" / "antigravity-cli" / "skills" / name / "SKILL.md",
+            )
+
+        def research(name):
+            return tuple(
+                REPO / tree / "references" / "research" / name for tree in (".claude", ".agents")
+            )
+
+        analysis = command("j-paper-analysis")
+        self._assert_all_contain(
+            (*research("paper-analysis-methodology.md"), *analysis), "Number provenance"
+        )
+        self._assert_all_contain((*research("output-template.md"), *analysis), "Linchpin check")
+        for phrase in ("Keep each claim's strength", "AI-use disclosure"):
+            self._assert_all_contain(command("j-paper"), phrase)
+
+    def test_ui_guidance_is_scoped_and_diagrams_accessible(self):
+        def frontend(name):
+            return tuple(
+                REPO / tree / "references" / "frontend" / name for tree in (".claude", ".agents")
+            )
+
+        self._assert_all_contain(frontend("premium-design-aesthetics.md"), "**The brief wins.**")
+        self._assert_all_contain(frontend("web-animation-patterns.md"), "fewer and gentler")
+        self._assert_all_contain(
+            tuple(root / "html-report-authoring" / "SKILL.md" for root in SKILL_TREE_ROOTS),
+            "aria-labelledby",
+        )
 
     def test_claude_command_effort_only_lowers_the_session_level(self):
         """`effort:` is free text to YAML, so a typo loads silently and the command runs at the

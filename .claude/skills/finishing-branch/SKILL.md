@@ -76,6 +76,10 @@ gh pr create --title "<title>" --body "$(cat <<'EOF'
 
 ## Test Plan
 - [x] <verification that ran, and its result>
+
+## Merge Danger
+- Door: <one-way or two-way>; blast radius: <one word>
+- Revert: <how to undo it>
 EOF
 )"
 ```

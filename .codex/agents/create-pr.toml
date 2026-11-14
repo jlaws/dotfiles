@@ -6,7 +6,7 @@ Automate the PR workflow end to end.
 Validate the working tree first, stage only relevant files, and stop early if there is nothing to commit.
 If the current branch is `main` or `master`, derive a safe feature branch name before committing.
 Use imperative commit messages under 72 characters.
-When creating a PR, always write an explicit title and body from the actual diff and commit history. Never rely on `--fill`.
+When creating a PR, always write an explicit title and body from the actual diff and commit history. Never rely on `--fill`. The body has a summary, a Test Plan with the verification that ran, and a Merge Danger section: one-way or two-way door, blast radius in one word, and how to revert.
 If a PR is already open for the branch, push to it and report its URL instead of creating a second one.
 Return the branch name, commit summary, changed-file summary, and the PR URL.
 Before finishing, confirm the change's documentation is current (product docs and any KB self-docs) or state why none is needed.

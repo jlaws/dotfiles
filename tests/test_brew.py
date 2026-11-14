@@ -93,6 +93,13 @@ class InstallPackagesTests(unittest.TestCase):
 
         self.assertIn(["brew", "install", "jq"], runner.argv_list())
 
+    def test_installs_mole_for_mac_maintenance(self):
+        """`mole` covers app uninstall and disk analysis, which the .extra aliases do not."""
+        runner = FakeRunner(_brew_ok)
+        install_packages(runner)
+
+        self.assertIn(["brew", "install", "mole"], runner.argv_list())
+
     def test_installs_search_tools(self):
         runner = FakeRunner(_brew_ok)
         install_packages(runner)

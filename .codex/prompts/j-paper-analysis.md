@@ -95,6 +95,7 @@ Virtually re-implement the paper mentally. Challenge everything.
    - Are baselines fair and up-to-date?
    - Is the evaluation protocol standard for the field?
    - Could the results be explained by confounding factors?
+   - Number provenance: are effect sizes suspiciously round (exactly 2x, zero variance across runs) or error bars identical across conditions? Does an ablation remove the claimed mechanism or only an incidental hyperparameter?
 5. **Reproducibility**: Could you reimplement this?
    - Are hyperparameters fully specified?
    - Is the data pipeline described?
@@ -335,6 +336,8 @@ Create a file named `{paper-short-title}.md`. Use this template:
 - Read the full paper across all three passes before writing the summary
 - Be precise -- use exact numbers from the paper
 - Distinguish between what the paper claims and what the evidence supports
+- **Linchpin check:** would removing any single piece of evidence collapse the argument? Say so
+- **Read scope:** with only an abstract or a paywalled page, write "not assessed (read scope: abstract)" for methods critique rather than inferring weaknesses
 - For critical analysis, be honest and constructive -- identify real issues, not nitpicks
 - The summary should be self-contained: someone reading it should understand the paper without reading the original
 - **Score calibration:** 6-7 = good paper with solid contribution; 8+ = genuinely strong/exceptional; don't grade-inflate

@@ -37,6 +37,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 - Read the target file before editing.
 - Prefer `Edit` over rewriting the whole file.
 - Preserve existing `\label{...}`, `\ref{...}`, `\cite{...}`, and custom macros.
+- Keep each claim's strength. Revision never moves a claim along the associated -> predicts -> causes scale in either direction, and never drops a hedge, scope limit, caveat, or null result unless the user asked. When unsure whether two phrasings match, keep the original. This overrides the stacked-hedge tell in ai-writing-tells (Rhythm by Rule).
 
 ### c. Compile + log analysis
 
@@ -67,6 +68,8 @@ Look up the target venue's requirements in `.agents/references/research/latex-pa
 | Font embedding | `pdffonts <pdf>` (one Bash call) -- every font must show "yes" under "emb" |
 | Abstract length | Word-count the abstract block against the venue limit (NeurIPS: 250) |
 | Supplementary structure | Confirm appendix is in the right form for the venue (separate PDF vs appended) |
+| Number provenance | Every number in the draft traces to a saved log, script, or run config; Methods values match the config that ran |
+| AI-use disclosure | Look up the venue's current generative-AI policy page; confirm the required statement is present and placed where the venue asks. Do not fabricate the policy or its URL |
 
 Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 

@@ -226,7 +226,7 @@ body {
 
 - **Viewport units on mobile**: `100vh` includes browser chrome; use `100dvh` (dynamic viewport height) instead
 - **Container query support**: Baseline 2023 -- add `@supports (container-type: inline-size)` fallback for older browsers
-- **Touch targets**: Minimum 44x44px (WCAG 2.5.5); use `min-height: 44px; min-width: 44px` on interactive elements
+- **Touch targets**: WCAG 2.2 AA (2.5.8) requires 24x24 CSS px unless an exception applies; 44x44px (2.5.5, AAA) is the comfortable target, so use `min-height: 44px; min-width: 44px` where layout allows. Drag surfaces need `touch-action` set and drag state cleared on `pointercancel` and lost pointer capture.
 - **Horizontal scroll**: Always test with `overflow-x: hidden` on body during dev to catch overflow; use `max-width: 100%` on images/videos
 - **Font loading shift**: Use `font-display: swap` and `size-adjust` to minimize CLS from web font loading
 - **Grid auto-fit vs auto-fill**: `auto-fit` collapses empty tracks; `auto-fill` keeps them (subtle perf difference)

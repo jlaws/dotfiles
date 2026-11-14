@@ -59,6 +59,10 @@ VALID_TOOLS = {
 SHARED_DESCRIPTION_BUDGET = 64
 # Claude truncates a listed description well above this; flag only genuine runaways.
 DESCRIPTION_LIMIT = 1024
+# Claude Code re-attaches only the first 5,000 tokens of an invoked skill after auto-compaction.
+# At about 4 bytes per token this is that window. It is an
+# estimate, so the check warns rather than fails.
+SKILL_SIZE_LIMIT = 20_000
 
 
 @dataclass
@@ -144,12 +148,22 @@ class Audit:
                 self.add(FAIL, "SK-S3", folder, f"folder name is not kebab-case: {folder.name}")
 
             text = skill.read_text()
+            size = len(text.encode("utf-8"))
+            if size > SKILL_SIZE_LIMIT:
+                self.add(
+                    WARN,
+                    "SK-C6",
+                    skill,
+                    f"SKILL.md is {size} bytes (limit {SKILL_SIZE_LIMIT}); text past the limit "
+                    "may be dropped after compaction, so move detail into references/",
+                )
             fields = self.frontmatter(text)
             if fields is None:
                 self.add(FAIL, "SK-F1", skill, "no YAML frontmatter")
                 continue
             self._check_skill_frontmatter(skill, folder, fields)
             self._check_supporting_files(skill, folder, text)
+            self._check_reference_mentions(skill, text)
 
             if not self.had_findings(skill) and not self.had_findings(folder):
                 self.note_clean("Skills", folder.name)

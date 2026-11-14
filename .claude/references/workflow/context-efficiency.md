@@ -127,6 +127,8 @@ Shape tool and command output before it enters context — most of it is noise.
 
 **Hard constraint:** preserve failures, exit codes, and error strings **verbatim**. Shaping is for noise, never for evidence — `verification-before-completion`'s evidence hierarchy ranks a reproduced run as the strongest support for a claim, so the real output has to survive intact to be cited.
 
+**Filtered output proves nothing about what it hid.** A capped, ignore-respecting, or narrowed command cannot support "unused" or "not present". Say what was excluded, and re-run without the filter (`rg -uu`, no `head`) before claiming an absence.
+
 **Shaping applies to command output, never to file reads.** A `Read` result's exact bytes feed the
 `old_string` of a later `Edit`, so shaping one makes you edit against text you never saw. This is a
 correctness rule, not an efficiency preference, and it has measured consequences: headroom observed
