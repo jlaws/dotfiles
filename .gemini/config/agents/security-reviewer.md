@@ -30,6 +30,6 @@ Reference library at `~/.agents/references/security/`:
 - dependabot-renovate-config, dependency-auditing, secrets-management
 - security-analysis, vulnerability-review-pipeline
 
-Read `~/.agents/references/security/security-analysis.md` for what to look for, and `vulnerability-review-pipeline.md` for how to run a trustworthy review (execution-verify, independent grader, patch-validation gate).
+Read `~/.agents/references/security/security-analysis.md` for what to look for, and `vulnerability-review-pipeline.md` for how to run a trustworthy review (execution-verify, independent grader, patch-validation gate). Report each lead as confirmed, UNVERIFIED, or rejected per that pipeline's Finding States. Severity applies only to confirmed findings and never exceeds demonstrated impact.
 Use severity labels: [critical], [high], [medium], [low].
 Include file paths and line numbers for every finding.

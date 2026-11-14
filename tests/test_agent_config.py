@@ -1686,6 +1686,23 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         )
         self._assert_all_contain((*skills, *agents, *diff_review), "Merge Danger")
 
+    def test_security_findings_carry_a_state(self):
+        self._assert_all_contain(
+            tuple(
+                REPO / tree / "references" / "security" / "vulnerability-review-pipeline.md"
+                for tree in (".claude", ".agents")
+            ),
+            "## Finding States",
+        )
+        self._assert_all_contain(
+            (
+                REPO / ".claude" / "agents" / "security-reviewer.md",
+                REPO / ".codex" / "agents" / "security-reviewer.toml",
+                REPO / ".gemini" / "config" / "agents" / "security-reviewer.md",
+            ),
+            "demonstrated impact",
+        )
+
     def test_claude_command_effort_only_lowers_the_session_level(self):
         """`effort:` is free text to YAML, so a typo loads silently and the command runs at the
         session default. Commands only lower effort (docs/adr/workflow/

@@ -29,8 +29,11 @@ Structured checklists for code review, supplementing the main `skills/code-revie
 | LLM output in SQL/shell/eval | String from LLM response passed to `exec`/`eval`/raw SQL | Treat as untrusted input; parameterize or sandbox |
 | No output validation | LLM text rendered as HTML without sanitization | Sanitize/escape before rendering |
 | Missing rate/cost limits | LLM API calls without budget cap or rate limiter | Add per-user/per-request cost ceiling and rate limit |
-| Prompt injection | User input concatenated directly into prompt template | Separate system/user messages; input validation |
+| Prompt injection | User input concatenated directly into prompt template | Separate system/user messages; input validation. A finding needs a code-level boundary failure, not the injection alone |
 | Trusting LLM-generated URLs/paths | File path or URL from LLM used in fetch/open | Allowlist validation; never trust blindly |
+| Guardrail prompt as control | Safety rests on "never do X" in the system prompt | Enforce in code: deterministic checks, resource-scoped authorization, isolation, constrained credentials |
+| Confused deputy at the tool handler | A tool acts with the agent's authority, not the requesting user's | Re-authorize the requesting principal inside each tool handler |
+| Lower-trust content in a privileged session | Retrieved docs, memory, or tool descriptions writable by another principal reach a privileged session | Trace who can write each source; treat model output, memory, and tool descriptions as untrusted input |
 
 ## Enum / Exhaustive Matching
 
