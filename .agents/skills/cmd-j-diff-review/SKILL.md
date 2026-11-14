@@ -103,7 +103,7 @@ Keep the full diff out of this session; the reviewers read it themselves in Step
 git diff origin/main...HEAD --name-only
 ```
 
-Do not read the changed files here. Each reviewer reads the diff and every changed file in full in its own fresh context (Step 4); reading them in this session only grows a context that is often already carrying the work that produced the diff.
+Do not read the changed files here. Each reviewer loads the diff in its own fresh context (Step 4) and decides what else to read; reading them in this session only grows a context that is often already carrying the work that produced the diff.
 
 #### Step 3 — Detect Review Scope
 
@@ -286,7 +286,7 @@ Delegate each perspective to its specialist agent (each loads the listed skills 
 
 Put this instruction in every dispatch prompt, verbatim. Do not rely on an agent's own definition to supply it — `test-writer` and `documentation-writer` can write files.
 
-> Run `git diff origin/main...<HEAD SHA>` yourself and read every changed file in full, not just the hunks: cross-cutting problems live in code the diff did not touch.
+> Run `git diff origin/main...<HEAD SHA>` yourself, then decide what else to read and how to load it: cross-cutting problems often live in code the diff did not touch.
 > Report only. Return findings and edit nothing. Cite `file:line` for each. If your lens does not apply to this diff, return "no findings — surface not present" rather than manufacturing material.
 > Work in the current directory; do not create or request a worktree. If this packet names a HEAD SHA, run `git rev-parse HEAD` and confirm it matches before reporting. If it moved, run `git diff <named-sha> -- <changed files>` and `git diff --name-only <named-sha> HEAD`: an empty diff and no new paths mean your findings stand; a non-empty diff means re-check those hunks; a new path outside the changed-file list means return BLOCKED naming it. If no SHA is named, proceed.
 > Report as `subagent-report-contract` specifies: a verdict line, then findings as `file:line` rows. Cut narration, preamble, and restatement. Do **not** cut findings — there is no length limit and nothing is archived, so anything you leave out is lost. Quote failures, errors, and command output byte-for-byte; never paraphrase evidence.

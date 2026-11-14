@@ -48,8 +48,8 @@ PR metadata that can disagree with it.
 git diff origin/main...HEAD --name-only
 ```
 
-Do not read the changed files here. Each reviewer reads the diff and every changed file in full in its
-own fresh context (Step 4); reading them in this session only grows a context that is often already
+Do not read the changed files here. Each reviewer loads the diff in its own fresh context (Step 4) and
+decides what else to read; reading them in this session only grows a context that is often already
 carrying the work that produced the diff.
 
 ## Step 3: Detect scope
@@ -82,7 +82,7 @@ Do not rely on an agent's own definition to supply the instruction: only `code-r
 `security-reviewer` load the read-only contract, and `test-writer` and `documentation-writer` hold
 `Edit`/`Write`.
 
-> Run `git diff origin/main...<HEAD SHA>` yourself and read every changed file in full, not just the hunks: cross-cutting problems live in code the diff did not touch.
+> Run `git diff origin/main...<HEAD SHA>` yourself, then decide what else to read and how to load it: cross-cutting problems often live in code the diff did not touch.
 > Report only. Return findings and edit nothing. Cite `file:line` for each. If your lens does not apply
 > to this diff, return "no findings -- surface not present" rather than manufacturing material.
 > Work in the current directory; do not create or request a worktree. If this packet names a HEAD SHA,

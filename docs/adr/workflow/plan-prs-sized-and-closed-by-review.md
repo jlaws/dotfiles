@@ -37,7 +37,7 @@ the repository's own bug and task tracking mechanism, following its format (an i
 committed on the branch); security findings follow the same rule, and
 `writing-plans` no longer keeps them off public trackers. Reviews diff against `origin/main`. Each
 reviewer runs in a fresh context on an artifact-only packet (base ref, branch, HEAD SHA, changed files,
-languages) and reads the diff and files itself; the orchestrating session, often the one that wrote the
+languages), loads the diff itself, and decides what else to read; the orchestrating session, often the one that wrote the
 code, lists the changed files, checks only the lines findings cite, and never passes the plan, the spec,
 or its intent to a reviewer. Plans target about 3-5k changed lines per PR; `code-review-patterns` asks to
 split only a PR well over that with no stated reason.
