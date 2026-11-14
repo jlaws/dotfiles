@@ -148,7 +148,7 @@ class Audit:
                 self.add(FAIL, "SK-S3", folder, f"folder name is not kebab-case: {folder.name}")
 
             text = skill.read_text()
-            size = len(skill.read_bytes())
+            size = len(text.encode("utf-8"))
             if size > SKILL_SIZE_LIMIT:
                 self.add(
                     WARN,
