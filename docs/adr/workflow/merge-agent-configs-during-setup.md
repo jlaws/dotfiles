@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-09-28
-updated: 2026-09-28
+updated: 2026-11-14
 ---
 # Merge agent machine configs during setup, overwrite skills and commands
 
@@ -27,7 +27,7 @@ The setup runner must execute on bare macOS system Python (Python 3.9.6 floor) w
 
 We will divide agent synchronization into two lifecycle policies:
 
-1. **Executable Knowledge Assets (Overwrite)**: Skills, slash commands, agent personas, prompts, hooks, and references are copied directly from the repository, replacing destination files. Stale removed commands and legacy directories are cleaned up via `AGENT_REMOVALS` and `AGENT_REMOVAL_GLOBS`.
+1. **Executable Knowledge Assets (Overwrite)**: Skills, slash commands, agent personas, prompts, hooks, and references are copied directly from the repository, replacing destination files. Stale removed commands and legacy directories are cleaned up via `AGENT_REMOVALS` and `AGENT_REMOVAL_GLOBS`. Known gap: only `.agents/skills/cmd-j-*` is pruned by name today; commands deleted from `.claude/commands/`, `.codex/prompts/`, and `.gemini/antigravity-cli/skills/` linger until `tasks/prune-deleted-commands-on-sync.md` lands.
 2. **Machine Configuration Files (Deep Key Merge)**: Target configuration files (`.claude/settings.json`, `.codex/config.toml`, and `.gemini/antigravity-cli/settings.json`) are merged when the target already exists:
    - Repository-managed keys update or insert into the target.
    - User-defined or machine-local keys and sections absent from the repository template are preserved.
