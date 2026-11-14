@@ -365,6 +365,8 @@ PROSE_TELL_CONSUMERS = (
     REPO / ".gemini" / "config" / "agents" / "documentation-writer.md",
 )
 
+WRITING_PLANS_SKILLS = tuple(p for p in PLAN_WORKFLOW_SKILLS if p.parent.name == "writing-plans")
+
 CODE_REVIEW_PR_SIZE_SURFACES = (
     *(root / "code-review-patterns" / "SKILL.md" for root in SKILL_TREE_ROOTS),
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
@@ -769,7 +771,13 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for name in ("gpt-6.1-sol", "gpt-6-astra"):
             with self.subTest(name=name):
                 self.assertEqual(CODEX_SELECTED_MODELS.sub("", f"`{name}`"), "``")
-        for name in ("gpt-6-sol", "gpt-6-luna", "gpt-5.6-sol", "gpt-6.1-sol-2026-09-28", "gpt-6-astra-pro"):
+        for name in (
+            "gpt-6-sol",
+            "gpt-6-luna",
+            "gpt-5.6-sol",
+            "gpt-6.1-sol-2026-09-28",
+            "gpt-6-astra-pro",
+        ):
             with self.subTest(name=name):
                 self.assertIsNotNone(PINNED_MODEL.search(CODEX_SELECTED_MODELS.sub("", name)))
 
@@ -850,27 +858,33 @@ class AgentConfigArchitectureTests(unittest.TestCase):
 
     def test_plan_boundaries_close_with_the_diff_review(self):
         """One close per boundary: the diff review runs, then its Step 7 opens the PR."""
-        for path in (*EXECUTION_CLOSE_OWNERS, *PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS):
+        for path in (
+            *EXECUTION_CLOSE_OWNERS,
+            *PLAN_EXECUTION_CONSUMERS,
+            *CLAUDE_PLAN_EXECUTION_COMMANDS,
+        ):
             body = path.read_text(encoding="utf-8")
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("j-diff-review", body)
                 self.assertNotIn("Load `finishing-branch` skill and follow it", body)
                 self.assertNotIn("Final Whole-Branch Review", body)
+        for path in EXECUTION_CLOSE_OWNERS:
+            if path.parent.name == "executing-plans":
+                with self.subTest(path=path.relative_to(REPO)):
+                    self.assertIn("follow it through Step 7", path.read_text(encoding="utf-8"))
         for path in J_NEXT_COMMANDS:
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertNotIn("create-pr", path.read_text(encoding="utf-8"))
-        writing_plans = [p for p in PLAN_WORKFLOW_SKILLS if p.parent.name == "writing-plans"]
-        self.assertEqual(len(writing_plans), 3)
-        for path in writing_plans:
+        self.assertEqual(len(WRITING_PLANS_SKILLS), 3)
+        for path in WRITING_PLANS_SKILLS:
             body = path.read_text(encoding="utf-8")
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("bug and task tracking mechanism", body)
                 self.assertNotIn("public tracker", body)
 
     def test_plans_size_prs_for_review(self):
-        writing_plans = [p for p in PLAN_WORKFLOW_SKILLS if p.parent.name == "writing-plans"]
-        self.assertEqual(len(writing_plans), 3)
-        for path in writing_plans:
+        self.assertEqual(len(WRITING_PLANS_SKILLS), 3)
+        for path in WRITING_PLANS_SKILLS:
             body = path.read_text(encoding="utf-8")
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("3-5k changed lines", body)
@@ -882,12 +896,18 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for path in CODE_REVIEW_PR_SIZE_SURFACES:
             body = path.read_text(encoding="utf-8")
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertNotIn(">400 lines", body)
                 self.assertIn("3-5k", body)
+        for path in (*CODE_REVIEW_PR_SIZE_SURFACES, *DIFF_REVIEW_DISPATCHERS):
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotRegex(path.read_text(encoding="utf-8"), r"\b400 lines")
 
     def test_plan_surfaces_state_the_bare_minimum_rule(self):
         # Scope, never quality: each statement cites the axis boundary the ladder ADR records.
-        execute = [p for p in (*PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS) if "execute-plan" in str(p)]
+        execute = [
+            p
+            for p in (*PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS)
+            if "execute-plan" in str(p)
+        ]
         self.assertEqual(len(execute), 4)
         for path in (*PLAN_WORKFLOW_SKILLS, *J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND, *execute):
             body = path.read_text(encoding="utf-8")
@@ -908,18 +928,24 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             for phrase in plan_phrases:
                 with self.subTest(path=path.relative_to(REPO), phrase=phrase):
                     self.assertIn(phrase, body)
-        writing_plans = [p for p in PLAN_WORKFLOW_SKILLS if p.parent.name == "writing-plans"]
-        for path in (*J_BRAINSTORM_COMMANDS, *writing_plans):
+        self.assertEqual(len(WRITING_PLANS_SKILLS), 3)
+        for path in (*J_BRAINSTORM_COMMANDS, *WRITING_PLANS_SKILLS):
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertIn("conformance to the conventions digest", path.read_text(encoding="utf-8"))
+                self.assertIn(
+                    "conformance to the conventions digest", path.read_text(encoding="utf-8")
+                )
 
     def test_writing_surfaces_apply_the_ai_writing_tells_reference(self):
         for tree in (".claude", ".agents"):
             with self.subTest(tree=tree):
-                self.assertTrue((REPO / tree / "references" / "documentation" / "ai-writing-tells.md").is_file())
+                self.assertTrue(
+                    (REPO / tree / "references" / "documentation" / "ai-writing-tells.md").is_file()
+                )
         for path in PROSE_TELL_CONSUMERS:
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertIn("ai-writing-tells", path.read_text(encoding="utf-8"))
+                body = path.read_text(encoding="utf-8")
+                self.assertIn("ai-writing-tells", body)
+                self.assertIn("Revision Pass", body)
 
     def test_diff_review_maps_extensions_to_language_references(self):
         """Deleting the duplicate workflow from `code-review-patterns` also removed the only
@@ -1166,9 +1192,14 @@ class AgentConfigArchitectureTests(unittest.TestCase):
 
     def test_codex_surfaces_name_codex_command_syntax(self):
         # Codex invokes commands as `$cmd-j-*`; a bare `/j-*` names nothing it can run.
-        for path in (REPO / ".codex" / "AGENTS.md", REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md"):
+        for path in (
+            REPO / ".codex" / "AGENTS.md",
+            REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md",
+        ):
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertNotRegex(path.read_text(), r"`/j-execute-plan|`/j-next|Run /j-execute-plan")
+                self.assertNotRegex(
+                    path.read_text(), r"`/j-execute-plan|`/j-next|Run /j-execute-plan"
+                )
 
     def test_active_plan_commands_use_the_persisted_locations(self):
         for path in ACTIVE_PLAN_CONSUMERS:
