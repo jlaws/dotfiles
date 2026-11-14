@@ -164,6 +164,8 @@ slices, an easy-first rather than risk-first order, a significant decision left 
 a PR boundary well over the `writing-plans` size target without a stated reason, scope creep past the spec, and steps that are not idempotent. Apply every surviving fix to the plan file
 before Step 5.
 
+Give `code-reviewer` two more checks. It verifies with `rg` or a file search every path, function, or signature the plan cites as existing; files the plan will create are exempt. It paraphrases what each phase builds before critiquing anything; a section it cannot paraphrase is a blocker.
+
 ## Step 5: Pull latest, then ask
 
 The plan now exists, so the remaining questions are specific.

@@ -299,5 +299,39 @@ class ReferenceCitationTests(unittest.TestCase):
         self.assertEqual(len(self.findings_for("references/documentation/missing.md")), 1)
 
 
+class SkillSizeTests(unittest.TestCase):
+    """SK-C6: a SKILL.md past the compaction re-attach window warns.
+
+    After auto-compaction Claude Code re-attaches only the first 5,000 tokens of each invoked
+    skill (code.claude.com/docs/en/skills). SKILL_SIZE_LIMIT is a byte proxy for that window.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def findings_for(self, size: int):
+        """Audit a throwaway tree holding one skill of `size` bytes; return its SK-C6 findings."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        folder = Path(tmp.name) / ".claude" / "skills" / "probe"
+        folder.mkdir(parents=True)
+        head = "---\nname: probe\ndescription: Use when probing the audit.\n---\n\n"
+        (folder / "SKILL.md").write_text(head + "x" * (size - len(head)))
+        audit = self.audit_module.Audit(Path(tmp.name))
+        audit.check_skills()
+        return [f for f in audit.findings if f.check == "SK-C6"]
+
+    def test_a_skill_at_the_limit_is_clean(self):
+        self.assertEqual(self.findings_for(self.audit_module.SKILL_SIZE_LIMIT), [])
+
+    def test_a_skill_over_the_limit_warns_with_its_size(self):
+        size = self.audit_module.SKILL_SIZE_LIMIT + 1
+        findings = self.findings_for(size)
+        self.assertEqual(len(findings), 1, findings)
+        self.assertEqual(findings[0].severity, self.audit_module.WARN)
+        self.assertIn(str(size), findings[0].message)
+
+
 if __name__ == "__main__":
     unittest.main()

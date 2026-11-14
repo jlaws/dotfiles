@@ -1612,6 +1612,32 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 for sentence, count in expected.items():
                     self.assertEqual(text.count(sentence), count, sentence)
 
+    def test_plans_record_decisions_not_code(self):
+        """See docs/adr/workflow/plans-record-decisions-not-code.md."""
+        for rel in WRITING_PLANS_OWNERS:
+            text = (REPO / rel).read_text(encoding="utf-8")
+            with self.subTest(path=rel):
+                for phrase in ("set of decisions the implementer cannot make alone",
+                               "**Proportion**", "**Interfaces:**", "expand-contract"):
+                    self.assertIn(phrase, text)
+                for retired in ("**Complete code**", "Junior-engineer bar", "2-5 minutes"):
+                    self.assertNotIn(retired, text)
+
+    def test_plan_red_team_checks_cited_paths_and_comprehension(self):
+        for path in (*J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND):
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=str(path.relative_to(REPO))):
+                self.assertIn("cites as existing", text)
+                self.assertIn("cannot paraphrase", text)
+
+    def test_fix_loops_rereview_only_the_fix(self):
+        for path in EXECUTION_MODE_OWNERS:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=str(path.relative_to(REPO))):
+                self.assertIn("NOT ADDRESSED", text)
+                self.assertIn("one fix subagent", text)
+                self.assertIn("never downgrades a finding's severity", text)
+
     def test_claude_command_effort_only_lowers_the_session_level(self):
         """`effort:` is free text to YAML, so a typo loads silently and the command runs at the
         session default. Commands only lower effort (docs/adr/workflow/

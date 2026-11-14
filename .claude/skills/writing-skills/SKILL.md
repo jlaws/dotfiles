@@ -109,6 +109,10 @@ less reliable. List a script's dependencies; do not assume they are installed.
 
 Where a choice exists, give one default with an escape hatch rather than a menu of equal options.
 
+Keep binding caps and stop conditions in the first screen of SKILL.md. After auto-compaction Claude Code
+re-attaches only the first 5,000 tokens of each invoked skill, within a 25,000-token budget shared by all
+re-attached skills, and `audit.py` SK-C6 warns when a SKILL.md passes 20,000 bytes.
+
 ## Frontmatter
 
 `name` (letters, numbers, hyphens) and `description` are the essentials. Others worth knowing:

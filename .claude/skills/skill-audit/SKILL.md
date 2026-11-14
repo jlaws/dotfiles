@@ -23,8 +23,9 @@ python3 .claude/skills/skill-audit/scripts/audit.py .
 
 Scope it with `--type skills|agents|commands|references|config` (repeatable). It exits non-zero when
 any FAIL trips, and covers naming, frontmatter validity, tool names, model aliases, declared-skill
-and agent resolution, reference reachability, relative-path and anchor resolution, and settings-file
-syntax.
+and agent resolution, reference reachability, relative-path and anchor resolution, skill size (SK-C6: a
+SKILL.md over 20,000 bytes warns, because only its first 5,000 tokens survive compaction), and
+settings-file syntax.
 
 Read its output; do not re-derive it by hand. If a check is wrong or missing, fix the script rather
 than working around it in prose.
