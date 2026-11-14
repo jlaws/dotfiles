@@ -52,7 +52,7 @@ Name the surface mode before applying any rule here:
 - **Spacing over cards**: Use whitespace and borders for content separation before reaching for card components
 - **No shadow stacking**: One shadow level per elevation; nested shadows = visual noise
 - **Border discipline**: 1px borders at `opacity: 0.08–0.12` for subtle separation
-- **Browser-owned surfaces**: theme `::selection`, `caret-color`, focus rings, `text-underline-offset`, and `font-variant-numeric: tabular-nums` for tabular data from the palette. Custom scrollbars only on Persuade, Experience, and Read surfaces.
+- **Browser-owned surfaces**: theme `::selection`, `caret-color`, focus rings, and `text-underline-offset` from the palette; set `font-variant-numeric: tabular-nums` on tabular data. Custom scrollbars only on Persuade, Experience, and Read surfaces.
 
 ## Interactive States
 
@@ -100,7 +100,7 @@ These patterns are signals that a UI was AI-generated without design oversight:
 
 ## Audit Checklist
 
-Run this before shipping any UI:
+Run this before shipping any UI, relaxing the items the Scope table relaxes for its mode:
 
 1. Mode: Named the surface mode, and honored any pinned brief?
 2. Font: Chosen for the subject with a stated reason, not a default?

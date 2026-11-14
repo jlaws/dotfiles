@@ -52,7 +52,7 @@ Prefer decisions that are easy to change over ones that are "optimal." Architect
 ## Module Depth
 
 - **The interface is the test surface**: test at the deepest interface, then delete the shallow unit tests it replaces.
-- **Two adapters make a seam**: one adapter is a hypothetical seam. Do not add a port for one implementation.
+- **Two adapters make a seam**: one adapter is a hypothetical seam. Do not add a port for one implementation; the test double counts as the second adapter.
 - **Classify each dependency**: in-process (call it), local and substitutable (use the real thing in tests), remote and owned (port plus adapter), true external (mock at the boundary).
 
 Source: John Ousterhout, *A Philosophy of Software Design*, via mattpocock/skills `codebase-design`.

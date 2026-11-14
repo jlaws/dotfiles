@@ -8,7 +8,7 @@ allowed-tools: Read, Grep, Glob, Bash
 
 ## Overview
 
-A plan is the set of decisions the implementer cannot make alone: which files to touch, the interfaces each task consumes and produces, test names with their assertions, the spec's values, and exact commands with expected output. A plan longer than the code it describes has written the code instead. Give a function body only when the signature, the tests, and the spec leave the algorithm open. Bite-sized tasks. DRY. YAGNI. TDD. One commit per phase.
+A plan is the set of decisions the implementer cannot make alone: which files to touch, the interfaces each task consumes and produces, test names with their assertions, the spec's values, and exact commands with expected output. A plan whose code blocks are most of its length has written the code instead. Give a function body only when the signature, the tests, and the spec leave the algorithm open. Bite-sized tasks. DRY. YAGNI. TDD. One commit per phase.
 
 Target audience: a capable implementer with no context on this codebase.
 
@@ -240,7 +240,7 @@ Before handing off, review the finished plan against this checklist and fix any 
 - **No follow-up tail** - nothing in accepted scope is deferred to a HANDOFF or follow-ups section.
 - **Type/signature consistency** - function and type signatures match across every task that references them.
 - **Decision scan** - every step lets the implementer write exactly one reasonable thing. A line that decides nothing is a gap; a function body the signature and tests already determine is a transcript. Fix both. Name YAGNI and DRY as constraints where a task invites over-building.
-- **Proportion** - compare the plan to the change it describes. If code blocks are most of the plan, or it is longer than the code it describes, it is a transcript: replace bodies with signatures, test names, and assertions, then check each step is still unambiguous.
+- **Proportion** - compare the plan to the change it describes. If code blocks are most of the plan, it is a transcript: replace bodies with signatures, test names, and assertions, then check each step is still unambiguous.
 - **Documentation coverage** - a change that ships a public-surface or behavior change has a doc-update task, or the plan states docs are N/A with a reason.
 - **Skeleton conformance** - Phase 1 fetches and branches off `origin/main`, then writes docs; the last phase is the validation gate; every middle phase leads with its own doc delta.
 - **Validation gate stated** - a named benchmark and gate command, or an explicit N/A with a reason.
@@ -276,4 +276,4 @@ picks up the next boundary once the previous one merges.
 | `CREATE TABLE users (...)` | `CREATE TABLE IF NOT EXISTS users (...)` |
 | "Implement the `Widget` abstraction" | Specify exact methods, signatures, return types |
 | "Set up the ORM" | Name the library, version, and config file path |
-| A plan longer than the code it describes | Signatures, test names, assertions |
+| Code blocks that are most of the plan | Signatures, test names, assertions |

@@ -269,6 +269,6 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 - [ ] Re-test until bulletproof
 
 **Deployment:**
-- [ ] Update KB self-docs: `description` frontmatter and cross-references current; CLAUDE.md KB-structure section and MEMORY.md index (if present) updated if the asset set changed (see `documentation-validation`)
+- [ ] Update KB self-docs: `description` frontmatter and cross-references current; the harness config's Knowledge Base Structure section and MEMORY.md index (if present) updated if the asset set changed (see `documentation-validation`)
 - [ ] Sync shared workflow bodies to `.claude`; ensure `cmd-j-*` skills have Claude, Codex, and Gemini command counterparts
 - [ ] Commit and push

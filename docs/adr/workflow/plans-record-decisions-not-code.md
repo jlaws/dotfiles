@@ -23,7 +23,7 @@ planning.
 We will have a plan record **the decisions the implementer cannot make alone**: files, interfaces, test
 names and assertions, spec values, and commands with expected output. A function body appears only when
 the signature, tests, and spec leave the algorithm open. Self-review adds a decision scan and Proportion
-(plan length against the change it describes).
+(how much of the plan is code).
 
 ## Rationale
 

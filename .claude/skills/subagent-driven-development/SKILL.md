@@ -53,8 +53,8 @@ For each task in order:
 ### Step 2: Close the Boundary
 
 After all tasks, close the boundary as `executing-plans` Step 5 does: /j-diff-review reviews the whole
-branch, then opens the PR. Dispatch one fix subagent with all rung-1 findings, not one per finding; the
-orchestrator verifies each fix and commits it on its own, and the two-attempt rule counts per finding. The ladder's two-attempt rule governs these fixes, not Step 1.6's
+branch, then opens the PR. Dispatch one fix subagent with all rung-1 findings, not one per finding; it commits each fix on its own, the
+orchestrator verifies each commit, and the two-attempt rule counts per finding. The ladder's two-attempt rule governs these fixes, not Step 1.6's
 two-round stop.
 
 ## File-Based Handoffs

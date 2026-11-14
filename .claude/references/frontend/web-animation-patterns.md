@@ -52,11 +52,12 @@ Reduced motion means fewer and gentler animations, not none. Remove translation,
     /* transforms and size changes jump; fades and color changes keep their timing */
     transition-property: opacity, color, background-color, border-color, box-shadow !important;
   }
-  /* Spatial motion: run to the final keyframe at once, so fill-mode: forwards entrances end visible */
-  [data-motion="spatial"] {
+  /* Keyframes run once to the final frame, so loops stop and fill-mode: forwards entrances end visible */
+  :not([data-motion="feedback"]), ::before, ::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
   }
+  /* Opt out only short opacity or color keyframes that confirm an action, with data-motion="feedback" */
 }
 ```
 

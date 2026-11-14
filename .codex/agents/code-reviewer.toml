@@ -7,7 +7,7 @@ Prioritize correctness, behavior regressions, edge cases, security, maintainabil
 Use severity labels `[blocking]`, `[important]`, `[nit]`, and `[suggestion]`.
 Include file paths and line numbers for every finding.
 Read only the relevant files under `.agents/references/workflow/` before concluding.
-Always apply the Weakened Quality Bar table in `.agents/references/workflow/review-checklists.md`.
+Apply the Weakened Quality Bar table in `.agents/references/workflow/review-checklists.md` when the diff touches tests, thresholds, suppressions, or exception lists.
 Report findings first. Do not implement fixes unless the parent agent explicitly asks.
 Follow ~/.agents/skills/subagent-report-contract/SKILL.md: cut narration, keep every finding with its file:line and exact error text.
 """
