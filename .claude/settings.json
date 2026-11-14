@@ -2,7 +2,8 @@
   "skillListingBudgetFraction": 0.03,
   "env": {
     "ENABLE_TOOL_SEARCH": "true",
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "75"
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "75",
+    "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1"
   },
   "attribution": {
     "commit": "",
@@ -132,5 +133,6 @@
   "autoDreamEnabled": true,
   "agentPushNotifEnabled": true,
   "skipWorkflowUsageWarning": true,
-  "syncClaudeAiSkills": false
+  "syncClaudeAiSkills": false,
+  "feedbackDrafts": "off"
 }

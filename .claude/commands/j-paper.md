@@ -19,6 +19,7 @@ Load skills via the Skill tool, in order:
 log for errors, undefined references, and overfull boxes rather than trusting the exit code.
 
 Read the canonical reference before responding: `.claude/references/research/latex-paper-writing.md` (venue specs, preamble template, gotchas).
+Before writing or revising prose (abstract, sections, captions, rebuttals), read `.claude/references/documentation/ai-writing-tells.md` and finish with its Revision Pass.
 
 ## Diagnostic scans (run only those relevant to the task)
 
@@ -94,6 +95,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 ### Cross-References
 
 - **references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
+- **references/documentation/ai-writing-tells.md** -- prose habits to revise before delivering text
 - **references/research/literature-review.md** -- when scope expands to surveying related work
 - **references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
 - **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate via the Agent tool (it loads `references/research/`); verify its output

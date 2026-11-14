@@ -118,9 +118,9 @@ Extend an existing benchmark where one covers the surface; add a new one where n
 
 ### PR Boundaries
 
-One commit per phase. Every unit of plan work ends in a pull request, opened automatically once its phases pass their gates - the executor does not stop to ask whether to open one. An opened PR is a stop point: no side work until review.
+One commit per phase. Every unit of plan work ends in a pull request, opened automatically once its phases pass their gates and the diff review closes the boundary - the executor does not stop to ask whether to open one. An opened PR is a stop point: no side work until review.
 
-**Default to one PR per plan.** Split into multiple PRs only when a group of phases is independently shippable and the combined diff is too large to review as one, and state that reason in the plan. Each PR must land the tree in a valid state: its doc updates and its code updates ship together, so `post-ship-doc-sync` and a diff review find nothing stale. After each PR, **wait for review** before starting the next.
+**Size each PR for review.** Target about 3-5k changed lines per PR (insertions plus deletions, tests and docs included, generated files and lockfiles excluded); that is the ideal, not a hard requirement. A plan that fits one such PR ships as one PR. A larger plan splits at phase boundaries into PRs that are each independently shippable, and the plan states each PR's estimated changed lines. Each PR must land the tree in a valid state: its doc updates and its code updates ship together, so `post-ship-doc-sync` and a diff review find nothing stale. After each PR, **wait for review** before starting the next.
 
 Between PRs, reset to a clean slate:
 
@@ -208,13 +208,18 @@ git commit -m "feat: add specific feature"
 - **Idempotent steps** - every step safely re-runnable. `CREATE TABLE IF NOT EXISTS`, not `CREATE TABLE`. `mkdir -p`, not `mkdir`. If a step fails midway, re-running it from the top must not corrupt state.
 - **Resolve all ambiguities** - no "choose appropriate X" or "use a suitable library". Every decision is made in the plan. Research what the code or primary docs can answer; run what can be measured now. A decision-gate phase is only for a measurement planning cannot reach.
 - **Risks closed with evidence** - every named risk gets a row in the header's Risks table naming the evidence that closes it (a file:line, a measurement, an inspection) or the test that will catch it. A risk whose mitigation is "measure first" is unfinished research.
-- **Findings filed, not listed** - an unrelated defect found while planning goes to the project's tracker; the plan names the entry. The plan holds no "recorded, not fixed" list. A security defect never goes to a public tracker: report it to the user, or through the project's private advisory channel.
+- **Findings filed, not listed** - an unrelated defect found while planning goes to the repository's bug and task tracking mechanism, found and followed as j-diff-review Step 6 describes; the plan names the entry. The plan holds no "recorded, not fixed" list.
 - **Requirements, not history** - the plan states what to build and why. Decision history and review back-and-forth go in ADRs or nowhere.
 - **No follow-up tail** - in-scope work is planned in full. No HANDOFF phase and no "known follow-ups" section for accepted scope.
 - **Documentation task** - if the change alters public surface or documented behavior, include an explicit doc-update task; don't leave docs implicit. See `documentation-validation`.
 - **Phase skeleton** - Phase 1 branch hygiene then docs, Phases 2..N-1 TDD, Phase N validation gate.
 - **Stated validation gate** - the benchmark and gate command, or an explicit N/A with a reason.
-- **Stated PR boundaries** - one PR, or which phases map to which PR with a review wait between.
+- **Stated PR boundaries** - one PR, or which phases map to which PR with a review wait between, each with its estimated changed lines.
+- **Bare minimum scope** - do the bare minimum the spec requires, no more. Plan no feature, capability,
+  option, or abstraction it did not ask for; solve the original problem as concisely as possible. This
+  limits scope, never quality: docs, tests, and the validation gate stay
+  (`.claude/references/workflow/completeness-principle.md`, Where Thoroughness Stops). Fixing defects a
+  review finds is not new scope.
 - **Risk-first vertical slices** - hardest or least-certain phase first; each phase testable end to end rather than a horizontal layer.
 - **Decisions persisted** - every significant, not-easily-reversible decision has an ADR task (`docs/adr/<topic>/<slug>.md`), updating an existing record in place rather than adding a second file; minor ones are noted inline. See `.claude/references/architecture/architecture-decision-records.md`.
 - **Assumptions stated** - the plan names its assumptions, numbered and falsifiable, across
@@ -233,6 +238,8 @@ Before handing off, review the finished plan against this checklist and fix any 
 - **Documentation coverage** - a change that ships a public-surface or behavior change has a doc-update task, or the plan states docs are N/A with a reason.
 - **Skeleton conformance** - Phase 1 fetches and branches off `origin/main`, then writes docs; the last phase is the validation gate; every middle phase leads with its own doc delta.
 - **Validation gate stated** - a named benchmark and gate command, or an explicit N/A with a reason.
+- **PR size** - each PR boundary sits near the 3-5k changed-line target, or the plan says why not.
+- **Conventions** - the plan shows conformance to the conventions digest when one exists; a deviation carries an ADR-backed exception.
 - **Risk order and slicing** - the riskiest work is first, and no phase is a horizontal layer that proves nothing on its own.
 
 ## Execution Handoff
@@ -245,7 +252,7 @@ there is no mode to ask about. Before approval, stop at:
 Plan saved to `<plan-file-path>`. Execute it with /j-execute-plan <plan-file-path>.
 ```
 
-Each PR boundary's phases run to green, then the PR opens. Where a plan spans several PRs, `/j-next`
+Each PR boundary's phases run to green, then the diff review fixes what it finds and opens the PR. Where a plan spans several PRs, `/j-next`
 picks up the next boundary once the previous one merges.
 
 ## Common Mistakes

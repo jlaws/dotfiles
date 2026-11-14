@@ -328,6 +328,51 @@ DIFF_REVIEW_DISPATCHERS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
 )
 
+SKILL_TREE_ROOTS = (
+    REPO / ".claude" / "skills",
+    REPO / ".agents" / "skills",
+    REPO / ".gemini" / "antigravity-cli" / "skills",
+)
+
+# Both execution modes close a plan boundary through the diff review, whose Step 7 opens the PR.
+EXECUTION_CLOSE_OWNERS = tuple(
+    root / skill / "SKILL.md"
+    for root in SKILL_TREE_ROOTS
+    for skill in ("executing-plans", "subagent-driven-development")
+)
+
+J_NEXT_COMMANDS = (
+    REPO / ".claude" / "commands" / "j-next.md",
+    REPO / ".agents" / "skills" / "cmd-j-next" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-next.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-next" / "SKILL.md",
+)
+
+J_BRAINSTORM_COMMANDS = (
+    REPO / ".claude" / "commands" / "j-brainstorm.md",
+    REPO / ".agents" / "skills" / "cmd-j-brainstorm" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-brainstorm.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-brainstorm" / "SKILL.md",
+)
+
+PROSE_TELL_CONSUMERS = (
+    REPO / ".claude" / "commands" / "j-paper.md",
+    REPO / ".agents" / "skills" / "cmd-j-paper" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-paper.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-paper" / "SKILL.md",
+    REPO / ".claude" / "agents" / "documentation-writer.md",
+    REPO / ".codex" / "agents" / "documentation-writer.toml",
+    REPO / ".gemini" / "config" / "agents" / "documentation-writer.md",
+)
+
+WRITING_PLANS_SKILLS = tuple(p for p in PLAN_WORKFLOW_SKILLS if p.parent.name == "writing-plans")
+
+CODE_REVIEW_PR_SIZE_SURFACES = (
+    *(root / "code-review-patterns" / "SKILL.md" for root in SKILL_TREE_ROOTS),
+    REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-diff-review.md",
+)
+
 # Local `main` can trail the remote, which makes a squash absorb commits that already landed.
 # Every branch workflow resolves its base through `origin/main` instead.
 BRANCH_BASE_REF_DOCS = (
@@ -726,7 +771,13 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for name in ("gpt-6.1-sol", "gpt-6-astra"):
             with self.subTest(name=name):
                 self.assertEqual(CODEX_SELECTED_MODELS.sub("", f"`{name}`"), "``")
-        for name in ("gpt-6-sol", "gpt-6-luna", "gpt-5.6-sol", "gpt-6.1-sol-2026-09-28", "gpt-6-astra-pro"):
+        for name in (
+            "gpt-6-sol",
+            "gpt-6-luna",
+            "gpt-5.6-sol",
+            "gpt-6.1-sol-2026-09-28",
+            "gpt-6-astra-pro",
+        ):
             with self.subTest(name=name):
                 self.assertIsNotNone(PINNED_MODEL.search(CODEX_SELECTED_MODELS.sub("", name)))
 
@@ -774,6 +825,127 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertTrue(
                     "unconditional" in body, f"{rel}: the PR link report is gated on a fix existing"
                 )
+
+    def test_diff_review_fixes_all_but_large_unrelated_findings(self):
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("large and unrelated", body)
+                self.assertIn("bug and task tracking mechanism", body)
+                self.assertIn("security findings included", body)
+                self.assertIn("another PR", body)
+                self.assertNotIn("future-work mechanism", body)
+                self.assertNotIn("Never create a new plan file", body)
+                self.assertNotIn("public tracker", body)
+
+    def test_diff_review_diffs_against_origin_main(self):
+        # Plan branches are cut from origin/main; a stale local main drags landed commits into review.
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("git diff origin/main...HEAD", body)
+                self.assertIsNone(re.search(r"(?<!origin/)\bmain\.\.\.?HEAD", body))
+
+    def test_diff_review_reviewers_start_from_a_clean_context(self):
+        # The orchestrating session is often the one that wrote the code; its history and intent stay out.
+        for path in DIFF_REVIEW_DISPATCHERS:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("fresh context", body)
+                self.assertIn("a reviewer handed the author's intent tends to confirm it", body)
+                self.assertIn("Run `git diff origin/main...<HEAD SHA>` yourself", body)
+                self.assertNotIn("Read every changed file in full", body)
+
+    def test_plan_boundaries_close_with_the_diff_review(self):
+        """One close per boundary: the diff review runs, then its Step 7 opens the PR."""
+        for path in (
+            *EXECUTION_CLOSE_OWNERS,
+            *PLAN_EXECUTION_CONSUMERS,
+            *CLAUDE_PLAN_EXECUTION_COMMANDS,
+        ):
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("j-diff-review", body)
+                self.assertNotIn("Load `finishing-branch` skill and follow it", body)
+                self.assertNotIn("Final Whole-Branch Review", body)
+        for path in EXECUTION_CLOSE_OWNERS:
+            if path.parent.name == "executing-plans":
+                with self.subTest(path=path.relative_to(REPO)):
+                    self.assertIn("follow it through Step 7", path.read_text(encoding="utf-8"))
+        for path in J_NEXT_COMMANDS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotIn("create-pr", path.read_text(encoding="utf-8"))
+        self.assertEqual(len(WRITING_PLANS_SKILLS), 3)
+        for path in WRITING_PLANS_SKILLS:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("bug and task tracking mechanism", body)
+                self.assertNotIn("public tracker", body)
+
+    def test_plans_size_prs_for_review(self):
+        self.assertEqual(len(WRITING_PLANS_SKILLS), 3)
+        for path in WRITING_PLANS_SKILLS:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("3-5k changed lines", body)
+                self.assertIn("not a hard requirement", body)
+                self.assertNotIn("Default to one PR per plan", body)
+        for path in (*J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND):
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("size target", path.read_text(encoding="utf-8"))
+        for path in CODE_REVIEW_PR_SIZE_SURFACES:
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("3-5k", body)
+        for path in (*CODE_REVIEW_PR_SIZE_SURFACES, *DIFF_REVIEW_DISPATCHERS):
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotRegex(path.read_text(encoding="utf-8"), r"\b400 lines")
+
+    def test_plan_surfaces_state_the_bare_minimum_rule(self):
+        # Scope, never quality: each statement cites the axis boundary the ladder ADR records.
+        execute = [
+            p
+            for p in (*PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS)
+            if "execute-plan" in str(p)
+        ]
+        self.assertEqual(len(execute), 4)
+        for path in (*PLAN_WORKFLOW_SKILLS, *J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND, *execute):
+            body = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("bare minimum", body)
+                self.assertIn("Where Thoroughness Stops", body)
+
+    def test_planning_reads_project_conventions(self):
+        plan_phrases = (
+            "**Project conventions**",
+            "never filtered by spec keywords",
+            "Flag any design input that conflicts with a listed convention; cite its ID.",
+            "without an ADR-backed exception",
+            "conformance to the conventions digest",
+        )
+        for path in (*J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND):
+            body = path.read_text(encoding="utf-8")
+            for phrase in plan_phrases:
+                with self.subTest(path=path.relative_to(REPO), phrase=phrase):
+                    self.assertIn(phrase, body)
+        self.assertEqual(len(WRITING_PLANS_SKILLS), 3)
+        for path in (*J_BRAINSTORM_COMMANDS, *WRITING_PLANS_SKILLS):
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn(
+                    "conformance to the conventions digest", path.read_text(encoding="utf-8")
+                )
+
+    def test_writing_surfaces_apply_the_ai_writing_tells_reference(self):
+        for tree in (".claude", ".agents"):
+            with self.subTest(tree=tree):
+                self.assertTrue(
+                    (REPO / tree / "references" / "documentation" / "ai-writing-tells.md").is_file()
+                )
+        for path in PROSE_TELL_CONSUMERS:
+            with self.subTest(path=path.relative_to(REPO)):
+                body = path.read_text(encoding="utf-8")
+                self.assertIn("ai-writing-tells", body)
+                self.assertIn("Revision Pass", body)
 
     def test_diff_review_maps_extensions_to_language_references(self):
         """Deleting the duplicate workflow from `code-review-patterns` also removed the only
@@ -1020,9 +1192,14 @@ class AgentConfigArchitectureTests(unittest.TestCase):
 
     def test_codex_surfaces_name_codex_command_syntax(self):
         # Codex invokes commands as `$cmd-j-*`; a bare `/j-*` names nothing it can run.
-        for path in (REPO / ".codex" / "AGENTS.md", REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md"):
+        for path in (
+            REPO / ".codex" / "AGENTS.md",
+            REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md",
+        ):
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertNotRegex(path.read_text(), r"`/j-execute-plan|`/j-next|Run /j-execute-plan")
+                self.assertNotRegex(
+                    path.read_text(), r"`/j-execute-plan|`/j-next|Run /j-execute-plan"
+                )
 
     def test_active_plan_commands_use_the_persisted_locations(self):
         for path in ACTIVE_PLAN_CONSUMERS:

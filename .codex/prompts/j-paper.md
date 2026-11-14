@@ -16,6 +16,7 @@ Load skills, in order:
 2. `output-completeness` -- for any generated section, template, or table (no truncation)
 
 Read the canonical reference before responding: `.agents/references/research/latex-paper-writing.md` (venue specs, preamble template, gotchas).
+Before writing or revising prose (abstract, sections, captions, rebuttals), read `.agents/references/documentation/ai-writing-tells.md` and finish with its Revision Pass.
 
 ## Diagnostic scans (run only those relevant to the task)
 
@@ -91,6 +92,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 ### Cross-References
 
 - **.agents/references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
+- **.agents/references/documentation/ai-writing-tells.md** -- prose habits to revise before delivering text
 - **.agents/references/research/literature-review.md** -- when scope expands to surveying related work
 - **.agents/references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
 - **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate (it loads `.agents/references/research/`); verify its output

@@ -81,13 +81,13 @@ Maintain the plan file's living-document sections as you go -- `## Progress` wit
 
 Honor the plan's validation gate before moving on, and stop on failure per `executing-plans`.
 
-Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask), to confirm a discovered plan path, or when the PR is open for review.
+Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask), to confirm a discovered plan path, or when /j-diff-review has reported the PR URL.
 
-## Phase 5: Open the PR
+Phase 4 ends with /j-diff-review, which opens this part's PR. Give that PR a title and body that cover this part's phases only, and say in the body which part of the plan it is.
 
-Invoke the `create-pr` agent to stage, commit, push, and open the PR for this part. Title and body cover this part's phases only, and the body says which part of the plan it is.
+## Phase 5: Report
 
-Report the PR URL, the branch, the phases completed, which tests ran with their result, and what remains in the plan.
+Write the run's final report yourself: the /j-diff-review report, plus the branch, the phases completed, and which tests ran with their result. Keep its PR URL on the last line.
 
 ### Cross-References
 
@@ -95,4 +95,4 @@ Report the PR URL, the branch, the phases completed, which tests ran with their 
 - **command:/j-rebase** -- refreshes an already-open PR; /j-next opens the next one
 - **skill:writing-plans** -- PR Boundaries, and the between-PRs reset sequence Phase 3 runs
 - **skill:executing-plans** -- the living-document ledger Phase 4 maintains
-- **agent:create-pr** -- Phase 5 PR creation
+- **command:/j-diff-review** -- closes the part and opens its PR

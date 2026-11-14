@@ -63,19 +63,25 @@ depends on it, so this does not run in parallel with Step 2.
 - **Docs surface** -- README, API docs, CHANGELOG, usage docs the change would obligate.
 - **Reusable patterns** -- existing functions, utilities, and conventions the spec should reuse instead
   of reimplementing.
+- **Project conventions** -- read the root instruction file (CLAUDE.md / AGENTS.md / GEMINI.md). Treat
+  every doc it names for coding conventions, principles, or architecture rules as a mandatory read,
+  never filtered by spec keywords (the Prior art filter does not apply here). Read the headings and
+  enforcement summary first, then the full text of the sections that bear on the spec's surface. Return
+  them as an ID-cited digest (for example, GP-018, GP-047, GP-061, GP-074), not as raw text; where a doc
+  assigns no IDs, number its rules C1, C2, ... with `file:line`.
 
 Write the frozen recon packet into the plan file under `## Planning Notes` before fan-out.
 
 ## Step 2: Fan out the research
 
-Dispatch the lenses in parallel, in a single message. Freeze one packet -- the spec, the Step 1 recon
-output, and the report-only contract below -- and give it to every agent **verbatim**. Do not rely on
+Dispatch the lenses in parallel, in a single message. Freeze one packet -- the spec, the Step 1 recon output, the conventions digest, and the report-only contract below -- and give it to every agent **verbatim**. Do not rely on
 an agent's own definition to supply the contract: `test-writer` and `documentation-writer` hold
 `Edit`/`Write`.
 
 > Report only. Return findings and design input; edit nothing. Cite `file:line` for anything you
 > assert about the existing code. If your lens does not apply to this spec, return "no findings --
 > surface not present" rather than manufacturing material.
+> Flag any design input that conflicts with a listed convention; cite its ID.
 > Report as `subagent-report-contract` specifies: a verdict line, then findings as `file:line`
 > rows. Cut narration, preamble, and restatement. Do **not** cut findings -- there is no length
 > limit and nothing is archived, so anything you leave out is lost. Quote failures, errors, and
@@ -131,6 +137,8 @@ Before writing, run the **redesign gate**. Any of these means fix the design, no
 - Basic operations require coordination across components.
 - No clear error-handling strategy.
 - The design optimizes for hypothetical future requirements over current ones.
+- The design adds a feature, capability, or option the spec did not ask for. Do the bare minimum the spec requires; solve the original problem as concisely as possible (scope, not quality: `~/.agents/references/workflow/completeness-principle.md`, Where Thoroughness Stops).
+- A design choice violates a cited project convention without an ADR-backed exception.
 - "It depends" answers most questions about the design.
 - Every option for a decision is weak. Redesign the mechanism until one option is clearly right
   (often by making the bad state impossible to represent) rather than asking the user to pick
@@ -151,11 +159,11 @@ reversible choices and note them inline instead.
 
 ## Step 4: Red-team the draft
 
-Dispatch `code-reviewer` and `scope-reviewer` against the plan file in parallel, report-only, to
-find: placeholders and unresolved decisions, phases that are not bite-sized, missing or mis-ordered
+Dispatch `code-reviewer` and `scope-reviewer` against the plan file and the
+conventions digest in parallel, report-only, to check conformance to the conventions digest and to find: placeholders and unresolved decisions, phases that are not bite-sized, missing or mis-ordered
 skeleton phases, a missing validation gate, phases that are horizontal layers rather than vertical
-slices, an easy-first rather than risk-first order, a significant decision left without an ADR, scope
-creep past the spec, and steps that are not idempotent. Fix what survives before Step 5.
+slices, an easy-first rather than risk-first order, a significant decision left without an ADR,
+a PR boundary well over the `writing-plans` size target without a stated reason, scope creep past the spec, and steps that are not idempotent. Fix what survives before Step 5.
 
 ## Step 5: Pull latest, then ask
 
