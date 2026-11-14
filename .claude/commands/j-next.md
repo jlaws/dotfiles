@@ -80,7 +80,7 @@ Phase 4 ends with /j-diff-review, which opens this part's PR. Give that PR a tit
 
 ## Phase 5: Report
 
-Add the branch, the phases completed, and which tests ran with their result to the /j-diff-review report, above its PR URL line.
+Write the run's final report yourself: the /j-diff-review report, plus the branch, the phases completed, and which tests ran with their result. Keep its PR URL on the last line.
 
 ### Cross-References
 
