@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-09-12
-updated: 2026-09-13
+updated: 2026-11-14
 ---
 # Thorough about quality dimensions, lazy about new scope
 
@@ -92,6 +92,7 @@ than left for a reader to discover.
   `tests/test_agent_config.py` pins them instead; `LADDER_OWNERS` pins the reference itself.
 - Sanctioned shortcuts use the `// SIMPLIFIED:` marker, owned by `code-quality`, carrying both a
   ceiling and an upgrade trigger.
+- The scope half is restated as "bare minimum" in `skills/writing-plans`, `skills/executing-plans`, `commands/j-plan`, and `commands/j-execute-plan`, each citing `completeness-principle.md` Where Thoroughness Stops; pinned by `tests/test_agent_config.py::test_plan_surfaces_state_the_bare_minimum_rule`.
 
 ## Reversal Conditions
 
@@ -103,3 +104,4 @@ from the ladder is the narrower fallback, not a full revert.
 - [Structure preference is conditional](../context-efficiency/structure-is-conditional.md)
 - [Reference trees share a section set, not a body](reference-tree-section-parity.md)
 - [ADRs are living documents](adrs-are-living-documents.md)
+- [Plan PRs are sized for review and closed by a diff review](plan-prs-sized-and-closed-by-review.md)
