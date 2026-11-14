@@ -365,7 +365,7 @@ class AgentBudget:
 ## Gotchas
 
 ### Tool Description Quality
-Vague tool descriptions cause wrong tool selection. "Gets data" is bad. "Retrieves customer order history by email address, returning last 30 days of orders with status and totals" is good. Tool choice degrades once the prompt carries roughly 30-50 tool definitions (Anthropic's reported threshold). Past that, load tools on demand.
+Vague tool descriptions cause wrong tool selection. "Gets data" is bad. "Retrieves customer order history by email address, returning last 30 days of orders with status and totals" is good. Tool choice degrades once the prompt carries roughly 30-50 tool definitions. Past that, load tools on demand.
 
 ### Infinite Loops
 Agents can loop calling the same tool with the same args. Track call history and inject "You already called {tool} with these args. Try a different approach." after 2 duplicate calls.
