@@ -355,6 +355,16 @@ J_BRAINSTORM_COMMANDS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-brainstorm" / "SKILL.md",
 )
 
+PROSE_TELL_CONSUMERS = (
+    REPO / ".claude" / "commands" / "j-paper.md",
+    REPO / ".agents" / "skills" / "cmd-j-paper" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-paper.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-paper" / "SKILL.md",
+    REPO / ".claude" / "agents" / "documentation-writer.md",
+    REPO / ".codex" / "agents" / "documentation-writer.toml",
+    REPO / ".gemini" / "config" / "agents" / "documentation-writer.md",
+)
+
 CODE_REVIEW_PR_SIZE_SURFACES = (
     *(root / "code-review-patterns" / "SKILL.md" for root in SKILL_TREE_ROOTS),
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
@@ -902,6 +912,14 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for path in (*J_BRAINSTORM_COMMANDS, *writing_plans):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("conformance to the conventions digest", path.read_text(encoding="utf-8"))
+
+    def test_writing_surfaces_apply_the_ai_writing_tells_reference(self):
+        for tree in (".claude", ".agents"):
+            with self.subTest(tree=tree):
+                self.assertTrue((REPO / tree / "references" / "documentation" / "ai-writing-tells.md").is_file())
+        for path in PROSE_TELL_CONSUMERS:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("ai-writing-tells", path.read_text(encoding="utf-8"))
 
     def test_diff_review_maps_extensions_to_language_references(self):
         """Deleting the duplicate workflow from `code-review-patterns` also removed the only

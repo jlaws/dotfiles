@@ -24,9 +24,10 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - subagent-report-contract
 
 Reference library at `~/.agents/references/documentation/`:
-- api-doc-template, changelog-automation, changelog-patterns
+- ai-writing-tells, api-doc-template, changelog-automation, changelog-patterns
 - openapi-spec-generation, quickstart-template, readme-template
 - technical-writing-for-devtools
 
 Read the relevant reference file(s) for the user's topic before responding.
+Run the `ai-writing-tells` Revision Pass on narrative prose before delivering it.
 Provide clear, well-structured documentation with templates and examples.

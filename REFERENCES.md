@@ -55,6 +55,8 @@ The agent KB (`.agents/` skills and references shared by Codex and Gemini, plus 
 - **OpenDataLoader** - https://opendataloader.org/ - deterministic-parse-first document ingestion, multi-column reading-order caveats, table-fidelity checks, and page-anchored claims in `references/research/paper-analysis-methodology.md`.
 - **PaperOrchestra (Ar9av)** - https://github.com/Ar9av/PaperOrchestra - the citation-verification method (fuzzy match + orphan detection) and anti-gaming self-review halt in `references/research/literature-review.md`.
 - **grill-me skill (Matt Pocock, aihero.dev)** - https://www.aihero.dev/my-grill-me-skill-has-gone-viral - the recommend-an-answer and research-before-asking clarifying-question rules in the harness configs and `design-first`.
+- **humanizer (blader)** - https://github.com/blader/humanizer (MIT) - grouping of AI-writing tells, restated in this repo's words, in `references/documentation/ai-writing-tells.md`; its examples and rewrite templates not taken. Its patterns trace to Wikipedia, "Signs of AI writing" (https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing).
+- **How do AI detectors work (JustDone)** - https://justdone.com/blog/ai/how-do-ai-detectors-work - perplexity and burstiness signals in the How Detectors Score Text table; product and accuracy claims not taken.
 
 ### MCP & integrations
 
