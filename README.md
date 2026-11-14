@@ -104,6 +104,7 @@ Before modifying or overwriting any existing file, the original is saved into th
 - **Git tools**: `git`, `gh`
 - **Search and shell utilities**: `fd`, `rg`, `jq`, `just`, `autojump`
 - **Documents and diagrams**: `mermaid-cli`, `poppler`
+- **Mac maintenance**: `mole` (app uninstall, disk analysis, build-artifact purge; run `mo clean --dry-run` first, since `clean` deletes permanently)
 - **Browser automation**: `agent-browser` (plus the Chrome binary it drives)
 - **Language tools**: `uv`, `node` (with `typescript-language-server` and `typescript` from npm)
 - **Rust and Lean**: not installed. Install rustup (with the `rust-analyzer` component) and elan
