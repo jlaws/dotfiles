@@ -1,6 +1,6 @@
 ---
 name: j-execute-plan
-description: "Execute a written implementation plan task-by-task with verification gates — inline batches or a fresh subagent per task, picked from the plan. Use when you have a saved plan ready to implement. Do NOT use for creating the plan (use $cmd-j-plan) or ad-hoc changes without a plan."
+description: "Execute a written implementation plan task-by-task with verification gates — inline batches or a fresh subagent per task, picked from the plan; each PR boundary closes with $cmd-j-diff-review, which opens the PR. Use when you have a saved plan ready to implement. Do NOT use for creating the plan (use $cmd-j-plan) or ad-hoc changes without a plan."
 argument-hint: "<path to plan file>"
 ---
 

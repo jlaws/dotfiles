@@ -1,6 +1,6 @@
 ---
 name: j-diff-review
-description: "Deep multi-perspective diff review — code quality, security, testing gaps, documentation drift, observability gaps, and language-specific gotchas. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
+description: "Deep multi-perspective diff review — code quality, security, testing gaps, documentation drift, observability gaps, and language-specific gotchas. Fixes what it finds, files large unrelated items in the repo's tracker, and opens or updates the PR. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
 argument-hint: "<diff-ref-or-branch>"
 ---
 
@@ -95,7 +95,7 @@ Keep that HEAD SHA -- it goes in the dispatch packet so each agent can confirm i
 
 Keep the full diff out of this session; the reviewers read it themselves in Step 4.
 
-#### Step 2 — Gather Full Context
+#### Step 2 — List Changed Files
 
 ```bash
 git diff origin/main...HEAD --name-only
@@ -171,9 +171,9 @@ Omit empty severity sections. Always include "What Looks Good".
 
 The agents reported; none of them changed anything. Every finding is now yours to dispose of. Fix everything you find except findings that are both large and unrelated; file those in the repository's tracker for future cleanup. Give every finding exactly one rung:
 
-1. **Fix it** - the default, whether or not the finding is related to the diff and whatever its size. Apply it, run the project's checks, and commit atomically; an unrelated fix gets its own commit. If a fix fails its checks twice, discard the attempt (restore tracked files, delete files it created) and take rung 3.
-2. **File it** - only when the finding is large and unrelated, security findings included. Unrelated: no hunk in `git diff origin/main...HEAD` introduces it, exposes it, or makes it stale. Large: the fix needs its own design, a new abstraction, a new dependency, or new public surface, or would push the PR well past the `writing-plans` size target. File it in the repository's own bug and task tracking mechanism. Find it first: a tracker named in CLAUDE.md, AGENTS.md, GEMINI.md, or CONTRIBUTING.md, or the one the repository already uses (GitHub issues, Linear, a `tasks/` folder, `TODO.md`). Follow its location, format, and conventions, and update an existing entry for the same finding rather than adding a second. Commit an in-repo entry on this branch before Step 7. If no tracker exists, or none you can reach, list the finding in the report as unfiled, with the entry ready to paste and a recommended home.
-3. **Ask** - the fix needs a decision only the user can make. Put it in the final report with a recommendation and the research behind it, Critical findings first. The run still continues to Step 7.
+1. **Fix it** - the default, whether or not the finding is related to the diff and whatever its size. Apply it, run the project's checks, and commit atomically; an unrelated fix gets its own commit. If a fix fails its checks twice, discard the attempt (restore only the paths this fix modified, delete files it created) and take rung 3.
+2. **File it** - only when the finding is large and unrelated, security findings included. Unrelated: no hunk in `git diff origin/main...HEAD -- <cited file>` introduces it, exposes it, or makes it stale. Large: the fix needs its own design, a new abstraction, a new dependency, or new public surface, or would push the PR well past the `writing-plans` size target. File it in the repository's own bug and task tracking mechanism. Find it first: a tracker named in CLAUDE.md, AGENTS.md, GEMINI.md, or CONTRIBUTING.md, or the one the repository already uses (GitHub issues, Linear, a `tasks/` folder, `TODO.md`). Follow its location, format, and conventions, and update an existing entry for the same finding rather than adding a second. Commit an in-repo entry on this branch before Step 7. If no tracker exists, or none you can reach, list the finding in the report as unfiled, with the entry ready to paste and a recommended home.
+3. **Ask** - the fix needs a decision only the user can make, or a fix failed its checks twice. Put it in the final report with a recommendation and the research behind it, Critical findings first. The run still continues to Step 7.
 
 Read the code a finding touches before deciding. Reaching rung 3 without having researched is the failure mode; so is filing something you could simply have fixed. Do not re-run Steps 1-5 after fixing; the project's checks verify the fixes.
 
@@ -275,7 +275,7 @@ Analyze the diff from all six perspectives below. They are independent:
 #### Workflow
 1. Execute Steps 1-3 (identify changes, list changed files, detect scope)
 2. Dispatch all six agents below in parallel, in a single message, on every review. Each runs in a fresh context (never a full-history fork), so none inherits this session's history. Give each the same frozen packet and nothing else: the base ref `origin/main`, the branch name, the HEAD SHA from Step 1, the changed-file list, the languages from Step 3, and the report-only instruction below, verbatim. Leave out the plan, the spec, and your account of what the change is for: a reviewer handed the author's intent tends to confirm it.
-3. Deduplicate findings across perspectives, resolve contradictions. Check each delegated finding against the code it cites: read that `file:line`, not the whole file. A subagent's summary describes what it looked for; the code shows what is there.
+3. Deduplicate findings across perspectives, resolve contradictions. Check each delegated finding against the code it cites: read the code around that `file:line`, not the whole file. A subagent's summary describes what it looked for; the code shows what is there.
 4. Produce Step 5 structured report + Step 6 disposition ladder
 
 #### Agent per Perspective

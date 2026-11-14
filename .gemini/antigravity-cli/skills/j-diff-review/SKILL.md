@@ -1,6 +1,6 @@
 ---
 name: j-diff-review
-description: "Deep multi-perspective diff review -- code quality, security, testing gaps, documentation drift, observability gaps, and language-specific gotchas. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
+description: "Deep multi-perspective diff review -- code quality, security, testing gaps, documentation drift, observability gaps, and language-specific gotchas. Fixes what it finds, files large unrelated items in the repo's tracker, and opens or updates the PR. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
 ---
 
 # Diff Review
@@ -108,7 +108,7 @@ action under Step 6.
 | Language-specific | `language-specialist` | Idiom violations and per-language traps for the languages the diff touches | `code-review-patterns` (its language-gotchas checklist) + `~/.agents/references/languages/` for the language Step 3 detected |
 | Observability | `devops-engineer` | New code paths with no logging/metrics/tracing, silently swallowed errors, new surface with no SLO or alert, analytics events missing from the tracking plan | `~/.agents/references/devops/` (observability, sre-practices, incident-management) + `~/.agents/references/architecture/error-handling-patterns` |
 
-Deduplicate across perspectives and resolve contradictions. Check each delegated finding against the code it cites: read that `file:line`, not the whole file. A subagent's summary describes what it looked for; the code shows what is there.
+Deduplicate across perspectives and resolve contradictions. Check each delegated finding against the code it cites: read the code around that `file:line`, not the whole file. A subagent's summary describes what it looked for; the code shows what is there.
 
 ### Adversarial debate, for high-risk diffs
 
@@ -150,10 +150,8 @@ tracker for future cleanup. Give every finding exactly one rung:
 
 1. **Fix it** -- the default, whether or not the finding is related to the diff and whatever its size.
    Apply it, run the project's checks, and commit atomically; an unrelated fix gets its own commit. If a
-   fix fails its checks twice, discard the attempt (restore tracked files, delete files it created) and
-   take rung 3.
-2. **File it** -- only when the finding is large and unrelated, security findings included. Unrelated: no
-   hunk in `git diff origin/main...HEAD` introduces it, exposes it, or makes it stale. Large: the fix
+   fix fails its checks twice, discard the attempt (restore only the paths this fix modified, delete files it created) and take rung 3.
+2. **File it** -- only when the finding is large and unrelated, security findings included. Unrelated: no hunk in `git diff origin/main...HEAD -- <cited file>` introduces it, exposes it, or makes it stale. Large: the fix
    needs its own design, a new abstraction, a new dependency, or new public surface, or would push the PR
    well past the `writing-plans` size target. File it in the repository's own bug and task tracking mechanism.
    Find it first: a tracker named in CLAUDE.md, AGENTS.md, GEMINI.md, or CONTRIBUTING.md, or the one the
@@ -161,7 +159,7 @@ tracker for future cleanup. Give every finding exactly one rung:
    format, and conventions, and update an existing entry for the same finding rather than adding a second.
    Commit an in-repo entry on this branch before Step 7. If no tracker exists, or none you can reach,
    list the finding in the report as unfiled, with the entry ready to paste and a recommended home.
-3. **Ask** -- the fix needs a decision only the user can make. Put it in the final report with a
+3. **Ask** -- the fix needs a decision only the user can make, or a fix failed its checks twice. Put it in the final report with a
    recommendation and the research behind it, Critical findings first. The run still continues to Step 7.
 
 Read the code a finding touches before deciding. Reaching rung 3 without having researched is the failure
