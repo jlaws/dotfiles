@@ -150,6 +150,6 @@ Choose the model by the assigned task, not the agent's role:
 - Pass the selected model and `high` effort when dispatching. Use a fresh context or a bounded context fork when required to apply model overrides; a full-history fork inherits the parent's model.
 
 Caps:
-- Max spawn depth is 2 (parent -> subagent -> one more tier)
+- Max spawn depth is 3 (parent -> subagent -> two more tiers)
 
 If a subagent realizes it needs a smarter model, it returns to the parent instead of escalating on its own.

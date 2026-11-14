@@ -1309,6 +1309,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         depth = re.search(r"^max_depth\s*=\s*(\d+)\s*(?:#.*)?$", agents[1], re.MULTILINE)
         self.assertIsNotNone(depth, "[agents] must set max_depth to an integer")
         assert depth is not None
+        claude_env = json.loads((REPO / ".claude" / "settings.json").read_text())["env"]
+        self.assertEqual(
+            claude_env.get("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"), depth[1],
+            "Claude's spawn-depth setting must match .codex/config.toml max_depth",
+        )
         for config in (
             REPO / ".codex" / "AGENTS.md",
             REPO / ".claude" / "CLAUDE.md",

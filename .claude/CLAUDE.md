@@ -81,7 +81,7 @@ double-check your own work.
   alias (`opus`, `sonnet`, `haiku`, `fable`) rather than a pinned model ID so it survives a model
   generation.
 - One capable subagent beats several redundant ones. Keep spawn counts low.
-- Max spawn depth is 2: parent, subagent, one more tier.
+- Max spawn depth is 3: parent, subagent, two more tiers.
 - A subagent doing bulk mechanical work should not spawn further subagents. If it needs to, the task was
   wrong-sized.
 - A subagent that realizes it needs more capability returns to the parent instead of escalating itself.
