@@ -247,6 +247,7 @@ Before handing off, review the finished plan against this checklist and fix any 
 - **Skeleton conformance** - Phase 1 fetches and branches off `origin/main`, then writes docs; the last phase is the validation gate; every middle phase leads with its own doc delta.
 - **Validation gate stated** - a named benchmark and gate command, or an explicit N/A with a reason.
 - **PR size** - each PR boundary sits near the 3-5k changed-line target, or the plan says why not.
+- **Conventions** - the plan shows conformance to the conventions digest when one exists; a deviation carries an ADR-backed exception.
 - **Risk order and slicing** - the riskiest work is first, and no phase is a horizontal layer that proves nothing on its own.
 
 ## Execution Handoff

@@ -348,6 +348,13 @@ J_NEXT_COMMANDS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-next" / "SKILL.md",
 )
 
+J_BRAINSTORM_COMMANDS = (
+    REPO / ".claude" / "commands" / "j-brainstorm.md",
+    REPO / ".agents" / "skills" / "cmd-j-brainstorm" / "SKILL.md",
+    REPO / ".codex" / "prompts" / "j-brainstorm.md",
+    REPO / ".gemini" / "antigravity-cli" / "skills" / "j-brainstorm" / "SKILL.md",
+)
+
 CODE_REVIEW_PR_SIZE_SURFACES = (
     *(root / "code-review-patterns" / "SKILL.md" for root in SKILL_TREE_ROOTS),
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
@@ -877,6 +884,24 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("bare minimum", body)
                 self.assertIn("Where Thoroughness Stops", body)
+
+    def test_planning_reads_project_conventions(self):
+        plan_phrases = (
+            "**Project conventions**",
+            "never filtered by spec keywords",
+            "Flag any design input that conflicts with a listed convention; cite its ID.",
+            "without an ADR-backed exception",
+            "conformance to the conventions digest",
+        )
+        for path in (*J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND):
+            body = path.read_text(encoding="utf-8")
+            for phrase in plan_phrases:
+                with self.subTest(path=path.relative_to(REPO), phrase=phrase):
+                    self.assertIn(phrase, body)
+        writing_plans = [p for p in PLAN_WORKFLOW_SKILLS if p.parent.name == "writing-plans"]
+        for path in (*J_BRAINSTORM_COMMANDS, *writing_plans):
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("conformance to the conventions digest", path.read_text(encoding="utf-8"))
 
     def test_diff_review_maps_extensions_to_language_references(self):
         """Deleting the duplicate workflow from `code-review-patterns` also removed the only
