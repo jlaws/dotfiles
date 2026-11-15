@@ -318,7 +318,38 @@ class SkillPreApprovalTests(unittest.TestCase):
         self.assertEqual(self.command_findings("Read, Write"), ["CM-F8"])
 
     def test_scoped_bash_grant_raises_no_finding(self):
-        self.assertEqual(self.skill_findings("Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)"), [])
+        self.assertEqual(
+            self.skill_findings("Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/audit.py *)"), []
+        )
+
+    def test_comma_inside_a_scope_stays_one_token(self):
+        self.assertEqual(self.skill_findings("Read, Bash(git log a, b)"), [])
+
+    def test_wildcard_only_scope_warns(self):
+        for tools in ("Bash(*)", "Bash()", "Bash(:*)", "WebFetch(domain:*)"):
+            with self.subTest(tools=tools):
+                self.assertEqual([c for c, _ in self.skill_findings(tools)], ["SK-F11"])
+
+    def test_every_unscoped_tool_warns_on_a_command(self):
+        for tool in sorted(self.audit_module.UNSCOPED_GRANTS):
+            with self.subTest(tool=tool):
+                self.assertEqual(self.command_findings(f"Read, {tool}"), ["CM-F8"])
+
+    def test_scoped_grant_on_command_passes(self):
+        self.assertEqual(self.command_findings("Bash(git status *)"), [])
+
+    def test_list_and_space_forms_are_read(self):
+        for tools in ("[Read, Bash]", "Read Bash"):
+            with self.subTest(tools=tools):
+                self.assertEqual([c for c, _ in self.skill_findings(tools)], ["SK-F11"])
+
+    def test_unreadable_block_list_warns(self):
+        self.assertEqual([c for c, _ in self.skill_findings("\n  - Bash")], ["SK-F11"])
+
+    def test_scoped_unknown_tool_still_warns(self):
+        self.assertEqual(
+            self.skill_findings("Bogus(x)"), [("SK-F10", "unknown allowed-tools: Bogus")]
+        )
 
     def test_read_only_grant_passes(self):
         self.assertEqual(self.skill_findings("Read, Grep, Glob"), [])
@@ -328,6 +359,14 @@ class SkillPreApprovalTests(unittest.TestCase):
 class AuditMissingTreeTests(unittest.TestCase):
     """The audit runs in any repo, so a missing asset directory is not an error."""
 
+    def run_audit(self, root: Path, *types: str):
+        args = [sys.executable, str(AUDIT), str(root)]
+        for kind in types:
+            args += ["--type", kind]
+        return subprocess.run(
+            args, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=60
+        )
+
     def test_missing_asset_directories_do_not_crash(self):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
@@ -335,11 +374,16 @@ class AuditMissingTreeTests(unittest.TestCase):
         folder = root / ".claude" / "skills" / "x"
         folder.mkdir(parents=True)
         (folder / "SKILL.md").write_text("---\nname: x\ndescription: Use when probing.\n---\n\nBody.\n")
-        result = subprocess.run(
-            [sys.executable, str(AUDIT), str(root), "--type", "agents", "--type", "commands"],
-            capture_output=True,
-            text=True,
-        )
+        result = self.run_audit(root, "agents", "commands")
+        self.assertNotIn("Traceback", result.stderr + result.stdout)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_missing_skills_directory_does_not_crash(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / ".claude" / "agents").mkdir(parents=True)
+        result = self.run_audit(root, "skills")
         self.assertNotIn("Traceback", result.stderr + result.stdout)
         self.assertEqual(result.returncode, 0, result.stderr)
 
@@ -373,6 +417,13 @@ class AgentMemoryGrantTests(unittest.TestCase):
 
     def test_no_memory_passes(self):
         self.assertEqual(self.findings("tools: Read, Grep\n"), [])
+
+    def test_memory_with_one_write_tool_warns(self):
+        self.assertEqual(self.findings("tools: Read, Write\nmemory: user\n"), ["AG-F9"])
+
+    def test_memory_without_tools_key_is_left_to_ag_f6(self):
+        """An agent with no `tools` inherits every tool, so nothing is granted silently."""
+        self.assertEqual(self.findings("memory: user\n"), [])
 
 
 class ReferenceCitationTests(unittest.TestCase):

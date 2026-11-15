@@ -62,10 +62,23 @@ UNSCOPED_GRANT_MESSAGE = (
     "allowed-tools pre-approves unscoped {tool} for the invoking turn; drop it or scope it, "
     "e.g. Bash(cmd *)"
 )
+# A scope that names nothing grants as much as the bare tool.
+WILDCARD_SCOPES = frozenset({"", "*", ":*", "domain:*"})
+# The flat frontmatter parser reads a YAML block list as an empty value, so say so rather than pass.
+EMPTY_GRANT_MESSAGE = (
+    "allowed-tools is empty or a YAML block list the audit cannot read; write it as a "
+    "comma-separated value"
+)
 
 
 def _grant_tokens(value: str) -> List[str]:
-    """Split an `allowed-tools` value on commas outside parentheses."""
+    """Split an `allowed-tools` value on commas or whitespace outside parentheses.
+
+    A YAML flow list's brackets are stripped first, so `[Read, Bash]` reads as `Read, Bash`.
+    """
+    value = value.strip()
+    if value.startswith("[") and value.endswith("]"):
+        value = value[1:-1]
     tokens: List[str] = []
     depth = 0
     current = ""
@@ -74,8 +87,9 @@ def _grant_tokens(value: str) -> List[str]:
             depth += 1
         elif char == ")":
             depth = max(0, depth - 1)
-        if char == "," and depth == 0:
-            tokens.append(current.strip())
+        if (char == "," or char.isspace()) and depth == 0:
+            if current.strip():
+                tokens.append(current.strip())
             current = ""
         else:
             current += char
@@ -84,9 +98,34 @@ def _grant_tokens(value: str) -> List[str]:
     return tokens
 
 
+def _tool_name(token: str) -> str:
+    """Return the tool name of a grant token, without its `(scope)`."""
+    return token.split("(", 1)[0].strip()
+
+
 def _unscoped_grants(value: str) -> List[str]:
-    """Return the bare `UNSCOPED_GRANTS` tokens in an `allowed-tools` value."""
-    return [token for token in _grant_tokens(value) if token in UNSCOPED_GRANTS]
+    """Return the `UNSCOPED_GRANTS` tools granted bare or with an empty or wildcard-only scope."""
+    found = []
+    for token in _grant_tokens(value):
+        name = _tool_name(token)
+        if name not in UNSCOPED_GRANTS:
+            continue
+        scope = token[len(name) :].strip()
+        if scope.startswith("(") and scope.endswith(")"):
+            scope = scope[1:-1].strip()
+        if scope in WILDCARD_SCOPES:
+            found.append(name)
+    return found
+
+
+def _pre_approval_messages(fields: Dict[str, str]) -> List[str]:
+    """Return SK-F11/CM-F8 messages for a skill or command's `allowed-tools`."""
+    if "allowed-tools" not in fields:
+        return []
+    value = fields["allowed-tools"]
+    if not value:
+        return [EMPTY_GRANT_MESSAGE]
+    return [UNSCOPED_GRANT_MESSAGE.format(tool=tool) for tool in _unscoped_grants(value)]
 
 
 # Codex reads shared skill metadata from a budgeted listing; only that tree is constrained.
@@ -228,12 +267,11 @@ class Audit:
 
         tools = fields.get("allowed-tools")
         if tools:
-            names = {token.split("(", 1)[0].strip() for token in _grant_tokens(tools)}
-            unknown = sorted(names - VALID_TOOLS)
+            unknown = sorted({_tool_name(token) for token in _grant_tokens(tools)} - VALID_TOOLS)
             if unknown:
                 self.add(WARN, "SK-F10", skill, f"unknown allowed-tools: {', '.join(unknown)}")
-            for tool in _unscoped_grants(tools):
-                self.add(WARN, "SK-F11", skill, UNSCOPED_GRANT_MESSAGE.format(tool=tool))
+        for message in _pre_approval_messages(fields):
+            self.add(WARN, "SK-F11", skill, message)
 
     def _check_supporting_files(self, skill: Path, folder: Path, text: str) -> None:
         """Flag bundled files unreachable from SKILL.md, following references transitively.
@@ -310,12 +348,12 @@ class Audit:
             if "tools" not in fields:
                 self.add(WARN, "AG-F6", agent, "declares no `tools`")
             else:
-                unknown = sorted({t.strip() for t in fields["tools"].split(",")} - VALID_TOOLS)
+                declared = {_tool_name(token) for token in _grant_tokens(fields["tools"])}
+                unknown = sorted(declared - VALID_TOOLS)
                 if unknown:
                     self.add(WARN, "AG-F7", agent, f"unknown tools: {', '.join(unknown)}")
-            if "memory" in fields:
-                declared = {t.strip() for t in fields.get("tools", "").split(",")}
-                if not {"Write", "Edit"} <= declared:
+                # An agent with no `tools` inherits every tool, so AG-F6 alone covers that case.
+                if "memory" in fields and not {"Write", "Edit"} <= declared:
                     self.add(
                         WARN,
                         "AG-F9",
@@ -411,8 +449,8 @@ class Audit:
                     "uncached)",
                 )
 
-            for tool in _unscoped_grants(fields.get("allowed-tools", "")):
-                self.add(WARN, "CM-F8", command, UNSCOPED_GRANT_MESSAGE.format(tool=tool))
+            for message in _pre_approval_messages(fields):
+                self.add(WARN, "CM-F8", command, message)
 
             body = self.body(text)
             if len(body.split()) < 10:

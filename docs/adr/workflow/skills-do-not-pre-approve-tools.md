@@ -22,7 +22,8 @@ ran without a prompt while the skill was active.
 
 We will keep **pre-approval out of skills and commands**:
 - No Claude skill or command grants an unscoped `Bash`, `Write`, `Edit`, `NotebookEdit`, `WebFetch`, or `WebSearch`.
-- Skills drop `allowed-tools`, except skill-audit, which keeps `Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)`.
+- Skills drop `allowed-tools`, except skill-audit, which keeps one `Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/<script>.py ...)` grant per bundled script. Naming each script, rather than `scripts/*`, keeps a `../` path out of the grant.
+- A wildcard-only scope (`Bash(*)`, `Bash()`, `Bash(:*)`) counts as unscoped.
 - `.claude/settings.json` owns all other pre-approval. Restriction uses `disallowed-tools`.
 
 ## Rationale

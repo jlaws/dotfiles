@@ -122,7 +122,7 @@ not skill prose.
 
 | Field | Use |
 |---|---|
-| `allowed-tools` | Pre-approves tools for the invoking turn only and restricts nothing; grant only a scoped command such as `Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)`, never bare `Bash`, `Write`, `Edit`, `WebFetch`, or `WebSearch` |
+| `allowed-tools` | Pre-approves tools for the invoking turn only and restricts nothing; grant only a command scoped to one named script, such as `Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/<name>.py *)`, never bare `Bash`, `Write`, `Edit`, `NotebookEdit`, `WebFetch`, or `WebSearch`, nor a wildcard-only scope such as `Bash(*)` |
 | `disallowed-tools` | Removes tools while the skill is active |
 | `model`, `effort` | Override tier or reasoning depth; tier aliases float across model generations. Set `model` only with `context: fork`: inline, a different model re-reads the conversation uncached |
 | `paths` | Glob-gate the skill so it loads only for matching files |
