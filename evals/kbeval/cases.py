@@ -70,9 +70,13 @@ SUITE_LIMITS = {
     "workflows": (150, 3600, EFFECT_TOOLS),
 }
 
+# A guard rail against mistakes in reviewed, in-repo cases, not a security boundary.
 FORBIDDEN_FIXTURE = re.compile(
-    r"\b(curl|wget|ssh|scp|git\s+clone|npm\s+(?:install|i)\b|pip3?\s+install)\b"
+    r"\b(curl|wget|ssh|scp|nc|sudo|brew|eval|git\s+clone|npm\s+(?:install|i|ci)\b|pip3?\s+install"
+    r"|rm\s+-[a-z]*r|(?:ba)?sh\s+-c|python3?\s+-c|git\s+remote\s+add\s+\S+\s+(?:https?:|ssh:|git@))"
 )
+PARENT_PATH = re.compile(r"(?:^|[/\s'\"=])\.\.(?:/|\s|$|['\"])")
+CONTEXT_LINE = re.compile(r"^  (?:add_dirs: \[[^\]]*\]|history_file: \S+)$")
 ABSOLUTE_PATH = re.compile(r"""(?:^|[\s'"=])(~|/[A-Za-z])""")
 # `$1` and any path under it, quoted or not, which is the one place a fixture may read from.
 FIXTURE_ARG = re.compile(r'"?\$\{?1\}?[^\s"]*"?')
@@ -353,12 +357,19 @@ def _lint_files(case: Case) -> List[str]:
     if case.case_yaml is not None:
         if "scaffold_script" in case.case_yaml:
             problems.append("case.yaml must not set scaffold_script; the builder owns it")
-        top = [ln.split(":", 1)[0] for ln in case.case_yaml.splitlines() if ln and not ln[0].isspace()]
-        if any(key != "context" for key in top):
-            problems.append("case.yaml holds context keys only")
+        lines = [ln for ln in case.case_yaml.splitlines() if ln.strip()]
+        if not lines or lines[0] != "context:" or not all(CONTEXT_LINE.match(ln) for ln in lines[1:]):
+            problems.append("case.yaml holds only `context:` with `  add_dirs: [..]` or `  history_file: x`")
     if case.fixture is not None:
+        code_lines = [ln.strip() for ln in case.fixture.splitlines() if ln.strip() and not ln.strip().startswith("#")]
+        if not code_lines or code_lines[0] != "set -euo pipefail":
+            problems.append("fixture.sh must start with `set -euo pipefail`")
         for number, line in enumerate(case.fixture.splitlines(), 1):
-            code = line.split("#", 1)[0]
+            if line.strip().startswith("#"):
+                continue
+            code = line
+            if PARENT_PATH.search(code):
+                problems.append(f"fixture.sh:{number} uses a .. path")
             if FORBIDDEN_FIXTURE.search(code):
                 problems.append(f"fixture.sh:{number} runs a forbidden command")
             elif ABSOLUTE_PATH.search(FIXTURE_ARG.sub("", code)):

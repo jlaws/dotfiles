@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -123,7 +124,7 @@ def valid_cases(root: Path) -> None:
         root, "effects", "j-demo--effect-cache", EFFECT_FM,
         "/kb:j-demo design a cache layer and save it to ./design.md.",
         {"result": LLM_RESULT, "fired": skill_fired("j-demo")},
-        fixture='cp -R "$1/py-calc/." .\ngit init -q -b main\nmkdir -p plans\n',
+        fixture='set -euo pipefail\ncp -R "$1/py-calc/." .\ngit init -q -b main\nmkdir -p plans\n',
         case_yaml="context:\n  add_dirs: [resources]\n",
     )
     write_case(
@@ -393,11 +394,23 @@ class LintTests(TempRepoCase):
         self.assert_problem(r"j-demo--effect-cache: .*EVAL_")
 
     def test_lint_forbidden_fixture_commands(self):
-        for command in ("curl https://example.com", "git clone x", "pip install y", "cp /etc/hosts ."):
+        for command in ("curl https://example.com", "git clone x", "pip install y", "cp /etc/hosts .",
+                        "rm -rf build", "bash -c 'x'", "cp -R \"$1/../..\" .", "echo '#'; curl x"):
             with self.subTest(command=command):
                 path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
-                path.write_text(f'cp -R "$1/py-calc/." .\n{command}\n')
+                path.write_text(f'set -euo pipefail\ncp -R "$1/py-calc/." .\n{command}\n')
                 self.assert_problem(r"j-demo--effect-cache: .*fixture\.sh")
+
+    def test_lint_fixture_must_fail_fast(self):
+        path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
+        path.write_text('cp -R "$1/py-calc/." .\n')
+        self.assert_problem(r"j-demo--effect-cache: .*set -euo pipefail")
+
+    def test_lint_case_yaml_context_shape(self):
+        for body in ("context:\n  add_dirs:\n    - resources\n", "context:\n  env:\n    FOO: bar\n"):
+            with self.subTest(body=body):
+                (self.repo / "evals/cases/effects/j-demo--effect-cache/case.yaml").write_text(body)
+                self.assert_problem(r"j-demo--effect-cache: .*case\.yaml")
 
     def test_lint_secret_shaped_string(self):
         self.edit("effects/j-demo--effect-cache/prompt.md", "design a cache", "use sk-ant-abc to design a cache")
@@ -488,9 +501,6 @@ class RealTreeTests(unittest.TestCase):
         self.assertEqual(sorted(kcases.PENDING_EVAL_COVERAGE - assets), [])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 # --- runner and ledger -------------------------------------------------------------------------
 
@@ -558,10 +568,16 @@ class RunnerCase(TempRepoCase):
         self.plugin = self.stage()
         self.state = self.tmp / "state"
         self.ledger_path = self.tmp / "ledger.jsonl"
-        self.budget = {"period": "p", "ceilingUsd": 100, "smokeCapUsd": 40}
+        self.budget: dict = {"period": "p", "ceilingUsd": 100, "smokeCapUsd": 40}
         env = mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-placeholder"})
         env.start()
         self.addCleanup(env.stop)
+        os.environ.pop("KBEVAL_ALLOW_PAID", None)
+        if getattr(self, "real_cli", False):
+            return
+        refuse = mock.patch.object(krunner.ClaudeCli, "run", side_effect=AssertionError("real claude called"))
+        refuse.start()
+        self.addCleanup(refuse.stop)
 
     def run_suite(self, cli, suite="effects", assets=("j-demo",), staging="kb", **extra):
         err = io.StringIO()
@@ -578,6 +594,15 @@ class RunnerCase(TempRepoCase):
 
 
 class RunnerGuardTests(RunnerCase):
+    real_cli = True  # these tests exercise the real ClaudeCli guard, with claude off PATH
+
+    def test_cli_refuses_unless_allow_paid_is_exactly_one(self):
+        for value in ("0", "true", "yes", " 1", ""):
+            env = {**os.environ, "KBEVAL_ALLOW_PAID": value, "PATH": str(self.tmp / "empty-bin")}
+            with self.subTest(value=value), mock.patch.dict(os.environ, env, clear=True):
+                with self.assertRaises(krunner.PaidCallRefusedError):
+                    krunner.ClaudeCli().run(["plugin", "eval", "."])
+
     def test_cli_refuses_without_allow_paid(self):
         env = {k: v for k, v in os.environ.items() if k != "KBEVAL_ALLOW_PAID"}
         env["PATH"] = str(self.tmp / "empty-bin")
@@ -654,17 +679,18 @@ class RunnerBatchTests(RunnerCase):
         caps = [c[c.index("--max-cost-usd") + 1] for c in cli.calls]
         self.assertEqual(caps, ["10.00", "6.00"])
 
-    def test_ledger_records_actual_cost(self):
+    def test_ledger_reserves_then_settles_to_actual_cost(self):
         cli = FakeCli(lambda args: (result_doc({"x": [None]}, cost=1.25), 0, ""))
         self.run_suite(cli)
-        self.assertEqual([e["costUsd"] for e in self.entries()], [1.25])
-        self.assertEqual(self.entries()[0]["charged"], "actual")
+        self.assertEqual([e["charged"] for e in self.entries()], ["reserved", "settle"])
+        self.assertAlmostEqual(sum(e["costUsd"] for e in self.entries()), 1.25)
+        self.assertEqual(self.entries()[1]["actualUsd"], 1.25)
 
     def test_missing_json_charges_cap(self):
         cli = FakeCli(lambda args: (None, 143, "terminated"))
         code, _ = self.run_suite(cli)
         self.assertNotEqual(code, 0)
-        self.assertEqual([(e["costUsd"], e["charged"]) for e in self.entries()], [(60.0, "cap")])
+        self.assertEqual([(e["costUsd"], e["charged"]) for e in self.entries()], [(60.0, "reserved")])
 
     def test_null_cost_with_runs_aborts(self):
         cli = FakeCli(lambda args: (result_doc({"x": [None]}, cost=None), 0, ""))
@@ -775,8 +801,11 @@ class OrchestrateTests(RunnerCase):
         super().setUp()
         (self.repo / "evals" / "budget.json").write_text(json.dumps(self.budget))
         (self.repo / "evals" / "README.md").write_text("# evals\n")
+        self.budget["p95RunUsd"] = 5.0
+        (self.repo / "evals" / "budget.json").write_text(json.dumps(self.budget))
         for patch in (
             mock.patch.object(korch, "REPO", self.repo),
+            mock.patch.object(krunner, "REPO", self.repo),
             mock.patch.dict(os.environ, {"XDG_STATE_HOME": str(self.tmp / "xdg")}),
         ):
             patch.start()
@@ -859,10 +888,51 @@ class SummaryTests(unittest.TestCase):
         self.addCleanup(tmp.cleanup)
         self.results = Path(tmp.name)
 
-    def put(self, staging: str, label: str, doc: dict, suite: str = "effects") -> None:
+    def put(self, staging: str, label: str, doc: dict, suite: str = "effects", keyed: bool = True) -> None:
         path = self.results / staging / OPUS / suite / f"{label}.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(doc))
+        key = path.with_suffix(".key")
+        if keyed:
+            key.write_text("k\n")
+        elif key.exists():
+            key.unlink()
+
+    def test_unkeyed_and_partial_results_are_ignored(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
+        self.put("kb", "j-arch@j-arch--effect-cache-layer", with_runs(real_doc(), [False] * 3), keyed=False)
+        partial = with_runs(real_doc(), [False] * 3)
+        partial["partial"] = True
+        self.put("vanilla", "j-arch", partial)
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        self.assertEqual(doc["cases"][0]["kbScore"], 1.0)
+        self.assertEqual(doc["cases"][0]["vanillaRuns"], 0)
+
+    def test_pass_boundary_is_two_thirds(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, False]))
+        self.assertTrue(ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"][0]["passed"])
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, False, False]))
+        self.assertFalse(ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"][0]["passed"])
+
+    def test_trigger_suite_scores_its_process_grader(self):
+        doc = copy.deepcopy(real_doc())
+        case = doc["cases"][0]
+        case["name"] = "design-first--trigger-should-rate"
+        case["graders"] = [g for g in case["graders"] if g["type"] == "tool_used"]
+        for run in case["arms"]["with"]:
+            run["graders"] = [g for g in run["graders"] if g["name"] == "delegated"]
+        case["arms"]["with"] = case["arms"]["with"] * 3
+        self.put("kb", "design-first", doc, suite="triggers")
+        summary = ksummary.summarize(self.results, OPUS, "triggers", SETTINGS)
+        (row,) = summary["cases"]
+        self.assertEqual((row["kind"], row["kbScore"], row["vanillaScore"]), ("trigger-should", 1.0, None))
+        self.assertEqual(ksummary.check(summary), [])
+
+    def test_write_refuses_secret_shaped_text(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, "sk-ant-leak", None]))
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        with self.assertRaises(ValueError):
+            ksummary.write(doc, self.results / "out.json")
 
     def test_summary_from_real_doc(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, False]))
@@ -959,7 +1029,254 @@ class CompareTests(unittest.TestCase):
         self.assertRegex(report, r"d--effect-new.*not run here")
         self.assertNotIn("removed", report)
 
+    def test_drop_of_exactly_one_third_is_reported(self):
+        old = summary_doc({"a--effect-x": (1.0, True)})
+        new = summary_doc({"a--effect-x": (2 / 3, True)})
+        self.assertRegex("\n".join(kcompare.compare(old, new)), r"a--effect-x.*1\.00 -> 0\.67")
+
     def test_small_drop_is_not_a_regression(self):
         old = summary_doc({"a--effect-x": (1.0, True)})
         new = summary_doc({"a--effect-x": (0.75, True)})
         self.assertNotRegex("\n".join(kcompare.compare(old, new)), r"a--effect-x.*->")
+
+
+class RunnerSafetyTests(RunnerCase):
+    def test_truncated_json_keeps_the_cap_charged(self):
+        def responder(args):
+            path = Path(args[args.index("--json") + 1])
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('{"cases": [')
+            return None, 143, "killed"
+
+        code, err = self.run_suite(FakeCli(responder))
+        self.assertNotEqual(code, 0)
+        self.assertIn("no readable JSON", err)
+        self.assertEqual([(e["charged"], e["costUsd"]) for e in self.entries()], [("reserved", 60.0)])
+
+    def test_load_error_charges_nothing(self):
+        cli = FakeCli(lambda args: (None, 1, "Error: No eval cases found"))
+        code, err = self.run_suite(cli)
+        self.assertEqual(code, 1)
+        self.assertAlmostEqual(sum(e["costUsd"] for e in self.entries()), 0.0)
+        self.assertIn("charged $0", err)
+
+    def test_interrupt_keeps_the_reservation(self):
+        def responder(args):
+            raise KeyboardInterrupt
+
+        with self.assertRaises(KeyboardInterrupt):
+            self.run_suite(FakeCli(responder))
+        self.assertEqual([e["charged"] for e in self.entries()], ["reserved"])
+
+    def test_bad_cost_values_abort_with_the_cap_charged(self):
+        for cost in (float("nan"), -1.0, "1.0"):
+            with self.subTest(cost=cost):
+                self.ledger_path.unlink(missing_ok=True)
+                shutil.rmtree(self.state, ignore_errors=True)
+                cli = FakeCli(lambda args: (result_doc({"x": [None]}, cost=cost), 0, ""))
+                code, _ = self.run_suite(cli)
+                self.assertNotEqual(code, 0)
+                self.assertEqual([e["charged"] for e in self.entries()], ["reserved"])
+
+    def test_other_nonzero_exit_is_not_cached(self):
+        cli = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 137, ""))
+        code, _ = self.run_suite(cli)
+        self.assertEqual(code, 137)
+        again = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
+        self.run_suite(again)
+        self.assertEqual(len(again.calls), 1)
+
+    def test_kb_edit_invalidates_the_cache(self):
+        cli = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
+        self.run_suite(cli)
+        skill = self.plugin / "skills" / "demo-skill" / "SKILL.md"
+        skill.write_text(skill.read_text() + "\nNew rule.\n")
+        again = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
+        self.run_suite(again)
+        self.assertEqual(len(again.calls), 1)
+
+    def test_rerunning_a_batch_discards_its_old_case_reruns(self):
+        def responder(args):
+            if case_arg(args) == "j-demo--*":
+                return result_doc({"j-demo--effect-cache": ["API error: 529 overloaded"]}), 1, ""
+            return result_doc({case_arg(args): [None]}), 0, ""
+
+        self.run_suite(FakeCli(responder))
+        base = self.state / "test" / "kb" / MODEL / "effects"
+        self.assertTrue((base / "j-demo@j-demo--effect-cache.json").exists())
+        prompt = self.plugin / "evals-effects" / "j-demo--effect-cache" / "prompt.md"
+        prompt.write_text(prompt.read_text() + "\nChanged.\n")
+        self.run_suite(FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, "")))
+        self.assertFalse((base / "j-demo@j-demo--effect-cache.json").exists())
+
+    def test_leaked_result_is_quarantined(self):
+        doc = result_doc({"j-demo--effect-cache": ["sk-ant-oops"]})
+        code, _ = self.run_suite(FakeCli(lambda args: (doc, 0, "")))
+        self.assertEqual(code, 3)
+        base = self.state / "test" / "kb" / MODEL / "effects"
+        self.assertFalse((base / "j-demo.json").exists())
+        self.assertTrue((base / "j-demo.quarantined").exists())
+
+    def test_batch_allowance_bounds_the_cap(self):
+        self.budget["ceilingUsd"] = 1000
+        cli = FakeCli(lambda args: (result_doc({"x": [None]}), 0, ""))
+        self.run_suite(cli)
+        # one case x 3 runs x max(10 x $5 p95, $5) = $150, below the $960 budget headroom
+        self.assertEqual(cli.calls[0][cli.calls[0].index("--max-cost-usd") + 1], "150.00")
+
+    def test_api_error_pattern(self):
+        for text in ("API error: 429", "rate_limit_error", "status 529", "ECONNRESET", "Overloaded"):
+            self.assertRegex(text, krunner.API_ERROR)
+        for text in ("timed out after 500 ms", "hit max_turns (40)", "exit 1: Reached maximum number of turns (3)"):
+            self.assertNotRegex(text, krunner.API_ERROR)
+
+    def test_jobs_below_one_is_refused(self):
+        cli = FakeCli(lambda args: (result_doc({"x": [None]}), 0, ""))
+        err = io.StringIO()
+        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
+                   "budget": self.budget, "p95": 5.0}
+        with contextlib.redirect_stderr(err):
+            code = krunner.run("effects", "kb", MODEL, 3, "test", ["j-demo"], 0, cli, **options)
+        self.assertEqual(code, 1)
+        self.assertEqual(cli.calls, [])
+
+
+class LedgerSafetyTests(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.path = Path(tmp.name) / "ledger.jsonl"
+
+    def test_reserve_refuses_past_the_ceiling(self):
+        kledger.append({"period": "p", "costUsd": 50.0}, self.path)
+        self.assertTrue(kledger.reserve({"period": "p", "costUsd": 30.0, "charged": "reserved"}, 100, 20, self.path))
+        self.assertFalse(kledger.reserve({"period": "p", "costUsd": 0.5, "charged": "reserved"}, 100, 20, self.path))
+        self.assertAlmostEqual(kledger.spent("p", self.path), 80.0)
+
+    def test_torn_line_fails_closed_naming_the_line(self):
+        kledger.append({"period": "p", "costUsd": 1.0}, self.path)
+        with open(self.path, "a") as handle:
+            handle.write('{"period": "p", "cost')
+        with self.assertRaisesRegex(kledger.LedgerError, r"ledger\.jsonl:2"):
+            kledger.spent("p", self.path)
+
+    def test_invalid_costs_are_refused(self):
+        for entry in ({"period": "p", "costUsd": float("nan")}, {"period": "p", "costUsd": -1.0}):
+            with self.subTest(entry=entry), self.assertRaises(kledger.LedgerError):
+                kledger.append(entry, self.path)
+        kledger.append({"period": "p", "costUsd": -1.0, "charged": "settle"}, self.path)
+
+    def test_append_waits_for_the_lock(self):
+        import fcntl
+        import time
+
+        self.path.write_text("")
+        script = (
+            "import sys; from pathlib import Path; from evals.kbeval import ledger\n"
+            "ledger.append({'period': 'p', 'costUsd': 1.0}, Path(sys.argv[1]))\n"
+        )
+        with open(self.path, "a") as handle:
+            fcntl.flock(handle, fcntl.LOCK_EX)
+            proc = subprocess.Popen([sys.executable, "-c", script, str(self.path)], cwd=REPO, stdin=subprocess.DEVNULL)
+            time.sleep(0.5)
+            self.assertEqual(self.path.read_text(), "")
+            fcntl.flock(handle, fcntl.LOCK_UN)
+        self.assertEqual(proc.wait(timeout=60), 0)
+        self.assertEqual(len(self.path.read_text().splitlines()), 1)
+
+
+class OrchestratePlanTests(OrchestrateTests):
+    def test_pilot_runs_both_models_once_under_its_cap(self):
+        cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=0.1), 0, ""))
+        with mock.patch.object(korch, "PILOT_ASSETS", ("demo-skill", "j-demo")):
+            self.assertEqual(korch.pilot(cli=cli), 0)
+        models = {c[c.index("--model") + 1] for c in cli.calls}
+        self.assertEqual(models, set(korch.MODELS))
+        self.assertEqual({c[c.index("--runs") + 1] for c in cli.calls}, {"1"})
+        self.assertTrue(all(float(c[c.index("--max-cost-usd") + 1]) <= korch.PILOT_CAP_USD for c in cli.calls))
+        self.assertTrue(self.calls_for(cli, "vanilla"))
+        self.assertFalse(any(c[c.index("--eval-dir") + 1] == "evals-triggers" for c in self.calls_for(cli, "vanilla")))
+
+    def test_smoke_caps_follow_the_smoke_budget(self):
+        cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=15.0), 0, ""))
+        korch.smoke(["demo-skill", "j-demo"], cli=cli)
+        caps = [float(c[c.index("--max-cost-usd") + 1]) for c in cli.calls]
+        self.assertEqual(caps[0], 40.0)
+        self.assertTrue(all(cap <= 40.0 for cap in caps))
+        self.assertLess(caps[-1], caps[0])
+
+    def test_spend_snapshots_the_period(self):
+        from evals.kbeval import ledger as led
+
+        led.append({"period": "p", "purpose": "pilot", "model": "m", "costUsd": 2.5})
+        out = self.tmp / "spend.json"
+        self.assertEqual(korch.spend(out), 2.5)
+        self.assertEqual(json.loads(out.read_text())["totals"]["totalUsd"], 2.5)
+
+
+class EntryPointTests(OrchestrateTests):
+    def test_summarize_writes_nothing_when_a_check_fails(self):
+        from evals.kbeval import __main__ as kmain
+
+        err = io.StringIO()
+        with mock.patch.object(kmain, "REPO", self.repo), contextlib.redirect_stderr(err):
+            code = kmain.main(["summarize", "--model", OPUS])
+        self.assertEqual(code, 1)
+        self.assertIn("no summary written", err.getvalue())
+        self.assertFalse((self.repo / "evals" / "baselines").exists())
+
+    def test_spend_exits_one_over_the_ceiling(self):
+        from evals.kbeval import __main__ as kmain
+        from evals.kbeval import ledger as led
+
+        led.append({"period": "p", "costUsd": 150.0})
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(kmain.main(["spend"]), 1)
+        self.assertIn("$150.00 of $100.00", out.getvalue())
+
+    def test_jobs_must_be_positive(self):
+        from evals.kbeval import __main__ as kmain
+
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            kmain.main(["pilot", "--jobs", "0"])
+
+
+class RealFixtureTests(unittest.TestCase):
+    def test_real_seed_scripts_run_in_a_minimal_env(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        plugin = kstage.stage(REPO, root / "stage", "kb")
+        seeds = sorted((plugin / "evals-effects").glob("*/seed.sh"))
+        self.assertTrue(seeds, "no staged effect cases")
+        for seed in seeds:
+            with self.subTest(case=seed.parent.name):
+                work = root / "work" / seed.parent.name
+                work.mkdir(parents=True)
+                env = {"PATH": os.environ["PATH"], "HOME": str(root), "TMPDIR": str(root)}
+                result = subprocess.run(
+                    ["bash", str(seed)], cwd=work, env=env, capture_output=True, text=True,
+                    stdin=subprocess.DEVNULL, timeout=120,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue((work / ".kb-references").is_dir())
+
+    def test_py_calc_keeps_its_seeded_bug(self):
+        fixture = REPO / "evals" / "fixtures" / "py-calc"
+        env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+        bug = subprocess.run(
+            [sys.executable, "-c", "from calc.ops import mean; mean([])"], cwd=fixture, env=env,
+            capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=60,
+        )
+        self.assertIn("ZeroDivisionError", bug.stderr)
+        self.assertIn("0.0", (fixture / "calc" / "ops.py").read_text())
+        suite = subprocess.run(
+            [sys.executable, "-m", "unittest"], cwd=fixture, env=env, capture_output=True, text=True,
+            stdin=subprocess.DEVNULL, timeout=60,
+        )
+        self.assertEqual(suite.returncode, 0, suite.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -13,7 +13,7 @@ import shutil
 from pathlib import Path
 from typing import List
 
-from evals.kbeval.cases import Case, discover
+from evals.kbeval.cases import FRONTMATTER, Case, discover
 
 MARKER = ".kbeval-stage"
 STAGINGS = ("kb", "vanilla")
@@ -43,13 +43,15 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
     """
     if staging not in STAGINGS:
         raise StageError(f"staging must be one of {', '.join(STAGINGS)}, not {staging!r}")
+    if out.is_symlink() or (out.exists() and not out.is_dir()):
+        raise StageError(f"{out} is a symlink or a file; refusing to stage there")
     out = out.resolve()
     if out.exists():
         if any(out.iterdir()) and not (out / MARKER).is_file():
             raise StageError(f"{out} is not empty and holds no {MARKER} marker; refusing to replace it")
         shutil.rmtree(out)
     out.mkdir(parents=True)
-    (out / MARKER).write_text("staged by evals.kbeval\n")
+    (out / MARKER).write_text("staged by evals.kbeval\n", encoding="utf-8")
 
     harness = json.loads((repo / "evals" / "harness.json").read_text(encoding="utf-8"))
     command_form = harness.get("commandForm", "slash")
@@ -58,7 +60,7 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
     plugin = out / "kb"
     (plugin / ".claude-plugin").mkdir(parents=True)
     manifest = {"name": staging, "version": "0.0.0", "description": f"KB eval staging: {staging}"}
-    (plugin / ".claude-plugin" / "plugin.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (plugin / ".claude-plugin" / "plugin.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
     claude = repo / ".claude"
     refs = plugin / "_kb" / "references"
@@ -68,7 +70,7 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
         if command_form == "skill":
             for command in (plugin / "commands").glob("*.md"):
                 text = command.read_text(encoding="utf-8")
-                command.write_text(re.sub(r"(?m)^disable-model-invocation:.*\n", "", text))
+                command.write_text(re.sub(r"(?m)^disable-model-invocation:.*\n", "", text), encoding="utf-8")
         shutil.copytree(claude / "references", refs, ignore=IGNORE)
     fixtures = plugin / "_kb" / "fixtures"
     if (repo / "evals" / "fixtures").is_dir():
@@ -114,12 +116,12 @@ def _transform_body(case: Case, staging: str, command_form: str) -> str:
 
 def _write_prompt(case: Case, dest: Path, staging: str, command_form: str, system) -> None:
     text = (case.path / "prompt.md").read_text(encoding="utf-8")
-    match = re.match(r"\A---\n(.*?)\n---\n", text, re.DOTALL)
+    match = FRONTMATTER.match(text)
     lines: List[str] = match.group(1).splitlines() if match else []
     if system is not None:
         lines.append("append_system_prompt: " + json.dumps(system, ensure_ascii=True))
     body = _transform_body(case, staging, command_form)
-    (dest / "prompt.md").write_text("---\n" + "\n".join(lines) + "\n---\n\n" + body + "\n")
+    (dest / "prompt.md").write_text("---\n" + "\n".join(lines) + "\n---\n\n" + body + "\n", encoding="utf-8")
 
 
 def _write_case_yaml(case: Case, dest: Path, add_refs: bool) -> None:
@@ -147,7 +149,7 @@ def _write_case_yaml(case: Case, dest: Path, add_refs: bool) -> None:
         "context:\n"
         "  scaffold_script: seed.sh\n" + "".join(line + "\n" for line in context)
     )
-    (dest / "case.yaml").write_text(text)
+    (dest / "case.yaml").write_text(text, encoding="utf-8")
 
 
 def _quote(path: Path) -> str:
@@ -155,7 +157,12 @@ def _quote(path: Path) -> str:
 
 
 def _write_seed(case: Case, dest: Path, fixtures: Path, refs) -> None:
-    lines = ["#!/bin/bash", "set -euo pipefail"]
+    # The fixture runs as the user, so keep the user's git config (signing, hooks, templates) out.
+    lines = [
+        "#!/bin/bash",
+        "set -euo pipefail",
+        "export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1",
+    ]
     if case.fixture is not None:
         lines.append(f"bash {_quote(dest / 'fixture.sh')} {_quote(fixtures)}")
     if refs is not None:
@@ -165,7 +172,6 @@ def _write_seed(case: Case, dest: Path, fixtures: Path, refs) -> None:
             "if [ -d .git ]; then mkdir -p .git/info; printf '%s\\n' .kb-references >> "
             ".git/info/exclude; fi"
         )
-    lines.append("true")
     seed = dest / "seed.sh"
-    seed.write_text("\n".join(lines) + "\n")
+    seed.write_text("\n".join(lines) + "\n", encoding="utf-8")
     seed.chmod(0o755)

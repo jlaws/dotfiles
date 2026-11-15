@@ -15,8 +15,12 @@ def _fmt(value: Optional[float]) -> str:
     return "n/a" if value is None else f"{value:.2f}"
 
 
+def _flip(passed: Optional[bool]) -> str:
+    return "pass" if passed else "fail"
+
+
 def _ci(arm: dict) -> str:
-    low, high = (arm or {}).get("ci95", [None, None])
+    low, high = (arm or {}).get("ci95") or [None, None]
     return f"[{_fmt(low)}, {_fmt(high)}]" if low is not None else "[n/a]"
 
 
@@ -40,8 +44,7 @@ def compare(old: dict, new: dict) -> List[str]:
         if b is not None and a is not None and b - a >= DROP - 1e-9:
             notes.append(f"kbScore {b:.2f} -> {a:.2f}")
         if before.get("passed") != after.get("passed"):
-            flip = lambda passed: "pass" if passed else "fail"  # noqa: E731
-            notes.append(f"{flip(before.get('passed'))} -> {flip(after.get('passed'))}")
+            notes.append(f"{_flip(before.get('passed'))} -> {_flip(after.get('passed'))}")
         if notes:
             regressions.append(f"  {name}: {'; '.join(notes)}")
     lines.append(f"changed cases ({len(regressions)}):" if regressions else "changed cases: none")

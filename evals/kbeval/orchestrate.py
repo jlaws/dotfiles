@@ -19,6 +19,7 @@ MODELS = ("claude-opus-5-5", "claude-sonnet-5-5")
 SMOKE_MODEL = "claude-sonnet-5-5"
 PILOT_ASSETS = ("design-first", "j-tdd", "j-arch", "j-plan", "test-driven-development")
 PILOT_CAP_USD = 10.0
+KB_RUNS = 3
 VANILLA_SAMPLE = 5
 
 
@@ -114,9 +115,9 @@ def baseline(
     assets = sorted(repo_assets(REPO))
     state = state_root() / "results"
     steps = [
-        ("triggers", "kb", model, 3, "baseline", assets, jobs, {"plugin": kb, "state": state}),
-        ("effects", "kb", model, 3, "baseline", assets, jobs, {"plugin": kb, "state": state}),
-        ("workflows", "kb", model, 3, "baseline", [], jobs, {"plugin": kb, "state": state}),
+        ("triggers", "kb", model, KB_RUNS, "baseline", assets, jobs, {"plugin": kb, "state": state}),
+        ("effects", "kb", model, KB_RUNS, "baseline", assets, jobs, {"plugin": kb, "state": state}),
+        ("workflows", "kb", model, KB_RUNS, "baseline", [], jobs, {"plugin": kb, "state": state}),
     ]
     if model in set(vanilla_models):
         vanilla = _stage("vanilla", exclude_tags)

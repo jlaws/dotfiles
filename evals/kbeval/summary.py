@@ -19,7 +19,7 @@ from evals.kbeval.runner import API_ERROR
 SCHEMA = 1
 RESULT_TYPES = frozenset({"regex", "file_exists", "llm"})
 BOOTSTRAP_SAMPLES = 2000
-PASS_AT = 2 / 3  # a case passes when a majority of its three runs pass
+PASS_AT = 2 / 3  # a case passes when its mean run score is at least 2/3
 
 
 def _load(results: Path, staging: str, model: str, suite: str) -> Tuple[Dict[str, dict], List[dict]]:
@@ -29,9 +29,13 @@ def _load(results: Path, staging: str, model: str, suite: str) -> Tuple[Dict[str
     docs: List[dict] = []
     if not root.is_dir():
         return cases, docs
-    paths = sorted(root.glob("*.json"))
+    # Only completed batches count: the runner writes a .key beside a result it accepted, so
+    # partial, quarantined, or abandoned results are left out.
+    paths = sorted(p for p in root.glob("*.json") if p.with_suffix(".key").is_file())
     for path in [p for p in paths if "@" not in p.stem] + [p for p in paths if "@" in p.stem]:
-        doc = json.loads(path.read_text())
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        if doc.get("partial"):
+            continue
         docs.append(doc)
         for case in doc.get("cases", []):
             cases[case["name"]] = case
@@ -101,6 +105,8 @@ def summarize(results: Path, model: str, suite: str, settings: dict) -> dict:
     if len(versions) > 1:
         raise ValueError(f"results mix Claude Code versions: {', '.join(versions)}")
     judges = sorted({(d.get("suite") or {}).get("judgeModel") for d in docs} - {None})
+    if len(judges) > 1:
+        raise ValueError(f"results mix judge models: {', '.join(judges)}")
     trigger = suite == "triggers"
     rows = []
     for name in sorted(set(kb_cases) | set(van_cases)):
@@ -130,7 +136,7 @@ def summarize(results: Path, model: str, suite: str, settings: dict) -> dict:
         "schema": SCHEMA,
         "suite": suite,
         "model": model,
-        "judgeModel": judges[0] if len(judges) == 1 else judges,
+        "judgeModel": judges[0] if judges else None,
         "claudeVersion": versions[0] if versions else None,
         "date": dates[-1] if dates else None,
         "runs": settings,
@@ -176,5 +182,8 @@ def write(doc: dict, out: Path) -> None:
         lines.append(f"    {rows[-1]}")
     lines.append("  ]")
     lines.append("}")
+    text = "\n".join(lines) + "\n"
+    if "sk-ant-" in text:
+        raise ValueError(f"refusing to write {out}: the summary contains an sk-ant- string")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("\n".join(lines) + "\n")
+    out.write_text(text, encoding="utf-8")
