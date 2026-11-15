@@ -21,12 +21,12 @@ TRIGGER_KINDS = KINDS[:3]
 PENDING_EVAL_COVERAGE = frozenset(
     {
         # commands
-        "j-arch", "j-audit", "j-brainstorm", "j-cloud", "j-config-audit", "j-create-pr", "j-data",
-        "j-debug", "j-defrag", "j-devops", "j-diff-review", "j-doc-sync", "j-docs",
-        "j-email-analysis", "j-email-consolidate", "j-execute-plan", "j-explain", "j-frontend",
-        "j-init", "j-lang", "j-new", "j-next", "j-observe", "j-paper-analysis", "j-paper",
-        "j-plan", "j-pr-fix", "j-rebase", "j-retro", "j-review-claudemd", "j-skill-audit",
-        "j-system-design", "j-tdd",
+        "j-brainstorm", "j-create-pr",
+        "j-debug", "j-defrag", "j-diff-review", "j-doc-sync",
+        "j-execute-plan",
+        "j-init", "j-new", "j-next",
+        "j-plan", "j-pr-fix", "j-rebase", "j-review-claudemd", "j-skill-audit",
+        "j-tdd",
         # agents
         "architecture-specialist", "business-analyst", "cloud-architect", "code-reviewer",
         "create-pr", "data-engineer", "devops-engineer", "documentation-writer",
@@ -62,7 +62,8 @@ SUITE_LIMITS = {
 # A guard rail against mistakes in reviewed, in-repo cases, not a security boundary.
 FORBIDDEN_FIXTURE = re.compile(
     r"\b(curl|wget|ssh|scp|nc|sudo|brew|eval|git\s+clone|npm\s+(?:install|i|ci)\b|pip3?\s+install"
-    r"|rm\s+-[a-z]*r|(?:ba)?sh\s+-c|python3?\s+-c|git\s+remote\s+add\s+\S+\s+(?:https?:|ssh:|git@))"
+    r"|rm\s+(?:-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)|(?:ba)?sh\s+-c|(?:python3?|node|perl|ruby)\s+-[ce]"
+    r"|git\s+config\s+--(?:global|system)|git\s+push\b[^\n]*--force|git\s+remote\s+add\s+\S+\s+(?:https?:|ssh:|git@))(?![\w-])"
 )
 PARENT_PATH = re.compile(r"(?:^|[/\s'\"=])\.\.(?:/|\s|$|['\"])")
 # JavaScript regex has no inline flag groups like (?i), no Python named groups (?P<x>), no POSIX

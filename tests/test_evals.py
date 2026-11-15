@@ -395,11 +395,17 @@ class LintTests(TempRepoCase):
 
     def test_lint_forbidden_fixture_commands(self):
         for command in ("curl https://example.com", "git clone x", "pip install y", "cp /etc/hosts .",
-                        "rm -rf build", "bash -c 'x'", "cp -R \"$1/../..\" .", "echo '#'; curl x"):
+                        "rm -rf build", "rm -fR x", "node -e 1", "git config --global user.name x", "bash -c 'x'", "cp -R \"$1/../..\" .", "echo '#'; curl x"):
             with self.subTest(command=command):
                 path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
                 path.write_text(f'set -euo pipefail\ncp -R "$1/py-calc/." .\n{command}\n')
                 self.assert_problem(r"j-demo--effect-cache: .*fixture\.sh")
+
+    def test_lint_forbidden_words_match_whole_commands(self):
+        path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
+        path.write_text('set -euo pipefail\ncp -R "$1/py-calc/." .\nprintf "agent evals and ncurses\\n" > notes.txt\n')
+        problems = [p for p in self.problems() if "fixture.sh" in p]
+        self.assertEqual(problems, [])
 
     def test_lint_fixture_must_fail_fast(self):
         path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"

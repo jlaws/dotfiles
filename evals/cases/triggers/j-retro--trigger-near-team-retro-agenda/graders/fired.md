@@ -1,0 +1,7 @@
+---
+type: tool_used
+tool: Skill
+input_match: '"skill"\s*:\s*"(?:kb:)?j-retro"'
+min: 0
+max: 0
+---
