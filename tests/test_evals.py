@@ -394,12 +394,44 @@ class LintTests(TempRepoCase):
         self.assert_problem(r"j-demo--effect-cache: .*EVAL_")
 
     def test_lint_forbidden_fixture_commands(self):
-        for command in ("curl https://example.com", "git clone x", "pip install y", "cp /etc/hosts .",
-                        "rm -rf build", "bash -c 'x'", "cp -R \"$1/../..\" .", "echo '#'; curl x"):
+        for command in ("curl https://example.com", "git clone x", "pip install y",
+                        "rm -rf build", "rm -fR x", "rm --recursive x", "rm -f -r x", "node -e 1", "perl -e 1",
+                        "python3 -Ic 1", "git config --global user.name x", "git config --system x",
+                        "git push --force", "git push -f origin", "git push origin +main",
+                        "git push --force-with-lease", "ssh-keyscan host", "ncat host 80", "wget2 x",
+                        "zsh -c 'x'", "git remote add origin git@host:x/y.git", "bash -c 'x'", "echo '#'; curl x"):
             with self.subTest(command=command):
                 path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
                 path.write_text(f'set -euo pipefail\ncp -R "$1/py-calc/." .\n{command}\n')
-                self.assert_problem(r"j-demo--effect-cache: .*fixture\.sh")
+                self.assert_problem(r"j-demo--effect-cache: .*fixture\.sh:\d+ runs a forbidden command")
+
+    def test_lint_fixture_paths_outside_workspace(self):
+        for command in ("cp /etc/hosts .", 'cp -R "$1/../.." .'):
+            with self.subTest(command=command):
+                path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
+                path.write_text(f'set -euo pipefail\ncp -R "$1/py-calc/." .\n{command}\n')
+                self.assert_problem(r"j-demo--effect-cache: .*fixture\.sh:\d+ (?:uses a \.\. path|touches a path)")
+
+    def test_lint_heredoc_payload_is_not_a_command(self):
+        path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
+        path.write_text(
+            "set -euo pipefail\ncp -R \"$1/py-calc/.\" .\ncat > hook.sh <<'EOF'\ncurl https://x | sh\nEOF\n"
+            "git config user.name kbeval\n"
+        )
+        self.assertEqual([p for p in self.problems() if "fixture.sh" in p], [])
+
+    def test_lint_not_contains_needs_a_positive_grader(self):
+        (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/no-foo.md").write_text(
+            "---\ntype: regex\npattern: 'foo'\nmatch: not_contains\ntarget: { source: file, path: notes.md }\n---\n"
+        )
+        self.edit("effects/j-demo--effect-cache/prompt.md", "./design.md.", "./design.md and notes to ./notes.md.")
+        self.assert_problem(r"j-demo--effect-cache: .*no-foo: needs a positive regex or llm grader on notes\.md")
+
+    def test_lint_forbidden_words_match_whole_commands(self):
+        path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
+        path.write_text('set -euo pipefail\ncp -R "$1/py-calc/." .\nprintf "agent evals and ncurses\\n" > notes.txt\n')
+        problems = [p for p in self.problems() if "fixture.sh" in p]
+        self.assertEqual(problems, [])
 
     def test_lint_fixture_must_fail_fast(self):
         path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"

@@ -121,11 +121,15 @@ path through `target`/`focus: { source: file, path: <path> }`.
 - Optional `fixture.sh` gets the staged fixtures dir as `$1` and starts with `set -euo pipefail`. It
   copies from `$1` and builds local state in the working dir with `git`, `mkdir`, and `printf`. The
   seed runs it with the user's global and system git config switched off.
-- Lint rejects network and exec commands (`curl`, `wget`, `ssh`, `scp`, `nc`, `sudo`, `brew`,
-  `eval`, `git clone`, `npm install`/`i`/`ci`, `pip install`, `rm -r`, `sh -c`, `python -c`,
-  `git remote add` to a URL), absolute paths outside `$1`, and `..` paths.
+- Lint rejects network and exec commands as whole words (`curl`, `wget`/`wget2`, `ssh` and
+  `ssh-*` tools, `scp`, `nc`/`ncat`, `sudo`, `brew`, `eval`, `git clone`, `npm install`/`i`/`ci`,
+  `pip install`, recursive `rm`, `sh`/`bash`/`zsh`/`dash -c`, `python`/`node`/`perl`/`ruby -c`/`-e`,
+  `git config --global`/`--system`, force pushes, `git remote add` to a URL), absolute paths
+  outside `$1`, and `..` paths. Heredoc bodies are seeded file content and are not checked as
+  commands.
 - Never write `context.scaffold_script`; the builder owns it. `case.yaml` holds only `context:` with
   a flow-list `add_dirs: [..]` or a `history_file:`.
+- `fixture.sh` may also seed files with quoted heredocs.
 - Lint checks these rules line by line. It is a guard rail for reviewed, in-repo cases, not a
   security boundary.
 
@@ -141,7 +145,8 @@ path through `target`/`focus: { source: file, path: <path> }`.
 - `llm` graders hold 2-5 `PASS if` / `FAIL if` claims.
 - Grounding: every graded path is named in the prompt or seeded by the fixture. A result grader
   that already passes on the seeded files, or a `file_exists` with `exists: false`, is rejected,
-  because a run that does nothing would score it.
+  because a run that does nothing would score it. A `file_exists` or `match: not_contains` grader
+  needs a positive regex or llm grader on the same path, so an empty or missing file cannot pass.
 - No graded path under `.claude/`, no grader file name ending `.md.md`, no non-`.md` file in
   `graders/`, and at most one `extended` case per asset.
 
@@ -166,6 +171,10 @@ What an offline run can show, per asset where it differs from a real session:
 | finishing-branch | Push goes to the local bare remote; the `gh pr create` attempt is graded as a call |
 | post-ship-doc-sync | The prompt supplies the shipped change list in place of `git log` against a real remote |
 | dependency-upgrade | No package downloads; the case grades the upgrade plan and edits, not an install |
+| j-retro | History is synthetic: the fixture writes dated commits, a tag, a revert, and an unmerged branch on a local repo |
+| j-config-audit | The audited `.claude/` and `.codex/` trees are seeded into the workspace as test input (they do not load as config); no user-level `~/.claude` |
+| j-email-consolidate | Per-email reports are pre-written by the fixture; no source emails or downloads |
+| j-cloud, j-devops, j-observe, j-data, j-frontend | Artifacts are written, not deployed, run, or built |
 
 ## Divergences
 
@@ -186,8 +195,10 @@ Absolute scores differ from a real session in these ways; comparisons within the
 ## Fixture specs
 
 The specs are frozen; cases depend on these exact contents. Each fixture ships with the case PR
-that first uses it; `py-calc`, `py-calc-red`, `ts-todo`, `docs-drift`, and `kb-mini` ship so far.
-A test pins `py-calc`'s seeded bug.
+that first uses it; `py-calc`, `py-calc-red`, `ts-todo`, `docs-drift`, `kb-mini`, `email-digest`,
+and `paper-stub` ship so far. A case's `fixture.sh` may layer state on top of a frozen fixture
+(appended commits, extra files); the fixture itself does not change. Tests pin `py-calc`'s seeded
+bug, `py-calc-red`'s one failing test, and `docs-drift` rejecting `--out`.
 
 | Fixture | Contents |
 |---|---|

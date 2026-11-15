@@ -21,12 +21,12 @@ TRIGGER_KINDS = KINDS[:3]
 PENDING_EVAL_COVERAGE = frozenset(
     {
         # commands
-        "j-arch", "j-audit", "j-brainstorm", "j-cloud", "j-config-audit", "j-create-pr", "j-data",
-        "j-debug", "j-defrag", "j-devops", "j-diff-review", "j-doc-sync", "j-docs",
-        "j-email-analysis", "j-email-consolidate", "j-execute-plan", "j-explain", "j-frontend",
-        "j-init", "j-lang", "j-new", "j-next", "j-observe", "j-paper-analysis", "j-paper",
-        "j-plan", "j-pr-fix", "j-rebase", "j-retro", "j-review-claudemd", "j-skill-audit",
-        "j-system-design", "j-tdd",
+        "j-brainstorm", "j-create-pr",
+        "j-debug", "j-defrag", "j-diff-review", "j-doc-sync",
+        "j-execute-plan",
+        "j-init", "j-new", "j-next",
+        "j-plan", "j-pr-fix", "j-rebase", "j-review-claudemd", "j-skill-audit",
+        "j-tdd",
         # agents
         "architecture-specialist", "business-analyst", "cloud-architect", "code-reviewer",
         "create-pr", "data-engineer", "devops-engineer", "documentation-writer",
@@ -60,10 +60,18 @@ SUITE_LIMITS = {
 }
 
 # A guard rail against mistakes in reviewed, in-repo cases, not a security boundary.
+# Whole command words only (`ncurses` and `evals` are fine), plus their common variants; the
+# multi-word forms carry their own boundaries.
 FORBIDDEN_FIXTURE = re.compile(
-    r"\b(curl|wget|ssh|scp|nc|sudo|brew|eval|git\s+clone|npm\s+(?:install|i|ci)\b|pip3?\s+install"
-    r"|rm\s+-[a-z]*r|(?:ba)?sh\s+-c|python3?\s+-c|git\s+remote\s+add\s+\S+\s+(?:https?:|ssh:|git@))"
+    r"\b(?:curl|wget2?|ssh(?:-[a-z]+)?|scp|nc|ncat|sudo|brew|eval)(?![\w-])"
+    r"|\bgit\s+(?:-\S+\s+)*clone\b|\bnpm\s+(?:install|i|ci)\b|\bpip3?\s+install\b"
+    r"|\brm\s+(?:-\w+\s+)*(?:-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)\b"
+    r"|\b(?:ba|z|da)?sh\s+-[a-z]*c\b|\b(?:python3?|node|perl|ruby)\s+(?:-\w+\s+)*-[A-Za-z]*[ce]\b"
+    r"|\bgit\s+config\s+--(?:global|system)\b"
+    r"|\bgit\s+(?:-\S+\s+)*push\b[^\n]*(?:\s-f\b|--force|\s\+\S)"
+    r"|\bgit\s+remote\s+add\s+\S+\s+(?:https?:|ssh:|git@)"
 )
+HEREDOC_START = re.compile(r"<<-?\s*['\"]?(\w+)['\"]?")
 PARENT_PATH = re.compile(r"(?:^|[/\s'\"=])\.\.(?:/|\s|$|['\"])")
 # JavaScript regex has no inline flag groups like (?i), no Python named groups (?P<x>), no POSIX
 # classes, and no \A, \Z, or \z anchors. An escaped backslash (\\A) is a literal and passes.
@@ -469,6 +477,20 @@ def _lint_grounding(case: Case, repo: Path) -> List[str]:
                 problems.append(f"grader {grader.name}: graded path {path!r} is neither named in the prompt nor seeded")
         if gtype == "file_exists" and unquote(grader.fields.get("exists", "true")) == "false":
             problems.append(f"grader {grader.name}: `exists: false` passes on a run that does nothing")
+        positive_needed = gtype == "file_exists" or unquote(grader.fields.get("match", "")) == "not_contains"
+        if positive_needed:
+            path = _grader_paths(grader)[0] if _grader_paths(grader) else None
+            others = [
+                g for g in case.graders
+                if g is not grader and path in _grader_paths(g)
+                and unquote(g.fields.get("type", "")) in ("regex", "llm")
+                and unquote(g.fields.get("match", "")) != "not_contains"
+            ]
+            if path and not others:
+                problems.append(
+                    f"grader {grader.name}: needs a positive regex or llm grader on {path}; alone it "
+                    "cannot tell a correct file from an empty or missing one"
+                )
         if gtype == "regex":
             path = graded_path(grader.fields.get("target", ""))
             if not path:
@@ -524,10 +546,18 @@ def _lint_files(case: Case) -> List[str]:
         code_lines = [ln.strip() for ln in case.fixture.splitlines() if ln.strip() and not ln.strip().startswith("#")]
         if not code_lines or code_lines[0] != "set -euo pipefail":
             problems.append("fixture.sh must start with `set -euo pipefail`")
+        heredoc_end: Optional[str] = None
         for number, line in enumerate(case.fixture.splitlines(), 1):
+            if heredoc_end is not None:  # seeded file content, not a command
+                if line.strip() == heredoc_end:
+                    heredoc_end = None
+                continue
             if line.strip().startswith("#"):
                 continue
             code = line
+            start = HEREDOC_START.search(code)
+            if start:
+                heredoc_end = start.group(1)
             if PARENT_PATH.search(code):
                 problems.append(f"fixture.sh:{number} uses a .. path")
             if FORBIDDEN_FIXTURE.search(code):
