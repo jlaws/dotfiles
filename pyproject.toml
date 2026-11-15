@@ -12,6 +12,7 @@ line-length = 100
 # (often 3.9, from the Xcode Command Line Tools) -- not the 3.12 dev venv. Target the real floor
 # so lint/type checks catch any accidental 3.10+-only syntax.
 target-version = "py39"
+extend-exclude = ["evals/fixtures"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "D", "PIE", "RUF"]

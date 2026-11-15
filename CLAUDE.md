@@ -28,6 +28,18 @@ make verify   # check + test -- the full gate (make test alone already fails on 
 python3 .claude/skills/skill-audit/scripts/audit.py .   # repo copy; ends "Findings:   0 fail  |  0 warn"
 ```
 
+### KB evals (see `evals/README.md`)
+```bash
+make eval-stage      # free: stage kb and vanilla plugins under $TMPDIR
+make eval-lint       # free: lint eval cases; ends "0 problems"
+make eval-pilot      # bills ANTHROPIC_API_KEY: pilot cases
+make eval-smoke ASSETS="..."      # bills ANTHROPIC_API_KEY: one-run smoke for named assets
+make eval-baseline MODEL=...      # bills ANTHROPIC_API_KEY: full baseline for one model
+make eval-compare OLD=... NEW=... # free: compare two baseline summaries
+make eval-spend      # free: snapshot the spend ledger into evals/spend.json; exits 1 over the ceiling
+python3 -m evals.kbeval summarize # free: check results and write evals/baselines/ (writes nothing if a check fails)
+```
+
 ### What setup.sh does:
 Steps run in privilege order: every per-user change first (archive saved), then Homebrew (needs an admin-group account; skipped with a warning otherwise), then one `sudo` prompt for system-wide settings. Cancelling the prompt keeps the per-user changes; uninstall follows the same order.
 
@@ -49,7 +61,8 @@ dotfiles/
 ├── ghosty_config.txt  # Ghostty terminal configuration reference
 ├── setup.sh           # Entry-point shim → python3 -m macos_setup
 ├── macos_setup/       # Python package: install + archive + uninstall/reset
-├── tests/             # stdlib unittest suite for macos_setup
+├── tests/             # stdlib unittest suite for `macos_setup`, the KB, and `evals`
+├── evals/             # KB eval harness, cases, baselines (repo-only, not synced)
 ├── docs/adr/          # Decision records (README.md + template.md are scaffolding, not ADRs)
 ├── pyproject.toml     # ruff config, project metadata
 ├── Makefile           # lint, format, fix, test targets
@@ -78,6 +91,7 @@ dotfiles/
 | `.vim/` | Solarized colorscheme, syntax files, and state directories |
 | `setup.sh` | Shim that execs `python3 -m macos_setup` |
 | `macos_setup/` | Install/archive/uninstall package (stdlib only) |
+| `evals/` | KB eval harness (`kbeval`), cases, fixtures, and budget; baselines under `evals/baselines/` once recorded |
 | `ghosty_config.txt` | Ghostty terminal configuration reference |
 
 ## Shell Aliases (from .extra)

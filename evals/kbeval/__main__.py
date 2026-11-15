@@ -1,0 +1,178 @@
+"""Command line for the KB eval harness: `python3 -m evals.kbeval <command>`."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+from typing import List, Optional
+
+from evals.kbeval import cases as kcases
+from evals.kbeval import compare as kcompare
+from evals.kbeval import orchestrate, runner
+from evals.kbeval import stage as kstage
+from evals.kbeval import summary as ksummary
+
+REPO = Path(__file__).resolve().parents[2]
+
+
+def _positive(value: str) -> int:
+    number = int(value)
+    if number < 1:
+        raise argparse.ArgumentTypeError(f"must be at least 1, not {number}")
+    return number
+
+
+def _stage(args: argparse.Namespace) -> int:
+    try:
+        plugin = kstage.stage(REPO, Path(args.out), args.staging, frozenset(args.exclude_tag))
+    except kstage.StageError as error:
+        print(f"stage: {error}", file=sys.stderr)
+        return 1
+    print(plugin)
+    return 0
+
+
+def _lint(args: argparse.Namespace) -> int:
+    found = kcases.discover(REPO / "evals" / "cases")
+    problems = kcases.lint(found, REPO) + kcases.coverage(found, REPO, kcases.PENDING_EVAL_COVERAGE)
+    for problem in problems:
+        print(problem)
+    print(f"{len(found)} cases, {len(problems)} problems")
+    return 1 if problems else 0
+
+
+def _run(args: argparse.Namespace) -> int:
+    return runner.run(
+        args.suite, args.staging, args.model, args.runs, args.purpose, args.assets, args.jobs,
+        plugin=Path(args.plugin),
+    )
+
+
+def _pilot(args: argparse.Namespace) -> int:
+    return orchestrate.pilot(args.jobs)
+
+
+def _smoke(args: argparse.Namespace) -> int:
+    return orchestrate.smoke(args.assets, args.jobs)
+
+
+def _baseline(args: argparse.Namespace) -> int:
+    return orchestrate.baseline(
+        args.model, args.vanilla_runs, args.vanilla_models, frozenset(args.exclude_tag), args.jobs
+    )
+
+
+def _spend(args: argparse.Namespace) -> int:
+    budget = runner.load_budget()
+    total = orchestrate.spend()
+    print(f"period {budget['period']}: ${total:.2f} of ${float(budget['ceilingUsd']):.2f}")
+    return 0 if total <= float(budget["ceilingUsd"]) else 1
+
+
+def _summarize(args: argparse.Namespace) -> int:
+    """Check every summary first and write none unless all pass."""
+    settings = {
+        "kbRuns": orchestrate.KB_RUNS,
+        "vanillaRuns": args.vanilla_runs,
+        "vanillaModels": sorted(args.vanilla_models),
+        "excludeTags": sorted(args.exclude_tag),
+    }
+    results = orchestrate.state_root() / "results" / "baseline"
+    problems: List[str] = []
+    docs = []
+    for model in args.model or list(orchestrate.MODELS):
+        for suite in kcases.SUITES:
+            try:
+                doc = ksummary.summarize(results, model, suite, settings)
+            except ValueError as error:
+                problems.append(f"{model}/{suite}: {error}")
+                continue
+            problems += ksummary.check(doc)
+            docs.append(doc)
+    if problems:
+        for problem in problems:
+            print(problem, file=sys.stderr)
+        print(f"{len(problems)} problems; no summary written", file=sys.stderr)
+        return 1
+    for doc in docs:
+        out = REPO / "evals" / "baselines" / doc["model"] / f"{doc['suite']}.json"
+        ksummary.write(doc, out)
+        print(f"wrote {out.relative_to(REPO)} ({len(doc['cases'])} cases)")
+    return 0
+
+
+def _compare(args: argparse.Namespace) -> int:
+    try:
+        old = json.loads(Path(args.old).read_text(encoding="utf-8"))
+        new = json.loads(Path(args.new).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        print(f"compare: {error}", file=sys.stderr)
+        return 1
+    for line in kcompare.compare(old, new):
+        print(line)
+    return 0
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    """Parse arguments and run one harness command."""
+    parser = argparse.ArgumentParser(prog="python3 -m evals.kbeval")
+    sub = parser.add_subparsers(dest="command", required=True)
+    stage = sub.add_parser("stage", help="stage the kb or vanilla eval plugin")
+    stage.add_argument("--out", required=True)
+    stage.add_argument("--staging", choices=kstage.STAGINGS, required=True)
+    stage.add_argument("--exclude-tag", action="append", default=[])
+    stage.set_defaults(func=_stage)
+    lint = sub.add_parser("lint", help="lint every case and check coverage")
+    lint.set_defaults(func=_lint)
+
+    run = sub.add_parser("run", help="run one suite for one staging and model (paid)")
+    run.add_argument("--suite", choices=("triggers", "effects", "workflows"), required=True)
+    run.add_argument("--staging", choices=kstage.STAGINGS, required=True)
+    run.add_argument("--plugin", required=True)
+    run.add_argument("--model", required=True)
+    run.add_argument("--runs", type=_positive, default=3)
+    run.add_argument("--purpose", required=True)
+    run.add_argument("--assets", nargs="*", default=[])
+    run.add_argument("--jobs", type=_positive, default=8)
+    run.set_defaults(func=_run)
+
+    pilot = sub.add_parser("pilot", help="run the pilot cases (paid)")
+    pilot.add_argument("--jobs", type=_positive, default=8)
+    pilot.set_defaults(func=_pilot)
+
+    smoke = sub.add_parser("smoke", help="one-run smoke for named assets (paid)")
+    smoke.add_argument("--assets", nargs="+", required=True)
+    smoke.add_argument("--jobs", type=_positive, default=8)
+    smoke.set_defaults(func=_smoke)
+
+    baseline = sub.add_parser("baseline", help="full baseline for one model (paid)")
+    baseline.add_argument("--model", required=True)
+    baseline.add_argument("--vanilla-runs", type=_positive, default=3)
+    baseline.add_argument("--vanilla-models", nargs="*", default=list(orchestrate.MODELS))
+    baseline.add_argument("--exclude-tag", action="append", default=[])
+    baseline.add_argument("--jobs", type=_positive, default=8)
+    baseline.set_defaults(func=_baseline)
+
+    summarize = sub.add_parser("summarize", help="write evals/baselines/<model>/<suite>.json")
+    summarize.add_argument("--check", action="store_true", help="accepted; summarize always checks")
+    summarize.add_argument("--model", action="append")
+    summarize.add_argument("--vanilla-runs", type=_positive, default=3)
+    summarize.add_argument("--vanilla-models", nargs="*", default=list(orchestrate.MODELS))
+    summarize.add_argument("--exclude-tag", action="append", default=[])
+    summarize.set_defaults(func=_summarize)
+
+    compare = sub.add_parser("compare", help="regressions between two baseline summaries")
+    compare.add_argument("old")
+    compare.add_argument("new")
+    compare.set_defaults(func=_compare)
+
+    spend = sub.add_parser("spend", help="snapshot ledger totals into evals/spend.json")
+    spend.set_defaults(func=_spend)
+    args = parser.parse_args(argv)
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

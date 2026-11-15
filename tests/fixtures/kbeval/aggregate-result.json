@@ -1,0 +1,109 @@
+{
+  "aggregates": {
+    "casesPassed": 1,
+    "casesTotal": 1,
+    "overallPassRate": 1,
+    "overallScore": 1
+  },
+  "cases": [
+    {
+      "aggregates": {
+        "passRate": 1,
+        "score": 1
+      },
+      "arms": {
+        "with": [
+          {
+            "costUsd": 0.9815699999999999,
+            "durationSeconds": 264,
+            "error": null,
+            "graders": [
+              {
+                "explanation": "Agent called 1x (expected 1..\u221e)",
+                "name": "delegated",
+                "passed": true,
+                "scored": true,
+                "weight": 1,
+                "withOnly": false
+              },
+              {
+                "evidence": "# Product Catalog API: Caching Layer Design\n\nRequirements: about 5,000 reads/s, about 50 writes/s. Clients tolerate data up to 2 s stale (commit time to response time).\n\nSummary:\n- Two tiers: in-process L1 (250 ms TTL) in front of a shared Redis L2 that holds the full catalog. No CDN.\n- Invalidation comes from the database change stream (CDC). It writes versioned tombstones and publishes a watermark. Readers switch to age-bounded mode when the watermark lags.\n- Worst-case staleness is 1,350 ms (derived) when healthy and when invalidation lags. The 2 s bound is knowingly given up in two cases: the database is overloaded (stale reads up to 60 s are served and alerted), and an invalidation event is lost (repaired within 10 s and alerted).\n\nDecision rule: this design was produced non-interactively. Every decision takes the recommended option, and each is stated as \"Decision\" below.\n\n## Assumptions\n\nNumbers marked (derived) follow from these. Change an assumption and the derived numbers must be recomputed.\n\n| ID | Assumption |\n|----|------------|\n| A1 | Single relational database (Postgres 14+), with read replicas. A trigger can maintain a `version BIGINT` column on `products`. |\n| A2 | 1M products, about 2 KB serialized each, skewed (Zipf-like) access. About 90% of reads are `GET /products/{id}`; the rest are list/category queries. |\n| A3 | Up to 5 locale/currency variants per product. |\n| A4 | Checkout and price authority read the database, not this cache. A stale catalog read is acceptable as a last resort. |\n| A5 | Clock skew between app hosts and the database is 100 ms or less (NTP/chrony). |\n| A6 | Database capacity for cache-fill reads is about 2,000 rows/s across replicas. |\n| A7 | Kafka plus Debezium (or a managed equivalent) is acceptable to operate. |\n| A8 | Clients are API consumers. Staleness is measured from database commit to API response. |\n\n## 1. Cache placement\n\n**Decision:** two tiers, no CDN.\n\n```\nclient --> API instance --> L1 (in-process, 250 ms TTL, <=10k entries)\n                              | miss\n                              v\n                           Redis L2: MGET {product key, watermark}\n                              | miss or not acceptable\n                              v\n             single-flight + Redis fill lock --> DB (replica; primary when needed)\n\nDB WAL --> Debezium (100 ms heartbeat) --> Kafka (partitioned by product_id)\n       --> Invalidator --> Lua SET_IF_NEWER tombstone {ver} ; SET watermark = commit_ts\n```\n\n| Tier | Choice | TTL | Role |\n|------|--------|-----|------|\n| HTTP | `Cache-Control: no-cache` plus `ETag: \"<version>\"` | none | Clients revalidate each time and get cheap 304s. No shared HTTP caching. |\n| L1 | In-process LRU, 10k entries cap, about 20 MB per instance (derived: 10k x 2 KB) | 250 ms from its own fill | Absorbs hot keys. No invalidation subscription. |\n| L2 | Managed Redis, 1 primary plus 1 replica, multi-AZ, automatic failover | Products: 1 h + 0 to 10 min jitter (memory hygiene only). Lists: age-bounded to 1 s or less. Tombstones: 10 s. Negative (\"not found\"): 1 s. | System of record for cached data. Freshness comes from invalidation, not TTL. |\n\nKey design:\n- Product: `cat:v1:{p:<id>}`. A Redis hash with one field per locale variant (A3), so one tombstone covers every variant. The `v1` prefix allows safe schema changes.\n- List: `cat:v1:list:<sha1(normalized query)>`. Stores product IDs only; items are filled from product keys.\n- Watermark: `cat:cdc:watermark`.\n- Every value carries `{data, ver, fetched_at}`. `fetched_at` is the time the database read started. For replica reads it is that time minus the measured replica lag, so replica lag counts against the staleness budget.\n\nSizing (derived):\n- L2 memory: 1M x 2 KB x about 1.3 overhead = about 2.6 GB. Set `maxmemory` to 6 GB or more (about 55% headroom) with `allkeys-lfu`. Evictions must stay at zero (see section 3).\n- Redis load: up to 5,000 MGET/s + 50 invalidations/s + 10 heartbeats/s. One node handles this comfortably, so Redis Cluster is not needed.\n- L1 hit ratio for a key read at r req/s per instance: 1 - 1/(1 + 0.25 r). About 0% for the long tail; about 96% at 100 req/s. L1 exists to protect Redis from hot keys, not to raise the overall hit ratio.\n\nRuled out:\n\n| Option | Reason |\n|--------|--------|\n| CDN / `s-maxage` | Any CDN TTL adds directly to the 2 s budget, and purge latency is not guaranteed under 1 s. 5,000 req/s does not need edge offload. Revisit with surrogate-key purge if traffic goes global or public. |\n| Browser `max-age=1` | Normal-mode worst case becomes 1,350 + 1,000 = 2,350 ms, over 2 s (derived). |\n| L1 invalidated via Redis pub/sub | Pub/sub is fire-and-forget. A safe version needs sequence-gap detection and a flush on reconnect, to buy a longer L1 lifetime that Redis load does not require. |\n| Redis Cluster | Adds cross-slot limits at a load one node handles. The per-request `MGET {key, watermark}` would need both keys in one slot. |\n| Memcached | No Lua for version-conditional writes; no replication. |\n| L2 holding only the hot set | The full catalog fits cheaply (about 2.6 GB) and removes cold misses. |\n\n## 2. Invalidation\n\n**Decision:** event-driven invalidation from the database change stream, using versioned tombstones and a pipeline watermark that readers check on every request.\n\nWrite path order:\n1. The app commits to the database. A trigger increments `version`. The app does not touch the cache (no dual write).\n2. Debezium captures the change from the WAL. It also writes a heartbeat row every 100 ms, so the watermark advances even with no writes.\n3. The invalidator runs Lua `SET_IF_NEWER(key, {tombstone, ver})`. The write applies only if `ver` is greater than the stored version.\n4. The invalidator sets `watermark = commit_ts` of the last applied event or heartbeat.\n5. The Kafka offset commits only after the Redis write succeeds. Delivery is at-least-once; version checks make replays harmless.\n\nPreventing stale overwrites (the cache-aside race):\n- Cache fills also go through `SET_IF_NEWER`. A slow reader holding v1 cannot overwrite a v2 tombstone.\n- If a replica fill returns a version lower than the tombstone version, the replica is behind. Re-read that key from the primary. At about 50 writes/s the extra primary load is negligible.\n\nHow the 2 s bound is enforced. Each request does one `MGET key, watermark` (W):\n\n| Mode | Trigger | Acceptance rule | Worst-case staleness (derived) |\n|------|---------|-----------------|--------------------------------|\n| Normal | `now - W <= 1,000 ms` | Accept any non-tombstone L2 entry. Every commit older than W is already applied. | 1,000 (pipeline lag limit) + 250 (L1) + 100 (skew, A5) = 1,350 ms |\n| Degraded | `now - W > 1,000 ms`, or W missing | Accept an L2 entry only if `fetched_at >= now - 1,000 ms`. Fill from the primary, because tombstones may be missing. | 1,000 + 250 + 100 = 1,350 ms |\n\nWhy tier TTLs do not stack:\n- L2 freshness is defined by the watermark or by `fetched_at`, never by its TTL.\n- L1 is the only TTL-bounded tier, and its 250 ms is counted in the budget.\n- L1 only admits entries that passed the L2 check.\n- The 650 ms margin under 2 s covers request processing and heartbeat granularity.\n\nLists: ID arrays are age-bounded to 1 s or less, filled with single-flight, and filled from the primary in degraded mode. Items inside a list get the per-product guarantee.\n\nReconciliation sweeper:\n- Every 10 s, read rows with `updated_at > now - 5 min` (about 15,000 rows at 50 writes/s, derived). Verify each cached version is at least the database version, and repair any that are not.\n- Needed because a lost event is otherwise undetectable: heartbeats keep the watermark fresh even if one event is dropped.\n- Without it, a lost event stays stale up to the 1 h TTL. With it, staleness is bounded at 10 s and alerted.\n\nRuled out:\n\n| Option | Reason |\n|--------|--------|\n| TTL only | Tiers must share 2 s (for example L2 1.5 s + L1 0.25 s), so every key read is re-fetched at least every 1.5 s. With 1M keys and a long tail that means thousands of fills/s, against about 2,000 rows/s capacity (A6). |\n| Transactional outbox | Misses writes made outside the app (migrations, manual SQL, bulk imports). Each one silently breaks the bound. CDC sees every writer. Reconsider only if domain events are needed for other reasons. |\n| Writer-side DEL after commit, or pub/sub from the writer | A crash between commit and DEL loses the invalidation, and nothing detects it. A second invalidation path adds ordering hazards. |\n| Write-through from the invalidator | The cached value is a joined, per-locale view that a single row change cannot rebuild. Single-flight refill after a tombstone costs 50 fills/s or less. |\n| Tag sets for list invalidation | Tag sets grow without limit, and a product moving between categories needs both old and new tags. Age-bounded ID lists are simpler and meet the bound. |\n\n## 3. Failure behavior\n\n**Decision:** keep the 2 s bound whenever the database can serve fills. When it cannot, serve bounded-stale data (60 s maximum) with explicit headers and alerts, then shed with 503. Never block indefinitely and never serve unbounded stale data.\n\n| Failure | Behavior | 2 s bound held? |\n|---------|----------|-----------------|\n| Redis primary failover | Async replication can lose the newest tombstones and the watermark. A missing or older watermark forces degraded mode automatically. The invalidator detects the new Redis `run_id` or role, rewinds Kafka 60 s, and re-applies (idempotent via version checks). | Yes (degraded mode during recovery) |\n| Redis fully down | Circuit breaker opens after 50 ms timeouts. Requests read the database directly through the fill limiter. L1 TTL rises to 1,000 ms, measured from `fetched_at`. | Yes, until the limiter saturates (then see \"Database overloaded\") |\n| Invalidation pipeline lags (Debezium, Kafka, or invalidator slow or down) | The watermark goes stale and every instance enters degraded mode within about 1 s. Database fill load rises to the number of distinct keys read per second, capped by the limiter. | Yes |\n| Event lost (bug, retention expiry, replication slot reset) | Invisible to the watermark. The sweeper repairs it within 10 s and alerts. If the slot is reset: re-snapshot and flush L2. | No: up to 10 s for the affected keys, alerted |\n| Stampede / thundering herd | In-process single-flight, plus a cross-instance Redis fill lock (`SET NX PX 2000` with a random token, released by compare-and-delete in Lua). Waiters poll every 20 ms for up to 200 ms, then fill through the limiter. Plus TTL jitter. | Yes |\n| Hot key | L1 caps Redis reads at 4/s per instance per key (derived: 1 / 250 ms). Invalidating a hot key causes one fill per lock holder. | Yes |\n| Cold start: new or empty Redis | A bulk loader streams the catalog in popularity order at a controlled rate (about 2 GB, derived). Meanwhile traffic uses single-flight and the limiter. | Yes, with more load shedding until warm |\n| Cold start: new app instance | L1 starts empty; L2 serves. No impact. | Yes |\n| Database overloaded | A per-instance fill semaphore caps concurrent fills so the total stays within A6 capacity. When it is full, serve the best L2 or L1 value if 60 s old or less, with `Age` and `Cache-Status: ...; stale` headers, and increment `stale_served_total`. Older than 60 s: 503 with `Retry-After`. | No: explicitly relaxed to 60 s, measured and alerted |\n| Replica lag | Tombstone version checks force primary re-reads for changed keys. If replica lag exceeds 500 ms, all fills go to the primary. Replica lag is subtracted from `fetched_at`. | Yes |\n| Clock skew over 100 ms | Breaks the watermark arithmetic. | At risk while the skew alert fires |\n\nRuled out:\n\n| Option | Reason |\n|--------|--------|\n| Always 503 when freshness cannot be proven | A cache or pipeline incident becomes a full outage at 5,000 req/s, while A4 says stale catalog data is acceptable as a last resort. |\n| Unbounded stale-if-error | Silent, indefinite staleness. |\n\nMetrics and alerts:\n\n| Area | Signal | Threshold |\n|------|--------|-----------|\n| Primary SLI | Canary product updated every 1 s with a timestamp; a probe reads it through the API and measures end-to-end staleness | Alert if p99 > 1,500 ms or any sample > 2,000 ms |\n| Pipeline | `cdc_watermark_lag_ms` | Warn at p99 > 500 ms; page at > 1,000 ms |\n| Pipeline | `degraded_mode_active` per instance; Kafka consumer lag | Informational / dashboard |\n| Pipeline | Debezium replication slot retained WAL | Alert at > 5 GB (a stopped Debezium fills the Postgres disk) |\n| Correctness | `sweeper_repairs_total` | Page if > 0 (an invalidation was lost) |\n| Correctness | `set_if_newer_rejected_total` | Informational |\n| Load | L1 and L2 hit ratio; DB fill QPS; `fill_limiter_rejections`; lock-wait timeouts; 503 rate | Dashboard; alert on 503 rate per SLO |\n| Load | `stale_served_total` | Alert if > 0 for 1 min |\n| Redis | `evicted_keys` | Alert if > 0 (evicted tombstones reopen the overwrite race) |\n| Redis | Memory; p99 latency; failover events; circuit-breaker state changes | Memory > 75%; p99 > 5 ms; any failover or breaker open |\n| Infrastructure | Replica lag; chrony offset | > 500 ms; > 50 ms |\n\n## Caveats\n\n- All capacity numbers derive from assumptions A1 to A8. No production traffic data was available; validate A2 (catalog size, skew) and A6 (fill capacity) before sizing.\n- UNVERIFIED: Debezium heartbeat interval and replication-slot behavior are not from the project knowledge base. Check them against the docs for the deployed Debezium version.\n- The local knowledge base's caching samples (`caching-strategies.md`) have a cache-aside overwrite race and a lock released without a token check. This design avoids both (`SET_IF_NEWER`, token plus compare-and-delete); do not copy those samples as-is.\n",
+                "explanation": "judge votes: PASS PASS PASS \u2014 note: long file (13868 chars); llm judges are noisy on long inputs, prefer a regex grader for large artifacts",
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "name": "design",
+                "passed": true,
+                "scored": true,
+                "weight": 1,
+                "withOnly": false
+              }
+            ],
+            "judgeCostUsd": 0.13941599999999998,
+            "passed": true,
+            "score": 1,
+            "skippedPaidGraders": false,
+            "startedAt": "2026-11-15T14:54:35.285Z",
+            "tracePath": "/private/tmp/e-GFXWjA/out/trace.jsonl",
+            "turns": 7
+          }
+        ]
+      },
+      "dir": "evals-effects/j-arch--effect-cache-layer",
+      "graders": [
+        {
+          "config": {
+            "input_match": "\"subagent_type\"\\s*:\\s*\"kb:architecture-specialist\"",
+            "tool": "Agent"
+          },
+          "name": "delegated",
+          "type": "tool_used",
+          "weight": 1
+        },
+        {
+          "config": {
+            "criteria": "All claims are required.\nPASS if design.md has sections covering cache placement, invalidation, and failure behavior.\nPASS if the invalidation approach keeps staleness within the stated 2-second tolerance (for example a TTL of 2 seconds or less, or write-through or event-driven invalidation).\nPASS if the failure section says what happens when the cache is unavailable (for example falling back to the database with load protection).\nFAIL if any of the three sections is missing, or the design ignores the stated read and write rates.",
+            "focus": {
+              "path": "design.md",
+              "source": "file"
+            }
+          },
+          "graderMarkdown": "All claims are required.\nPASS if design.md has sections covering cache placement, invalidation, and failure behavior.\nPASS if the invalidation approach keeps staleness within the stated 2-second tolerance (for example a TTL of 2 seconds or less, or write-through or event-driven invalidation).\nPASS if the failure section says what happens when the cache is unavailable (for example falling back to the database with load protection).\nFAIL if any of the three sections is missing, or the design ignores the stated read and write rates.",
+          "name": "design",
+          "type": "llm",
+          "weight": 1
+        }
+      ],
+      "maxTurns": 40,
+      "name": "j-arch--effect-cache-layer",
+      "promptMarkdown": "/kb:j-arch design a caching layer for a read-heavy product catalog API: about 5,000 reads per second, 50 writes per second, and clients tolerate data up to 2 seconds stale. Save the design to ./design.md with three sections: cache placement, invalidation, and failure behavior.\n\nRun non-interactively: do not ask questions; take the recommended option for every decision and state it.",
+      "runsPerCase": 3,
+      "source": "mixed",
+      "timeoutSeconds": 900
+    }
+  ],
+  "claudeVersion": "2.1.325",
+  "costUsd": 0.9815699999999999,
+  "durationSeconds": 264,
+  "partial": false,
+  "schemaVersion": 1,
+  "startedAt": "2026-11-15T14:54:35.251Z",
+  "suite": {
+    "ablation": "none",
+    "caseFilter": "j-arch--*",
+    "concurrency": 8,
+    "judgeModel": "claude-fable-5-2",
+    "modelOverride": "claude-opus-5-5",
+    "plugins": [
+      {
+        "name": "kb",
+        "path": "/home/kbeval/.local/state/dotfiles-kbeval/stage/kb/kb",
+        "version": "0.0.0"
+      }
+    ],
+    "root": "/home/kbeval/.local/state/dotfiles-kbeval/stage/kb/kb",
+    "threshold": 0
+  }
+}
