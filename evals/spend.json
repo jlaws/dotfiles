@@ -1,8 +1,13 @@
 {
   "period": "initial-baseline-2026-11",
   "totals": {
-    "byModel": {},
-    "byPurpose": {},
-    "totalUsd": 0.0
+    "byModel": {
+      "claude-opus-5-5": 2.5521,
+      "claude-sonnet-5-5": 0.8624
+    },
+    "byPurpose": {
+      "pilot": 3.4145
+    },
+    "totalUsd": 3.4145
   }
 }
