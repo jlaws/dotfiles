@@ -50,6 +50,9 @@ description: Use when executing plans - executes tasks sequentially with code re
 description: Use when executing implementation plans with independent tasks in the current session
 ```
 
+- Word guidance to apply to the whole task, not one moment: "Run the tests after every edit", not "Run the tests".
+- A rule the agent must never skip belongs in a hook (references/workflow/hook-patterns.md), not skill prose.
+
 **Body structure:**
 ```markdown
 # Skill Name

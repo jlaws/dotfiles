@@ -112,6 +112,10 @@ Keep binding caps and stop conditions in the first screen of SKILL.md. After aut
 re-attaches only the first 5,000 tokens of each invoked skill, within a 25,000-token budget shared by all
 re-attached skills, and `audit.py` SK-C6 warns when a SKILL.md passes 20,000 bytes.
 
+Word guidance to apply to the whole task, not one moment: "Run the tests after every edit", not "Run
+the tests". A rule Claude must never skip belongs in a hook (`references/workflow/hook-patterns.md`),
+not skill prose.
+
 ## Frontmatter
 
 `name` (letters, numbers, hyphens) and `description` are the essentials. Others worth knowing:

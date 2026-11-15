@@ -1854,6 +1854,16 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 with self.subTest(tree=tree, heading=heading):
                     self.assertIn(heading, names)
 
+    def test_scoped_hook_section_exists_in_both_trees(self):
+        """Skill- and agent-frontmatter hooks have their own lifetime and trust rules; both hook
+        references carry the section so the twins stay in parity."""
+        for tree in (".claude", ".agents"):
+            text = (REPO / tree / "references" / "workflow" / "hook-patterns.md").read_text(
+                encoding="utf-8"
+            )
+            with self.subTest(tree=tree):
+                self.assertIn("Skill and Agent Scoped Hooks", heading_texts(text))
+
 
 if __name__ == "__main__":
     unittest.main()

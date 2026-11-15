@@ -51,6 +51,14 @@ thing in this file that is easy to get wrong, because `permissions.allow` in the
 To act on a specific command or path, match the tool name and inspect `tool_input` inside the
 script.
 
+### Skill and Agent Scoped Hooks
+
+Hooks can also live in skill or subagent frontmatter:
+
+- A subagent-frontmatter hook ends when the subagent ends. In a project agent it needs workspace trust, and a `-p` run does not count as trust.
+- A project skill-frontmatter hook persists for the rest of the session once the skill loads, and registers even in an untrusted `-p` run.
+- On PreToolUse, a non-2 exit or a timeout does not block unless the hook sets `onFailure: "block"`. Set it on every safety gate.
+
 ## Per-Harness Support
 
 Not every harness has a hook surface, and two that do disagree on the output shape. The first two
@@ -79,8 +87,8 @@ claiming a hook it cannot honor, and say which kind of evidence you have.
 | exit 2 | Blocks the call regardless of JSON — this is why the blocking examples below `exit 2`, not `exit 1` |
 | `updatedInput` | Rewrites the tool input. Avoid: it puts a lossy layer between the agent and its evidence |
 
-A hook that only ever emits a message and exits 0 is advisory by construction — see the Fail-Open
-Principle below.
+A hook that only ever emits a message and exits 0 is advisory by construction; see `### Failure
+Direction by Component` below.
 
 ## Common Patterns
 
@@ -181,6 +189,7 @@ Principle below.
 - **Narrow scope** — Use matchers to avoid running on every tool call
 - **Idempotent** — Hooks may fire multiple times; ensure safe re-runs
 - **Test manually first** — Run the hook command by hand before configuring
+- **Hooks enforce; prose advises**: skills and CLAUDE.md are advisory. A rule that must hold needs a hook, or a test or review check where no hook exists
 
 ## Troubleshooting
 
@@ -204,6 +213,8 @@ Gate hook enforcement behind an env var so users tune cost without editing hooks
 | `strict` | Standard + type-check + tests on stop |
 
 Also honor a disable list (e.g. `HOOK_DISABLE=typecheck,tests`) so one slow hook can be turned off without removing config.
+
+Per-edit hooks stay fast, scope themselves to the changed file, and never prompt. The full test suite runs at commit or PR time, not on every edit.
 
 ### Tiered Authorization Gate
 

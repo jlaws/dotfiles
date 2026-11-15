@@ -289,7 +289,9 @@ def debate_agents(question: str, rounds: int = 2) -> str:
 
 ### Fold or Keep a Subagent
 
-Fold a specialist into the main loop when it chains on another's output, touches the same data, or is usually called together with it; fold routers and planners the model can do itself. Keep a subagent for one of three reasons: its work would bloat the main context, it runs in parallel with context you can discard, or its tools conflict with the main agent's. Do not split agents by team or problem type; that copies the org chart, not the work. Fold one subagent at a time, and keep it only if the folded version scores worse on your evals. Build that eval before the first fold (references/ai-ml/eval-and-benchmarking.md, Golden Sets). Measure routing accuracy before folding and skill-load accuracy after, on the same tasks.
+Fold a specialist into the main loop when it chains on another's output, touches the same data, or is usually called together with it; fold routers and planners the model can do itself. Keep a subagent for one of five reasons: its work would bloat the main context, it runs in parallel with context you can discard, its tools conflict with the main agent's, it verifies work from a fresh context given no author intent, or it needs its own permissions. Use a full conversation handoff only when the subagent must talk to the user. Do not split agents by team or problem type; that copies the org chart, not the work. Fold one subagent at a time, and keep it only if the folded version scores worse on your evals. Build that eval before the first fold (references/ai-ml/eval-and-benchmarking.md, Golden Sets). Measure routing accuracy before folding and skill-load accuracy after, on the same tasks.
+
+Failure modes to watch: lossy handoffs, overlapping subagents no one owns, rules added piecemeal until they conflict, and evals that optimize one subagent while the whole system regresses.
 
 ## Agent Evaluation
 
