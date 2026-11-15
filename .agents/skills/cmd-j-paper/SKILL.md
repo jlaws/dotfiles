@@ -1,7 +1,6 @@
 ---
 name: cmd-j-paper
 description: "Use when invoking the j-paper workflow."
-disable-model-invocation: true
 ---
 
 # Research Paper

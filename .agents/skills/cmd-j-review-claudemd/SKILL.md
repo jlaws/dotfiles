@@ -1,7 +1,6 @@
 ---
 name: cmd-j-review-claudemd
 description: "Use when invoking the j-review-claudemd workflow."
-disable-model-invocation: true
 ---
 
 # Review CLAUDE.md

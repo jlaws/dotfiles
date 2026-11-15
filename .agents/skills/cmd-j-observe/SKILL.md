@@ -1,7 +1,6 @@
 ---
 name: cmd-j-observe
 description: "Use when invoking the j-observe workflow."
-disable-model-invocation: true
 ---
 
 # Observability Consultation

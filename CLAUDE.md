@@ -21,10 +21,11 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 
 ### Linting & Tests
 ```bash
-make check    # ruff check + ty (via .venv)
+make check    # ruff check + ty (via .venv); healthy run ends "All checks passed!"
 make fix      # auto-fix + format
-make test     # stdlib unittest suite (python -m unittest)
-make verify   # check + test -- the full gate (make test alone already fails on audit WARN findings)
+make test     # stdlib unittest suite (python -m unittest); healthy run ends "Ran <count> tests in <secs>s" then "OK"
+make verify   # check + test -- the full gate (make test alone already fails on audit WARN findings); ends like make test
+python3 .claude/skills/skill-audit/scripts/audit.py .   # repo copy; ends "Findings:   0 fail  |  0 warn"
 ```
 
 ### What setup.sh does:

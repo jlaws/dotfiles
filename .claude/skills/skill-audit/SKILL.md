@@ -1,7 +1,7 @@
 ---
 name: skill-audit
 description: "Use when auditing agent knowledge-base integrity."
-allowed-tools: Read, Grep, Glob, Bash
+allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/audit.py *), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/adoption.py *), Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/memory.py*)
 ---
 
 # Knowledge Base Audit
@@ -18,7 +18,7 @@ adoption and memory, which are never automatic.
 ## Run the mechanical checks
 
 ```bash
-python3 .claude/skills/skill-audit/scripts/audit.py .
+python3 ${CLAUDE_SKILL_DIR}/scripts/audit.py .
 ```
 
 Scope it with `--type skills|agents|commands|references|config` (repeatable). It exits non-zero when
@@ -38,7 +38,7 @@ build target invokes it; its own tests do execute it, but every one passes `--tr
 real transcript root is reached only when a human types the command.
 
 ```bash
-python3 .claude/skills/skill-audit/scripts/adoption.py . --exclude dotfiles
+python3 ${CLAUDE_SKILL_DIR}/scripts/adoption.py . --exclude dotfiles
 ```
 
 `--exclude` takes a substring of the transcript *project directory* name, not a path. Those
@@ -76,17 +76,18 @@ likely a discoverability problem. A `cold` asset has positive evidence -- treat 
 
 Reached by `/j-skill-audit memory`. Auto-memory is the harness's runtime state, not a synced asset:
 it lives under `~/.claude/projects/*/memory` and `~/.claude/agent-memory/*`, has no source in this
-repo, and must never be committed here, because it holds private notes about other projects.
+repo, and must never be committed here, because it holds private notes about other projects. An
+`~/.claude/agent-memory/*` store loads only into an agent whose frontmatter sets `memory:`.
 
 ```bash
-python3 .claude/skills/skill-audit/scripts/memory.py
+python3 ${CLAUDE_SKILL_DIR}/scripts/memory.py
 ```
 
 With no `--memory-dir` it checks every store; pass `--memory-dir DIR` (repeatable) to scope it, and
 `--json` for machine output. Symlinked stores are checked once. Exit 1 on any FAIL, 2 on a bad
 argument. It checks the index (present, no dangling entries, every file indexed, at most 200 lines
-and 25KB because the harness loads only the first 200 lines or 25KB, whichever comes first, per
-code.claude.com/docs/en/memory; lines at most 150 characters as a WARN), frontmatter (`name`,
+and 25KB because the harness loads only the first 200 lines or 25KB, whichever comes first;
+lines at most 150 characters as a WARN), frontmatter (`name`,
 `description`, `type`), `[[wikilinks]]`, which resolve to a memory's `name` or file stem with
 underscores and hyphens treated alike, and that every `*.md` entry is a readable UTF-8 file inside
 the store. An unreadable entry is a FAIL, not a crash, so one bad file never hides another store's

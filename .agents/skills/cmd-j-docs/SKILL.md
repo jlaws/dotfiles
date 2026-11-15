@@ -1,7 +1,6 @@
 ---
 name: cmd-j-docs
 description: "Use when invoking the j-docs workflow."
-disable-model-invocation: true
 ---
 
 # Documentation Consultation

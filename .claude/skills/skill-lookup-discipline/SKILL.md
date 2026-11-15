@@ -1,7 +1,6 @@
 ---
 name: skill-lookup-discipline
 description: "Use when starting a task that may match an existing skill."
-allowed-tools: Read, Grep, Glob
 ---
 
 # Skill-Lookup Discipline

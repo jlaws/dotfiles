@@ -1,7 +1,6 @@
 ---
 name: using-git-worktrees
 description: "Use when isolated branches need separate working trees, or peer sessions share a repo."
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Using Git Worktrees

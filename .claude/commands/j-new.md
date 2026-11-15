@@ -28,12 +28,12 @@ Ask for a one-line purpose for every type — it drives the description. Then, b
 and which agents does it delegate to? List candidates with `Glob(".claude/skills/*/SKILL.md")` and
 `Glob(".claude/agents/*.md")`.
 
-**Skill:** which tools does it need without per-use approval? Does it depend on other skills? Should
+**Skill:** does it run a bundled script that must run without a prompt (then plan a scoped grant on that script, never bare `Bash`, `Write`, or `Edit`)? Does it depend on other skills? Should
 Claude invoke it automatically, or only the user (`disable-model-invocation: true`)? Does it apply only
 to certain files (`paths:`)?
 
 **Agent:** which tools, which skills to preload, and which `.claude/references/` categories should it
-consult (`Glob(".claude/references/*/")`)? Persistent memory scope, if any?
+consult (`Glob(".claude/references/*/")`)? Persistent memory: read `code-agent-meta-patterns`, Agent memory, first.
 
 Leave `model` unset on commands and inline skills. They run inside the conversation, so a `model`
 other than the session's makes that turn a model switch, and the switch re-reads the whole history
@@ -42,8 +42,7 @@ context, so a tier pin costs no cache there. Agents set one (`AG-F8`): an alias 
 `haiku`, `fable`) or `inherit`, never a pinned ID, because aliases float across model generations.
 Set `effort` on a command or inline skill only to lower it (`low`, `medium`) for reliably cheap,
 procedural work; otherwise leave it unset so it runs at the session's effort. Raising it buys little for its
-cost: in Anthropic's measurements `xhigh` cost 2.5x `high` for 1.4 points on long-horizon coding
-(Opus 5.5), and knowledge work gained nothing above `medium` (Fable 5). The lowered tiers are set by
+cost. The lowered tiers are set by
 judgment, not measured. On first-party Claude models that support per-message effort, an override
 keeps the prompt cache; on Bedrock, Vertex, and gateways it re-reads the history, so skip it there
 when the gain is marginal.
@@ -101,7 +100,6 @@ demand:
 ---
 name: {name}
 description: "{trigger}"
-allowed-tools: {tools}
 ---
 
 # {Title}
@@ -145,11 +143,7 @@ Every reference stem listed must exist — the audit script fails on a dangling 
 
 ## Phase 5: Validate
 
-Run the mechanical checks rather than reviewing by hand:
-
-```bash
-python3 .claude/skills/skill-audit/scripts/audit.py . --type {type}s
-```
+Run the `skill-audit` skill's mechanical check with `--type {type}s`.
 
 Fix what it reports. Then confirm by judgment: does every section teach something a strong model would
 otherwise get wrong or vague? Cut what does not.
@@ -173,20 +167,20 @@ lint and test commands. See `documentation-validation`.
 |-------|---------|-------|-------|
 | `name`, `description` | Required | Required | Required |
 | `argument-hint` | If `$ARGUMENTS` | Optional | N/A |
-| `allowed-tools` / `disallowed-tools` | N/A | Recommended | N/A |
+| `allowed-tools` / `disallowed-tools` | Optional; scoped grants only | Optional; scoped grants only | N/A |
 | `tools` | N/A | N/A | Recommended |
 | `skills` | N/A | Optional (deps) | Optional (preload) |
 | `model` | Avoid (`CM-F7`) | Only with `context: fork` | Required (alias, `AG-F8`) |
 | `effort` | Lower only (`low`, `medium`) | Lower only inline; any with `context: fork` | Optional |
 | `paths` | N/A | Optional | N/A |
-| `disable-model-invocation`, `user-invocable` | N/A | Optional | N/A |
+| `disable-model-invocation`, `user-invocable` | Optional; `true` for a side-effect command no skill or coordinator invokes | Optional | N/A |
 | `context: fork`, `agent` | N/A | Optional | N/A |
-| `memory` | N/A | N/A | Optional (user/project/local) |
+| `memory` | N/A | N/A | Avoid; see `code-agent-meta-patterns`, Agent memory |
 | `color`, `maxTurns`, `permissionMode` | N/A | N/A | Optional |
 
 Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Agent, Skill. Write `Agent`, not its retired name `Task`.
 
-`compatibility` is not a Claude Code field and does nothing — do not emit it.
+Field semantics: `writing-skills`, Frontmatter.
 
 ### Cross-References
 

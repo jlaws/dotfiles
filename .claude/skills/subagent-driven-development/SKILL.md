@@ -1,7 +1,6 @@
 ---
 name: subagent-driven-development
 description: "Use when executing a plan with isolated tasks delegated."
-allowed-tools: Agent, Read, Grep, Glob, Bash
 skills:
   - executing-plans
 ---

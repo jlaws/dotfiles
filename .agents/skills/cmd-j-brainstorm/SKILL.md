@@ -1,7 +1,6 @@
 ---
 name: cmd-j-brainstorm
 description: "Use when invoking the j-brainstorm workflow."
-disable-model-invocation: true
 ---
 
 # Brainstorm

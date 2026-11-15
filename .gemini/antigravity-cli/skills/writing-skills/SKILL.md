@@ -50,6 +50,9 @@ description: Use when executing plans - executes tasks sequentially with code re
 description: Use when executing implementation plans with independent tasks in the current session
 ```
 
+- Word guidance to apply to the whole task, not one moment: "Run the tests after every edit", not "Run the tests".
+- A rule the agent must never skip belongs in a hook (references/workflow/hook-patterns.md), not skill prose.
+
 **Body structure:**
 ```markdown
 # Skill Name
@@ -218,12 +221,6 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 | 2. Workflow Automation | Multi-step processes with tool use | Code review, deployment, refactoring |
 | 3. MCP Enhancement | Extend Claude with external tool integrations | API wrappers, database queries, service connectors |
 
-### Success Criteria Methodology
-1. Define what "good output" looks like before writing the skill
-2. Create 3+ concrete evaluation scenarios with expected outcomes
-3. Test against scenarios, measure pass rate
-4. Iterate until pass rate meets threshold (aim for >80%)
-
 ### Core Principles
 - **Concise is key**: Only add what Claude doesn't already know. Challenge each piece: "Does Claude need this?"
 - **Degrees of freedom**: High (text instructions) for multiple valid approaches; Medium (pseudocode) for preferred patterns; Low (exact scripts) for fragile operations
@@ -235,14 +232,15 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 - Time-sensitive information (use "old patterns" section)
 
 ### Evaluation-Driven Development
-1. Run Claude on tasks without Skill, document failures
-2. Create 3+ evaluation scenarios
-3. Establish baseline performance
-4. Write minimal instructions to pass evaluations
-5. Iterate: evaluate, compare baseline, refine
+1. Define what good output looks like before writing the skill.
+2. Run the agent on the tasks without the skill and record where it fails.
+3. Write evaluation scenarios with expected outcomes: tasks where the skill should load, near misses where it should not, and tasks that check its effect.
+4. Establish a baseline: score each scenario with and without the skill.
+5. Write minimal instructions that address the recorded failures.
+6. Iterate one change at a time: evaluate, compare with the baseline, refine (references/ai-ml/eval-and-benchmarking.md, Hillclimbing).
 
 ### Quick Checklist (from Anthropic's Reference A)
-- [ ] Frontmatter: `name`, `description` (with trigger phrases), `allowed-tools`
+- [ ] Frontmatter: `name`, `description` (with trigger phrases)
 - [ ] Description starts with "Use when..." and includes negative triggers
 - [ ] Body is concise (under 500 words for most skills)
 - [ ] At least one code example or concrete output

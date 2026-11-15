@@ -1,7 +1,6 @@
 ---
 name: output-completeness
 description: "Use when output risks truncation, stubs, or omitted sections."
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Output Completeness

@@ -12,6 +12,7 @@ check rather than a test and a script that can drift. Three failures motivated t
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -259,6 +260,170 @@ class ToolNameTests(unittest.TestCase):
     def test_the_retired_task_name_warns(self):
         self.assertEqual(self.skill_findings("Task, Read"), ["unknown allowed-tools: Task"])
         self.assertEqual(self.agent_findings("Task"), ["unknown tools: Task"])
+
+
+class SkillPreApprovalTests(unittest.TestCase):
+    """SK-F11 and CM-F8: `allowed-tools` pre-approves for the turn and restricts nothing.
+
+    A bare Bash, Write, Edit, NotebookEdit, WebFetch, or WebSearch grant widens what runs without a
+    prompt, so it warns; a grant scoped to a command passes. See
+    docs/adr/workflow/skills-do-not-pre-approve-tools.md.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def tree(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for sub in ("agents", "skills", "commands", "references"):
+            (root / ".claude" / sub).mkdir(parents=True)
+        return root
+
+    def skill_findings(self, tools: str):
+        root = self.tree()
+        folder = root / ".claude" / "skills" / "probe"
+        folder.mkdir()
+        (folder / "SKILL.md").write_text(
+            "---\nname: probe\ndescription: Use when probing the audit.\n"
+            f"allowed-tools: {tools}\n---\n\nBody.\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_skills()
+        return [(f.check, f.message) for f in audit.findings if f.check in ("SK-F10", "SK-F11")]
+
+    def command_findings(self, tools: str):
+        root = self.tree()
+        (root / ".claude" / "commands" / "j-probe.md").write_text(
+            "---\nname: j-probe\ndescription: Probe the audit. Use when probing the audit.\n"
+            f"allowed-tools: {tools}\n---\n\n" + "word " * 30 + "\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_commands()
+        return [f.check for f in audit.findings if f.check == "CM-F8"]
+
+    def test_bare_bash_grant_warns(self):
+        findings = self.skill_findings("Read, Bash")
+        self.assertEqual([c for c, _ in findings], ["SK-F11"])
+        self.assertIn("Bash", findings[0][1])
+
+    def test_bare_webfetch_grant_warns(self):
+        findings = self.skill_findings("Read, WebFetch")
+        self.assertEqual([c for c, _ in findings], ["SK-F11"])
+        self.assertIn("WebFetch", findings[0][1])
+
+    def test_bare_write_grant_on_command_warns(self):
+        self.assertEqual(self.command_findings("Read, Write"), ["CM-F8"])
+
+    def test_scoped_bash_grant_raises_no_finding(self):
+        self.assertEqual(
+            self.skill_findings("Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/audit.py *)"), []
+        )
+
+    def test_comma_inside_a_scope_stays_one_token(self):
+        self.assertEqual(self.skill_findings("Read, Bash(git log a, b)"), [])
+
+    def test_wildcard_only_scope_warns(self):
+        for tools in ("Bash(*)", "Bash()", "Bash(:*)", "WebFetch(domain:*)"):
+            with self.subTest(tools=tools):
+                self.assertEqual([c for c, _ in self.skill_findings(tools)], ["SK-F11"])
+
+    def test_every_unscoped_tool_warns_on_a_command(self):
+        for tool in sorted(self.audit_module.UNSCOPED_GRANTS):
+            with self.subTest(tool=tool):
+                self.assertEqual(self.command_findings(f"Read, {tool}"), ["CM-F8"])
+
+    def test_scoped_grant_on_command_passes(self):
+        self.assertEqual(self.command_findings("Bash(git status *)"), [])
+
+    def test_list_and_space_forms_are_read(self):
+        for tools in ("[Read, Bash]", "Read Bash"):
+            with self.subTest(tools=tools):
+                self.assertEqual([c for c, _ in self.skill_findings(tools)], ["SK-F11"])
+
+    def test_unreadable_block_list_warns(self):
+        self.assertEqual([c for c, _ in self.skill_findings("\n  - Bash")], ["SK-F11"])
+
+    def test_scoped_unknown_tool_still_warns(self):
+        self.assertEqual(
+            self.skill_findings("Bogus(x)"), [("SK-F10", "unknown allowed-tools: Bogus")]
+        )
+
+    def test_read_only_grant_passes(self):
+        self.assertEqual(self.skill_findings("Read, Grep, Glob"), [])
+        self.assertEqual(self.command_findings("Read, Grep, Glob"), [])
+
+
+class AuditMissingTreeTests(unittest.TestCase):
+    """The audit runs in any repo, so a missing asset directory is not an error."""
+
+    def run_audit(self, root: Path, *types: str):
+        args = [sys.executable, str(AUDIT), str(root)]
+        for kind in types:
+            args += ["--type", kind]
+        return subprocess.run(
+            args, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=60
+        )
+
+    def test_missing_asset_directories_do_not_crash(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        folder = root / ".claude" / "skills" / "x"
+        folder.mkdir(parents=True)
+        (folder / "SKILL.md").write_text("---\nname: x\ndescription: Use when probing.\n---\n\nBody.\n")
+        result = self.run_audit(root, "agents", "commands")
+        self.assertNotIn("Traceback", result.stderr + result.stdout)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_missing_skills_directory_does_not_crash(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / ".claude" / "agents").mkdir(parents=True)
+        result = self.run_audit(root, "skills")
+        self.assertNotIn("Traceback", result.stderr + result.stdout)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+
+class AgentMemoryGrantTests(unittest.TestCase):
+    """AG-F9: `memory:` silently grants Write and Edit, so the agent must list them in `tools`."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def findings(self, extra: str):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for sub in ("agents", "skills", "commands", "references"):
+            (root / ".claude" / sub).mkdir(parents=True)
+        (root / ".claude" / "agents" / "probe.md").write_text(
+            "---\nname: probe\ndescription: Use when probing the audit.\nmodel: sonnet\n"
+            f"{extra}---\n\n" + "word " * 30 + "\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_agents()
+        return [f.check for f in audit.findings if f.check == "AG-F9"]
+
+    def test_memory_without_write_tools_warns(self):
+        self.assertEqual(self.findings("tools: Read, Grep\nmemory: user\n"), ["AG-F9"])
+
+    def test_memory_with_write_tools_passes(self):
+        self.assertEqual(self.findings("tools: Read, Write, Edit\nmemory: user\n"), [])
+
+    def test_no_memory_passes(self):
+        self.assertEqual(self.findings("tools: Read, Grep\n"), [])
+
+    def test_memory_with_one_write_tool_warns(self):
+        self.assertEqual(self.findings("tools: Read, Write\nmemory: user\n"), ["AG-F9"])
+
+    def test_memory_without_tools_key_is_left_to_ag_f6(self):
+        """An agent with no `tools` inherits every tool, so nothing is granted silently."""
+        self.assertEqual(self.findings("memory: user\n"), [])
 
 
 class ReferenceCitationTests(unittest.TestCase):

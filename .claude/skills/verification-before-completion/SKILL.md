@@ -1,7 +1,6 @@
 ---
 name: verification-before-completion
 description: "Use when verifying evidence before claiming work complete."
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Weighing and Reporting Evidence

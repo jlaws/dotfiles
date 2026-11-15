@@ -1,7 +1,6 @@
 ---
 name: config-security-audit
 description: "Use when auditing agent configuration security."
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Config Security Audit

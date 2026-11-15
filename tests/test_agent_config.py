@@ -36,7 +36,12 @@ TREE_SCRIPT_PATH = re.compile(
     r"(\.(?:claude|codex|agents|gemini)/[A-Za-z0-9._/-]*?\.(?:py|sh|mjs|js))"
     r"(?![A-Za-z0-9])"
 )
+SKILL_DIR_SCRIPT_PATH = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+\.(?:py|sh|mjs|js))")
 TREE_ROOTS = (".claude", ".codex", ".agents", ".gemini")
+
+# Side-effect commands nothing invokes; user-only in Claude and Codex
+# (docs/adr/workflow/side-effect-commands-are-user-invoked.md).
+USER_ONLY_COMMANDS = frozenset({"j-defrag", "j-pr-fix", "j-review-claudemd", "j-tdd"})
 
 # Asset-set parity is enforced by name; bodies and descriptions are free to diverge per tool.
 # `.claude/` is rightsized for the Claude 5 generation, so its wording no longer tracks `.agents/`.
@@ -469,6 +474,17 @@ WRITING_PLANS_OWNERS = (
 # Bullet labels, not sentences: a reworded rationale is fine, a deleted bullet is not.
 DESIGN_FIRST_BULLET = "**Filter for blocking**"
 WRITING_PLANS_BULLET = "**Assumptions stated**"
+
+
+FRONTMATTER_BLOCK = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
+
+
+def frontmatter_block(path: Path) -> str:
+    """Return a file's YAML frontmatter text, failing with the file named when it has none."""
+    match = FRONTMATTER_BLOCK.match(path.read_text(encoding="utf-8"))
+    if match is None:
+        raise AssertionError(f"{path.relative_to(REPO)} has no frontmatter block")
+    return match.group(1)
 
 
 def skill_directories(root: Path) -> set[str]:
@@ -1274,6 +1290,30 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             missing, [], "assets name scripts that do not exist:\n" + "\n".join(missing)
         )
 
+        # `${CLAUDE_SKILL_DIR}` resolves to the skill's own folder, and Claude Code substitutes it
+        # only in a Claude skill. A prefixed path must name a file that skill ships, and no other
+        # file in the agent trees may carry the token, where it would reach the reader
+        # unsubstituted.
+        skill_dir_claims = 0
+        for skill in sorted((REPO / ".claude" / "skills").glob("*/SKILL.md")):
+            for claimed in SKILL_DIR_SCRIPT_PATH.findall(skill.read_text(encoding="utf-8")):
+                skill_dir_claims += 1
+                if not (skill.parent / claimed).is_file():
+                    missing.append(f"{skill.relative_to(REPO)}: ${{CLAUDE_SKILL_DIR}}/{claimed}")
+        self.assertGreater(skill_dir_claims, 0, "no ${CLAUDE_SKILL_DIR} script path found")
+        self.assertEqual(
+            missing, [], "skills name scripts they do not ship:\n" + "\n".join(missing)
+        )
+        stray = [
+            name
+            for name in tracked
+            if name
+            and not (name.startswith(".claude/skills/") and name.endswith("/SKILL.md"))
+            and (REPO / name).is_file()
+            and "${CLAUDE_SKILL_DIR}" in (REPO / name).read_text(encoding="utf-8", errors="ignore")
+        ]
+        self.assertEqual(stray, [], "${CLAUDE_SKILL_DIR} outside a Claude SKILL.md")
+
     def test_codex_agents_declare_name_description_and_instructions(self):
         """A Codex agent with no `developer_instructions` loads as an empty role and says nothing
         about it. These three fields are the whole contract, and TOML has no frontmatter validator
@@ -1758,6 +1798,93 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     self.assertIn(value, allowed, f"{path.name}: unsupported effort {value!r}")
                 checked += 1
         self.assertGreater(checked, 0, "no command sets effort; the check is vacuous")
+
+    def test_agents_carry_no_persistent_memory(self):
+        """`memory:` auto-grants Write and Edit and injects an uncurated index outside the frozen
+        review packet, so no Claude agent sets it (docs/adr/workflow/
+        agents-carry-no-persistent-memory.md)."""
+        memory = re.compile(r"(?m)^memory:")
+        agents = sorted((REPO / ".claude" / "agents").glob("*.md"))
+        self.assertTrue(agents, "no Claude agents found; the check is vacuous")
+        offenders = [
+            path.name
+            for path in agents
+            if memory.search(frontmatter_block(path))
+        ]
+        self.assertEqual(offenders, [], f"agents set memory: {offenders}")
+
+    def test_side_effect_commands_nothing_invokes_are_user_only(self):
+        """Exactly the side-effect commands no skill or coordinator invokes set
+        `disable-model-invocation: true`. The set comes from observed invocations recorded in
+        docs/adr/workflow/side-effect-commands-are-user-invoked.md: flagging a command that a skill
+        chains to would break that flow."""
+        flag = re.compile(r"(?m)^disable-model-invocation:\s*true\s*$")
+        commands = sorted((REPO / ".claude" / "commands").glob("*.md"))
+        self.assertTrue(commands, "no Claude commands found; the check is vacuous")
+        flagged = {
+            path.stem
+            for path in commands
+            if flag.search(frontmatter_block(path))
+        }
+        self.assertEqual(flagged, USER_ONLY_COMMANDS)
+
+    def test_codex_user_only_commands_disable_implicit_invocation(self):
+        """Codex ignores `disable-model-invocation` and reads `agents/openai.yaml` instead, so the
+        user-only commands' `.agents` twins turn implicit invocation off there, and no `.agents`
+        skill keeps the inert key (docs/adr/workflow/side-effect-commands-are-user-invoked.md)."""
+        policy = re.compile(r"(?m)^policy:\s*\n\s+allow_implicit_invocation:\s*false\s*$")
+        command_skills = sorted((REPO / ".agents" / "skills").glob("cmd-j-*"))
+        self.assertTrue(command_skills, "no .agents command skills found; the check is vacuous")
+        with_policy = set()
+        for folder in command_skills:
+            config = folder / "agents" / "openai.yaml"
+            if config.is_file():
+                with_policy.add(folder.name.removeprefix("cmd-"))
+                with self.subTest(skill=folder.name):
+                    self.assertRegex(config.read_text(encoding="utf-8"), policy)
+        self.assertEqual(with_policy, USER_ONLY_COMMANDS)
+        inert = [
+            str(path.relative_to(REPO))
+            for path in sorted((REPO / ".agents" / "skills").glob("*/SKILL.md"))
+            if "disable-model-invocation" in frontmatter_block(path)
+        ]
+        self.assertEqual(inert, [], "inert disable-model-invocation in .agents skills")
+
+    def test_llm_judges_grade_checkable_claims(self):
+        """A 1-5 rating is not checkable and drifts between judge runs; judges grade per-task
+        PASS/FAIL claims instead, and the eval reference owns task design and hillclimbing."""
+        banned = ("scale of 1-5", "1-5 scale", "<1-5>", "both orders and average")
+        for tree in (".claude", ".agents"):
+            root = REPO / tree / "references" / "ai-ml"
+            for rel in ("eval-and-benchmarking.md", "dataset-management/synthetic-data-generation.md"):
+                text = (root / rel).read_text(encoding="utf-8")
+                for phrase in banned:
+                    with self.subTest(file=f"{tree}/{rel}", phrase=phrase):
+                        self.assertNotIn(phrase, text)
+            names = heading_texts((root / "eval-and-benchmarking.md").read_text(encoding="utf-8"))
+            for heading in ("Eval Task Design", "Validity Checks", "Golden Sets", "Hillclimbing", "Overfitting"):
+                with self.subTest(tree=tree, heading=heading):
+                    self.assertIn(heading, names)
+
+    def test_scoped_hook_section_exists_in_both_trees(self):
+        """Skill- and agent-frontmatter hooks have their own lifetime and trust rules; both hook
+        references carry the section so the twins stay in parity."""
+        for tree in (".claude", ".agents"):
+            text = (REPO / tree / "references" / "workflow" / "hook-patterns.md").read_text(
+                encoding="utf-8"
+            )
+            with self.subTest(tree=tree):
+                self.assertIn("Skill and Agent Scoped Hooks", heading_texts(text))
+
+    def test_session_boundaries_section_exists_in_both_trees(self):
+        """Both context-efficiency twins tell the reader when a session reset or model switch costs
+        the cache."""
+        for tree in (".claude", ".agents"):
+            text = (REPO / tree / "references" / "workflow" / "context-efficiency.md").read_text(
+                encoding="utf-8"
+            )
+            with self.subTest(tree=tree):
+                self.assertIn("Session Boundaries", heading_texts(text))
 
 
 if __name__ == "__main__":

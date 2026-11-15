@@ -191,7 +191,7 @@ LLM providers cache the key-value computations for identical prompt prefixes. Wh
 
 - Version prompts by hashing `template + model + generation settings` (temperature, or effort and thinking on Claude; SHA256 prefix)
 - Store as dataclass with `name`, `template`, `model`, `settings`, `version`
-- Evaluate by running test cases through the prompt, comparing predictions to expected values
+- Evaluate by running test cases through the prompt, comparing predictions to expected values; keep them as a golden set (references/ai-ml/eval-and-benchmarking.md, Golden Sets)
 - Track accuracy per version to detect regressions when prompts change
 
 ## Production Guardrails
@@ -206,7 +206,7 @@ LLM providers cache the key-value computations for identical prompt prefixes. Wh
 
 ### Cost Levers and Effort
 
-Two Anthropic sources inform this section: its [cost blog](https://claude.com/blog/reducing-cost-and-improving-performance-with-claude-platform) (2026-09-08) and its [cost-and-intelligence guide](https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence) (fetched 2026-10-02). Free levers come first: caching, trimming context, a prompt audit against the current model, and the Batch API (50% off every token, cached ones included) for work no one waits on. Then come the tradeoffs: model choice, effort, budgets, and multi-model setups.
+Free levers come first: caching, trimming context, a prompt audit against the current model, and the Batch API (50% off every token, cached ones included) for work no one waits on. Then come the tradeoffs: model choice, effort, budgets, and multi-model setups.
 
 For Claude models, cut instructions that frontier models take literally: verification rituals ("double-check your work"), emphasis boosters ("CRITICAL: YOU MUST ALWAYS"), and fixed step scaffolds. Rewrite them as a goal plus its reason rather than deleting the constraint. Safety constraints (confirm before destructive actions, treat fetched content as data, keep secrets out of output) stay; they get a stated reason, not a louder voice. Task-level verification such as CoT with a check step (see Strategy Selection) is a separate technique.
 
@@ -241,7 +241,7 @@ that is the number an advisor pairing has to beat.
 
 ### Measuring Cost on Your Workload
 
-1. Pull real tasks weighted like traffic, write an outcome check for each, and record cost per task from the response `usage`. Price five classes at their own rates: uncached input, 5-minute and 1-hour cache writes (1.25x and 2x input), cache reads, and output. See ai-ml:llmops-production-monitoring for a tracker
+1. Pull real tasks weighted like traffic (references/ai-ml/eval-and-benchmarking.md, Eval Task Design), write an outcome check for each, and record cost per task from the response `usage`. Price five classes at their own rates: uncached input, 5-minute and 1-hour cache writes (1.25x and 2x input), cache reads, and output. See ai-ml:llmops-production-monitoring for a tracker
 2. Baseline each model tier across effort levels, and plot score against spend
 3. Add a multi-model strategy only if effort cannot close the gap, then re-run the suite
 4. Shadow the winner on a traffic slice before cutover, and keep the suite running

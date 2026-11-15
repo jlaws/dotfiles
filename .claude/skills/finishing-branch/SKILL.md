@@ -1,7 +1,6 @@
 ---
 name: finishing-branch
 description: "Use when completed branch work needs integration."
-allowed-tools: Read, Grep, Glob, Bash
 skills:
   - documentation-validation
 ---

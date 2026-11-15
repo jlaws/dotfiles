@@ -1,7 +1,6 @@
 ---
 name: cmd-j-arch
 description: "Use when invoking the j-arch workflow."
-disable-model-invocation: true
 ---
 
 # Architecture Consultation

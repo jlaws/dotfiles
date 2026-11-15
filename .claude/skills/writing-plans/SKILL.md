@@ -1,7 +1,6 @@
 ---
 name: writing-plans
 description: "Use when planning a multi-step implementation before coding."
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Writing Plans

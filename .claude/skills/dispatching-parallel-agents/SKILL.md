@@ -1,7 +1,6 @@
 ---
 name: dispatching-parallel-agents
 description: "Use when independent tasks can run concurrently."
-allowed-tools: Agent, Read, Grep, Glob, Bash
 ---
 
 # Dispatching Parallel Agents
@@ -81,6 +80,7 @@ For large or automated fan-outs (e.g. the harness Workflow tool), apply these:
 - **Total-spawn ceiling** — bound the total agents a run may create; a runaway loop is a bug.
 - **Gauge cost on a slice first** — run one representative unit before fanning out the whole set; extrapolate cost and fix the brief before committing to N.
 - **Isolated copy per parallel edit** — agents mutating the same files concurrently each need their own worktree (see Workspace Selection above and `using-git-worktrees`).
+- **Forks and resume**: a fork inherits the conversation, reads the parent's prompt cache, and cannot fork again. Explore and Plan agents are one-shot. `SendMessage` resumes `general-purpose` and custom agents. Reviewers never fork: a review needs a fresh context with no author intent.
 - **Adversarial cross-check** — route each finding to an independent verifier and report only survivors (see `code-review-patterns` debate mode). A finding one agent produced and the same agent confirmed is not verified.
 
 ### Choosing an execution mode

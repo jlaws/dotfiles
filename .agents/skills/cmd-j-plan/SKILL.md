@@ -1,7 +1,6 @@
 ---
 name: cmd-j-plan
 description: "Use when invoking the j-plan workflow."
-disable-model-invocation: true
 ---
 
 # Plan

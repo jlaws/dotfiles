@@ -2,6 +2,7 @@
 name: j-defrag
 description: "Scan the codebase for fragmentation — duplicated components, inconsistent patterns, files to consolidate, logic to share — and fix it in verified batches. Use to keep the codebase coherent on a regular cadence. Do NOT use for single-file cleanups (edit directly) or diff review before merge (use /j-diff-review)."
 argument-hint: "<optional path or subsystem to scope the scan; default whole repo>"
+disable-model-invocation: true
 ---
 
 Load skills `refactoring-and-debt` and `code-quality` via the Skill tool before doing anything else. Defragment the codebase: scan for fragmentation and fix it in verified batches so the next thing built lands in a more coherent codebase.
@@ -44,8 +45,7 @@ Report clusters fixed, clusters deferred (with reason), and residual fragmentati
 
 ### Cross-References
 
-- **skill:refactoring-and-debt** — fix mechanics, smell→refactoring map, safe refactoring sequences.
+- **skill:refactoring-and-debt**: fix mechanics, smell→refactoring map, safe refactoring sequences, and batch cadence.
 - **skill:code-quality** — DRY and code-smell detection for the scan phase.
-- **skill:refactoring-and-debt** — batch cadence and smell-to-refactoring mapping.
 - **/j-diff-review** — use instead when reviewing a single diff before merge.
 - **skill:documentation-validation** — doc gate when a cluster renames or moves public surface.

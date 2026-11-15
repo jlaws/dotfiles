@@ -1,7 +1,6 @@
 ---
 name: design-first
 description: "Use when designing features or behavior before coding."
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Design-First

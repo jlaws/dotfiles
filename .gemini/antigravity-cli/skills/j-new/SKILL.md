@@ -29,21 +29,19 @@ Ask for a one-line purpose for every type -- it drives the description. Then, by
 and which agents does it delegate to? List candidates with `Glob("~/.gemini/antigravity-cli/skills/*/SKILL.md")` and
 `Glob("~/.gemini/config/agents/*.md")`.
 
-**Skill:** which tools does it need without per-use approval? Does it depend on other skills? Should
+**Skill:** does it run a bundled script that must run without a prompt (then plan a scoped grant on that script, never bare `Bash`, `Write`, or `Edit`)? Does it depend on other skills? Should
 Claude invoke it automatically, or only the user (`disable-model-invocation: true`)? Does it apply only
 to certain files (`paths:`)?
 
 **Agent:** which tools, which skills to preload, and which `~/.agents/references/` categories should it
-consult (`Glob("~/.agents/references/*/")`)? Persistent memory scope, if any?
+consult (`Glob("~/.agents/references/*/")`)? Leave persistent memory unset: agents here are dispatched with a frozen, report-only packet.
 
 Leave `model` unset on commands and inline skills. They run inside the conversation, so a `model`
 other than the session's makes that turn a model switch, and the switch re-reads the whole history
 uncached. Agents and `context: fork` skills start a fresh context, so a tier pin costs no cache
 there; use an alias (`opus`, `sonnet`, `haiku`, `fable`) or `inherit`, never a pinned ID, because
 aliases float across model generations (this tree's agents use `inherit`). Set `effort` on a command or inline skill only to lower it (`low`, `medium`) for reliably cheap,
-procedural work; otherwise leave it unset so it runs at the session's effort. Raising it buys little for its cost: in Anthropic's
-measurements `xhigh` cost 2.5x `high` for 1.4 points on long-horizon coding (Opus 5.5), and
-knowledge work gained nothing above `medium` (Fable 5). The lowered tiers are set by judgment, not
+procedural work; otherwise leave it unset so it runs at the session's effort. Raising it buys little for its cost. The lowered tiers are set by judgment, not
 measured. On first-party Claude models that support per-message effort, an override keeps the
 prompt cache; on Bedrock, Vertex, and gateways it re-reads the history, so skip it there when the
 gain is marginal.
@@ -101,7 +99,6 @@ demand:
 ---
 name: {name}
 description: "{trigger}"
-allowed-tools: {tools}
 ---
 
 # {Title}
@@ -176,20 +173,20 @@ lint and test commands. See `documentation-validation`.
 |-------|---------|-------|-------|
 | `name`, `description` | Required | Required | Required |
 | `argument-hint` | If `$ARGUMENTS` | Optional | N/A |
-| `allowed-tools` / `disallowed-tools` | N/A | Recommended | N/A |
+| `allowed-tools` / `disallowed-tools` | Optional; scoped grants only | Optional; scoped grants only | N/A |
 | `tools` | N/A | N/A | Recommended |
 | `skills` | N/A | Optional (deps) | Optional (preload) |
 | `model` | Avoid | Only with `context: fork` | Alias or `inherit` |
 | `effort` | Lower only (`low`, `medium`) | Lower only inline; any with `context: fork` | Optional |
 | `paths` | N/A | Optional | N/A |
-| `disable-model-invocation`, `user-invocable` | N/A | Optional | N/A |
+| `disable-model-invocation`, `user-invocable` | Optional; `true` for a side-effect command no skill or coordinator invokes | Optional | N/A |
 | `context: fork`, `agent` | N/A | Optional | N/A |
-| `memory` | N/A | N/A | Optional (user/project/local) |
+| `memory` | N/A | N/A | Avoid; see `code-agent-meta-patterns`, Agent memory |
 | `color`, `maxTurns`, `permissionMode` | N/A | N/A | Optional |
 
 Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Agent, Skill. Write `Agent`, not its retired name `Task`.
 
-`compatibility` is not a Claude Code field and does nothing -- do not emit it.
+Field semantics: `writing-skills`, SKILL.md Structure.
 
 ### Cross-References
 

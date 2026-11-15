@@ -55,6 +55,79 @@ VALID_TOOLS = {
     "Skill",
 }
 
+# `allowed-tools` pre-approves for the invoking turn and restricts nothing, so a bare grant of one of
+# these widens what runs without a prompt. A grant scoped to a command, `Bash(cmd *)`, passes.
+UNSCOPED_GRANTS = frozenset({"Bash", "Write", "Edit", "NotebookEdit", "WebFetch", "WebSearch"})
+UNSCOPED_GRANT_MESSAGE = (
+    "allowed-tools pre-approves unscoped {tool} for the invoking turn; drop it or scope it, "
+    "e.g. Bash(cmd *)"
+)
+# A scope that names nothing grants as much as the bare tool.
+WILDCARD_SCOPES = frozenset({"", "*", ":*", "domain:*"})
+# The flat frontmatter parser reads a YAML block list as an empty value, so say so rather than pass.
+EMPTY_GRANT_MESSAGE = (
+    "allowed-tools is empty or a YAML block list the audit cannot read; write it as a "
+    "comma-separated value"
+)
+
+
+def _grant_tokens(value: str) -> List[str]:
+    """Split an `allowed-tools` value on commas or whitespace outside parentheses.
+
+    A YAML flow list's brackets are stripped first, so `[Read, Bash]` reads as `Read, Bash`.
+    """
+    value = value.strip()
+    if value.startswith("[") and value.endswith("]"):
+        value = value[1:-1]
+    tokens: List[str] = []
+    depth = 0
+    current = ""
+    for char in value:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        if (char == "," or char.isspace()) and depth == 0:
+            if current.strip():
+                tokens.append(current.strip())
+            current = ""
+        else:
+            current += char
+    if current.strip():
+        tokens.append(current.strip())
+    return tokens
+
+
+def _tool_name(token: str) -> str:
+    """Return the tool name of a grant token, without its `(scope)`."""
+    return token.split("(", 1)[0].strip()
+
+
+def _unscoped_grants(value: str) -> List[str]:
+    """Return the `UNSCOPED_GRANTS` tools granted bare or with an empty or wildcard-only scope."""
+    found = []
+    for token in _grant_tokens(value):
+        name = _tool_name(token)
+        if name not in UNSCOPED_GRANTS:
+            continue
+        scope = token[len(name) :].strip()
+        if scope.startswith("(") and scope.endswith(")"):
+            scope = scope[1:-1].strip()
+        if scope in WILDCARD_SCOPES:
+            found.append(name)
+    return found
+
+
+def _pre_approval_messages(fields: Dict[str, str]) -> List[str]:
+    """Return SK-F11/CM-F8 messages for a skill or command's `allowed-tools`."""
+    if "allowed-tools" not in fields:
+        return []
+    value = fields["allowed-tools"]
+    if not value:
+        return [EMPTY_GRANT_MESSAGE]
+    return [UNSCOPED_GRANT_MESSAGE.format(tool=tool) for tool in _unscoped_grants(value)]
+
+
 # Codex reads shared skill metadata from a budgeted listing; only that tree is constrained.
 SHARED_DESCRIPTION_BUDGET = 64
 # Claude truncates a listed description well above this; flag only genuine runaways.
@@ -135,6 +208,8 @@ class Audit:
     def check_skills(self) -> None:
         """Validate skill folders, frontmatter, and supporting-file usage."""
         root = self.claude / "skills"
+        if not root.is_dir():
+            return
         for folder in sorted(p for p in root.iterdir() if p.is_dir()):
             skill = folder / "SKILL.md"
             if not skill.is_file():
@@ -192,9 +267,11 @@ class Audit:
 
         tools = fields.get("allowed-tools")
         if tools:
-            unknown = sorted({t.strip() for t in tools.split(",")} - VALID_TOOLS)
+            unknown = sorted({_tool_name(token) for token in _grant_tokens(tools)} - VALID_TOOLS)
             if unknown:
                 self.add(WARN, "SK-F10", skill, f"unknown allowed-tools: {', '.join(unknown)}")
+        for message in _pre_approval_messages(fields):
+            self.add(WARN, "SK-F11", skill, message)
 
     def _check_supporting_files(self, skill: Path, folder: Path, text: str) -> None:
         """Flag bundled files unreachable from SKILL.md, following references transitively.
@@ -253,6 +330,8 @@ class Audit:
     def check_agents(self) -> None:
         """Validate agent files, tool declarations, and outbound references."""
         root = self.claude / "agents"
+        if not root.is_dir():
+            return
         skills = {p.parent.name for p in (self.claude / "skills").glob("*/SKILL.md")}
         for sub in sorted(p for p in root.iterdir() if p.is_dir()):
             self.add(WARN, "AG-S2", sub, "agents should be flat files, not subdirectories")
@@ -269,9 +348,18 @@ class Audit:
             if "tools" not in fields:
                 self.add(WARN, "AG-F6", agent, "declares no `tools`")
             else:
-                unknown = sorted({t.strip() for t in fields["tools"].split(",")} - VALID_TOOLS)
+                declared = {_tool_name(token) for token in _grant_tokens(fields["tools"])}
+                unknown = sorted(declared - VALID_TOOLS)
                 if unknown:
                     self.add(WARN, "AG-F7", agent, f"unknown tools: {', '.join(unknown)}")
+                # An agent with no `tools` inherits every tool, so AG-F6 alone covers that case.
+                if "memory" in fields and not {"Write", "Edit"} <= declared:
+                    self.add(
+                        WARN,
+                        "AG-F9",
+                        agent,
+                        "sets `memory:`, which silently grants Write and Edit; list both in `tools`",
+                    )
 
             # A bare `model:` parses to "" rather than None, so `is None` alone reported an empty
             # value as a pinned ID: "pins model ``". Falsy means undeclared, whatever the spelling.
@@ -329,6 +417,8 @@ class Audit:
     def check_commands(self) -> None:
         """Validate command files and the skills and agents they route to."""
         root = self.claude / "commands"
+        if not root.is_dir():
+            return
         skills = {p.parent.name for p in (self.claude / "skills").glob("*/SKILL.md")}
         agents = {p.stem for p in (self.claude / "agents").glob("*.md")}
         for sub in sorted(p for p in root.iterdir() if p.is_dir()):
@@ -358,6 +448,9 @@ class Audit:
                     "session model (a model other than the session's re-reads the conversation "
                     "uncached)",
                 )
+
+            for message in _pre_approval_messages(fields):
+                self.add(WARN, "CM-F8", command, message)
 
             body = self.body(text)
             if len(body.split()) < 10:

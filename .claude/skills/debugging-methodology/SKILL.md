@@ -1,7 +1,6 @@
 ---
 name: debugging-methodology
 description: "Use when investigating bugs, failures, or odd behavior."
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Debugging Methodology

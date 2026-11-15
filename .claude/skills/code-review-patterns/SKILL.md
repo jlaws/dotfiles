@@ -1,7 +1,6 @@
 ---
 name: code-review-patterns
 description: "Use when reviewing PRs or responding to review feedback."
-allowed-tools: Read, Grep, Glob, Bash
 skills:
   - verification-before-completion
   - language-testing-patterns
@@ -62,6 +61,8 @@ skills:
 [suggestion]  - Alternative approach to consider
 [learning]    - Educational, no action needed
 ```
+
+In comments meant for a human, cap `[nit]` at five and count the rest ("plus 7 more nits"). In the reviewed project, a finding that recurs becomes a CLAUDE.md line or a lint or test check.
 
 Tag a finding `(pre-existing)` when no hunk in the diff introduces it, exposes it, or makes it stale (the same test as "unrelated" in `j-diff-review` Step 6). It keeps its severity; the tag only stops a base-branch bug from reading as this change's fault.
 

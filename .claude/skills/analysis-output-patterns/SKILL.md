@@ -1,7 +1,6 @@
 ---
 name: analysis-output-patterns
 description: "Use when presenting analysis, research, or report findings."
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Analysis Output Patterns

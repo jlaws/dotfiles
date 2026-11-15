@@ -130,32 +130,42 @@ def evolve_instruction(client, instruction, strategy, model=GEN_MODEL):
 
 ### LLM-as-Judge
 
+Grade each example against per-criterion PASS/FAIL claims and keep it only when it passes all of them. Judge design and validation: `references/ai-ml/eval-and-benchmarking.md`, LLM-as-Judge.
+
 ```python
-JUDGE_PROMPT = """Rate this training example on a 1-5 scale for each criterion:
-- Instruction clarity (is the task unambiguous?)
-- Output correctness (does the output correctly fulfill the instruction?)
-- Output completeness (is anything missing?)
-- Difficulty (1=trivial, 5=expert-level)
+CLAIMS = [
+    "The instruction is unambiguous: one reasonable reading of the task exists.",
+    "The output correctly fulfills the instruction.",
+    "The output is complete: nothing the instruction asks for is missing.",
+]
+
+JUDGE_PROMPT = """Grade this training example against each claim.
 
 Instruction: {instruction}
 Input: {input}
 Output: {output}
 
-Return JSON: {{"clarity": int, "correctness": int, "completeness": int, "difficulty": int, "reject_reason": str|null}}"""
+Claims:
+{claims}
 
-def filter_with_judge(client, examples, min_score=3.5, model=JUDGE_MODEL):
-    """Filter examples using LLM-as-judge scoring."""
+For each claim, in order, output PASS or FAIL and one sentence of reasoning.
+Return JSON: {{"verdicts": [{{"claim": int, "verdict": "PASS"|"FAIL", "reasoning": str}}]}}"""
+
+def filter_with_judge(client, examples, model=JUDGE_MODEL):
+    """Keep only examples that pass every claim."""
+    numbered = "\n".join(f"{i}. {c}" for i, c in enumerate(CLAIMS, 1))
     passed = []
     for ex in examples:
         resp = client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": JUDGE_PROMPT.format(**ex)}],
+            messages=[{"role": "user", "content": JUDGE_PROMPT.format(claims=numbered, **ex)}],
             response_format={"type": "json_object"},
         )
-        scores = json.loads(resp.choices[0].message.content)
-        avg = (scores["clarity"] + scores["correctness"] + scores["completeness"]) / 3
-        if avg >= min_score and scores["correctness"] >= 4:
-            ex["judge_scores"] = scores
+        verdicts = json.loads(resp.choices[0].message.content)["verdicts"]
+        if len(verdicts) != len(CLAIMS):
+            raise ValueError(f"judge returned {len(verdicts)} verdicts for {len(CLAIMS)} claims")
+        if all(v["verdict"] == "PASS" for v in verdicts):
+            ex["judge_verdicts"] = verdicts
             passed.append(ex)
     return passed
 ```

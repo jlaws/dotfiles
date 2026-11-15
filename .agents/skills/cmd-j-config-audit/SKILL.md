@@ -1,7 +1,6 @@
 ---
 name: cmd-j-config-audit
 description: "Use when invoking the j-config-audit workflow."
-disable-model-invocation: true
 ---
 
 # Config Security Audit

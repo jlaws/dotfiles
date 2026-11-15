@@ -1,7 +1,6 @@
 ---
 name: cmd-j-defrag
 description: "Use when invoking the j-defrag workflow."
-disable-model-invocation: true
 ---
 
 # Defrag

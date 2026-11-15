@@ -1,7 +1,6 @@
 ---
 name: writing-skills
 description: "Use when creating, editing, or validating agent skills."
-allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
 # Writing Skills
@@ -113,20 +112,25 @@ Keep binding caps and stop conditions in the first screen of SKILL.md. After aut
 re-attaches only the first 5,000 tokens of each invoked skill, within a 25,000-token budget shared by all
 re-attached skills, and `audit.py` SK-C6 warns when a SKILL.md passes 20,000 bytes.
 
+Word guidance to apply to the whole task, not one moment: "Run the tests after every edit", not "Run
+the tests". A rule Claude must never skip belongs in a hook (`references/workflow/hook-patterns.md`),
+not skill prose.
+
 ## Frontmatter
 
 `name` (letters, numbers, hyphens) and `description` are the essentials. Others worth knowing:
 
 | Field | Use |
 |---|---|
-| `allowed-tools` / `disallowed-tools` | Scope tool access for the turn |
+| `allowed-tools` | Pre-approves tools for the invoking turn only and restricts nothing; grant only a command scoped to one named script, such as `Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/<name>.py *)`, never bare `Bash`, `Write`, `Edit`, `NotebookEdit`, `WebFetch`, or `WebSearch`, nor a wildcard-only scope such as `Bash(*)` |
+| `disallowed-tools` | Removes tools while the skill is active |
 | `model`, `effort` | Override tier or reasoning depth; tier aliases float across model generations. Set `model` only with `context: fork`: inline, a different model re-reads the conversation uncached |
 | `paths` | Glob-gate the skill so it loads only for matching files |
-| `disable-model-invocation` | Keep it out of the always-loaded listing; user-invocable only |
+| `disable-model-invocation` | Keep it out of the always-loaded listing; user-invocable only. Also blocks subagent preloading and scheduled runs |
 | `context: fork`, `agent` | Run in an isolated subagent context |
 | `argument-hint`, `arguments` | Autocomplete and `$name` substitution |
 
-`compatibility` is not a Claude Code field and does nothing.
+`license` and `compatibility` are agentskills.io fields Claude Code accepts but does not act on.
 
 `paths` and `disable-model-invocation` are the progressive-disclosure levers: they decide whether a
 skill costs context on every turn or only when it is relevant.
@@ -174,6 +178,20 @@ Resist answering every failure with a stronger prohibition. When an agent skips 
 cause is that the skill never said why the step mattered.
 
 Classify the failure before choosing the fix. A skipped rule gets a prohibition with its reason. A wrong output shape gets a positive recipe that states the target, because a "don't" names the unwanted shape and invites it. An omitted element gets a checklist item. Every step ends in a completion criterion that is checkable and exhaustive; a vague bound invites stopping early.
+
+## Eval triggering and effect
+
+Test two things separately. **Triggering**: write should-trigger and near-miss prompts in users'
+words, never naming the skill; fix misses through `description`, or `disable-model-invocation` for a
+skill only the user should start. **Effect**: run the same tasks with and without the skill. Grade
+each task with one result grader (the produced file or answer) and one process grader (the skill
+loaded, or the expected tool ran). Change one thing per round
+(`references/ai-ml/eval-and-benchmarking.md`, Hillclimbing).
+
+Tooling: skill-creator evaluates a single skill. `claude plugin eval` needs a plugin directory,
+isolates each run, and bills each run. To evaluate a plain skills tree, stage it into a temporary
+plugin: copy skills, commands, and agents; add `.claude-plugin/plugin.json`; add a scaffold script
+that copies references into each run's workspace.
 
 ## Before you ship
 

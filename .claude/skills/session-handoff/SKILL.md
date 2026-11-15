@@ -1,7 +1,6 @@
 ---
 name: session-handoff
 description: "Use when preserving work for another session or agent."
-allowed-tools: Read, Grep, Glob, Bash, Write
 ---
 
 # Session Handoff

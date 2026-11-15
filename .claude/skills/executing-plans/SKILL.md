@@ -1,7 +1,6 @@
 ---
 name: executing-plans
 description: "Use when executing a written plan in one working context."
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Executing Plans
