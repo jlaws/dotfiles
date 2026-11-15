@@ -229,6 +229,10 @@ When context pressure builds, Claude Code compacts (summarizes) earlier conversa
 | HANDOFF.md before pressure | Capture full state before compaction degrades it |
 | Small, frequent commits | Git log preserves decision history |
 
+### Session Boundaries
+
+At a task boundary, tell the user the cheapest reset: `/clear` for an unrelated task, `/compact` naming what to keep, or `/rewind` to drop a dead end. A model switch, including a frontmatter `model`, re-reads the whole history uncached. An effort change keeps the cache on first-party models.
+
 ## Cross-References
 
 - **skill:code-agent-meta-patterns** — CLAUDE.md design, context management

@@ -1864,6 +1864,16 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(tree=tree):
                 self.assertIn("Skill and Agent Scoped Hooks", heading_texts(text))
 
+    def test_session_boundaries_section_exists_in_both_trees(self):
+        """Both context-efficiency twins tell the reader when a session reset or model switch costs
+        the cache."""
+        for tree in (".claude", ".agents"):
+            text = (REPO / tree / "references" / "workflow" / "context-efficiency.md").read_text(
+                encoding="utf-8"
+            )
+            with self.subTest(tree=tree):
+                self.assertIn("Session Boundaries", heading_texts(text))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -20,6 +20,10 @@ Mechanics of the harness that are easy to get wrong, and the conventions this re
 CLAUDE.md earns its place by holding what the model cannot infer from the repo. Everything else
 competes with the task for attention.
 
+In a project's CLAUDE.md, list each command with its quiet flag and the line a healthy run prints,
+so a run can be checked without reading its full output. Add a `Compact instructions` section that
+names what compaction must keep.
+
 ## Layering
 
 CLAUDE.md files cascade, and higher specificity wins:

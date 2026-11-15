@@ -19,6 +19,8 @@ description: "Use when designing agent instructions, hooks, or workflows."
 | Non-obvious constraints ("never modify X") | Copy-pasted README content |
 | Communication style preferences | Long lists of technologies used |
 
+In a project's CLAUDE.md, list each command with its quiet flag and the line a healthy run prints, so a run can be checked without reading its full output. Add a `Compact instructions` section that names what compaction must keep.
+
 ### Layering Strategy
 
 CLAUDE.md files cascade. Higher specificity wins.
