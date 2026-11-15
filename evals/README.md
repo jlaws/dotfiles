@@ -163,6 +163,19 @@ and `git push -q origin main`, and lists `.remote.git` and `.kb-references` in
 Checked on `2.1.325 (Claude Code)`: every flag the runner passes exists in
 `claude plugin eval --help`.
 
+## Summaries and compare
+
+`python3 -m evals.kbeval summarize [--check]` writes `evals/baselines/<model>/<suite>.json`: the run
+settings, Claude Code version, judge, date, cost, and one line per case with `kbScore`,
+`vanillaScore`, `delta`, `firedRate`, run counts, and errors. Scores use result graders only;
+`firedRate` is the process-grader pass rate in kb. A case `passed` when `kbScore` is at least 2/3
+(a majority of three runs). Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
+`--check` fails when a case is missing runs or still holds an API error.
+
+`make eval-compare OLD=... NEW=...` compares two summaries: the suite means with both intervals,
+cases whose `kbScore` dropped by at least 1/3, and pass/fail flips. Cases in only one file are
+listed as "not run here", since a partial rerun covers a subset.
+
 ## Pilot measurements
 
 Run 2026-11-15 on Claude Code 2.1.325, one run per case, judge `claude-fable-5-2`. Cost per run is

@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import List, Optional
 
 from evals.kbeval import cases as kcases
+from evals.kbeval import compare as kcompare
 from evals.kbeval import orchestrate, runner
 from evals.kbeval import stage as kstage
+from evals.kbeval import summary as ksummary
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -61,6 +64,36 @@ def _spend(args: argparse.Namespace) -> int:
     return 0 if total <= float(budget["ceilingUsd"]) else 1
 
 
+def _summarize(args: argparse.Namespace) -> int:
+    settings = {
+        "kbRuns": 3,
+        "vanillaRuns": args.vanilla_runs,
+        "vanillaModels": sorted(args.vanilla_models),
+        "excludeTags": sorted(args.exclude_tag),
+    }
+    results = orchestrate.state_root() / "results" / "baseline"
+    problems: List[str] = []
+    for model in args.model or list(orchestrate.MODELS):
+        for suite in kcases.SUITES:
+            doc = ksummary.summarize(results, model, suite, settings)
+            problems += ksummary.check(doc)
+            if doc["cases"]:
+                out = REPO / "evals" / "baselines" / model / f"{suite}.json"
+                ksummary.write(doc, out)
+                print(f"wrote {out.relative_to(REPO)} ({len(doc['cases'])} cases)")
+    for problem in problems:
+        print(problem)
+    return 1 if args.check and problems else 0
+
+
+def _compare(args: argparse.Namespace) -> int:
+    old = json.loads(Path(args.old).read_text())
+    new = json.loads(Path(args.new).read_text())
+    for line in kcompare.compare(old, new):
+        print(line)
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """Parse arguments and run one harness command."""
     parser = argparse.ArgumentParser(prog="python3 -m evals.kbeval")
@@ -100,6 +133,19 @@ def main(argv: Optional[List[str]] = None) -> int:
     baseline.add_argument("--exclude-tag", action="append", default=[])
     baseline.add_argument("--jobs", type=int, default=8)
     baseline.set_defaults(func=_baseline)
+
+    summarize = sub.add_parser("summarize", help="write evals/baselines/<model>/<suite>.json")
+    summarize.add_argument("--check", action="store_true")
+    summarize.add_argument("--model", action="append")
+    summarize.add_argument("--vanilla-runs", type=int, default=3)
+    summarize.add_argument("--vanilla-models", nargs="*", default=list(orchestrate.MODELS))
+    summarize.add_argument("--exclude-tag", action="append", default=[])
+    summarize.set_defaults(func=_summarize)
+
+    compare = sub.add_parser("compare", help="regressions between two baseline summaries")
+    compare.add_argument("old")
+    compare.add_argument("new")
+    compare.set_defaults(func=_compare)
 
     spend = sub.add_parser("spend", help="snapshot ledger totals into evals/spend.json")
     spend.set_defaults(func=_spend)

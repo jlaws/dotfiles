@@ -507,22 +507,25 @@ MODEL = "claude-sonnet-5-5"
 
 
 def result_doc(cases: dict, cost=0.5, partial=False, reason=None) -> dict:
-    """A minimal hand-written result document: {case name: [run error or None, ...]}."""
-    return {
-        "schemaVersion": 1,
-        "partial": partial,
-        "partialReason": reason,
-        "costUsd": cost,
-        "claudeVersion": "2.1.325",
-        "cases": [
-            {
-                "name": name,
-                "aggregates": {"score": 1.0},
-                "arms": {"with": [{"error": err, "score": 0.0 if err else 1.0} for err in errors]},
-            }
-            for name, errors in cases.items()
-        ],
-    }
+    """A result document in the captured CLI shape: {case name: [run error or None, ...]}."""
+    captured = json.loads((REPO / "tests" / "fixtures" / "kbeval" / "aggregate-result.json").read_text())
+    template_case = captured["cases"][0]
+    template_run = template_case["arms"]["with"][0]
+    doc = {**captured, "partial": partial, "costUsd": cost, "cases": []}
+    if reason is not None:
+        doc["partialReason"] = reason
+    for name, errors in cases.items():
+        runs = []
+        for err in errors:
+            run = {**template_run, "error": err, "tracePath": None}
+            if err and API_ERROR_TEXT.search(err):
+                run["graders"] = []
+            runs.append(run)
+        doc["cases"].append({**template_case, "name": name, "arms": {"with": runs}})
+    return doc
+
+
+API_ERROR_TEXT = re.compile(r"(?i)api error|rate.?limit")
 
 
 class FakeCli:
@@ -813,3 +816,150 @@ class OrchestrateTests(RunnerCase):
         vanilla = self.calls_for(cli, "vanilla")
         self.assertTrue(vanilla)
         self.assertEqual({c[c.index("--runs") + 1] for c in vanilla}, {"1"})
+
+
+# --- summary and compare ------------------------------------------------------------------------
+
+import copy  # noqa: E402
+
+from evals.kbeval import compare as kcompare  # noqa: E402
+from evals.kbeval import summary as ksummary  # noqa: E402
+
+FIXTURE = REPO / "tests" / "fixtures" / "kbeval" / "aggregate-result.json"
+OPUS = "claude-opus-5-5"
+SETTINGS = {"kbRuns": 3, "vanillaRuns": 3, "vanillaModels": [OPUS], "excludeTags": []}
+
+
+def real_doc() -> dict:
+    return json.loads(FIXTURE.read_text())
+
+
+def with_runs(doc: dict, design_passes: list, errors: list | None = None) -> dict:
+    """Copy the captured doc, replacing its runs with one per entry of `design_passes`."""
+    doc = copy.deepcopy(doc)
+    case = doc["cases"][0]
+    template = case["arms"]["with"][0]
+    runs = []
+    for index, passed in enumerate(design_passes):
+        run = copy.deepcopy(template)
+        run["error"] = (errors or [None] * len(design_passes))[index]
+        for grader in run["graders"]:
+            if grader["name"] == "design":
+                grader["passed"] = passed
+        if run["error"] and "API" in run["error"]:
+            run["graders"] = []
+        runs.append(run)
+    case["arms"] = {"with": runs}
+    return doc
+
+
+class SummaryTests(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.results = Path(tmp.name)
+
+    def put(self, staging: str, label: str, doc: dict, suite: str = "effects") -> None:
+        path = self.results / staging / OPUS / suite / f"{label}.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(doc))
+
+    def test_summary_from_real_doc(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, False]))
+        self.put("vanilla", "j-arch", with_runs(real_doc(), [True, False, False]))
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        for key in ("schema", "suite", "model", "judgeModel", "claudeVersion", "date", "runs", "costUsd"):
+            self.assertIn(key, doc)
+        self.assertEqual((doc["suite"], doc["model"], doc["judgeModel"]), ("effects", OPUS, "claude-fable-5-2"))
+        self.assertEqual(doc["claudeVersion"], "2.1.325")
+        self.assertEqual(doc["runs"], SETTINGS)
+        (case,) = doc["cases"]
+        self.assertEqual((case["asset"], case["kind"]), ("j-arch", "effect"))
+        # Result graders only: the llm `design` grader. The tool_used `delegated` grader is the
+        # process indicator, reported as firedRate.
+        self.assertAlmostEqual(case["kbScore"], 2 / 3, places=3)
+        self.assertAlmostEqual(case["vanillaScore"], 1 / 3, places=3)
+        self.assertAlmostEqual(case["delta"], 1 / 3, places=3)
+        self.assertEqual(case["firedRate"], 1.0)
+        self.assertEqual((case["kbRuns"], case["vanillaRuns"]), (3, 3))
+        self.assertEqual(case["errors"], [])
+        for arm in ("kb", "vanilla", "delta"):
+            self.assertIn("mean", doc["aggregates"][arm])
+            self.assertEqual(len(doc["aggregates"][arm]["ci95"]), 2)
+
+    def test_summary_is_deterministic_and_one_case_per_line(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, False, True]))
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        out = self.results / "summary.json"
+        ksummary.write(doc, out)
+        first = out.read_text()
+        ksummary.write(ksummary.summarize(self.results, OPUS, "effects", SETTINGS), out)
+        self.assertEqual(first, out.read_text())
+        self.assertEqual(json.loads(first)["cases"][0]["asset"], "j-arch")
+        self.assertTrue(any(line.lstrip().startswith('{"asset": "j-arch"') for line in first.splitlines()))
+
+    def test_rerun_result_replaces_the_api_error_case(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, "API error: 429", None]))
+        self.put("kb", "j-arch@j-arch--effect-cache-layer", with_runs(real_doc(), [True, True, True]))
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        self.assertEqual(doc["cases"][0]["kbRuns"], 3)
+        self.assertEqual(doc["cases"][0]["errors"], [])
+
+    def test_summarize_check(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True]))
+        self.put("vanilla", "j-arch", with_runs(real_doc(), [True, True, True]))
+        problems = ksummary.check(ksummary.summarize(self.results, OPUS, "effects", SETTINGS))
+        self.assertTrue(any("kbRuns" in p for p in problems), problems)
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, None, "API error: 529"]))
+        problems = ksummary.check(ksummary.summarize(self.results, OPUS, "effects", SETTINGS))
+        self.assertTrue(any("API" in p for p in problems), problems)
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
+        self.assertEqual(ksummary.check(ksummary.summarize(self.results, OPUS, "effects", SETTINGS)), [])
+
+    def test_check_skips_vanilla_for_unlisted_models(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
+        settings = {**SETTINGS, "vanillaModels": ["claude-sonnet-5-5"]}
+        self.assertEqual(ksummary.check(ksummary.summarize(self.results, OPUS, "effects", settings)), [])
+
+    def test_mixed_claude_versions_are_refused(self):
+        other = real_doc()
+        other["claudeVersion"] = "2.1.999"
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
+        self.put("vanilla", "j-arch", with_runs(other, [True, True, True]))
+        with self.assertRaises(ValueError):
+            ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+
+
+def summary_doc(cases: dict, model: str = OPUS) -> dict:
+    return {
+        "schema": 1, "suite": "effects", "model": model,
+        "aggregates": {
+            "kb": {"mean": sum(c[0] for c in cases.values()) / len(cases), "ci95": [0.4, 0.9]},
+            "vanilla": {"mean": 0.3, "ci95": [0.1, 0.5]},
+            "delta": {"mean": 0.3, "ci95": [0.1, 0.5]},
+        },
+        "cases": [
+            {"asset": name.split("--")[0], "kind": "effect", "name": name, "kbScore": kb, "passed": passed}
+            for name, (kb, passed) in sorted(cases.items())
+        ],
+    }  # fmt: skip
+
+
+class CompareTests(unittest.TestCase):
+    def test_compare_overlap_only(self):
+        old = summary_doc({"a--effect-x": (1.0, True), "b--effect-y": (0.5, False), "c--effect-gone": (1.0, True)})
+        new = summary_doc({"a--effect-x": (0.6, False), "b--effect-y": (0.5, False), "d--effect-new": (1.0, True)})
+        report = "\n".join(kcompare.compare(old, new))
+        self.assertIn("suite mean", report)
+        self.assertIn("[0.40, 0.90]", report)
+        self.assertRegex(report, r"a--effect-x.*1\.00 -> 0\.60")
+        self.assertRegex(report, r"a--effect-x.*pass -> fail")
+        self.assertNotRegex(report, r"b--effect-y.*->")
+        self.assertRegex(report, r"c--effect-gone.*not run here")
+        self.assertRegex(report, r"d--effect-new.*not run here")
+        self.assertNotIn("removed", report)
+
+    def test_small_drop_is_not_a_regression(self):
+        old = summary_doc({"a--effect-x": (1.0, True)})
+        new = summary_doc({"a--effect-x": (0.75, True)})
+        self.assertNotRegex("\n".join(kcompare.compare(old, new)), r"a--effect-x.*->")
