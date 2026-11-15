@@ -20,13 +20,6 @@ TRIGGER_KINDS = KINDS[:3]
 # exemption branch in `coverage`, once every asset has cases.
 PENDING_EVAL_COVERAGE = frozenset(
     {
-        # commands
-        "j-brainstorm", "j-create-pr",
-        "j-debug", "j-defrag", "j-diff-review", "j-doc-sync",
-        "j-execute-plan",
-        "j-init", "j-new", "j-next",
-        "j-plan", "j-pr-fix", "j-rebase", "j-review-claudemd", "j-skill-audit",
-        "j-tdd",
         # agents
         "architecture-specialist", "business-analyst", "cloud-architect", "code-reviewer",
         "create-pr", "data-engineer", "devops-engineer", "documentation-writer",
