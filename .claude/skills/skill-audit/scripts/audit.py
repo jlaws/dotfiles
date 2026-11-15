@@ -169,6 +169,8 @@ class Audit:
     def check_skills(self) -> None:
         """Validate skill folders, frontmatter, and supporting-file usage."""
         root = self.claude / "skills"
+        if not root.is_dir():
+            return
         for folder in sorted(p for p in root.iterdir() if p.is_dir()):
             skill = folder / "SKILL.md"
             if not skill.is_file():
@@ -290,6 +292,8 @@ class Audit:
     def check_agents(self) -> None:
         """Validate agent files, tool declarations, and outbound references."""
         root = self.claude / "agents"
+        if not root.is_dir():
+            return
         skills = {p.parent.name for p in (self.claude / "skills").glob("*/SKILL.md")}
         for sub in sorted(p for p in root.iterdir() if p.is_dir()):
             self.add(WARN, "AG-S2", sub, "agents should be flat files, not subdirectories")
@@ -366,6 +370,8 @@ class Audit:
     def check_commands(self) -> None:
         """Validate command files and the skills and agents they route to."""
         root = self.claude / "commands"
+        if not root.is_dir():
+            return
         skills = {p.parent.name for p in (self.claude / "skills").glob("*/SKILL.md")}
         agents = {p.stem for p in (self.claude / "agents").glob("*.md")}
         for sub in sorted(p for p in root.iterdir() if p.is_dir()):

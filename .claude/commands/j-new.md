@@ -143,11 +143,7 @@ Every reference stem listed must exist — the audit script fails on a dangling 
 
 ## Phase 5: Validate
 
-Run the mechanical checks rather than reviewing by hand:
-
-```bash
-python3 .claude/skills/skill-audit/scripts/audit.py . --type {type}s
-```
+Run the `skill-audit` skill's mechanical check with `--type {type}s`.
 
 Fix what it reports. Then confirm by judgment: does every section teach something a strong model would
 otherwise get wrong or vague? Cut what does not.

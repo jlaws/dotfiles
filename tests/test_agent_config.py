@@ -36,6 +36,7 @@ TREE_SCRIPT_PATH = re.compile(
     r"(\.(?:claude|codex|agents|gemini)/[A-Za-z0-9._/-]*?\.(?:py|sh|mjs|js))"
     r"(?![A-Za-z0-9])"
 )
+SKILL_DIR_SCRIPT_PATH = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+\.(?:py|sh|mjs|js))")
 TREE_ROOTS = (".claude", ".codex", ".agents", ".gemini")
 
 # Asset-set parity is enforced by name; bodies and descriptions are free to diverge per tool.
@@ -1273,6 +1274,29 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertEqual(
             missing, [], "assets name scripts that do not exist:\n" + "\n".join(missing)
         )
+
+        # `${CLAUDE_SKILL_DIR}` resolves to the skill's own folder, and Claude Code substitutes it
+        # only in a Claude skill. A prefixed path must name a file that skill ships, and the token
+        # must appear nowhere else, where it would reach the reader unsubstituted.
+        skill_dir_claims = 0
+        for skill in sorted((REPO / ".claude" / "skills").glob("*/SKILL.md")):
+            for claimed in SKILL_DIR_SCRIPT_PATH.findall(skill.read_text(encoding="utf-8")):
+                skill_dir_claims += 1
+                if not (skill.parent / claimed).is_file():
+                    missing.append(f"{skill.relative_to(REPO)}: ${{CLAUDE_SKILL_DIR}}/{claimed}")
+        self.assertGreater(skill_dir_claims, 0, "no ${CLAUDE_SKILL_DIR} script path found")
+        self.assertEqual(
+            missing, [], "skills name scripts they do not ship:\n" + "\n".join(missing)
+        )
+        stray = [
+            name
+            for name in tracked
+            if name
+            and not (name.startswith(".claude/skills/") and name.endswith("/SKILL.md"))
+            and (REPO / name).is_file()
+            and "${CLAUDE_SKILL_DIR}" in (REPO / name).read_text(encoding="utf-8", errors="ignore")
+        ]
+        self.assertEqual(stray, [], "${CLAUDE_SKILL_DIR} outside a Claude SKILL.md")
 
     def test_codex_agents_declare_name_description_and_instructions(self):
         """A Codex agent with no `developer_instructions` loads as an empty role and says nothing

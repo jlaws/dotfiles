@@ -12,6 +12,7 @@ check rather than a test and a script that can drift. Three failures motivated t
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -322,6 +323,25 @@ class SkillPreApprovalTests(unittest.TestCase):
     def test_read_only_grant_passes(self):
         self.assertEqual(self.skill_findings("Read, Grep, Glob"), [])
         self.assertEqual(self.command_findings("Read, Grep, Glob"), [])
+
+
+class AuditMissingTreeTests(unittest.TestCase):
+    """The audit runs in any repo, so a missing asset directory is not an error."""
+
+    def test_missing_asset_directories_do_not_crash(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        folder = root / ".claude" / "skills" / "x"
+        folder.mkdir(parents=True)
+        (folder / "SKILL.md").write_text("---\nname: x\ndescription: Use when probing.\n---\n\nBody.\n")
+        result = subprocess.run(
+            [sys.executable, str(AUDIT), str(root), "--type", "agents", "--type", "commands"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotIn("Traceback", result.stderr + result.stdout)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
 
 class ReferenceCitationTests(unittest.TestCase):

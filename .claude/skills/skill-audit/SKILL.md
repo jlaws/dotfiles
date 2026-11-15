@@ -18,7 +18,7 @@ adoption and memory, which are never automatic.
 ## Run the mechanical checks
 
 ```bash
-python3 .claude/skills/skill-audit/scripts/audit.py .
+python3 ${CLAUDE_SKILL_DIR}/scripts/audit.py .
 ```
 
 Scope it with `--type skills|agents|commands|references|config` (repeatable). It exits non-zero when
@@ -38,7 +38,7 @@ build target invokes it; its own tests do execute it, but every one passes `--tr
 real transcript root is reached only when a human types the command.
 
 ```bash
-python3 .claude/skills/skill-audit/scripts/adoption.py . --exclude dotfiles
+python3 ${CLAUDE_SKILL_DIR}/scripts/adoption.py . --exclude dotfiles
 ```
 
 `--exclude` takes a substring of the transcript *project directory* name, not a path. Those
@@ -79,7 +79,7 @@ it lives under `~/.claude/projects/*/memory` and `~/.claude/agent-memory/*`, has
 repo, and must never be committed here, because it holds private notes about other projects.
 
 ```bash
-python3 .claude/skills/skill-audit/scripts/memory.py
+python3 ${CLAUDE_SKILL_DIR}/scripts/memory.py
 ```
 
 With no `--memory-dir` it checks every store; pass `--memory-dir DIR` (repeatable) to scope it, and
