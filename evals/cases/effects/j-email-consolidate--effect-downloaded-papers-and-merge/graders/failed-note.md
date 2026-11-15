@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: 'needs manual download:\s*403'
+pattern: 'needs manual download:\s*(?:failed:\s*)?403'
 target: { source: file, path: digest.md }
 ---

@@ -1,4 +1,5 @@
 ---
-type: file_exists
-path: findings/readme.md
+type: regex
+pattern: '(?=[\s\S]*--output\b)[\s\S]*--out\b(?!put)'
+target: { source: file, path: findings/readme.md }
 ---

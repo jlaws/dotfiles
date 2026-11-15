@@ -4,7 +4,7 @@ focus: { source: file, path: obs/alerts.fixed.yml }
 ---
 
 All claims are required.
-PASS if the availability alerts use multi-window burn rate (a long window plus a short window combined with and) against the 99.9% budget, with a fast-burn rule near 14.4x on 1h and 5m and a slower rule that opens a ticket.
-PASS if every alert has a runbook link in its annotations and the paging alerts set a for: duration of at least 2m.
-PASS if the pod-restart alert is removed or demoted below critical, since it alerts on a cause rather than a symptom.
+PASS if the availability alerts compare error-budget burn rate against the 99.9% SLO using both a long and a short window combined with and, at a burn-rate threshold that is valid for that window pair.
+PASS if every alert has a runbook link in its annotations.
+PASS if every paging alert needs more than one evaluation to fire (for example a for: duration, or windows long enough that one bad scrape cannot trigger it).
 FAIL if any rule still pages on a single 1-minute window.

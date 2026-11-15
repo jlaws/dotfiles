@@ -1,5 +1,5 @@
 ---
 type: tool_used
 tool: Write
-input_match: '"file_path"\s*:\s*"[^"]*analysis\.md"'
+input_match: '"file_path"\s*:\s*"[^"]*/analysis\.md"'
 ---

@@ -1,4 +1,5 @@
 ---
-type: file_exists
-path: scratchpad/briefs/task-01.md
+type: regex
+pattern: '(?=[\s\S]*removeTodo)[\s\S]*not found'
+target: { source: file, path: scratchpad/briefs/task-01.md }
 ---

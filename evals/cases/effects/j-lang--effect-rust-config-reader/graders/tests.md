@@ -1,4 +1,5 @@
 ---
-type: file_exists
-path: tests.rs
+type: regex
+pattern: '#\s*\[\s*test\s*\]'
+target: { source: file, path: tests.rs }
 ---

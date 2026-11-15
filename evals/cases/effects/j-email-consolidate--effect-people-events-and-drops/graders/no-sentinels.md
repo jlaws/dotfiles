@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: 'END SECTION'
+pattern: '<!--'
 match: not_contains
 target: { source: file, path: digest.md }
 ---

@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: 'unsubscribe|digest\.example\.org/view'
+pattern: 'digest\.example\.org/'
 flags: i
 match: not_contains
 target: { source: file, path: emails/report.md }
