@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from evals.kbeval import cases as kcases
+from evals.kbeval import orchestrate, runner
 from evals.kbeval import stage as kstage
 
 REPO = Path(__file__).resolve().parents[2]
@@ -32,6 +33,34 @@ def _lint(args: argparse.Namespace) -> int:
     return 1 if problems else 0
 
 
+def _run(args: argparse.Namespace) -> int:
+    return runner.run(
+        args.suite, args.staging, args.model, args.runs, args.purpose, args.assets, args.jobs,
+        plugin=Path(args.plugin),
+    )
+
+
+def _pilot(args: argparse.Namespace) -> int:
+    return orchestrate.pilot(args.jobs)
+
+
+def _smoke(args: argparse.Namespace) -> int:
+    return orchestrate.smoke(args.assets, args.jobs)
+
+
+def _baseline(args: argparse.Namespace) -> int:
+    return orchestrate.baseline(
+        args.model, args.vanilla_runs, args.vanilla_models, frozenset(args.exclude_tag), args.jobs
+    )
+
+
+def _spend(args: argparse.Namespace) -> int:
+    budget = runner.load_budget()
+    total = orchestrate.spend()
+    print(f"period {budget['period']}: ${total:.2f} of ${float(budget['ceilingUsd']):.2f}")
+    return 0 if total <= float(budget["ceilingUsd"]) else 1
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """Parse arguments and run one harness command."""
     parser = argparse.ArgumentParser(prog="python3 -m evals.kbeval")
@@ -43,6 +72,37 @@ def main(argv: Optional[List[str]] = None) -> int:
     stage.set_defaults(func=_stage)
     lint = sub.add_parser("lint", help="lint every case and check coverage")
     lint.set_defaults(func=_lint)
+
+    run = sub.add_parser("run", help="run one suite for one staging and model (paid)")
+    run.add_argument("--suite", choices=("triggers", "effects", "workflows"), required=True)
+    run.add_argument("--staging", choices=kstage.STAGINGS, required=True)
+    run.add_argument("--plugin", required=True)
+    run.add_argument("--model", required=True)
+    run.add_argument("--runs", type=int, default=3)
+    run.add_argument("--purpose", required=True)
+    run.add_argument("--assets", nargs="*", default=[])
+    run.add_argument("--jobs", type=int, default=8)
+    run.set_defaults(func=_run)
+
+    pilot = sub.add_parser("pilot", help="run the pilot cases (paid)")
+    pilot.add_argument("--jobs", type=int, default=8)
+    pilot.set_defaults(func=_pilot)
+
+    smoke = sub.add_parser("smoke", help="one-run smoke for named assets (paid)")
+    smoke.add_argument("--assets", nargs="+", required=True)
+    smoke.add_argument("--jobs", type=int, default=8)
+    smoke.set_defaults(func=_smoke)
+
+    baseline = sub.add_parser("baseline", help="full baseline for one model (paid)")
+    baseline.add_argument("--model", required=True)
+    baseline.add_argument("--vanilla-runs", type=int, default=3)
+    baseline.add_argument("--vanilla-models", nargs="*", default=list(orchestrate.MODELS))
+    baseline.add_argument("--exclude-tag", action="append", default=[])
+    baseline.add_argument("--jobs", type=int, default=8)
+    baseline.set_defaults(func=_baseline)
+
+    spend = sub.add_parser("spend", help="snapshot ledger totals into evals/spend.json")
+    spend.set_defaults(func=_spend)
     args = parser.parse_args(argv)
     return args.func(args)
 

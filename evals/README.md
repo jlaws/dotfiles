@@ -40,7 +40,9 @@ exclusive lock. `make eval-spend` snapshots its per-period totals into the commi
 `evals/spend.json`.
 
 Each batch's `--max-cost-usd` cap is the remaining budget minus a reserve of `jobs x p95`, where
-`p95` is the per-run cost from the pilot table below ($5 before the pilot). The CLI checks the cap
+`p95` is the per-run cost on the `Reserve p95: $<usd>` line of the pilot table below ($5 before the
+pilot). The pilot and smoke plans also cap their own spend: $10 for the pilot, `smokeCapUsd` per
+branch for smoke. The CLI checks the cap
 before each run starts, so in-flight runs can pass it; the reserve covers them. A batch with no
 JSON result is charged its full cap. A batch whose result reports runs but a null or zero cost
 aborts the run.

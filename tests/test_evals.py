@@ -490,3 +490,309 @@ class RealTreeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# --- runner and ledger -------------------------------------------------------------------------
+
+import contextlib  # noqa: E402
+import io  # noqa: E402
+import sys  # noqa: E402
+from unittest import mock  # noqa: E402
+
+from evals.kbeval import ledger as kledger  # noqa: E402
+from evals.kbeval import runner as krunner  # noqa: E402
+
+JUDGE = "claude-fable-5-2"
+MODEL = "claude-sonnet-5-5"
+
+
+def result_doc(cases: dict, cost=0.5, partial=False, reason=None) -> dict:
+    """A minimal hand-written result document: {case name: [run error or None, ...]}."""
+    return {
+        "schemaVersion": 1,
+        "partial": partial,
+        "partialReason": reason,
+        "costUsd": cost,
+        "claudeVersion": "2.1.325",
+        "cases": [
+            {
+                "name": name,
+                "aggregates": {"score": 1.0},
+                "arms": {"with": [{"error": err, "score": 0.0 if err else 1.0} for err in errors]},
+            }
+            for name, errors in cases.items()
+        ],
+    }
+
+
+class FakeCli:
+    """Records argv; `responder(args)` returns (doc or None, returncode, stderr)."""
+
+    def __init__(self, responder):
+        self.responder = responder
+        self.calls = []
+
+    def version(self) -> str:
+        return "2.1.325 (Claude Code)"
+
+    def run(self, args):
+        self.calls.append(list(args))
+        doc, code, stderr = self.responder(args)
+        if doc is not None:
+            path = Path(args[args.index("--json") + 1])
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(doc))
+        return subprocess.CompletedProcess(args, code, "", stderr)
+
+
+def case_arg(args) -> str:
+    return args[args.index("--case") + 1]
+
+
+class RunnerCase(TempRepoCase):
+    def setUp(self):
+        super().setUp()
+        self.plugin = self.stage()
+        self.state = self.tmp / "state"
+        self.ledger_path = self.tmp / "ledger.jsonl"
+        self.budget = {"period": "p", "ceilingUsd": 100, "smokeCapUsd": 40}
+        env = mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-placeholder"})
+        env.start()
+        self.addCleanup(env.stop)
+
+    def run_suite(self, cli, suite="effects", assets=("j-demo",), staging="kb", **extra):
+        err = io.StringIO()
+        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
+                   "budget": self.budget, "p95": 5.0, **extra}
+        with contextlib.redirect_stderr(err):
+            code = krunner.run(suite, staging, MODEL, 3, "test", list(assets), 8, cli, **options)
+        return code, err.getvalue()
+
+    def entries(self) -> list:
+        if not self.ledger_path.exists():
+            return []
+        return [json.loads(line) for line in self.ledger_path.read_text().splitlines()]
+
+
+class RunnerGuardTests(RunnerCase):
+    def test_cli_refuses_without_allow_paid(self):
+        env = {k: v for k, v in os.environ.items() if k != "KBEVAL_ALLOW_PAID"}
+        env["PATH"] = str(self.tmp / "empty-bin")
+        with mock.patch.dict(os.environ, env, clear=True):
+            with self.assertRaises(krunner.PaidCallRefusedError):
+                krunner.ClaudeCli().run(["plugin", "eval", "."])
+
+    def test_runner_refuses_without_api_key(self):
+        cli = FakeCli(lambda args: (result_doc({}), 0, ""))
+        with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": ""}):
+            code, err = self.run_suite(cli)
+        self.assertNotEqual(code, 0)
+        self.assertIn("evals bill an API key; export ANTHROPIC_API_KEY", err)
+        self.assertEqual(cli.calls, [])
+
+
+class RunnerBatchTests(RunnerCase):
+    def test_batch_args(self):
+        cli = FakeCli(lambda args: (result_doc({case_arg(args).rstrip("*-"): [None]}), 0, ""))
+        code, _ = self.run_suite(cli)
+        self.assertEqual(code, 0)
+        out = self.state / "test" / "kb" / MODEL / "effects" / "j-demo"
+        self.assertEqual(
+            cli.calls[0],
+            ["plugin", "eval", str(self.plugin), "--eval-dir", "evals-effects", "--case", "j-demo--*",
+             "--runs", "3", "--model", MODEL, "--judge-model", JUDGE, "--ablation", "none",
+             "--threshold", "0", "--trust-plugin", "--scaffold", "--no-publish", "-j", "8",
+             "--json", f"{out}.json", "--output-dir", str(out), "--max-cost-usd", "60.00",
+             "--allow-tools", "Bash", "Write", "Edit"],
+        )
+
+    def test_triggers_get_no_write_tools(self):
+        cli = FakeCli(lambda args: (result_doc({"x": [None]}), 0, ""))
+        self.run_suite(cli, suite="triggers", assets=("demo-skill",))
+        self.assertNotIn("--allow-tools", cli.calls[0])
+
+    def test_workflows_batch_one_case_at_a_time(self):
+        cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}), 0, ""))
+        self.run_suite(cli, suite="workflows", assets=())
+        self.assertEqual([case_arg(c) for c in cli.calls], ["wf--demo-chain"])
+
+    def test_cap_is_remaining_minus_reserve(self):
+        kledger.append({"period": "p", "costUsd": 40.0}, self.ledger_path)
+        cli = FakeCli(lambda args: (result_doc({"x": [None]}), 0, ""))
+        self.run_suite(cli)
+        cap = cli.calls[0][cli.calls[0].index("--max-cost-usd") + 1]
+        self.assertEqual(cap, "20.00")
+        kledger.append({"period": "p", "costUsd": 30.0}, self.ledger_path)
+        cli = FakeCli(lambda args: (result_doc({"x": [None]}), 0, ""))
+        code, err = self.run_suite(cli, assets=("demo-skill",))
+        self.assertEqual(code, 2)
+        self.assertEqual(cli.calls, [])
+        self.assertIn("budget", err)
+
+    def test_cap_limit_bounds_the_invocation(self):
+        cli = FakeCli(lambda args: (result_doc({"x": [None]}, cost=4.0), 0, ""))
+        self.run_suite(cli, assets=("j-demo", "demo-skill"), cap_limit=10.0)
+        caps = [c[c.index("--max-cost-usd") + 1] for c in cli.calls]
+        self.assertEqual(caps, ["10.00", "6.00"])
+
+    def test_ledger_records_actual_cost(self):
+        cli = FakeCli(lambda args: (result_doc({"x": [None]}, cost=1.25), 0, ""))
+        self.run_suite(cli)
+        self.assertEqual([e["costUsd"] for e in self.entries()], [1.25])
+        self.assertEqual(self.entries()[0]["charged"], "actual")
+
+    def test_missing_json_charges_cap(self):
+        cli = FakeCli(lambda args: (None, 143, "terminated"))
+        code, _ = self.run_suite(cli)
+        self.assertNotEqual(code, 0)
+        self.assertEqual([(e["costUsd"], e["charged"]) for e in self.entries()], [(60.0, "cap")])
+
+    def test_null_cost_with_runs_aborts(self):
+        cli = FakeCli(lambda args: (result_doc({"x": [None]}, cost=None), 0, ""))
+        code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))
+        self.assertNotEqual(code, 0)
+        self.assertIn("cost", err)
+        self.assertEqual(len(cli.calls), 1)
+
+
+class LedgerTests(unittest.TestCase):
+    def test_ledger_append_is_locked(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        path = Path(tmp.name) / "ledger.jsonl"
+        script = (
+            "import sys; from pathlib import Path; from evals.kbeval import ledger\n"
+            "for i in range(200): ledger.append({'period': 'p', 'costUsd': 0.01, 'i': i}, Path(sys.argv[1]))\n"
+        )
+        procs = [
+            subprocess.Popen([sys.executable, "-c", script, str(path)], cwd=REPO, stdin=subprocess.DEVNULL)
+            for _ in range(2)
+        ]
+        for proc in procs:
+            self.assertEqual(proc.wait(timeout=60), 0)
+        lines = path.read_text().splitlines()
+        self.assertEqual(len(lines), 400)
+        for line in lines:
+            json.loads(line)
+        self.assertAlmostEqual(kledger.spent("p", path), 4.0)
+
+    def test_snapshot_writes_period_totals(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        path = Path(tmp.name) / "ledger.jsonl"
+        kledger.append({"period": "p", "purpose": "pilot", "model": "m", "costUsd": 1.5}, path)
+        kledger.append({"period": "q", "purpose": "pilot", "model": "m", "costUsd": 9.0}, path)
+        out = Path(tmp.name) / "spend.json"
+        kledger.snapshot(out, "p", path)
+        doc = json.loads(out.read_text())
+        self.assertEqual(doc["period"], "p")
+        self.assertEqual(doc["totals"]["totalUsd"], 1.5)
+        self.assertEqual(doc["totals"]["byPurpose"], {"pilot": 1.5})
+
+
+class RunnerResumeTests(RunnerCase):
+    def test_runner_reruns_only_api_errors(self):
+        main = {"j-demo--effect-cache": ["API error: 429 rate_limit_error", None, "timed out after 900s"]}
+
+        def responder(args):
+            if case_arg(args) == "j-demo--*":
+                return result_doc(main), 1, "ended on an API error"
+            return result_doc({case_arg(args): [None, None, None]}), 0, ""
+
+        cli = FakeCli(responder)
+        code, _ = self.run_suite(cli)
+        self.assertEqual(code, 0)
+        self.assertEqual([case_arg(c) for c in cli.calls], ["j-demo--*", "j-demo--effect-cache"])
+        again = FakeCli(responder)
+        self.run_suite(again)
+        self.assertEqual(again.calls, [])
+
+    def test_changed_case_reruns_the_batch(self):
+        cli = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
+        self.run_suite(cli)
+        prompt = self.plugin / "evals-effects" / "j-demo--effect-cache" / "prompt.md"
+        prompt.write_text(prompt.read_text() + "\nMore.\n")
+        again = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
+        self.run_suite(again)
+        self.assertEqual(len(again.calls), 1)
+
+    def test_timeouts_and_turn_caps_are_results(self):
+        doc = result_doc({"j-demo--effect-cache": ["timed out after 900s", "hit max_turns (40)"]})
+        cli = FakeCli(lambda args: (doc, 0, ""))
+        self.run_suite(cli)
+        self.assertEqual(len(cli.calls), 1)
+
+    def test_runner_stops_on_load_or_auth_failure(self):
+        cli = FakeCli(lambda args: (None, 1, "No eval cases found"))
+        code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))
+        self.assertEqual(code, 1)
+        self.assertIn("No eval cases found", err)
+        self.assertEqual(len(cli.calls), 1)
+        self.ledger_path.unlink()  # the missing JSON above charged its full cap
+        cli = FakeCli(lambda args: (result_doc({}, partial=True, reason="auth_failed"), 2, ""))
+        code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))
+        self.assertEqual(code, 2)
+        self.assertIn("auth_failed", err)
+        self.assertEqual(len(cli.calls), 1)
+
+    def test_results_scanned_for_key(self):
+        def responder(args):
+            out = Path(args[args.index("--output-dir") + 1])
+            out.mkdir(parents=True, exist_ok=True)
+            (out / "transcript.jsonl").write_text('{"text": "sk-ant-leaked"}\n')
+            return result_doc({"x": [None]}), 0, ""
+
+        code, err = self.run_suite(FakeCli(responder))
+        self.assertNotEqual(code, 0)
+        self.assertIn("transcript.jsonl", err)
+        self.assertIn("rotate the key", err)
+
+
+from evals.kbeval import orchestrate as korch  # noqa: E402
+
+
+class OrchestrateTests(RunnerCase):
+    def setUp(self):
+        super().setUp()
+        (self.repo / "evals" / "budget.json").write_text(json.dumps(self.budget))
+        (self.repo / "evals" / "README.md").write_text("# evals\n")
+        for patch in (
+            mock.patch.object(korch, "REPO", self.repo),
+            mock.patch.dict(os.environ, {"XDG_STATE_HOME": str(self.tmp / "xdg")}),
+        ):
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def calls_for(self, cli, staging: str) -> list:
+        root = str(korch.state_root() / "stage" / staging)
+        return [c for c in cli.calls if c[2].startswith(root + "/")]
+
+    def test_smoke_samples_the_first_vanilla_effect_cases(self):
+        for slug in ("b", "c", "d", "e"):
+            write_case(
+                self.repo, "effects", f"demo-skill--effect-{slug}", EFFECT_FM,
+                "Design a rate limiter and save the design to ./design.md.",
+                {"result": LLM_RESULT, "fired": skill_fired("demo-skill")},
+            )
+        cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=0.1), 0, ""))
+        status = korch.smoke(["demo-agent", "demo-skill", "j-demo"], cli=cli)
+        self.assertEqual(status, 0)
+        vanilla = [case_arg(c) for c in self.calls_for(cli, "vanilla")]
+        self.assertEqual(
+            vanilla,
+            ["demo-agent--effect-review", "demo-skill--effect-b", "demo-skill--effect-c",
+             "demo-skill--effect-d", "demo-skill--effect-e"],
+        )
+        kb_runs = {c[c.index("--runs") + 1] for c in self.calls_for(cli, "kb")}
+        self.assertEqual(kb_runs, {"1"})
+
+    def test_baseline_runs_vanilla_only_for_listed_models(self):
+        cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=0.1), 0, ""))
+        korch.baseline("claude-sonnet-5-5", vanilla_models=["claude-opus-5-5"], cli=cli)
+        self.assertEqual(self.calls_for(cli, "vanilla"), [])
+        self.assertEqual({c[c.index("--runs") + 1] for c in self.calls_for(cli, "kb")}, {"3"})
+        cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=0.1), 0, ""))
+        korch.baseline("claude-opus-5-5", vanilla_runs=1, vanilla_models=["claude-opus-5-5"], cli=cli)
+        vanilla = self.calls_for(cli, "vanilla")
+        self.assertTrue(vanilla)
+        self.assertEqual({c[c.index("--runs") + 1] for c in vanilla}, {"1"})

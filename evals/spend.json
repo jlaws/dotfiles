@@ -1,1 +1,8 @@
-{"period": "initial-baseline-2026-11", "totals": {}}
+{
+  "period": "initial-baseline-2026-11",
+  "totals": {
+    "byModel": {},
+    "byPurpose": {},
+    "totalUsd": 0.0
+  }
+}
