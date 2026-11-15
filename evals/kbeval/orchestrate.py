@@ -88,13 +88,13 @@ def smoke(assets: List[str], jobs: int = 8, cli: Optional[runner.Cli] = None) ->
         if not chosen:
             continue
         options = {"plugin": kb, "state": state_root() / "results",
-                   "cap_limit": _capped(purpose, float(budget["smokeCapUsd"]))}  # fmt: skip
+                   "cap_limit": _capped(purpose, float(budget["smokeCapUsd"])), "keep_temp": True}  # fmt: skip
         status = runner.run(suite, "kb", SMOKE_MODEL, 1, purpose, chosen, jobs, cli, **options)
         if status != 0:
             return status
     for name in _effect_cases(vanilla, plain)[:VANILLA_SAMPLE]:
         options = {"plugin": vanilla, "state": state_root() / "results",
-                   "cap_limit": _capped(purpose, float(budget["smokeCapUsd"]))}  # fmt: skip
+                   "cap_limit": _capped(purpose, float(budget["smokeCapUsd"])), "keep_temp": True}  # fmt: skip
         status = runner.run("effects", "vanilla", SMOKE_MODEL, 1, purpose, [name], jobs, cli, **options)
         if status != 0:
             return status

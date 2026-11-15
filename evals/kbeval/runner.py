@@ -93,6 +93,17 @@ def _runs(doc: dict) -> List[Tuple[str, Optional[str]]]:
     return found
 
 
+def _trace_paths(doc: dict) -> List[str]:
+    """Return every run's kept trace path (present only under --keep-temp)."""
+    return [
+        run["tracePath"]
+        for case in doc.get("cases", [])
+        for arm in (case.get("arms") or {}).values()
+        for run in arm or []
+        if run.get("tracePath")
+    ]
+
+
 def _api_error_cases(doc: dict) -> List[str]:
     return sorted({name for name, error in _runs(doc) if error and API_ERROR.search(str(error))})
 
@@ -147,6 +158,7 @@ class _Batches:
         self.budget: dict = options.get("budget") or load_budget()
         self.p95: float = options.get("p95") if options.get("p95") is not None else read_p95()
         self.cap_limit: Optional[float] = options.get("cap_limit")
+        self.keep_temp: bool = bool(options.get("keep_temp"))
         self.invocation_spent = 0.0
         self.version = cli.version()
         self.eval_dir = f"evals-{suite}"
@@ -200,6 +212,8 @@ class _Batches:
             "-j", str(self.jobs), "--json", str(json_path), "--output-dir", str(out_dir),
             "--max-cost-usd", f"{cap:.2f}",
         ]  # fmt: skip
+        if self.keep_temp:
+            args.append("--keep-temp")
         if self.suite != "triggers":
             args += ["--allow-tools", *WRITE_TOOLS]
         if json_path.exists():
@@ -219,7 +233,8 @@ class _Batches:
             _err(f"{label}: result reports runs but cost is {cost!r}; aborting (charged the cap)")
             return 1, None
         self.charge(label, float(cost or 0.0), "actual")
-        leaked = _scan_for_key([json_path, out_dir])
+        traces = [Path(p) for p in _trace_paths(doc) if Path(p).is_file()]
+        leaked = _scan_for_key([json_path, out_dir, *traces])
         if leaked is not None:
             _err(f"{label}: sk-ant- found in {leaked}; aborting: rotate the key.")
             return 3, None
@@ -268,7 +283,8 @@ def run(
     """Run one suite for one staging and model, one batch per asset; return an exit status.
 
     Options: `plugin` (staged plugin dir, required), `state` (results root), `ledger_path`,
-    `budget` (dict), `p95` (USD per run), `cap_limit` (USD ceiling for this invocation).
+    `budget` (dict), `p95` (USD per run), `cap_limit` (USD ceiling for this invocation),
+    `keep_temp` (keep each run's temp dir so its trace can be read; smoke sets it).
     """
     if not os.environ.get("ANTHROPIC_API_KEY"):
         _err("evals bill an API key; export ANTHROPIC_API_KEY")

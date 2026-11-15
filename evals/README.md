@@ -165,7 +165,55 @@ Checked on `2.1.325 (Claude Code)`: every flag the runner passes exists in
 
 ## Pilot measurements
 
-Empty until the pilot runs.
+Run 2026-11-15 on Claude Code 2.1.325, one run per case, judge `claude-fable-5-2`. Cost per run is
+the CLI's `costUsd` at list price, judge calls included.
+
+| Type | Model | Runs | Mean $/run | Max $/run |
+|---|---|---|---|---|
+| trigger | Opus 5.5 | 2 | 0.12 | 0.14 |
+| trigger | Sonnet 5.5 | 2 | 0.06 | 0.07 |
+| effect-skill | Opus 5.5 | 2 | 0.12 | 0.15 |
+| effect-skill | Sonnet 5.5 | 2 | 0.05 | 0.07 |
+| effect-command | Opus 5.5 | 5 | 0.42 | 0.98 |
+| effect-command | Sonnet 5.5 | 4 | 0.13 | 0.21 |
+| effect-agent | both | 0 | not measured; extrapolated at the effect-command rate | |
+
+Reserve p95: $1.00
+
+Harness checks (kb staging):
+
+| Check | Result | Evidence |
+|---|---|---|
+| References readable | yes | A probe told only "references/workflow/hook-patterns.md" read `./.kb-references/workflow/hook-patterns.md` on its first tool call |
+| `kb:` agents resolve | yes | The run's init lists `kb:architecture-specialist` and every other KB agent; the Opus j-arch run dispatched it |
+| `/kb:` commands expand | yes | A probe given `/kb:j-arch` quoted the command body verbatim with no tool call |
+| Model and judge IDs | yes | Runs report `claude-opus-5-5` and `claude-sonnet-5-5`; judge votes ran on `claude-fable-5-2` |
+| `sk-ant-` in results or traces | none | Scanned after every batch and in the kept probe traces |
+
+Branch taken: none. `commandForm` stays `slash` and `refsMode` stays `workspace`.
+
+The CLI deletes each run's trace unless `--keep-temp` is passed, so smoke runs pass it and their
+traces stay under `/private/tmp/e-*` (sealed, read-only) for transcript review; the key scan covers
+them.
+
+**Extrapolation.** Planned cases, from the coverage rules: about 124 trigger cases, about 187
+effect cases (about 71 skill, 76 command, 39 agent, counting third cases), and 4 workflow cases.
+Three runs per case; effects and workflows run in both stagings. Workflows are priced at five times
+the effect-command rate.
+
+| Item | Opus 5.5 | Sonnet 5.5 |
+|---|---|---|
+| Triggers (kb only) | $45 | $24 |
+| Effects, skill | $50 | $23 |
+| Effects, command | $189 | $61 |
+| Effects, agent | $97 | $31 |
+| Workflows | $48 | $17 |
+| Baseline total | $429 | $156 |
+
+Projected total: $585 for both baselines, plus up to $160 of smoke (four case PRs at the $40 cap),
+plus the $8 reserve (8 jobs at the $1.00 p95), about $753 against the $2,500 budget. The pilot cases
+were small; heavy multi-agent commands will cost more per run, so the baseline step re-extrapolates from
+smoke data.
 
 ## Baseline
 

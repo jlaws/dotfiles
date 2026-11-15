@@ -606,6 +606,22 @@ class RunnerBatchTests(RunnerCase):
              "--allow-tools", "Bash", "Write", "Edit"],
         )
 
+    def test_keep_temp_traces_are_scanned_for_key(self):
+        trace = self.tmp / "kept" / "out" / "trace.jsonl"
+
+        def responder(args):
+            trace.parent.mkdir(parents=True, exist_ok=True)
+            trace.write_text('{"text": "sk-ant-leaked"}\n')
+            doc = result_doc({"j-demo--effect-cache": [None]})
+            doc["cases"][0]["arms"]["with"][0]["tracePath"] = str(trace)
+            return doc, 0, ""
+
+        cli = FakeCli(responder)
+        code, err = self.run_suite(cli, keep_temp=True)
+        self.assertIn("--keep-temp", cli.calls[0])
+        self.assertNotEqual(code, 0)
+        self.assertIn("trace.jsonl", err)
+
     def test_triggers_get_no_write_tools(self):
         cli = FakeCli(lambda args: (result_doc({"x": [None]}), 0, ""))
         self.run_suite(cli, suite="triggers", assets=("demo-skill",))
@@ -785,6 +801,7 @@ class OrchestrateTests(RunnerCase):
         )
         kb_runs = {c[c.index("--runs") + 1] for c in self.calls_for(cli, "kb")}
         self.assertEqual(kb_runs, {"1"})
+        self.assertTrue(all("--keep-temp" in c for c in cli.calls))
 
     def test_baseline_runs_vanilla_only_for_listed_models(self):
         cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=0.1), 0, ""))
