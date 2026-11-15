@@ -85,8 +85,8 @@ python3 .claude/skills/skill-audit/scripts/memory.py
 With no `--memory-dir` it checks every store; pass `--memory-dir DIR` (repeatable) to scope it, and
 `--json` for machine output. Symlinked stores are checked once. Exit 1 on any FAIL, 2 on a bad
 argument. It checks the index (present, no dangling entries, every file indexed, at most 200 lines
-and 25KB because the harness loads only the first 200 lines or 25KB, whichever comes first, per
-code.claude.com/docs/en/memory; lines at most 150 characters as a WARN), frontmatter (`name`,
+and 25KB because the harness loads only the first 200 lines or 25KB, whichever comes first;
+lines at most 150 characters as a WARN), frontmatter (`name`,
 `description`, `type`), `[[wikilinks]]`, which resolve to a memory's `name` or file stem with
 underscores and hyphens treated alike, and that every `*.md` entry is a readable UTF-8 file inside
 the store. An unreadable entry is a FAIL, not a crash, so one bad file never hides another store's

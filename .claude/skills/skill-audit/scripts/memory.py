@@ -12,7 +12,7 @@ Checks, per store:
   FAIL index-dangling  an index entry links a file that does not exist inside the store
   FAIL unindexed       a memory file no index entry links (the harness will never surface it)
   FAIL index-too-long  MEMORY.md exceeds 200 lines or 25KB; the harness loads only the first 200
-                       lines or 25KB, whichever comes first (code.claude.com/docs/en/memory)
+                       lines or 25KB, whichever comes first
   FAIL frontmatter     a memory file lacks `name`, `description`, or `type`
   FAIL wikilink        a `[[slug]]` names no memory by its `name` or file stem (underscores and
                        hyphens match; `[[slug|alias]]` and `[[slug#heading]]` resolve by slug)

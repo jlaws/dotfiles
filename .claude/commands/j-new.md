@@ -42,8 +42,7 @@ context, so a tier pin costs no cache there. Agents set one (`AG-F8`): an alias 
 `haiku`, `fable`) or `inherit`, never a pinned ID, because aliases float across model generations.
 Set `effort` on a command or inline skill only to lower it (`low`, `medium`) for reliably cheap,
 procedural work; otherwise leave it unset so it runs at the session's effort. Raising it buys little for its
-cost: in Anthropic's measurements `xhigh` cost 2.5x `high` for 1.4 points on long-horizon coding
-(Opus 5.5), and knowledge work gained nothing above `medium` (Fable 5). The lowered tiers are set by
+cost. The lowered tiers are set by
 judgment, not measured. On first-party Claude models that support per-message effort, an override
 keeps the prompt cache; on Bedrock, Vertex, and gateways it re-reads the history, so skip it there
 when the gain is marginal.

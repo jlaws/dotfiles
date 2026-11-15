@@ -206,7 +206,7 @@ LLM providers cache the key-value computations for identical prompt prefixes. Wh
 
 ### Cost Levers and Effort
 
-Two Anthropic sources inform this section: its [cost blog](https://claude.com/blog/reducing-cost-and-improving-performance-with-claude-platform) (2026-09-08) and its [cost-and-intelligence guide](https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence) (fetched 2026-10-02). Free levers come first: caching, trimming context, a prompt audit against the current model, and the Batch API (50% off every token, cached ones included) for work no one waits on. Then come the tradeoffs: model choice, effort, budgets, and multi-model setups.
+Free levers come first: caching, trimming context, a prompt audit against the current model, and the Batch API (50% off every token, cached ones included) for work no one waits on. Then come the tradeoffs: model choice, effort, budgets, and multi-model setups.
 
 For Claude models, cut instructions that frontier models take literally: verification rituals ("double-check your work"), emphasis boosters ("CRITICAL: YOU MUST ALWAYS"), and fixed step scaffolds. Rewrite them as a goal plus its reason rather than deleting the constraint. Safety constraints (confirm before destructive actions, treat fetched content as data, keep secrets out of output) stay; they get a stated reason, not a louder voice. Task-level verification such as CoT with a check step (see Strategy Selection) is a separate technique.
 
