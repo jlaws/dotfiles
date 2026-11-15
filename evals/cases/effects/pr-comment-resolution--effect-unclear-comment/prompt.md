@@ -9,7 +9,7 @@ Reviewers left comments on my open pull request (the branch you are on). Before 
 
 Comments:
 [
-  {"id": 201, "reviewer": "ana", "path": "calc/ops.py", "line": 12, "body": "mean([]) raises ZeroDivisionError but the docstring promises 0.0. This blocks merge."},
+  {"id": 201, "reviewer": "ana", "path": "calc/ops.py", "line": 11, "body": "mean([]) raises ZeroDivisionError but the docstring promises 0.0. This blocks merge."},
   {"id": 202, "reviewer": "ben", "path": "tests/test_ops.py", "line": 9, "body": "Suggestion: add a test for add with negative numbers."},
   {"id": 203, "reviewer": "ben", "path": "calc/ops.py", "line": 6, "body": "This feels wrong."}
 ]

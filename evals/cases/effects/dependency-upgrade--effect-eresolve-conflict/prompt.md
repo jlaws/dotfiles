@@ -23,4 +23,4 @@ npm ERR! node_modules/enzyme-adapter-react-16
 npm ERR!   dev enzyme-adapter-react-16@"^1.15.8" from the root project
 ```
 
-Write ./resolution.md saying what is actually causing the conflict and how we should resolve it, with the exact commands we should run. Assume you cannot run npm here.
+Write ./resolution.md saying what is actually causing the conflict and how we should resolve it, with the exact commands we should run. If you suggest an override, include a comment saying why it exists. Also say how the lockfile and installs in CI should be handled. Assume you cannot run npm here.

@@ -1,5 +1,5 @@
 ---
-tags: [effects, effect]
+tags: [effects, effect, heavy]
 max_turns: 40
 timeout_seconds: 900
 allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]

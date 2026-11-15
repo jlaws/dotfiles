@@ -5,7 +5,7 @@ timeout_seconds: 900
 allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]
 ---
 
-Carry out the plan below. First save it unchanged to ./plans/plan.md and keep that file up to date as you go: tick off tasks in a Progress checklist that records the commit SHA of each finished phase, log judgment calls in a Decision Log, and record anything that differed from what the plan expected in a Surprises & Discoveries section, quoting the actual terminal output. Leave exactly one commit per phase and finish with `git log --oneline > ./log.txt`.
+Carry out the plan below. First save it unchanged to ./plans/plan.md and keep that file up to date as you go: tick off tasks in a Progress checklist that records the commit SHA of each finished phase, log judgment calls in a Decision Log, and record anything that differed from what the plan expected in a Surprises & Discoveries section, quoting the actual terminal output. A phase's SHA exists only after its commit, so record it in plans/plan.md after committing; the phase 1 SHA rides along in the phase 2 commit, and the phase 2 SHA stays as the last, uncommitted change. Leave exactly one commit per phase and finish with `git log --oneline > ./log.txt`.
 
 PLAN
 Phase 1: Empty mean

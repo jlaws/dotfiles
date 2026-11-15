@@ -1,5 +1,5 @@
 ---
 type: tool_order
-before: { tool: Edit, input_match: 'test/todo' }
-after: { tool: Edit, input_match: 'src/todo' }
+before: { tool: Edit, input_match: '"file_path"\s*:\s*"[^"]*test/todo\.test\.js"' }
+after: { tool: Edit, input_match: '"file_path"\s*:\s*"[^"]*src/todo\.js"' }
 ---

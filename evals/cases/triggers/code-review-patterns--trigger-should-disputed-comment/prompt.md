@@ -5,4 +5,4 @@ timeout_seconds: 120
 allowed_tools: [Skill, Read, Glob, Grep]
 ---
 
-A reviewer left six comments on my pull request and I think two of them are wrong for our codebase. How should I respond to them, and in what order should I work through the changes?
+When a code reviewer suggests a change I think is wrong for our codebase, how should I decide between pushing back and just making the change, and how do I word the pushback so it stays technical rather than personal?

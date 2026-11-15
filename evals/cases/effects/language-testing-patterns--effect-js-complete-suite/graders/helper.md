@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: 'createTodo\s*\(\s*overrides'
+pattern: 'createTodo\b[^\n]*\boverrides'
 target: { source: file, path: test/todo.test.js }
 ---

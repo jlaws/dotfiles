@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: 'function removeTodo\(\s*list\s*,\s*id'
+pattern: '(?:function\s+removeTodo\s*|removeTodo\s*=\s*(?:function\s*)?)\(\s*list\s*,\s*id\b'
 target: { source: file, path: src/todo.js }
 ---

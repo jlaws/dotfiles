@@ -9,8 +9,8 @@ Reviewers left comments on my open pull request (the branch you are on). The PR 
 
 Comments:
 [
-  {"id": 101, "reviewer": "ana", "path": "calc/ops.py", "line": 12, "body": "mean([]) raises ZeroDivisionError but the docstring promises 0.0. This blocks merge."},
+  {"id": 101, "reviewer": "ana", "path": "calc/ops.py", "line": 11, "body": "mean([]) raises ZeroDivisionError but the docstring promises 0.0. This blocks merge."},
   {"id": 102, "reviewer": "ana", "path": "README.md", "line": 5, "body": "Suggestion: also document mean and add in the README."},
-  {"id": 103, "reviewer": "ben", "path": "calc/ops.py", "line": 12, "body": "Question: why return 0.0 and not None for an empty list?"},
+  {"id": 103, "reviewer": "ben", "path": "calc/ops.py", "line": 11, "body": "Question: why return 0.0 and not None for an empty list?"},
   {"id": 104, "reviewer": "ben", "path": "calc/ops.py", "line": 11, "body": "nit: rename xs to values."}
 ]

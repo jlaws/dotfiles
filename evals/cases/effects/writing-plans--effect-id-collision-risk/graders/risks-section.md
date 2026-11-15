@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: 'risks'
-flags: i
+pattern: '^#+\s*risks?\b'
+flags: im
 target: { source: file, path: plans/plan.md }
 ---

@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: 'prefers-color-scheme'
+pattern: 'color-scheme|light-dark\('
 target: { source: file, path: report.html }
 ---

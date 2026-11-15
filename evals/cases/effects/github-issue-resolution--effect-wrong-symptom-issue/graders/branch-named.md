@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: '38'
+pattern: '(?:^|[^0-9])38(?:[^0-9]|$)'
 target: { source: file, path: branch.txt }
 ---

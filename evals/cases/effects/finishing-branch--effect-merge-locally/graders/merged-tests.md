@@ -1,5 +1,6 @@
 ---
 type: regex
-pattern: 'OK\s*$'
+pattern: '^OK'
+flags: m
 target: { source: file, path: merged-tests.txt }
 ---
