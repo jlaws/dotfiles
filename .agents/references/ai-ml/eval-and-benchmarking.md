@@ -13,7 +13,26 @@
 | Translation | COMET, BLEURT | chrF, BLEU | BLEU without normalization |
 | Reasoning | Accuracy (MCQ) | Chain-of-thought analysis | Single-benchmark conclusions |
 
-**Decision rule**: If human eval is feasible, do it. If not, LLM-as-judge + at least one automatic metric. Never rely on a single metric.
+**Decision rule**: Use the cheapest grader that fits: code checks for constrained output, an LLM judge with checkable claims for open-ended output. Human review validates the judge on a sample. Never rely on a single metric.
+
+## Eval Task Design
+
+Source tasks in this order: production transcripts, bug reports, a handful written by hand, then synthetic cases anchored on those. Read every input before it enters the set. Choose hard cases on purpose, never only today's failures; a set built from current failures measures one fix and goes stale.
+
+### Validity Checks
+
+- **Sensitivity**: a known-better system scores higher and a known-worse one lower. A task nothing moves measures nothing.
+- **Headroom**: read the failures that fail every replicate. A task no system can pass is broken or unfair, not hard.
+- **Expert agreement**: an expert grading the same output reaches the grader's verdict. This only holds when the task states every graded criterion.
+- **Stability**: replicate scores agree. When they do not, look for an ambiguous task, a flaky grader, mixed effort settings, or state left over from an earlier run.
+
+### Golden Sets
+
+- One task per production chain and per must-not-break rule.
+- Every incident becomes a task.
+- Start the set before the first change, so the change has a baseline.
+- Run it on a schedule and on every change to instructions, skills, hooks, or tool descriptions.
+- Rerun it on each new model.
 
 ## lm-evaluation-harness
 
@@ -154,31 +173,60 @@ print(f"Diff: {result['observed_diff']:.3f}, p={result['p_value']:.3f}")
 ## LLM-as-Judge
 
 ```python
-JUDGE_PROMPT = """Rate the following response on a scale of 1-5.
-
-Criteria:
-- Accuracy: Does the response correctly answer the question?
-- Completeness: Does it cover all relevant aspects?
-- Conciseness: Is it free of unnecessary information?
+JUDGE_PROMPT = """Grade the response against each claim below.
 
 Question: {question}
 Reference Answer: {reference}
 Model Response: {response}
 
-Output ONLY a JSON object: {{"score": <1-5>, "reasoning": "<brief explanation>"}}"""
+Claims:
+{claims}
 
-def llm_judge(client, question, reference, response):
+For each claim, in order, output PASS or FAIL and one sentence of reasoning.
+Output ONLY a JSON list: [{{"claim": 1, "verdict": "PASS", "reasoning": "..."}}, ...]"""
+
+def llm_judge(client, question, reference, response, claims):
+    """Score is the fraction of per-task claims that pass."""
+    numbered = "\n".join(f"{i}. {c}" for i, c in enumerate(claims, 1))
     result = client.chat.completions.create(
         model=JUDGE_MODEL,  # strong frontier model, from config -- not a pinned ID
         messages=[{"role": "user", "content": JUDGE_PROMPT.format(
-            question=question, reference=reference, response=response
+            question=question, reference=reference, response=response, claims=numbered
         )}],
-        temperature=0,
     )
-    return json.loads(result.choices[0].message.content)
+    verdicts = json.loads(result.choices[0].message.content)
+    if len(verdicts) != len(claims):
+        raise ValueError(f"judge returned {len(verdicts)} verdicts for {len(claims)} claims")
+    return sum(v["verdict"] == "PASS" for v in verdicts) / len(claims)
 ```
 
-**Gotcha**: LLM judges have position bias (prefer the first response in pairwise eval). Always run comparisons in both orders and average.
+Write claims per task, each one checkable against the response ("names the off-by-one in `parse()`"), never a vague quality rating. Sampling settings follow the effort rule in Common Mistakes.
+
+**Gotcha**: LLM judges have position bias (they prefer the first response in pairwise eval). Run pairwise comparisons blind, with the order shuffled per pair. On small sets, run both orders and count a split verdict as a tie.
+
+**Judge validation**:
+- The judge model differs from the model under test.
+- Hand-grade a handful of outputs and compare with the judge.
+- Rerun the judge on the same outputs; verdicts that flip mark an ambiguous claim.
+- Plumbing failures (a parse error, a claim-count mismatch) surface as errors, never as a score.
+
+## Hillclimbing
+
+1. Scope one objective on a cheap surface, with a coupled metric that must not regress.
+2. Baseline: average repeats per task, then bootstrap over tasks with `bootstrap_ci` until the interval is narrower than the smallest gain worth acting on. If the headroom is smaller than that, switch the objective to cost or latency.
+3. Split tasks into train and test at random.
+4. Make one root-cause change per round.
+5. Keep a change only when train and test both rise beyond noise. Revert on a train-only gain or any regression. Inspect the tasks that flipped with `paired_bootstrap_test`.
+6. After two rounds with no kept change, sort every remaining train failure by cause before trying again.
+7. Finish on the version that is best on test, confirm it on unseen tasks, and recommend against merging gains within noise.
+
+### Overfitting
+
+- Write rules for the capability, not for one task's wording.
+- Fix causes, not cases, and cap case-specific edits.
+- Keep failure content out of prompts.
+- Keep answers unreachable from the system under test.
+- Test each change on the failures, the golden set, and a random sample.
 
 ## Contamination Detection
 

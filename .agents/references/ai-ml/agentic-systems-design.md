@@ -289,7 +289,7 @@ def debate_agents(question: str, rounds: int = 2) -> str:
 
 ### Fold or Keep a Subagent
 
-Fold a specialist into the main loop when it chains on another's output, touches the same data, or is usually called together with it; fold routers and planners the model can do itself. Keep a subagent for one of three reasons: its work would bloat the main context, it runs in parallel with context you can discard, or its tools conflict with the main agent's. Do not split agents by team or problem type; that copies the org chart, not the work. Fold one subagent at a time, and keep it only if the folded version scores worse on your evals.
+Fold a specialist into the main loop when it chains on another's output, touches the same data, or is usually called together with it; fold routers and planners the model can do itself. Keep a subagent for one of three reasons: its work would bloat the main context, it runs in parallel with context you can discard, or its tools conflict with the main agent's. Do not split agents by team or problem type; that copies the org chart, not the work. Fold one subagent at a time, and keep it only if the folded version scores worse on your evals. Build that eval before the first fold (references/ai-ml/eval-and-benchmarking.md, Golden Sets). Measure routing accuracy before folding and skill-load accuracy after, on the same tasks.
 
 ## Agent Evaluation
 
@@ -300,6 +300,8 @@ Fold a specialist into the main loop when it chains on another's output, touches
 | **Step efficiency** | How many steps to solve? | Count tool calls; compare to optimal path |
 | **Cost per solved task** | What does each passing task cost? | Price all five usage classes (uncached input, 5m and 1h cache writes, cache reads, output) across the task's calls; divide total spend by tasks that pass |
 | **Hallucination rate** | Did it fabricate tool results or facts? | Check claims against tool outputs |
+| **Routing accuracy** | Did the coordinator send each task to the right subagent? | Compare chosen subagent to the expected one per task |
+| **Skill-load accuracy** | After folding, did the main loop load the right skill? | Compare loaded skills to the expected one per task |
 
 ```python
 def evaluate_agent(agent_fn, test_cases: list[dict]) -> dict:
@@ -381,5 +383,5 @@ Each handoff between agents adds latency and token cost. Minimize cross-agent ca
 
 ### Evaluation Pitfalls
 - Don't evaluate agents only on final answer; inspect the full tool call trace
-- Agent behavior is non-deterministic; run evals 3-5 times and report variance
-- Test adversarial inputs: ambiguous questions, impossible tasks, tasks requiring tools the agent doesn't have
+- Agent behavior is non-deterministic; check replicate stability (references/ai-ml/eval-and-benchmarking.md, Validity Checks)
+- Test adversarial inputs: ambiguous questions, impossible tasks, tasks requiring tools the agent doesn't have; grade these on the right move (ask, decline, or name what is missing) so each stays passable

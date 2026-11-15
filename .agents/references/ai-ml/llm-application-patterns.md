@@ -191,7 +191,7 @@ LLM providers cache the key-value computations for identical prompt prefixes. Wh
 
 - Version prompts by hashing `template + model + generation settings` (temperature, or effort and thinking on Claude; SHA256 prefix)
 - Store as dataclass with `name`, `template`, `model`, `settings`, `version`
-- Evaluate by running test cases through the prompt, comparing predictions to expected values
+- Evaluate by running test cases through the prompt, comparing predictions to expected values; keep them as a golden set (references/ai-ml/eval-and-benchmarking.md, Golden Sets)
 - Track accuracy per version to detect regressions when prompts change
 
 ## Production Guardrails
@@ -241,7 +241,7 @@ that is the number an advisor pairing has to beat.
 
 ### Measuring Cost on Your Workload
 
-1. Pull real tasks weighted like traffic, write an outcome check for each, and record cost per task from the response `usage`. Price five classes at their own rates: uncached input, 5-minute and 1-hour cache writes (1.25x and 2x input), cache reads, and output. See ai-ml:llmops-production-monitoring for a tracker
+1. Pull real tasks weighted like traffic (references/ai-ml/eval-and-benchmarking.md, Eval Task Design), write an outcome check for each, and record cost per task from the response `usage`. Price five classes at their own rates: uncached input, 5-minute and 1-hour cache writes (1.25x and 2x input), cache reads, and output. See ai-ml:llmops-production-monitoring for a tracker
 2. Baseline each model tier across effort levels, and plot score against spend
 3. Add a multi-model strategy only if effort cannot close the gap, then re-run the suite
 4. Shadow the winner on a traffic slice before cutover, and keep the suite running

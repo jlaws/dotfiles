@@ -175,6 +175,20 @@ cause is that the skill never said why the step mattered.
 
 Classify the failure before choosing the fix. A skipped rule gets a prohibition with its reason. A wrong output shape gets a positive recipe that states the target, because a "don't" names the unwanted shape and invites it. An omitted element gets a checklist item. Every step ends in a completion criterion that is checkable and exhaustive; a vague bound invites stopping early.
 
+## Eval triggering and effect
+
+Test two things separately. **Triggering**: write should-trigger and near-miss prompts in users'
+words, never naming the skill; fix misses through `description`, or `disable-model-invocation` for a
+skill only the user should start. **Effect**: run the same tasks with and without the skill. Grade
+each task with one result grader (the produced file or answer) and one process grader (the skill
+loaded, or the expected tool ran). Change one thing per round
+(`references/ai-ml/eval-and-benchmarking.md`, Hillclimbing).
+
+Tooling: skill-creator evaluates a single skill. `claude plugin eval` needs a plugin directory,
+isolates each run, and bills each run. To evaluate a plain skills tree, stage it into a temporary
+plugin: copy skills, commands, and agents; add `.claude-plugin/plugin.json`; add a scaffold script
+that copies references into each run's workspace.
+
 ## Before you ship
 
 - [ ] Every section passes one of the four tests above

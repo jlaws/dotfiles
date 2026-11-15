@@ -1838,6 +1838,22 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         ]
         self.assertEqual(inert, [], "inert disable-model-invocation in .agents skills")
 
+    def test_llm_judges_grade_checkable_claims(self):
+        """A 1-5 rating is not checkable and drifts between judge runs; judges grade per-task
+        PASS/FAIL claims instead, and the eval reference owns task design and hillclimbing."""
+        banned = ("scale of 1-5", "1-5 scale", "<1-5>", "both orders and average")
+        for tree in (".claude", ".agents"):
+            root = REPO / tree / "references" / "ai-ml"
+            for rel in ("eval-and-benchmarking.md", "dataset-management/synthetic-data-generation.md"):
+                text = (root / rel).read_text(encoding="utf-8")
+                for phrase in banned:
+                    with self.subTest(file=f"{tree}/{rel}", phrase=phrase):
+                        self.assertNotIn(phrase, text)
+            names = heading_texts((root / "eval-and-benchmarking.md").read_text(encoding="utf-8"))
+            for heading in ("Eval Task Design", "Validity Checks", "Golden Sets", "Hillclimbing", "Overfitting"):
+                with self.subTest(tree=tree, heading=heading):
+                    self.assertIn(heading, names)
+
 
 if __name__ == "__main__":
     unittest.main()
