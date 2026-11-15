@@ -313,6 +313,15 @@ class Audit:
                 unknown = sorted({t.strip() for t in fields["tools"].split(",")} - VALID_TOOLS)
                 if unknown:
                     self.add(WARN, "AG-F7", agent, f"unknown tools: {', '.join(unknown)}")
+            if "memory" in fields:
+                declared = {t.strip() for t in fields.get("tools", "").split(",")}
+                if not {"Write", "Edit"} <= declared:
+                    self.add(
+                        WARN,
+                        "AG-F9",
+                        agent,
+                        "sets `memory:`, which silently grants Write and Edit; list both in `tools`",
+                    )
 
             # A bare `model:` parses to "" rather than None, so `is None` alone reported an empty
             # value as a pinned ID: "pins model ``". Falsy means undeclared, whatever the spelling.

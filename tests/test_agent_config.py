@@ -1783,6 +1783,20 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 checked += 1
         self.assertGreater(checked, 0, "no command sets effort; the check is vacuous")
 
+    def test_agents_carry_no_persistent_memory(self):
+        """`memory:` auto-grants Write and Edit and injects an uncurated index outside the frozen
+        review packet, so no Claude agent sets it (docs/adr/workflow/
+        agents-carry-no-persistent-memory.md)."""
+        memory = re.compile(r"(?m)^memory:")
+        agents = sorted((REPO / ".claude" / "agents").glob("*.md"))
+        self.assertTrue(agents, "no Claude agents found; the check is vacuous")
+        offenders = [
+            path.name
+            for path in agents
+            if memory.search(path.read_text(encoding="utf-8").split("---", 2)[1])
+        ]
+        self.assertEqual(offenders, [], f"agents set memory: {offenders}")
+
 
 if __name__ == "__main__":
     unittest.main()

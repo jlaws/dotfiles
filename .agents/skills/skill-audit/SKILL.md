@@ -100,6 +100,7 @@ For each `.md` file under `.claude/agents/`:
 | AG-F6 | `tools` field exists | WARN | Should declare tool access |
 | AG-F7 | `tools` only lists valid tool names (Read, Grep, Glob, Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch, Agent, Skill) | WARN | Invalid tools ignored at runtime |
 | AG-F8 | `model` is a floating alias, never a pinned ID | WARN missing / FAIL pinned | A pinned ID degrades to an older model the day it is retired. Claude accepts `opus`, `sonnet`, `haiku`, `fable`, `inherit`; Gemini agents use `inherit`; Codex tunes `model_reasoning_effort` instead |
+| AG-F9 | An agent with `memory:` lists `Write` and `Edit` in `tools` | WARN | Memory grants them silently |
 
 **Content**
 

@@ -344,6 +344,37 @@ class AuditMissingTreeTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
 
+class AgentMemoryGrantTests(unittest.TestCase):
+    """AG-F9: `memory:` silently grants Write and Edit, so the agent must list them in `tools`."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def findings(self, extra: str):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for sub in ("agents", "skills", "commands", "references"):
+            (root / ".claude" / sub).mkdir(parents=True)
+        (root / ".claude" / "agents" / "probe.md").write_text(
+            "---\nname: probe\ndescription: Use when probing the audit.\nmodel: sonnet\n"
+            f"{extra}---\n\n" + "word " * 30 + "\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_agents()
+        return [f.check for f in audit.findings if f.check == "AG-F9"]
+
+    def test_memory_without_write_tools_warns(self):
+        self.assertEqual(self.findings("tools: Read, Grep\nmemory: user\n"), ["AG-F9"])
+
+    def test_memory_with_write_tools_passes(self):
+        self.assertEqual(self.findings("tools: Read, Write, Edit\nmemory: user\n"), [])
+
+    def test_no_memory_passes(self):
+        self.assertEqual(self.findings("tools: Read, Grep\n"), [])
+
+
 class ReferenceCitationTests(unittest.TestCase):
     """XR-7: a citation must name `references/<category>/<file>.md` from the reference root.
 

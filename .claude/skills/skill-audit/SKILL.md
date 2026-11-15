@@ -76,7 +76,8 @@ likely a discoverability problem. A `cold` asset has positive evidence -- treat 
 
 Reached by `/j-skill-audit memory`. Auto-memory is the harness's runtime state, not a synced asset:
 it lives under `~/.claude/projects/*/memory` and `~/.claude/agent-memory/*`, has no source in this
-repo, and must never be committed here, because it holds private notes about other projects.
+repo, and must never be committed here, because it holds private notes about other projects. An
+`~/.claude/agent-memory/*` store loads only into an agent whose frontmatter sets `memory:`.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/memory.py

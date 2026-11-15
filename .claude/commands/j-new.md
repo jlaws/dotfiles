@@ -33,7 +33,7 @@ Claude invoke it automatically, or only the user (`disable-model-invocation: tru
 to certain files (`paths:`)?
 
 **Agent:** which tools, which skills to preload, and which `.claude/references/` categories should it
-consult (`Glob(".claude/references/*/")`)? Persistent memory scope, if any?
+consult (`Glob(".claude/references/*/")`)? Persistent memory: read `code-agent-meta-patterns`, Agent memory, first.
 
 Leave `model` unset on commands and inline skills. They run inside the conversation, so a `model`
 other than the session's makes that turn a model switch, and the switch re-reads the whole history
@@ -175,7 +175,7 @@ lint and test commands. See `documentation-validation`.
 | `paths` | N/A | Optional | N/A |
 | `disable-model-invocation`, `user-invocable` | N/A | Optional | N/A |
 | `context: fork`, `agent` | N/A | Optional | N/A |
-| `memory` | N/A | N/A | Optional (user/project/local) |
+| `memory` | N/A | N/A | Avoid; see `code-agent-meta-patterns`, Agent memory |
 | `color`, `maxTurns`, `permissionMode` | N/A | N/A | Optional |
 
 Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Agent, Skill. Write `Agent`, not its retired name `Task`.
