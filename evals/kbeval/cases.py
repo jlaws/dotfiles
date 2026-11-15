@@ -20,17 +20,6 @@ TRIGGER_KINDS = KINDS[:3]
 # exemption branch in `coverage`, once every asset has cases.
 PENDING_EVAL_COVERAGE = frozenset(
     {
-        # skills
-        "analysis-output-patterns", "code-agent-meta-patterns", "code-migration", "code-quality",
-        "code-review-patterns", "config-security-audit", "debugging-methodology",
-        "dependency-upgrade", "design-first", "dispatching-parallel-agents",
-        "documentation-validation", "executing-plans", "finishing-branch",
-        "github-issue-resolution", "html-report-authoring", "language-testing-patterns",
-        "output-completeness", "post-ship-doc-sync", "pr-comment-resolution",
-        "project-scaffolding", "refactoring-and-debt", "session-handoff", "skill-audit",
-        "skill-lookup-discipline", "subagent-driven-development", "subagent-report-contract",
-        "test-driven-development", "using-git-worktrees", "verification-before-completion",
-        "writing-plans", "writing-skills",
         # commands
         "j-arch", "j-audit", "j-brainstorm", "j-cloud", "j-config-audit", "j-create-pr", "j-data",
         "j-debug", "j-defrag", "j-devops", "j-diff-review", "j-doc-sync", "j-docs",
@@ -65,7 +54,7 @@ PROCESS_TYPES = frozenset({"tool_used", "tool_order"})
 TRIGGER_TOOLS = ["Skill", "Read", "Glob", "Grep"]
 EFFECT_TOOLS = ["Skill", "Read", "Glob", "Grep", "Agent", "TodoWrite"]
 SUITE_LIMITS = {
-    "triggers": (3, 120, TRIGGER_TOOLS),
+    "triggers": (6, 120, TRIGGER_TOOLS),
     "effects": (40, 900, EFFECT_TOOLS),
     "workflows": (150, 3600, EFFECT_TOOLS),
 }
@@ -76,6 +65,19 @@ FORBIDDEN_FIXTURE = re.compile(
     r"|rm\s+-[a-z]*r|(?:ba)?sh\s+-c|python3?\s+-c|git\s+remote\s+add\s+\S+\s+(?:https?:|ssh:|git@))"
 )
 PARENT_PATH = re.compile(r"(?:^|[/\s'\"=])\.\.(?:/|\s|$|['\"])")
+# JavaScript regex has no inline flag groups like (?i), no Python named groups (?P<x>), no POSIX
+# classes, and no \A, \Z, or \z anchors. An escaped backslash (\\A) is a literal and passes.
+JS_UNSUPPORTED = re.compile(r"\(\?[a-zA-Z]+\)|\(\?[a-zA-Z]+:|\(\?P<|\[\[:|(?<!\\)(?:\\\\)*\\[AZz]")
+JS_FLAGS = frozenset("dgimsuvy")
+YAML_ESCAPES = frozenset('0abtnvfre "/\\N_LPxuU\t')
+REQUIRED_KEYS = {
+    "regex": ("pattern", "target"),
+    "tool_used": ("tool",),
+    "tool_order": ("before", "after"),
+    "file_exists": ("path",),
+    "llm": (),
+}
+CLAIM = re.compile(r"(?m)^(?:PASS|FAIL) if ")
 CONTEXT_LINE = re.compile(r"^  (?:add_dirs: \[[^\]]*\]|history_file: \S+)$")
 ABSOLUTE_PATH = re.compile(r"""(?:^|[\s'"=])(~|/[A-Za-z])""")
 # `$1` and any path under it, quoted or not, which is the one place a fixture may read from.
@@ -146,6 +148,75 @@ def unquote(value: str) -> str:
     if len(value) >= 2 and value[0] == value[-1] == '"':
         return value[1:-1].replace('\\"', '"').replace("\\\\", "\\")
     return value
+
+
+def _flow_items(value: str) -> List[Tuple[str, str]]:
+    """Split a one-line YAML flow map `{ a: x, b: 'y' }` into (key, raw value) pairs."""
+    inner = value.strip()[1:-1]
+    items, current, quote = [], "", ""
+    for char in inner:
+        if quote:
+            current += char
+            if char == quote:
+                quote = ""
+            continue
+        if char in "'\"":
+            quote = char
+        if char == "," and not quote:
+            items.append(current)
+            current = ""
+            continue
+        current += char
+    if current.strip():
+        items.append(current)
+    pairs = []
+    for item in items:
+        key, _, raw = item.partition(":")
+        pairs.append((key.strip(), raw.strip()))
+    return pairs
+
+
+def scalar_values(value: str) -> List[str]:
+    """Return the raw scalars in a value: itself, or each value of a flow map."""
+    value = value.strip()
+    if value.startswith("{") and value.endswith("}"):
+        return [raw for _, raw in _flow_items(value)]
+    return [value]
+
+
+def malformed_scalar(value: str) -> bool:
+    """Return True for a quoted YAML scalar the CLI's parser will reject."""
+    for raw in scalar_values(value):
+        raw = raw.strip()
+        if raw in ("'", '"'):
+            return True
+        if len(raw) >= 2 and raw[0] == "'":
+            if raw[-1] != "'" or "'" in raw[1:-1].replace("''", ""):
+                return True
+        elif len(raw) >= 2 and raw[0] == '"':
+            inner = raw[1:-1]
+            if raw[-1] != '"':
+                return True
+            index = 0
+            while index < len(inner):
+                if inner[index] == "\\":
+                    if index + 1 >= len(inner) or inner[index + 1] not in YAML_ESCAPES:
+                        return True
+                    index += 2
+                    continue
+                if inner[index] == '"':
+                    return True
+                index += 1
+    return False
+
+
+def graded_path(value: str) -> Optional[str]:
+    """Return the `path` of a `{ source: file, path: x }` target or focus, if any."""
+    if value.strip().startswith("{"):
+        for key, raw in _flow_items(value):
+            if key == "path":
+                return unquote(raw)
+    return None
 
 
 def parse_list(value: str) -> List[str]:
@@ -221,7 +292,7 @@ def lint(cases: List[Case], repo: Path) -> List[str]:
     known = assets(repo)
     problems: List[str] = []
     for case in cases:
-        problems.extend(f"{case.name}: {p}" for p in _lint_case(case, known))
+        problems.extend(f"{case.name}: {p}" for p in _lint_case(case, known, repo))
     extended: Dict[str, int] = {}
     for case in cases:
         if case.asset and "extended" in case.tags:
@@ -232,7 +303,7 @@ def lint(cases: List[Case], repo: Path) -> List[str]:
     return problems
 
 
-def _lint_case(case: Case, known: Dict[str, str]) -> List[str]:
+def _lint_case(case: Case, known: Dict[str, str], repo: Path) -> List[str]:
     problems: List[str] = []
     if not (case.path / "prompt.md").is_file():
         return ["no prompt.md"]
@@ -249,6 +320,9 @@ def _lint_case(case: Case, known: Dict[str, str]) -> List[str]:
     problems.extend(_lint_prompt(case, known))
     problems.extend(_lint_graders(case, known))
     problems.extend(_lint_files(case))
+    problems.extend(_lint_grounding(case, repo))
+    for stray in sorted(p.name for p in (case.path / "graders").glob("*") if p.is_file() and p.suffix != ".md"):
+        problems.append(f"graders/{stray} is not a .md grader and would be ignored")
     return problems
 
 
@@ -302,6 +376,26 @@ def _lint_graders(case: Case, known: Dict[str, str]) -> List[str]:
     if not case.graders:
         return ["no graders"]
     for grader in case.graders:
+        for key, value in grader.fields.items():
+            if malformed_scalar(value):
+                problems.append(f"grader {grader.name}: `{key}` is a malformed quoted YAML scalar")
+        regexes = [unquote(grader.fields.get("pattern", "")), unquote(grader.fields.get("input_match", ""))]
+        for key in ("before", "after"):
+            regexes += [unquote(raw) for k, raw in _flow_items(grader.fields.get(key, "{}") or "{}") if k == "input_match"]
+        if any(JS_UNSUPPORTED.search(rx) for rx in regexes if rx):
+            problems.append(
+                f"grader {grader.name}: regex uses inline flags, (?P<, POSIX classes, or \\A/\\Z/\\z; "
+                "JS regex needs `flags:` and ^/$"
+            )
+        bad_flags = set(unquote(grader.fields.get("flags", ""))) - JS_FLAGS
+        if bad_flags:
+            problems.append(f"grader {grader.name}: flags {''.join(sorted(bad_flags))!r} are not JS regex flags")
+        for path in _grader_paths(grader):
+            clean = path[2:] if path.startswith("./") else path
+            if clean == ".claude" or clean.startswith(".claude/"):
+                problems.append(f"grader {grader.name}: grades a file under .claude/, which runs cannot write")
+        if grader.name.endswith(".md"):
+            problems.append(f"grader {grader.name}.md: file name has a double .md extension")
         gtype = unquote(grader.fields.get("type", ""))
         if gtype not in GRADER_KEYS:
             problems.append(f"grader {grader.name}: type {gtype!r} is not allowed")
@@ -309,12 +403,20 @@ def _lint_graders(case: Case, known: Dict[str, str]) -> List[str]:
         extra = set(grader.fields) - GRADER_KEYS[gtype] - COMMON_GRADER_KEYS
         for key in sorted(extra):
             problems.append(f"grader {grader.name}: key {key!r} is not allowed for {gtype}")
+        for key in REQUIRED_KEYS[gtype]:
+            if not unquote(grader.fields.get(key, "")):
+                problems.append(f"grader {grader.name}: {gtype} needs `{key}`")
+        if gtype == "regex" and unquote(grader.fields.get("pattern", "x")) in ("", ".*", ".+", "^", "$"):
+            problems.append(f"grader {grader.name}: pattern matches everything")
         if gtype in RESULT_TYPES and "kb:" in grader.text:
             problems.append(f"grader {grader.name}: result graders never mention kb:")
         if gtype == "llm":
             criteria = grader.body or unquote(grader.fields.get("criteria", ""))
             if "PASS if" not in criteria or "FAIL if" not in criteria:
                 problems.append(f"grader {grader.name}: llm criteria need PASS if and FAIL if claims")
+            claims = len(CLAIM.findall(criteria))
+            if not 2 <= claims <= 5:
+                problems.append(f"grader {grader.name}: llm criteria hold {claims} claims; use 2-5")
 
     if case.suite == "triggers":
         problems.extend(_lint_trigger_grader(case))
@@ -324,6 +426,64 @@ def _lint_graders(case: Case, known: Dict[str, str]) -> List[str]:
         problems.append("needs at least one result grader (regex, file_exists, or llm)")
     if not any(t in PROCESS_TYPES for t in types):
         problems.append("needs at least one process grader (tool_used or tool_order)")
+    return problems
+
+
+def _grader_paths(grader: Grader) -> List[str]:
+    paths = [graded_path(grader.fields.get(k, "")) for k in ("target", "focus")]
+    if unquote(grader.fields.get("type", "")) == "file_exists":
+        paths.append(unquote(grader.fields.get("path", "")))
+    return [p for p in paths if p]
+
+
+def _fixture_names(case: Case) -> List[str]:
+    return re.findall(r'"\$1/([\w.-]+)/\."', case.fixture or "")
+
+
+def _initial_file(case: Case, repo: Path, path: str) -> Optional[str]:
+    """Return a file's content in the workspace before the agent acts, or None if absent."""
+    for name in _fixture_names(case):
+        source = repo / "evals" / "fixtures" / name / path
+        if source.is_file():
+            return source.read_text(encoding="utf-8", errors="ignore")
+    return None
+
+
+def _python_flags(flags: str) -> int:
+    value = 0
+    for letter, flag in (("i", re.IGNORECASE), ("m", re.MULTILINE), ("s", re.DOTALL)):
+        if letter in flags:
+            value |= flag
+    return value
+
+
+def _lint_grounding(case: Case, repo: Path) -> List[str]:
+    """Graded paths must be named in the prompt or seeded; result graders must not pass on the seed."""
+    problems: List[str] = []
+    if case.suite == "triggers":
+        return problems
+    for grader in case.graders:
+        gtype = unquote(grader.fields.get("type", ""))
+        for path in _grader_paths(grader):
+            if path not in case.body and _initial_file(case, repo, path) is None:
+                problems.append(f"grader {grader.name}: graded path {path!r} is neither named in the prompt nor seeded")
+        if gtype == "file_exists" and unquote(grader.fields.get("exists", "true")) == "false":
+            problems.append(f"grader {grader.name}: `exists: false` passes on a run that does nothing")
+        if gtype == "regex":
+            path = graded_path(grader.fields.get("target", ""))
+            if not path:
+                continue
+            initial = _initial_file(case, repo, path)
+            if initial is None:
+                continue
+            try:
+                found = re.search(unquote(grader.fields.get("pattern", "")), initial,
+                                  _python_flags(unquote(grader.fields.get("flags", ""))))
+            except re.error:
+                continue
+            inverted = unquote(grader.fields.get("match", "")) == "not_contains"
+            if bool(found) != inverted:
+                problems.append(f"grader {grader.name}: already passes on the seeded {path}; it scores a run that does nothing")
     return problems
 
 

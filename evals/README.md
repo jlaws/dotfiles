@@ -104,7 +104,8 @@ path through `target`/`focus: { source: file, path: <path> }`.
 **Triggers**
 - Exactly one `tool_used` grader: `tool: Skill`, `input_match: '"skill"\s*:\s*"(?:kb:)?<name>"'`.
 - `trigger-should`: `min: 1`. `trigger-near` and `trigger-noauto`: `min: 0`, `max: 0`.
-- `max_turns: 3`, `timeout_seconds: 120`, `allowed_tools: [Skill, Read, Glob, Grep]`.
+- `max_turns: 6`, `timeout_seconds: 120`, `allowed_tools: [Skill, Read, Glob, Grep]`. Six, not
+  three: at three, runs that read a file first hit the turn cap before reaching the skill.
 
 **Effects and workflows**
 - At least one result grader: `regex` on a produced file, `file_exists`, or `llm` with 2-5
@@ -117,15 +118,32 @@ path through `target`/`focus: { source: file, path: <path> }`.
 - Workflows: `max_turns: 150`, `timeout_seconds: 3600`, same tools.
 
 **Fixtures**
-- Optional `fixture.sh` gets the staged fixtures dir as `$1`, starts with `set -euo pipefail`, and
-  may only copy from `$1` and run `git` or `mkdir` inside the working dir. The seed runs it with the
-  user's global and system git config switched off.
-- It may not run `curl`, `wget`, `git clone`, `npm install`, `pip install`, or `ssh`, or touch
-  absolute paths outside `$1`.
+- Optional `fixture.sh` gets the staged fixtures dir as `$1` and starts with `set -euo pipefail`. It
+  copies from `$1` and builds local state in the working dir with `git`, `mkdir`, and `printf`. The
+  seed runs it with the user's global and system git config switched off.
+- Lint rejects network and exec commands (`curl`, `wget`, `ssh`, `scp`, `nc`, `sudo`, `brew`,
+  `eval`, `git clone`, `npm install`/`i`/`ci`, `pip install`, `rm -r`, `sh -c`, `python -c`,
+  `git remote add` to a URL), absolute paths outside `$1`, and `..` paths.
 - Never write `context.scaffold_script`; the builder owns it. `case.yaml` holds only `context:` with
   a flow-list `add_dirs: [..]` or a `history_file:`.
 - Lint checks these rules line by line. It is a guard rail for reviewed, in-repo cases, not a
   security boundary.
+
+**What lint enforces beyond the rules above.**
+- Frontmatter keys: `prompt.md` and each grader type accept only their listed keys, and each grader
+  type has its required keys (`regex`: `pattern` and `target`; `file_exists`: `path`; `tool_used`:
+  `tool`; `tool_order`: `before` and `after`).
+- YAML: quoted scalars, including values inside flow maps, must parse (no unescaped inner quote, no
+  invalid escape such as `"\d"` inside double quotes).
+- Regex: JavaScript syntax only. No inline flags (`(?i)`), `(?P<name>`, POSIX classes, or
+  `\A`/`\Z`/`\z`; use `flags:` (letters from `dgimsuvy`) and `^`/`$`. A pattern that matches
+  everything is rejected.
+- `llm` graders hold 2-5 `PASS if` / `FAIL if` claims.
+- Grounding: every graded path is named in the prompt or seeded by the fixture. A result grader
+  that already passes on the seeded files, or a `file_exists` with `exists: false`, is rejected,
+  because a run that does nothing would score it.
+- No graded path under `.claude/`, no grader file name ending `.md.md`, no non-`.md` file in
+  `graders/`, and at most one `extended` case per asset.
 
 **Limits.** `runs` 1-50, `max_turns` at most 200, `timeout_seconds` at most 3600. Only `EVAL_*` env
 keys. No WebFetch or WebSearch. No `sk-ant-` strings. No network, secrets, or private project names:
@@ -139,10 +157,15 @@ What an offline run can show, per asset where it differs from a real session:
 |---|---|
 | j-create-pr | Branch, commit, and push to the local remote; the `gh pr create` attempt is graded as a call |
 | j-rebase | The prompt supplies the PR branch |
-| j-pr-fix | Comments arrive in `review-comments.json` |
+| j-pr-fix | Comments arrive inline in the prompt |
 | j-next | The prompt states that the previous PR merged |
 | j-paper, j-explain | Local sources only |
 | j-email-analysis | No downloads |
+| github-issue-resolution | The issue text arrives inline in the prompt; no `gh` |
+| pr-comment-resolution | Comments arrive inline in the prompt; replies are written to a file, not posted |
+| finishing-branch | Push goes to the local bare remote; the `gh pr create` attempt is graded as a call |
+| post-ship-doc-sync | The prompt supplies the shipped change list in place of `git log` against a real remote |
+| dependency-upgrade | No package downloads; the case grades the upgrade plan and edits, not an install |
 
 ## Divergences
 
@@ -153,6 +176,9 @@ Absolute scores differ from a real session in these ways; comparisons within the
 - No settings or hooks load.
 - Bash runs under the OS sandbox.
 - No network and no `gh`.
+- Files under `.claude/` cannot be written (the run's permission mode denies it), so cases
+  write skill, agent, and settings drafts to workspace paths.
+- Inside the Bash sandbox the `/usr/bin/git` shim fails; Homebrew's `git` on `PATH` works.
 - The child session inherits `ANTHROPIC_API_KEY`, so a run granted Bash could print it. The
   sandbox blocks network, and the key scan covers results, logs, and kept traces; traces of runs
   without `--keep-temp` are deleted by the CLI unscanned.
@@ -160,7 +186,8 @@ Absolute scores differ from a real session in these ways; comparisons within the
 ## Fixture specs
 
 The specs are frozen; cases depend on these exact contents. Each fixture ships with the case PR
-that first uses it; so far only `py-calc` exists. A test pins `py-calc`'s seeded bug.
+that first uses it; `py-calc`, `py-calc-red`, `ts-todo`, `docs-drift`, and `kb-mini` ship so far.
+A test pins `py-calc`'s seeded bug.
 
 | Fixture | Contents |
 |---|---|
@@ -168,16 +195,17 @@ that first uses it; so far only `py-calc` exists. A test pins `py-calc`'s seeded
 | `py-calc-red` | `py-calc` plus `tests/test_empty.py` asserting `mean([]) == 0.0`, which fails |
 | `py-calc-planned` | `py-calc` plus `plans/plan.md`: a two-task plan to fix `mean([])` test-first and document it in README |
 | `ts-todo` | `src/todo.js` (ESM `addTodo`, `complete`) and `test/todo.test.js` (`node --test`, covering `addTodo` only) |
-| `docs-drift` | `tool.py` with an `--output` flag; README documents `--out` |
+| `docs-drift` | `tool.py` with an `--output` flag and `allow_abbrev=False`, so `--out` fails with "unrecognized arguments"; README documents `--out` |
 | `email-digest` | `inbox/2026-11-01-newsletter.txt`: plain text with five links and two paper titles |
 | `paper-stub` | `paper/main.tex` skeleton with an empty Related Work section, plus `refs.bib` with three entries |
 | `kb-mini` | `.claude/skills/broken-skill/SKILL.md` (missing `description`) and `.claude/commands/j-demo.md` |
 
 **Git fixtures.** `fixture.sh` copies `$1/<name>/.`, runs `git init -q -b main`, sets repo-local
-`user.name kbeval` and `user.email kbeval@example.invalid`, and makes the initial commit. It then
-creates the remote with `git init -q --bare .remote.git`, `git remote add origin ./.remote.git`,
-and `git push -q origin main`, and lists `.remote.git` and `.kb-references` in
-`.git/info/exclude`.
+`user.name kbeval` and `user.email kbeval@example.invalid`, runs `git add -A`, and makes the
+initial commit. It then creates the remote with `git init -q --bare .remote.git`, `git remote add
+origin ./.remote.git`, and `git push -q origin main`, and lists `.remote.git` in
+`.git/info/exclude` (the seed adds `.kb-references`). A case may add branches, commits, or a
+worktree after that to set up its scenario.
 
 ## CLI surface
 

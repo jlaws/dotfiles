@@ -26,7 +26,7 @@ NON_INTERACTIVE = (
     "and state it."
 )
 TRIGGER_FM = (
-    "tags: [triggers, {kind}]\nmax_turns: 3\ntimeout_seconds: 120\n"
+    "tags: [triggers, {kind}]\nmax_turns: 6\ntimeout_seconds: 120\n"
     "allowed_tools: [Skill, Read, Glob, Grep]\n"
 )
 EFFECT_FM = (
@@ -450,6 +450,85 @@ class LintTests(TempRepoCase):
                 {"result": LLM_RESULT, "fired": skill_fired("demo-skill")},
             )
         self.assert_problem(r"demo-skill: .*extended")
+
+    def test_lint_malformed_quoted_scalar(self):
+        self.edit("effects/j-demo--effect-cache/graders/fired.md", "input_match: '", "input_match: 'it's ")
+        self.assert_problem(r"j-demo--effect-cache: .*malformed quoted YAML")
+
+    def test_lint_js_incompatible_regex(self):
+        for pattern in ("'(?m)^Verdict'", "'(?i:verdict)'", "'\\Averdict'"):
+            with self.subTest(pattern=pattern):
+                (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/re.md").write_text(
+                    f"---\ntype: regex\npattern: {pattern}\ntarget: {{ source: file, path: design.md }}\n---\n"
+                )
+                self.assert_problem(r"j-demo--effect-cache: .*inline flags")
+
+    def test_lint_graded_file_under_dot_claude(self):
+        self.edit("effects/j-demo--effect-cache/graders/result.md", "path: design.md", "path: .claude/settings.json")
+        self.assert_problem(r"j-demo--effect-cache: .*under \.claude/")
+
+    def test_lint_valid_quoted_scalars_pass(self):
+        for value in ('"Merge branch \'feat/rst\'"', "'a''b'", '"tab\\tend"', "{ source: file, path: 'x.md' }"):
+            with self.subTest(value=value):
+                self.assertFalse(kcases.malformed_scalar(value))
+
+    def test_lint_invalid_double_quoted_escape(self):
+        for value in ('"\\d+"', "{ tool: Write, input_match: 'it's' }"):
+            with self.subTest(value=value):
+                self.assertTrue(kcases.malformed_scalar(value))
+
+    def test_lint_js_regex_in_input_match_and_flags(self):
+        self.edit("effects/j-demo--effect-cache/graders/fired.md", "input_match: '", "input_match: '(?P<n>x)")
+        self.assert_problem(r"j-demo--effect-cache: .*inline flags, \(\?P<")
+        self.edit("effects/j-demo--effect-cache/graders/fired.md", "(?P<n>x)", "")
+        (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/re.md").write_text(
+            "---\ntype: regex\npattern: 'x'\nflags: q\ntarget: { source: file, path: design.md }\n---\n"
+        )
+        self.assert_problem(r"j-demo--effect-cache: .*not JS regex flags")
+
+    def test_lint_escaped_backslash_a_is_literal(self):
+        self.assertIsNone(kcases.JS_UNSUPPORTED.search("\\\\Aabc"))
+        self.assertIsNotNone(kcases.JS_UNSUPPORTED.search("\\Aabc"))
+        self.assertIsNone(kcases.JS_UNSUPPORTED.search("(?:a)(?=b)"))
+
+    def test_lint_required_keys_and_match_all(self):
+        (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/re.md").write_text(
+            "---\ntype: regex\npattern: '.*'\n---\n"
+        )
+        self.assert_problem(r"j-demo--effect-cache: .*regex needs `target`")
+        self.assert_problem(r"j-demo--effect-cache: .*matches everything")
+
+    def test_lint_llm_claim_count(self):
+        claims = "".join(f"PASS if claim {i}.\n" for i in range(6))
+        (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/result.md").write_text(
+            "---\ntype: llm\nfocus: { source: file, path: design.md }\n---\n\n" + claims + "FAIL if nothing.\n"
+        )
+        self.assert_problem(r"j-demo--effect-cache: .*7 claims; use 2-5")
+
+    def test_lint_vacuous_result_grader(self):
+        (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/kept.md").write_text(
+            "---\ntype: regex\npattern: 'def add'\ntarget: { source: file, path: calc/ops.py }\n---\n"
+        )
+        self.assert_problem(r"j-demo--effect-cache: .*already passes on the seeded calc/ops\.py")
+
+    def test_lint_exists_false_is_vacuous(self):
+        (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/none.md").write_text(
+            "---\ntype: file_exists\npath: design.md\nexists: false\n---\n"
+        )
+        self.assert_problem(r"j-demo--effect-cache: .*exists: false")
+
+    def test_lint_graded_path_must_be_named_or_seeded(self):
+        self.edit("effects/j-demo--effect-cache/graders/result.md", "path: design.md", "path: notes.md")
+        self.assert_problem(r"j-demo--effect-cache: .*'notes\.md' is neither named")
+
+    def test_lint_non_md_grader_file(self):
+        (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/extra.yml").write_text("type: llm\n")
+        self.assert_problem(r"j-demo--effect-cache: .*extra\.yml is not a \.md grader")
+
+    def test_lint_double_md_extension(self):
+        graders = self.repo / "evals/cases/effects/j-demo--effect-cache/graders"
+        (graders / "result.md").rename(graders / "result.md.md")
+        self.assert_problem(r"j-demo--effect-cache: .*double \.md")
 
     def test_lint_tags_name_suite_and_kind(self):
         self.edit("effects/j-demo--effect-cache/prompt.md", "tags: [effects, effect]", "tags: [effect]")
@@ -1276,6 +1355,32 @@ class RealFixtureTests(unittest.TestCase):
             stdin=subprocess.DEVNULL, timeout=60,
         )
         self.assertEqual(suite.returncode, 0, suite.stderr)
+
+    def test_py_calc_red_fails_only_on_the_empty_mean(self):
+        fixture = REPO / "evals" / "fixtures" / "py-calc-red"
+        env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+        suite = subprocess.run(
+            [sys.executable, "-m", "unittest"], cwd=fixture, env=env, capture_output=True, text=True,
+            stdin=subprocess.DEVNULL, timeout=60,
+        )
+        self.assertNotEqual(suite.returncode, 0)
+        self.assertIn("test_mean_of_empty_list_is_zero", suite.stderr)
+        self.assertIn("Ran 3 tests", suite.stderr)
+
+    def test_docs_drift_rejects_the_documented_flag(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        work = Path(tmp.name)
+        shutil.copytree(REPO / "evals" / "fixtures" / "docs-drift", work, dirs_exist_ok=True)
+        (work / "data.csv").write_text("a,b\n1,2\n")
+        env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+        old = subprocess.run(
+            [sys.executable, "tool.py", "--input", "data.csv", "--out", "x.jsonl"], cwd=work, env=env,
+            capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=60,
+        )
+        self.assertEqual(old.returncode, 2)
+        self.assertIn("unrecognized arguments: --out", old.stderr)
+        self.assertIn("--out", (work / "README.md").read_text())
 
 
 if __name__ == "__main__":
