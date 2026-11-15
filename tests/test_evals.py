@@ -26,7 +26,7 @@ NON_INTERACTIVE = (
     "and state it."
 )
 TRIGGER_FM = (
-    "tags: [triggers, {kind}]\nmax_turns: 3\ntimeout_seconds: 120\n"
+    "tags: [triggers, {kind}]\nmax_turns: 6\ntimeout_seconds: 120\n"
     "allowed_tools: [Skill, Read, Glob, Grep]\n"
 )
 EFFECT_FM = (
@@ -450,6 +450,27 @@ class LintTests(TempRepoCase):
                 {"result": LLM_RESULT, "fired": skill_fired("demo-skill")},
             )
         self.assert_problem(r"demo-skill: .*extended")
+
+    def test_lint_malformed_quoted_scalar(self):
+        self.edit("effects/j-demo--effect-cache/graders/fired.md", "input_match: '", "input_match: 'it's ")
+        self.assert_problem(r"j-demo--effect-cache: .*malformed quoted YAML")
+
+    def test_lint_js_incompatible_regex(self):
+        for pattern in ("'(?m)^Verdict'", "'(?i:verdict)'", "'\\Averdict'"):
+            with self.subTest(pattern=pattern):
+                (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/re.md").write_text(
+                    f"---\ntype: regex\npattern: {pattern}\ntarget: {{ source: file, path: design.md }}\n---\n"
+                )
+                self.assert_problem(r"j-demo--effect-cache: .*inline flags")
+
+    def test_lint_graded_file_under_dot_claude(self):
+        self.edit("effects/j-demo--effect-cache/graders/result.md", "path: design.md", "path: .claude/settings.json")
+        self.assert_problem(r"j-demo--effect-cache: .*under \.claude/")
+
+    def test_lint_double_md_extension(self):
+        graders = self.repo / "evals/cases/effects/j-demo--effect-cache/graders"
+        (graders / "result.md").rename(graders / "result.md.md")
+        self.assert_problem(r"j-demo--effect-cache: .*double \.md")
 
     def test_lint_tags_name_suite_and_kind(self):
         self.edit("effects/j-demo--effect-cache/prompt.md", "tags: [effects, effect]", "tags: [effect]")

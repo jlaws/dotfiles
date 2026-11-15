@@ -20,17 +20,6 @@ TRIGGER_KINDS = KINDS[:3]
 # exemption branch in `coverage`, once every asset has cases.
 PENDING_EVAL_COVERAGE = frozenset(
     {
-        # skills
-        "analysis-output-patterns", "code-agent-meta-patterns", "code-migration", "code-quality",
-        "code-review-patterns", "config-security-audit", "debugging-methodology",
-        "dependency-upgrade", "design-first", "dispatching-parallel-agents",
-        "documentation-validation", "executing-plans", "finishing-branch",
-        "github-issue-resolution", "html-report-authoring", "language-testing-patterns",
-        "output-completeness", "post-ship-doc-sync", "pr-comment-resolution",
-        "project-scaffolding", "refactoring-and-debt", "session-handoff", "skill-audit",
-        "skill-lookup-discipline", "subagent-driven-development", "subagent-report-contract",
-        "test-driven-development", "using-git-worktrees", "verification-before-completion",
-        "writing-plans", "writing-skills",
         # commands
         "j-arch", "j-audit", "j-brainstorm", "j-cloud", "j-config-audit", "j-create-pr", "j-data",
         "j-debug", "j-defrag", "j-devops", "j-diff-review", "j-doc-sync", "j-docs",
@@ -65,7 +54,7 @@ PROCESS_TYPES = frozenset({"tool_used", "tool_order"})
 TRIGGER_TOOLS = ["Skill", "Read", "Glob", "Grep"]
 EFFECT_TOOLS = ["Skill", "Read", "Glob", "Grep", "Agent", "TodoWrite"]
 SUITE_LIMITS = {
-    "triggers": (3, 120, TRIGGER_TOOLS),
+    "triggers": (6, 120, TRIGGER_TOOLS),
     "effects": (40, 900, EFFECT_TOOLS),
     "workflows": (150, 3600, EFFECT_TOOLS),
 }
@@ -76,6 +65,8 @@ FORBIDDEN_FIXTURE = re.compile(
     r"|rm\s+-[a-z]*r|(?:ba)?sh\s+-c|python3?\s+-c|git\s+remote\s+add\s+\S+\s+(?:https?:|ssh:|git@))"
 )
 PARENT_PATH = re.compile(r"(?:^|[/\s'\"=])\.\.(?:/|\s|$|['\"])")
+# JavaScript regex has no inline flag groups like (?i) and no \A or \Z anchors.
+JS_UNSUPPORTED = re.compile(r"\(\?[a-zA-Z]+\)|\(\?[a-zA-Z]+:|\\[AZ]")
 CONTEXT_LINE = re.compile(r"^  (?:add_dirs: \[[^\]]*\]|history_file: \S+)$")
 ABSOLUTE_PATH = re.compile(r"""(?:^|[\s'"=])(~|/[A-Za-z])""")
 # `$1` and any path under it, quoted or not, which is the one place a fixture may read from.
@@ -146,6 +137,17 @@ def unquote(value: str) -> str:
     if len(value) >= 2 and value[0] == value[-1] == '"':
         return value[1:-1].replace('\\"', '"').replace("\\\\", "\\")
     return value
+
+
+def malformed_scalar(value: str) -> bool:
+    """Return True for a quoted YAML scalar the CLI's parser will reject."""
+    value = value.strip()
+    if len(value) >= 2 and value[0] == "'":
+        return value[-1] != "'" or "'" in value[1:-1].replace("''", "")
+    if len(value) >= 2 and value[0] == '"':
+        inner = re.sub(r'\\.', "", value[1:-1])
+        return value[-1] != '"' or '"' in inner
+    return value in ("'", '"')
 
 
 def parse_list(value: str) -> List[str]:
@@ -302,6 +304,17 @@ def _lint_graders(case: Case, known: Dict[str, str]) -> List[str]:
     if not case.graders:
         return ["no graders"]
     for grader in case.graders:
+        for key, value in grader.fields.items():
+            if malformed_scalar(value):
+                problems.append(f"grader {grader.name}: `{key}` is a malformed quoted YAML scalar")
+        pattern = unquote(grader.fields.get("pattern", ""))
+        if JS_UNSUPPORTED.search(pattern):
+            problems.append(f"grader {grader.name}: pattern uses inline flags or \\A/\\Z; JS regex needs `flags:` and ^/$")
+        graded = " ".join(grader.fields.get(k, "") for k in ("target", "focus", "path"))
+        if re.search(r"(?:path:\s*|^)['\"]?\.claude/", graded) or unquote(grader.fields.get("path", "")).startswith(".claude/"):
+            problems.append(f"grader {grader.name}: grades a file under .claude/, which runs cannot write")
+        if grader.name.endswith(".md"):
+            problems.append(f"grader {grader.name}.md: file name has a double .md extension")
         gtype = unquote(grader.fields.get("type", ""))
         if gtype not in GRADER_KEYS:
             problems.append(f"grader {grader.name}: type {gtype!r} is not allowed")
