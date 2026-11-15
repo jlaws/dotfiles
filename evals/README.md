@@ -143,6 +143,11 @@ What an offline run can show, per asset where it differs from a real session:
 | j-next | The prompt states that the previous PR merged |
 | j-paper, j-explain | Local sources only |
 | j-email-analysis | No downloads |
+| github-issue-resolution | The issue text arrives in the prompt or an `issue.md` fixture file; no `gh` |
+| pr-comment-resolution | Comments arrive in `review-comments.json`; replies are written to a file, not posted |
+| finishing-branch | Push goes to the local bare remote; the `gh pr create` attempt is graded as a call |
+| post-ship-doc-sync | The prompt supplies the shipped change list in place of `git log` against a real remote |
+| dependency-upgrade | No package downloads; the case grades the upgrade plan and edits, not an install |
 
 ## Divergences
 
