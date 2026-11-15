@@ -181,7 +181,7 @@ lint and test commands. See `documentation-validation`.
 | `model` | Avoid | Only with `context: fork` | Alias or `inherit` |
 | `effort` | Lower only (`low`, `medium`) | Lower only inline; any with `context: fork` | Optional |
 | `paths` | N/A | Optional | N/A |
-| `disable-model-invocation`, `user-invocable` | N/A | Optional | N/A |
+| `disable-model-invocation`, `user-invocable` | Optional; `true` for a side-effect command no skill or coordinator invokes | Optional | N/A |
 | `context: fork`, `agent` | N/A | Optional | N/A |
 | `memory` | N/A | N/A | Avoid; see `code-agent-meta-patterns`, Agent memory |
 | `color`, `maxTurns`, `permissionMode` | N/A | N/A | Optional |

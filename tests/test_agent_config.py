@@ -39,6 +39,10 @@ TREE_SCRIPT_PATH = re.compile(
 SKILL_DIR_SCRIPT_PATH = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+\.(?:py|sh|mjs|js))")
 TREE_ROOTS = (".claude", ".codex", ".agents", ".gemini")
 
+# Side-effect commands nothing invokes; user-only in Claude and Codex
+# (docs/adr/workflow/side-effect-commands-are-user-invoked.md).
+USER_ONLY_COMMANDS = frozenset({"j-defrag", "j-pr-fix", "j-review-claudemd", "j-tdd"})
+
 # Asset-set parity is enforced by name; bodies and descriptions are free to diverge per tool.
 # `.claude/` is rightsized for the Claude 5 generation, so its wording no longer tracks `.agents/`.
 # Anything that legitimately exists in only one tree is declared here rather than tolerated
@@ -1796,6 +1800,21 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             if memory.search(path.read_text(encoding="utf-8").split("---", 2)[1])
         ]
         self.assertEqual(offenders, [], f"agents set memory: {offenders}")
+
+    def test_side_effect_commands_nothing_invokes_are_user_only(self):
+        """Exactly the side-effect commands no skill or coordinator invokes set
+        `disable-model-invocation: true`. The set comes from observed invocations (the
+        harness-best-practices plan, Assumption 8): flagging a command that a skill chains to would
+        break that flow (docs/adr/workflow/side-effect-commands-are-user-invoked.md)."""
+        flag = re.compile(r"(?m)^disable-model-invocation:\s*true\s*$")
+        commands = sorted((REPO / ".claude" / "commands").glob("*.md"))
+        self.assertTrue(commands, "no Claude commands found; the check is vacuous")
+        flagged = {
+            path.stem
+            for path in commands
+            if flag.search(path.read_text(encoding="utf-8").split("---", 2)[1])
+        }
+        self.assertEqual(flagged, USER_ONLY_COMMANDS)
 
 
 if __name__ == "__main__":

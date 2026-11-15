@@ -2,6 +2,7 @@
 name: j-review-claudemd
 description: "Analyze recent conversation history to improve CLAUDE.md files — find violated instructions, missing patterns, and outdated rules. Use when tuning Claude Code behavior or after a batch of sessions. Do NOT use for quick questions (edit files directly instead)."
 argument-hint: "<scope: global|local|number|empty>"
+disable-model-invocation: true
 ---
 
 Scope: $ARGUMENTS
@@ -12,8 +13,7 @@ If no arguments provided, analyzes both global and local CLAUDE.md against last 
 
 Load these before analyzing:
 - Load skill `analysis-output-patterns` for output structure rules
-- Load skill `code-agent-meta-patterns` — CLAUDE.md design patterns, context budget rules
-- Load skill `code-agent-meta-patterns` — what belongs in CLAUDE.md, layering, and progressive disclosure
+- Load skill `code-agent-meta-patterns`: what belongs in CLAUDE.md, context budget rules, layering, and progressive disclosure
 - Load skill `writing-skills` — skill creation and testing methodology
 - Read `references/workflow/context-efficiency` — context management patterns
 - Read `references/workflow/task-execution-checklists` — implementation and review checklists
