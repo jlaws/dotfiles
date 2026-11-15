@@ -34,16 +34,14 @@ Claude invoke it automatically, or only the user (`disable-model-invocation: tru
 to certain files (`paths:`)?
 
 **Agent:** which tools, which skills to preload, and which `~/.agents/references/` categories should it
-consult (`Glob("~/.agents/references/*/")`)? Persistent memory: read `code-agent-meta-patterns`, Agent memory, first.
+consult (`Glob("~/.agents/references/*/")`)? Leave persistent memory unset: agents here are dispatched with a frozen, report-only packet.
 
 Leave `model` unset on commands and inline skills. They run inside the conversation, so a `model`
 other than the session's makes that turn a model switch, and the switch re-reads the whole history
 uncached. Agents and `context: fork` skills start a fresh context, so a tier pin costs no cache
 there; use an alias (`opus`, `sonnet`, `haiku`, `fable`) or `inherit`, never a pinned ID, because
 aliases float across model generations (this tree's agents use `inherit`). Set `effort` on a command or inline skill only to lower it (`low`, `medium`) for reliably cheap,
-procedural work; otherwise leave it unset so it runs at the session's effort. Raising it buys little for its cost: in Anthropic's
-measurements `xhigh` cost 2.5x `high` for 1.4 points on long-horizon coding (Opus 5.5), and
-knowledge work gained nothing above `medium` (Fable 5). The lowered tiers are set by judgment, not
+procedural work; otherwise leave it unset so it runs at the session's effort. Raising it buys little for its cost. The lowered tiers are set by judgment, not
 measured. On first-party Claude models that support per-message effort, an override keeps the
 prompt cache; on Bedrock, Vertex, and gateways it re-reads the history, so skip it there when the
 gain is marginal.
@@ -188,7 +186,7 @@ lint and test commands. See `documentation-validation`.
 
 Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Agent, Skill. Write `Agent`, not its retired name `Task`.
 
-Field semantics: `writing-skills`, Frontmatter.
+Field semantics: `writing-skills`, SKILL.md Structure.
 
 ### Cross-References
 
