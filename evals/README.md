@@ -19,8 +19,12 @@ make eval-pilot                      # paid: the five pilot cases, both models, 
 make eval-smoke ASSETS="a b"         # paid: kb on Sonnet, one run per case, then a vanilla sample
 make eval-baseline MODEL=claude-opus-5-5   # paid: the full baseline for one model
 make eval-compare OLD=<summary.json> NEW=<summary.json>   # free: regressions between two summaries
-make eval-spend                      # free: snapshot ledger totals into evals/spend.json
+make eval-spend                      # free: snapshot ledger totals into evals/spend.json; exits 1 over the ceiling
+python3 -m evals.kbeval summarize    # free: check every result, then write evals/baselines/ (nothing if a check fails)
 ```
+
+`python3 -m evals.kbeval run --suite ... --staging ... --plugin ...` runs one suite for one staging
+and model; the make targets call the plans built on it.
 
 `J ?= 8` sets `-j` (concurrent runs). `eval-baseline` also takes `VANILLA_RUNS` (default 3),
 `VANILLA_MODELS` (default both models), and `EXCLUDE_TAGS` (default empty); the kb staging always
@@ -28,10 +32,11 @@ runs three times per case.
 
 ## Budget
 
-`evals/budget.json` holds the period, its ceiling, and the smoke cap:
+`evals/budget.json` holds the period, its ceiling, the smoke cap, and the per-run p95 cost the
+reserve uses (measured by the pilot below):
 
 ```json
-{"period": "initial-baseline-2026-11", "ceilingUsd": 2500, "smokeCapUsd": 40}
+{"period": "initial-baseline-2026-11", "ceilingUsd": 2500, "smokeCapUsd": 40, "p95RunUsd": 1.0}
 ```
 
 A new period needs a committed bump that the user approves. The spend ledger is machine-local, at
@@ -39,13 +44,21 @@ A new period needs a committed bump that the user approves. The spend ledger is 
 exclusive lock. `make eval-spend` snapshots its per-period totals into the committed
 `evals/spend.json`.
 
-Each batch's `--max-cost-usd` cap is the remaining budget minus a reserve of `jobs x p95`, where
-`p95` is the per-run cost on the `Reserve p95: $<usd>` line of the pilot table below ($5 before the
-pilot). The pilot and smoke plans also cap their own spend: $10 for the pilot, `smokeCapUsd` per
-branch for smoke. The CLI checks the cap
-before each run starts, so in-flight runs can pass it; the reserve covers them. A batch with no
-JSON result is charged its full cap. A batch whose result reports runs but a null or zero cost
-aborts the run.
+Each batch's `--max-cost-usd` cap is the smallest of three limits: the remaining budget minus a
+reserve of `jobs x p95RunUsd` for in-flight runs, a batch allowance of `cases x runs x max(10 x
+p95RunUsd, $5)`, and the plan's own cap ($10 for the pilot, `smokeCapUsd` per branch for smoke).
+The CLI checks the cap before each run starts, so in-flight runs can pass it; the reserve covers
+them.
+
+Before the paid call the runner reserves the cap in the ledger, checking the budget and appending
+under one lock, so concurrent runners cannot spend the same headroom. After the call it settles
+the reservation to the actual cost. A crash, an interrupt, or an unreadable result leaves the full
+cap charged; a run that never loaded (`No eval cases found`, an untrusted plugin) settles to $0. A
+result whose cost is missing, negative, or not a number aborts the run with the cap charged. A
+ledger line that cannot be read stops every run until it is fixed by hand.
+
+Each batch writes `cli.log` (exit code, stdout, stderr) beside its result. Every result, log, and
+kept trace is scanned for `sk-ant-`; a hit quarantines the result and aborts the run.
 
 ## Layout
 
@@ -104,11 +117,15 @@ path through `target`/`focus: { source: file, path: <path> }`.
 - Workflows: `max_turns: 150`, `timeout_seconds: 3600`, same tools.
 
 **Fixtures**
-- Optional `fixture.sh` gets the staged fixtures dir as `$1`. It may only copy from `$1` and run
-  `git` or `mkdir` inside the working dir.
+- Optional `fixture.sh` gets the staged fixtures dir as `$1`, starts with `set -euo pipefail`, and
+  may only copy from `$1` and run `git` or `mkdir` inside the working dir. The seed runs it with the
+  user's global and system git config switched off.
 - It may not run `curl`, `wget`, `git clone`, `npm install`, `pip install`, or `ssh`, or touch
   absolute paths outside `$1`.
-- Never write `context.scaffold_script`; the builder owns it.
+- Never write `context.scaffold_script`; the builder owns it. `case.yaml` holds only `context:` with
+  a flow-list `add_dirs: [..]` or a `history_file:`.
+- Lint checks these rules line by line. It is a guard rail for reviewed, in-repo cases, not a
+  security boundary.
 
 **Limits.** `runs` 1-50, `max_turns` at most 200, `timeout_seconds` at most 3600. Only `EVAL_*` env
 keys. No WebFetch or WebSearch. No `sk-ant-` strings. No network, secrets, or private project names:
@@ -136,10 +153,14 @@ Absolute scores differ from a real session in these ways; comparisons within the
 - No settings or hooks load.
 - Bash runs under the OS sandbox.
 - No network and no `gh`.
+- The child session inherits `ANTHROPIC_API_KEY`, so a run granted Bash could print it. The
+  sandbox blocks network, and the key scan covers results, logs, and kept traces; traces of runs
+  without `--keep-temp` are deleted by the CLI unscanned.
 
 ## Fixture specs
 
-Frozen; cases depend on these exact contents.
+The specs are frozen; cases depend on these exact contents. Each fixture ships with the case PR
+that first uses it; so far only `py-calc` exists. A test pins `py-calc`'s seeded bug.
 
 | Fixture | Contents |
 |---|---|
@@ -168,9 +189,11 @@ Checked on `2.1.325 (Claude Code)`: every flag the runner passes exists in
 `python3 -m evals.kbeval summarize [--check]` writes `evals/baselines/<model>/<suite>.json`: the run
 settings, Claude Code version, judge, date, cost, and one line per case with `kbScore`,
 `vanillaScore`, `delta`, `firedRate`, run counts, and errors. Scores use result graders only;
-`firedRate` is the process-grader pass rate in kb. A case `passed` when `kbScore` is at least 2/3
-(a majority of three runs). Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
-`--check` fails when a case is missing runs or still holds an API error.
+`firedRate` is the process-grader pass rate in kb. A case `passed` when `kbScore`, its mean run score,
+is at least 2/3. Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
+It reads only results the runner accepted (those with a `.key`), and it checks before writing: if
+any case is missing runs or still holds an API error, it writes nothing and exits 1 (`--check` is
+accepted and changes nothing).
 
 `make eval-compare OLD=... NEW=...` compares two summaries: the suite means with both intervals,
 cases whose `kbScore` dropped by at least 1/3, and pass/fail flips. Cases in only one file are
@@ -191,7 +214,7 @@ the CLI's `costUsd` at list price, judge calls included.
 | effect-command | Sonnet 5.5 | 4 | 0.13 | 0.21 |
 | effect-agent | both | 0 | not measured; extrapolated at the effect-command rate | |
 
-Reserve p95: $1.00
+Per-run p95 for the reserve: $1.00 (`p95RunUsd` in `evals/budget.json`).
 
 Harness checks (kb staging):
 
@@ -209,7 +232,8 @@ The CLI deletes each run's trace unless `--keep-temp` is passed, so smoke runs p
 traces stay under `/private/tmp/e-*` (sealed, read-only) for transcript review; the key scan covers
 them.
 
-**Extrapolation.** Planned cases, from the coverage rules: about 124 trigger cases, about 187
+**Extrapolation** (a dated estimate, 2026-11-15; recompute it from `make eval-lint` case counts
+before the baseline). Planned cases, from the coverage rules: about 124 trigger cases, about 187
 effect cases (about 71 skill, 76 command, 39 agent, counting third cases), and 4 workflow cases.
 Three runs per case; effects and workflows run in both stagings. Workflows are priced at five times
 the effect-command rate.

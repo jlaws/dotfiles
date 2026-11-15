@@ -36,7 +36,8 @@ make eval-pilot      # bills ANTHROPIC_API_KEY: pilot cases
 make eval-smoke ASSETS="..."      # bills ANTHROPIC_API_KEY: one-run smoke for named assets
 make eval-baseline MODEL=...      # bills ANTHROPIC_API_KEY: full baseline for one model
 make eval-compare OLD=... NEW=... # free: compare two baseline summaries
-make eval-spend      # free: snapshot the spend ledger into evals/spend.json
+make eval-spend      # free: snapshot the spend ledger into evals/spend.json; exits 1 over the ceiling
+python3 -m evals.kbeval summarize # free: check results and write evals/baselines/ (writes nothing if a check fails)
 ```
 
 ### What setup.sh does:
@@ -90,7 +91,7 @@ dotfiles/
 | `.vim/` | Solarized colorscheme, syntax files, and state directories |
 | `setup.sh` | Shim that execs `python3 -m macos_setup` |
 | `macos_setup/` | Install/archive/uninstall package (stdlib only) |
-| `evals/` | KB eval harness (`kbeval`), cases, fixtures, budget, and committed baselines |
+| `evals/` | KB eval harness (`kbeval`), cases, fixtures, and budget; baselines under `evals/baselines/` once recorded |
 | `ghosty_config.txt` | Ghostty terminal configuration reference |
 
 ## Shell Aliases (from .extra)
