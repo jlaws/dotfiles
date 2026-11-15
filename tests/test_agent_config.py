@@ -1816,6 +1816,28 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         }
         self.assertEqual(flagged, USER_ONLY_COMMANDS)
 
+    def test_codex_user_only_commands_disable_implicit_invocation(self):
+        """Codex ignores `disable-model-invocation` and reads `agents/openai.yaml` instead, so the
+        user-only commands' `.agents` twins turn implicit invocation off there, and no `.agents`
+        skill keeps the inert key (docs/adr/workflow/side-effect-commands-are-user-invoked.md)."""
+        policy = re.compile(r"(?ms)^policy:\s*\n\s+allow_implicit_invocation:\s*false\s*$")
+        command_skills = sorted((REPO / ".agents" / "skills").glob("cmd-j-*"))
+        self.assertTrue(command_skills, "no .agents command skills found; the check is vacuous")
+        with_policy = set()
+        for folder in command_skills:
+            config = folder / "agents" / "openai.yaml"
+            if config.is_file():
+                with_policy.add(folder.name.removeprefix("cmd-"))
+                with self.subTest(skill=folder.name):
+                    self.assertRegex(config.read_text(encoding="utf-8"), policy)
+        self.assertEqual(with_policy, USER_ONLY_COMMANDS)
+        inert = [
+            str(path.relative_to(REPO))
+            for path in sorted((REPO / ".agents" / "skills").glob("*/SKILL.md"))
+            if "disable-model-invocation" in path.read_text(encoding="utf-8").split("---", 2)[1]
+        ]
+        self.assertEqual(inert, [], "inert disable-model-invocation in .agents skills")
+
 
 if __name__ == "__main__":
     unittest.main()

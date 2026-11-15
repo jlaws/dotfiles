@@ -1,7 +1,6 @@
 ---
 name: cmd-j-tdd
 description: "Use when invoking the j-tdd workflow."
-disable-model-invocation: true
 ---
 
 # TDD

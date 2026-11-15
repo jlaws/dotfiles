@@ -1,7 +1,6 @@
 ---
 name: cmd-j-pr-fix
 description: "Use when invoking the j-pr-fix workflow."
-disable-model-invocation: true
 ---
 
 # PR Fix

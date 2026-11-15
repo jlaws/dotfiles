@@ -1,7 +1,6 @@
 ---
 name: cmd-j-system-design
 description: "Use when invoking the j-system-design workflow."
-disable-model-invocation: true
 ---
 
 # Team Design

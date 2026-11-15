@@ -1,7 +1,6 @@
 ---
 name: cmd-j-create-pr
 description: "Use when invoking the j-create-pr workflow."
-disable-model-invocation: true
 ---
 
 # Create PR

@@ -1,7 +1,6 @@
 ---
 name: cmd-j-execute-plan
 description: "Use when invoking the j-execute-plan workflow."
-disable-model-invocation: true
 ---
 
 # Execute Plan

@@ -1,7 +1,6 @@
 ---
 name: cmd-j-diff-review
 description: "Use when invoking the j-diff-review workflow."
-disable-model-invocation: true
 ---
 
 # Diff Review

@@ -1,7 +1,6 @@
 ---
 name: cmd-j-lang
 description: "Use when invoking the j-lang workflow."
-disable-model-invocation: true
 ---
 
 # Language Patterns Consultation

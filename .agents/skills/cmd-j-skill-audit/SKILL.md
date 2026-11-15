@@ -1,7 +1,6 @@
 ---
 name: cmd-j-skill-audit
 description: "Use when invoking the j-skill-audit workflow."
-disable-model-invocation: true
 ---
 
 # Knowledge Base Audit

@@ -1,7 +1,6 @@
 ---
 name: cmd-j-email-analysis
 description: "Use when invoking the j-email-analysis workflow."
-disable-model-invocation: true
 ---
 
 # Email Analysis

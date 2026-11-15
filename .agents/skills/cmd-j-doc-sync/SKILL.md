@@ -1,7 +1,6 @@
 ---
 name: cmd-j-doc-sync
 description: "Use when invoking the j-doc-sync workflow."
-disable-model-invocation: true
 ---
 
 # Documentation Sync

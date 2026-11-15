@@ -1,7 +1,6 @@
 ---
 name: cmd-j-email-consolidate
 description: "Use when invoking the j-email-consolidate workflow."
-disable-model-invocation: true
 ---
 
 # Email Consolidate

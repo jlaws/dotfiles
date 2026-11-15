@@ -1,7 +1,6 @@
 ---
 name: cmd-j-init
 description: "Use when invoking the j-init workflow."
-disable-model-invocation: true
 ---
 
 # Init

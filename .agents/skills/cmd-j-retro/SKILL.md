@@ -1,7 +1,6 @@
 ---
 name: cmd-j-retro
 description: "Use when invoking the j-retro workflow."
-disable-model-invocation: true
 ---
 
 # Engineering Retrospective

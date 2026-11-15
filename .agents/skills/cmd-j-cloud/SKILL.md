@@ -1,7 +1,6 @@
 ---
 name: cmd-j-cloud
 description: "Use when invoking the j-cloud workflow."
-disable-model-invocation: true
 ---
 
 # Cloud Architecture Consultation

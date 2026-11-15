@@ -1,7 +1,6 @@
 ---
 name: cmd-j-paper-analysis
 description: "Use when invoking the j-paper-analysis workflow."
-disable-model-invocation: true
 ---
 
 # Paper Analysis

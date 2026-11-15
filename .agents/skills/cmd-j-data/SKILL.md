@@ -1,7 +1,6 @@
 ---
 name: cmd-j-data
 description: "Use when invoking the j-data workflow."
-disable-model-invocation: true
 ---
 
 # Data Engineering Consultation

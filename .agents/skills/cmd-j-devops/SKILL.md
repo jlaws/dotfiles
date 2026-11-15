@@ -1,7 +1,6 @@
 ---
 name: cmd-j-devops
 description: "Use when invoking the j-devops workflow."
-disable-model-invocation: true
 ---
 
 # DevOps Consultation

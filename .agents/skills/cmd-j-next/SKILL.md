@@ -1,7 +1,6 @@
 ---
 name: cmd-j-next
 description: "Use when invoking the j-next workflow."
-disable-model-invocation: true
 ---
 
 # Next

@@ -1,7 +1,6 @@
 ---
 name: cmd-j-frontend
 description: "Use when invoking the j-frontend workflow."
-disable-model-invocation: true
 ---
 
 # Frontend Consultation

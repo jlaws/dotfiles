@@ -1,7 +1,6 @@
 ---
 name: cmd-j-debug
 description: "Use when invoking the j-debug workflow."
-disable-model-invocation: true
 ---
 
 # Debug

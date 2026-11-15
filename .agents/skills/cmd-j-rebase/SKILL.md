@@ -1,7 +1,6 @@
 ---
 name: cmd-j-rebase
 description: "Use when invoking the j-rebase workflow."
-disable-model-invocation: true
 ---
 
 # Rebase

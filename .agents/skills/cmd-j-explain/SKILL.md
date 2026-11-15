@@ -1,7 +1,6 @@
 ---
 name: cmd-j-explain
 description: "Use when invoking the j-explain workflow."
-disable-model-invocation: true
 ---
 
 # Explain

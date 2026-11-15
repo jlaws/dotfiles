@@ -100,7 +100,6 @@ Create both files. The skill is the primary `$cmd-j-{name}` command; the prompt 
 ---
 name: cmd-j-{name}
 description: "Use when invoking the j-{name} workflow."
-disable-model-invocation: true
 ---
 
 {Purpose context}: the user's provided input
@@ -129,7 +128,7 @@ If no arguments provided, {fallback behavior}.
 - **agent:{agent-name}** -- {why referenced}
 ```
 
-For `.codex/prompts/j-{name}.md`, use `name: j-{name}`, add `argument-hint` when needed, replace "the user's provided input" with `$ARGUMENTS`, and omit `disable-model-invocation`.
+For `.codex/prompts/j-{name}.md`, use `name: j-{name}`, add `argument-hint` when needed, replace "the user's provided input" with `$ARGUMENTS`.
 
 ### 4B. Skill Template
 
@@ -264,7 +263,7 @@ After writing:
 | argument-hint | Prompt fallback only | N/A | N/A |
 | developer_instructions | N/A | N/A | Required |
 | model | N/A | N/A | Optional |
-| disable-model-invocation | Shared skill | Optional | N/A |
+| `agents/openai.yaml` `policy.allow_implicit_invocation: false` | Shared command skill | Optional; set for a side-effect command nothing invokes | N/A |
 | model_reasoning_effort | N/A | N/A | Optional |
 | sandbox_mode | N/A | N/A | Optional |
 
