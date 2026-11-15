@@ -104,7 +104,8 @@ path through `target`/`focus: { source: file, path: <path> }`.
 **Triggers**
 - Exactly one `tool_used` grader: `tool: Skill`, `input_match: '"skill"\s*:\s*"(?:kb:)?<name>"'`.
 - `trigger-should`: `min: 1`. `trigger-near` and `trigger-noauto`: `min: 0`, `max: 0`.
-- `max_turns: 3`, `timeout_seconds: 120`, `allowed_tools: [Skill, Read, Glob, Grep]`.
+- `max_turns: 6`, `timeout_seconds: 120`, `allowed_tools: [Skill, Read, Glob, Grep]`. Six, not
+  three: at three, runs that read a file first hit the turn cap before reaching the skill.
 
 **Effects and workflows**
 - At least one result grader: `regex` on a produced file, `file_exists`, or `llm` with 2-5
@@ -158,6 +159,9 @@ Absolute scores differ from a real session in these ways; comparisons within the
 - No settings or hooks load.
 - Bash runs under the OS sandbox.
 - No network and no `gh`.
+- Files under `.claude/` cannot be written (the run's permission mode denies it), so cases
+  write skill, agent, and settings drafts to workspace paths.
+- Inside the Bash sandbox the `/usr/bin/git` shim fails; Homebrew's `git` on `PATH` works.
 - The child session inherits `ANTHROPIC_API_KEY`, so a run granted Bash could print it. The
   sandbox blocks network, and the key scan covers results, logs, and kept traces; traces of runs
   without `--keep-temp` are deleted by the CLI unscanned.
