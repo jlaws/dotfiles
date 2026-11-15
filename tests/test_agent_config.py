@@ -476,6 +476,17 @@ DESIGN_FIRST_BULLET = "**Filter for blocking**"
 WRITING_PLANS_BULLET = "**Assumptions stated**"
 
 
+FRONTMATTER_BLOCK = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
+
+
+def frontmatter_block(path: Path) -> str:
+    """Return a file's YAML frontmatter text, failing with the file named when it has none."""
+    match = FRONTMATTER_BLOCK.match(path.read_text(encoding="utf-8"))
+    if match is None:
+        raise AssertionError(f"{path.relative_to(REPO)} has no frontmatter block")
+    return match.group(1)
+
+
 def skill_directories(root: Path) -> set[str]:
     return {path.parent.name for path in root.glob("*/SKILL.md")}
 
@@ -1280,8 +1291,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         )
 
         # `${CLAUDE_SKILL_DIR}` resolves to the skill's own folder, and Claude Code substitutes it
-        # only in a Claude skill. A prefixed path must name a file that skill ships, and the token
-        # must appear nowhere else, where it would reach the reader unsubstituted.
+        # only in a Claude skill. A prefixed path must name a file that skill ships, and no other
+        # file in the agent trees may carry the token, where it would reach the reader
+        # unsubstituted.
         skill_dir_claims = 0
         for skill in sorted((REPO / ".claude" / "skills").glob("*/SKILL.md")):
             for claimed in SKILL_DIR_SCRIPT_PATH.findall(skill.read_text(encoding="utf-8")):
@@ -1797,22 +1809,22 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         offenders = [
             path.name
             for path in agents
-            if memory.search(path.read_text(encoding="utf-8").split("---", 2)[1])
+            if memory.search(frontmatter_block(path))
         ]
         self.assertEqual(offenders, [], f"agents set memory: {offenders}")
 
     def test_side_effect_commands_nothing_invokes_are_user_only(self):
         """Exactly the side-effect commands no skill or coordinator invokes set
-        `disable-model-invocation: true`. The set comes from observed invocations (the
-        harness-best-practices plan, Assumption 8): flagging a command that a skill chains to would
-        break that flow (docs/adr/workflow/side-effect-commands-are-user-invoked.md)."""
+        `disable-model-invocation: true`. The set comes from observed invocations recorded in
+        docs/adr/workflow/side-effect-commands-are-user-invoked.md: flagging a command that a skill
+        chains to would break that flow."""
         flag = re.compile(r"(?m)^disable-model-invocation:\s*true\s*$")
         commands = sorted((REPO / ".claude" / "commands").glob("*.md"))
         self.assertTrue(commands, "no Claude commands found; the check is vacuous")
         flagged = {
             path.stem
             for path in commands
-            if flag.search(path.read_text(encoding="utf-8").split("---", 2)[1])
+            if flag.search(frontmatter_block(path))
         }
         self.assertEqual(flagged, USER_ONLY_COMMANDS)
 
@@ -1820,7 +1832,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         """Codex ignores `disable-model-invocation` and reads `agents/openai.yaml` instead, so the
         user-only commands' `.agents` twins turn implicit invocation off there, and no `.agents`
         skill keeps the inert key (docs/adr/workflow/side-effect-commands-are-user-invoked.md)."""
-        policy = re.compile(r"(?ms)^policy:\s*\n\s+allow_implicit_invocation:\s*false\s*$")
+        policy = re.compile(r"(?m)^policy:\s*\n\s+allow_implicit_invocation:\s*false\s*$")
         command_skills = sorted((REPO / ".agents" / "skills").glob("cmd-j-*"))
         self.assertTrue(command_skills, "no .agents command skills found; the check is vacuous")
         with_policy = set()
@@ -1834,7 +1846,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         inert = [
             str(path.relative_to(REPO))
             for path in sorted((REPO / ".agents" / "skills").glob("*/SKILL.md"))
-            if "disable-model-invocation" in path.read_text(encoding="utf-8").split("---", 2)[1]
+            if "disable-model-invocation" in frontmatter_block(path)
         ]
         self.assertEqual(inert, [], "inert disable-model-invocation in .agents skills")
 
