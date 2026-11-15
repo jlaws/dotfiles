@@ -1,7 +1,6 @@
 ---
 name: documentation-validation
 description: "Use when validating docs before shipping a change."
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Documentation Validation

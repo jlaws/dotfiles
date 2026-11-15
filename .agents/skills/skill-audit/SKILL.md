@@ -63,6 +63,7 @@ For each skill directory under `.claude/skills/`:
 | SK-F7 | No XML `<`/`>` in frontmatter fields | FAIL | Breaks YAML parsing |
 | SK-F8 | No "claude"/"anthropic" in `name` | FAIL | Reserved terms |
 | SK-F9 | Description has WHAT + WHEN (trigger phrase like "Use when") | WARN | Discoverability |
+| SK-F11 | no unscoped pre-approval of Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch | WARN | `allowed-tools` pre-approves for the turn and restricts nothing |
 
 **Content**
 
@@ -133,6 +134,7 @@ For each `.md` file under `.claude/commands/`:
 | CM-F5 | `description` under 1024 chars | WARN | Keep concise |
 | CM-F6 | `description` includes WHAT + WHEN trigger | WARN | Discoverability |
 | CM-F7 | Claude commands do not set `model` | WARN | A command runs inside the conversation; a different model re-reads the whole history uncached. Codex and Gemini command copies carry no `model` |
+| CM-F8 | no unscoped pre-approval of Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch | WARN | `allowed-tools` pre-approves for the turn and restricts nothing |
 
 **Content**
 

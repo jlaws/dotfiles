@@ -29,7 +29,7 @@ Ask for a one-line purpose for every type -- it drives the description. Then, by
 and which agents does it delegate to? List candidates with `Glob("~/.gemini/antigravity-cli/skills/*/SKILL.md")` and
 `Glob("~/.gemini/config/agents/*.md")`.
 
-**Skill:** which tools does it need without per-use approval? Does it depend on other skills? Should
+**Skill:** does it run a bundled script that must run without a prompt (then plan a scoped grant on that script, never bare `Bash`, `Write`, or `Edit`)? Does it depend on other skills? Should
 Claude invoke it automatically, or only the user (`disable-model-invocation: true`)? Does it apply only
 to certain files (`paths:`)?
 
@@ -101,7 +101,6 @@ demand:
 ---
 name: {name}
 description: "{trigger}"
-allowed-tools: {tools}
 ---
 
 # {Title}
@@ -176,7 +175,7 @@ lint and test commands. See `documentation-validation`.
 |-------|---------|-------|-------|
 | `name`, `description` | Required | Required | Required |
 | `argument-hint` | If `$ARGUMENTS` | Optional | N/A |
-| `allowed-tools` / `disallowed-tools` | N/A | Recommended | N/A |
+| `allowed-tools` / `disallowed-tools` | Optional; scoped grants only | Optional; scoped grants only | N/A |
 | `tools` | N/A | N/A | Recommended |
 | `skills` | N/A | Optional (deps) | Optional (preload) |
 | `model` | Avoid | Only with `context: fork` | Alias or `inherit` |
@@ -189,7 +188,7 @@ lint and test commands. See `documentation-validation`.
 
 Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Agent, Skill. Write `Agent`, not its retired name `Task`.
 
-`compatibility` is not a Claude Code field and does nothing -- do not emit it.
+Field semantics: `writing-skills`, Frontmatter.
 
 ### Cross-References
 

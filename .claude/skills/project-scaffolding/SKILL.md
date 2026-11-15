@@ -1,7 +1,6 @@
 ---
 name: project-scaffolding
 description: "Use when scaffolding a new or unconfigured repository."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, Agent
 ---
 
 # Project Scaffolding

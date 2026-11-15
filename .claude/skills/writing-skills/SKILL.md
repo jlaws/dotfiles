@@ -1,7 +1,6 @@
 ---
 name: writing-skills
 description: "Use when creating, editing, or validating agent skills."
-allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
 # Writing Skills
@@ -119,14 +118,15 @@ re-attached skills, and `audit.py` SK-C6 warns when a SKILL.md passes 20,000 byt
 
 | Field | Use |
 |---|---|
-| `allowed-tools` / `disallowed-tools` | Scope tool access for the turn |
+| `allowed-tools` | Pre-approves tools for the invoking turn only and restricts nothing; grant only a scoped command such as `Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)`, never bare `Bash`, `Write`, `Edit`, `WebFetch`, or `WebSearch` |
+| `disallowed-tools` | Removes tools while the skill is active |
 | `model`, `effort` | Override tier or reasoning depth; tier aliases float across model generations. Set `model` only with `context: fork`: inline, a different model re-reads the conversation uncached |
 | `paths` | Glob-gate the skill so it loads only for matching files |
 | `disable-model-invocation` | Keep it out of the always-loaded listing; user-invocable only |
 | `context: fork`, `agent` | Run in an isolated subagent context |
 | `argument-hint`, `arguments` | Autocomplete and `$name` substitution |
 
-`compatibility` is not a Claude Code field and does nothing.
+`license` and `compatibility` are agentskills.io fields Claude Code accepts but does not act on.
 
 `paths` and `disable-model-invocation` are the progressive-disclosure levers: they decide whether a
 skill costs context on every turn or only when it is relevant.

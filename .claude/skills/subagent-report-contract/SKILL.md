@@ -1,7 +1,6 @@
 ---
 name: subagent-report-contract
 description: "Use when returning findings as a dispatched agent."
-allowed-tools: Read, Grep, Glob, Bash
 ---
 
 # Agent Report Contract

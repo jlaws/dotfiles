@@ -55,6 +55,40 @@ VALID_TOOLS = {
     "Skill",
 }
 
+# `allowed-tools` pre-approves for the invoking turn and restricts nothing, so a bare grant of one of
+# these widens what runs without a prompt. A grant scoped to a command, `Bash(cmd *)`, passes.
+UNSCOPED_GRANTS = frozenset({"Bash", "Write", "Edit", "NotebookEdit", "WebFetch", "WebSearch"})
+UNSCOPED_GRANT_MESSAGE = (
+    "allowed-tools pre-approves unscoped {tool} for the invoking turn; drop it or scope it, "
+    "e.g. Bash(cmd *)"
+)
+
+
+def _grant_tokens(value: str) -> List[str]:
+    """Split an `allowed-tools` value on commas outside parentheses."""
+    tokens: List[str] = []
+    depth = 0
+    current = ""
+    for char in value:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        if char == "," and depth == 0:
+            tokens.append(current.strip())
+            current = ""
+        else:
+            current += char
+    if current.strip():
+        tokens.append(current.strip())
+    return tokens
+
+
+def _unscoped_grants(value: str) -> List[str]:
+    """Return the bare `UNSCOPED_GRANTS` tokens in an `allowed-tools` value."""
+    return [token for token in _grant_tokens(value) if token in UNSCOPED_GRANTS]
+
+
 # Codex reads shared skill metadata from a budgeted listing; only that tree is constrained.
 SHARED_DESCRIPTION_BUDGET = 64
 # Claude truncates a listed description well above this; flag only genuine runaways.
@@ -192,9 +226,12 @@ class Audit:
 
         tools = fields.get("allowed-tools")
         if tools:
-            unknown = sorted({t.strip() for t in tools.split(",")} - VALID_TOOLS)
+            names = {token.split("(", 1)[0].strip() for token in _grant_tokens(tools)}
+            unknown = sorted(names - VALID_TOOLS)
             if unknown:
                 self.add(WARN, "SK-F10", skill, f"unknown allowed-tools: {', '.join(unknown)}")
+            for tool in _unscoped_grants(tools):
+                self.add(WARN, "SK-F11", skill, UNSCOPED_GRANT_MESSAGE.format(tool=tool))
 
     def _check_supporting_files(self, skill: Path, folder: Path, text: str) -> None:
         """Flag bundled files unreachable from SKILL.md, following references transitively.
@@ -358,6 +395,9 @@ class Audit:
                     "session model (a model other than the session's re-reads the conversation "
                     "uncached)",
                 )
+
+            for tool in _unscoped_grants(fields.get("allowed-tools", "")):
+                self.add(WARN, "CM-F8", command, UNSCOPED_GRANT_MESSAGE.format(tool=tool))
 
             body = self.body(text)
             if len(body.split()) < 10:

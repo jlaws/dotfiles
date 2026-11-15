@@ -242,7 +242,7 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 5. Iterate: evaluate, compare baseline, refine
 
 ### Quick Checklist (from Anthropic's Reference A)
-- [ ] Frontmatter: `name`, `description` (with trigger phrases), `allowed-tools`
+- [ ] Frontmatter: `name`, `description` (with trigger phrases)
 - [ ] Description starts with "Use when..." and includes negative triggers
 - [ ] Body is concise (under 500 words for most skills)
 - [ ] At least one code example or concrete output

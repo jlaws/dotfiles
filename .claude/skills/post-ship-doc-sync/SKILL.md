@@ -1,7 +1,6 @@
 ---
 name: post-ship-doc-sync
 description: "Use when shipped changes may have left documentation stale."
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Post-Ship Documentation Sync

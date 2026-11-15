@@ -1,7 +1,6 @@
 ---
 name: code-agent-meta-patterns
 description: "Use when designing agent instructions, hooks, or workflows."
-allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
 # Claude Code Meta-Patterns

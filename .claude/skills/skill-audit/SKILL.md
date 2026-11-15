@@ -1,7 +1,7 @@
 ---
 name: skill-audit
 description: "Use when auditing agent knowledge-base integrity."
-allowed-tools: Read, Grep, Glob, Bash
+allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)
 ---
 
 # Knowledge Base Audit

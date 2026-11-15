@@ -1,7 +1,6 @@
 ---
 name: refactoring-and-debt
 description: "Use when refactoring code or reducing technical debt."
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Refactoring & Technical Debt

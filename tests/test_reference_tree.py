@@ -261,6 +261,69 @@ class ToolNameTests(unittest.TestCase):
         self.assertEqual(self.agent_findings("Task"), ["unknown tools: Task"])
 
 
+class SkillPreApprovalTests(unittest.TestCase):
+    """SK-F11 and CM-F8: `allowed-tools` pre-approves for the turn and restricts nothing.
+
+    A bare Bash, Write, Edit, NotebookEdit, WebFetch, or WebSearch grant widens what runs without a
+    prompt, so it warns; a grant scoped to a command passes. See
+    docs/adr/workflow/skills-do-not-pre-approve-tools.md.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit_module = load_audit()
+
+    def tree(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for sub in ("agents", "skills", "commands", "references"):
+            (root / ".claude" / sub).mkdir(parents=True)
+        return root
+
+    def skill_findings(self, tools: str):
+        root = self.tree()
+        folder = root / ".claude" / "skills" / "probe"
+        folder.mkdir()
+        (folder / "SKILL.md").write_text(
+            "---\nname: probe\ndescription: Use when probing the audit.\n"
+            f"allowed-tools: {tools}\n---\n\nBody.\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_skills()
+        return [(f.check, f.message) for f in audit.findings if f.check in ("SK-F10", "SK-F11")]
+
+    def command_findings(self, tools: str):
+        root = self.tree()
+        (root / ".claude" / "commands" / "j-probe.md").write_text(
+            "---\nname: j-probe\ndescription: Probe the audit. Use when probing the audit.\n"
+            f"allowed-tools: {tools}\n---\n\n" + "word " * 30 + "\n"
+        )
+        audit = self.audit_module.Audit(root)
+        audit.check_commands()
+        return [f.check for f in audit.findings if f.check == "CM-F8"]
+
+    def test_bare_bash_grant_warns(self):
+        findings = self.skill_findings("Read, Bash")
+        self.assertEqual([c for c, _ in findings], ["SK-F11"])
+        self.assertIn("Bash", findings[0][1])
+
+    def test_bare_webfetch_grant_warns(self):
+        findings = self.skill_findings("Read, WebFetch")
+        self.assertEqual([c for c, _ in findings], ["SK-F11"])
+        self.assertIn("WebFetch", findings[0][1])
+
+    def test_bare_write_grant_on_command_warns(self):
+        self.assertEqual(self.command_findings("Read, Write"), ["CM-F8"])
+
+    def test_scoped_bash_grant_raises_no_finding(self):
+        self.assertEqual(self.skill_findings("Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)"), [])
+
+    def test_read_only_grant_passes(self):
+        self.assertEqual(self.skill_findings("Read, Grep, Glob"), [])
+        self.assertEqual(self.command_findings("Read, Grep, Glob"), [])
+
+
 class ReferenceCitationTests(unittest.TestCase):
     """XR-7: a citation must name `references/<category>/<file>.md` from the reference root.
 
