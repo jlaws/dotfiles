@@ -26,7 +26,7 @@ The agent KB (`.agents/` skills and references shared by Codex and Gemini, plus 
 - **claude-codex-settings (fcakyon)** - https://github.com/fcakyon/claude-codex-settings - the agent anti-patterns self-audit checklist in `code-agent-meta-patterns` and the PreCompact context-preservation hook pattern.
 - **Claude Code docs, "Skills"** - https://code.claude.com/docs/en/skills - frontmatter semantics, whole-task wording, and skill-directory script paths in `writing-skills` and `skill-audit`.
 - **Claude Code docs, "Subagents"** - https://code.claude.com/docs/en/sub-agents - agent memory rules in `code-agent-meta-patterns`; fork and one-shot notes in `dispatching-parallel-agents`.
-- **Claude Code docs, "Test plugins with evals"** - https://code.claude.com/docs/en/plugin-evals - skill eval graders and tooling notes in `writing-skills`.
+- **Claude Code docs, "Test plugins with evals"** - https://code.claude.com/docs/en/plugin-evals - skill eval graders and tooling notes in `writing-skills`; the staged-plugin harness in `evals/`.
 - **Claude Code docs, "Hooks"** - https://code.claude.com/docs/en/hooks - skill- and agent-scoped hook lifetime, trust rules, and `onFailure` in `references/workflow/hook-patterns.md`.
 - **Claude Code docs, "Manage Claude's memory"** - https://code.claude.com/docs/en/memory - the MEMORY.md load limit in skill-audit's memory check.
 - **OpenAI Codex docs, "Build skills"** - https://learn.chatgpt.com/docs/build-skills - `agents/openai.yaml` implicit-invocation control on the user-only `.agents` command skills.

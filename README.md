@@ -201,6 +201,7 @@ Tools and drag in `/Applications/Ghostty.app`.
 | `ghosty_config.txt` | Ghostty terminal configuration reference |
 | `setup.sh` | Entry-point shim that runs the `macos_setup` package |
 | `macos_setup/` | Python package: install, archive, and uninstall/reset logic |
+| `evals/` | KB eval harness, cases, and baselines (repo-only, not synced) |
 
 ## Customization
 
@@ -235,6 +236,10 @@ Re-running setup replaces skills, slash commands, prompts, and agent personas wi
 #### Commands & Skills
 
 The `.claude/` directory is self-contained with `/j-*` commands, specialist agents, skills, and references.
+
+#### Evals
+
+`evals/` holds behavioral evals for the Claude tree: trigger and effect cases for every skill, command, and agent, run through `claude plugin eval` on a staged copy of the tree, with committed baselines. The runs bill an API key. See [`evals/README.md`](evals/README.md).
 
 ### Codex
 

@@ -1,6 +1,6 @@
 VENV := .venv
 BIN := $(VENV)/bin
-PY_FILES := $(shell find . -name '*.py' -not -path './.venv/*' -not -path './.claude/references/*')
+PY_FILES := $(shell find . -name '*.py' -not -path './.venv/*' -not -path './.claude/references/*' -not -path './evals/fixtures/*')
 
 .PHONY: venv lint format fix typecheck check test verify
 
