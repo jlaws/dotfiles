@@ -2,7 +2,7 @@ VENV := .venv
 BIN := $(VENV)/bin
 PY_FILES := $(shell find . -name '*.py' -not -path './.venv/*' -not -path './.claude/references/*' -not -path './evals/fixtures/*')
 
-.PHONY: venv lint format fix typecheck check test verify
+.PHONY: venv lint format fix typecheck check test verify eval-stage eval-lint
 
 venv: $(VENV)/.installed
 
@@ -28,3 +28,13 @@ test: venv
 check: lint typecheck
 
 verify: check test
+
+# KB evals (evals/README.md). Stage and lint are free; the targets below them bill an API key.
+STAGE_ROOT := $(or $(TMPDIR),/tmp)
+
+eval-stage:
+	python3 -m evals.kbeval stage --out "$(STAGE_ROOT)/kbeval-kb" --staging kb
+	python3 -m evals.kbeval stage --out "$(STAGE_ROOT)/kbeval-vanilla" --staging vanilla
+
+eval-lint:
+	python3 -m evals.kbeval lint
