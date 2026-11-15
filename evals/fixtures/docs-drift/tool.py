@@ -8,7 +8,7 @@ import sys
 
 def main(argv=None):
     """Read CSV from --input and write JSON lines to --output (default: stdout)."""
-    parser = argparse.ArgumentParser(description="Convert CSV to JSON lines.")
+    parser = argparse.ArgumentParser(description="Convert CSV to JSON lines.", allow_abbrev=False)
     parser.add_argument("--input", required=True, help="CSV file to read")
     parser.add_argument("--output", help="file to write; defaults to stdout")
     args = parser.parse_args(argv)
