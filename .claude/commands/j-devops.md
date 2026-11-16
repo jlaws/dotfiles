@@ -14,6 +14,17 @@ Before starting, gather diagnostic context:
 3. **Check IaC setup** for Terraform (.tf files), Pulumi, Helm charts, or Kubernetes manifests.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a component, scope to that; otherwise scan for infra/, deploy/, .github/, k8s/, or terraform/ directories).
 
-For deep DevOps guidance, delegate to the `devops-engineer` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills and the `references/devops/` library (plus `references/workflow/release-versioning`), then returns specific guidance. Verify its output before presenting.
+Load the relevant references for the topic, based on the diagnostic context:
+
+Reference library at `references/devops/`:
+- docker-patterns, github-actions-patterns, gitops-workflow
+- incident-management, incident-readiness, kubernetes-configuration, monorepo-tools
+- observability, pipeline-design, security-policies
+- sre-practices, terraform-module-library
+
+Also see `references/workflow/`:
+- release-versioning
+
+For deep DevOps guidance, you may instead delegate to the `devops-engineer` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills and the `references/devops/` library (plus `references/workflow/release-versioning`), then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

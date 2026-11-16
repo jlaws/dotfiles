@@ -14,6 +14,14 @@ Before starting, gather diagnostic context:
 3. **Check component structure** for existing component library, storybook config, or design system setup.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a component, scope to that; otherwise scan for src/components/, pages/, app/, or similar directories).
 
-For deep frontend guidance, delegate to the `frontend-engineer` agent, passing the diagnostic findings above and the request. It loads its skills (language-testing-patterns, output-completeness) and the `references/frontend/` library, then returns specific guidance. Verify its output before presenting.
+Load the relevant references for the topic, based on the diagnostic context:
+
+Reference library at `references/frontend/`:
+- accessibility-testing, design-audit, design-system-patterns, form-patterns
+- graphql-client-patterns, i18n-and-localization, nextjs-app-router-patterns
+- premium-design-aesthetics, react-native-architecture, react-state-management
+- responsive-web-design, svelte-patterns, tailwind-design-system, web-animation-patterns
+
+For deep frontend guidance, you may instead delegate to the `frontend-engineer` agent, passing the diagnostic findings above and the request. It loads its skills (language-testing-patterns, output-completeness) and the `references/frontend/` library, then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

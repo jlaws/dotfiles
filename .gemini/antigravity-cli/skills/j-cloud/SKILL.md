@@ -14,6 +14,12 @@ Before starting, gather diagnostic context:
 3. **Check IaC tooling config** (terraform.tfvars, terragrunt.hcl, pulumi.yaml, serverless.yml).
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a service, scope to that; otherwise scan for infra/, deploy/, cdk/, terraform/ directories).
 
-For deep cloud guidance, delegate to the `cloud-architect` agent, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `references/cloud/` library, then returns specific guidance. Verify its output before presenting.
+Load the relevant references for the topic, based on the diagnostic context:
+
+Reference library at `references/cloud/`:
+- cost-optimization, file-storage-patterns, gpu-compute-management
+- multi-cloud-architecture, serverless-patterns
+
+For deep cloud guidance, you may instead delegate to the `cloud-architect` agent, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `references/cloud/` library, then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

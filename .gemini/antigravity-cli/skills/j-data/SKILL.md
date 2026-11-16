@@ -14,6 +14,15 @@ Before starting, gather diagnostic context:
 3. **Check pipeline definitions** by searching for DAGs, workflows, ETL scripts, or migration files.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a pipeline or dataset, scope to that; otherwise scan for data/, pipelines/, dags/, migrations/, etl/ directories).
 
-For deep data-engineering guidance, delegate to the `data-engineer` agent, passing the diagnostic findings above and the request. It loads its skills (test-driven-development, analysis-output-patterns) and the `references/data/` library, then returns specific guidance. Verify its output before presenting.
+Load the relevant references for the topic, based on the diagnostic context:
+
+Reference library at `references/data/`:
+- airflow-dag-patterns, analytics-and-transformations, data-platform-architecture
+- database-migration, database-optimization, eda-and-visualization, jupyter-notebook-patterns
+- ml-pipeline-orchestration, nosql-data-modeling, postgresql-table-design
+- search-infrastructure, spark-optimization, streaming-data-processing
+- web-scraping-and-data-collection
+
+For deep data-engineering guidance, you may instead delegate to the `data-engineer` agent, passing the diagnostic findings above and the request. It loads its skills (test-driven-development, analysis-output-patterns) and the `references/data/` library, then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

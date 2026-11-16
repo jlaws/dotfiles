@@ -498,6 +498,45 @@ def description(path: Path) -> str:
     return match.group(1)
 
 
+# Consult commands list their agent's reference index beside optional delegation
+# (docs/adr/workflow/consult-commands-offer-references-and-delegation.md).
+CONSULT_AGENTS = {
+    "j-arch": ("architecture-specialist",),
+    "j-cloud": ("cloud-architect",),
+    "j-devops": ("devops-engineer",),
+    "j-docs": ("documentation-writer",),
+    "j-frontend": ("frontend-engineer",),
+    "j-lang": ("language-specialist",),
+    "j-data": ("data-engineer",),
+}
+REFERENCE_BLOCK = re.compile(r"^(?:Reference library at|Also see) `?([^`\n]+?)`?:$")
+
+
+def reference_names(text: str) -> set[str]:
+    """Return "<dir>/<name>" for each name under a `Reference library at` or `Also see` block."""
+    names: set[str] = set()
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        match = REFERENCE_BLOCK.match(line.strip())
+        if match is None:
+            continue
+        directory = match.group(1).rstrip("/").rsplit("/", 1)[-1]
+        for item in lines[index + 1 :]:
+            if not item.startswith("- "):
+                break
+            names.update(f"{directory}/{name.strip()}" for name in item[2:].split(",") if name.strip())
+    return names
+
+
+def command_copies(command: str) -> tuple[Path, ...]:
+    return (
+        REPO / ".claude" / "commands" / f"{command}.md",
+        REPO / ".agents" / "skills" / f"cmd-{command}" / "SKILL.md",
+        REPO / ".codex" / "prompts" / f"{command}.md",
+        REPO / ".gemini" / "antigravity-cli" / "skills" / command / "SKILL.md",
+    )
+
+
 class AgentConfigArchitectureTests(unittest.TestCase):
     # Heading lists run past the 640-char default for 58 of 191 references, and a truncated
     # diff names no section -- which is the one thing the failure exists to tell you.
@@ -1886,6 +1925,18 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(tree=tree):
                 self.assertIn("Session Boundaries", heading_texts(text))
 
+    def test_consult_commands_list_their_agent_references(self):
+        for command, agents in CONSULT_AGENTS.items():
+            want: set[str] = set()
+            for agent in agents:
+                want |= reference_names((REPO / ".claude" / "agents" / f"{agent}.md").read_text())
+            self.assertTrue(want, command)
+            for path in command_copies(command):
+                self.assertEqual(reference_names(path.read_text()), want, path)
+            for agent in agents:
+                gemini = REPO / ".gemini" / "config" / "agents" / f"{agent}.md"
+                own = reference_names((REPO / ".claude" / "agents" / f"{agent}.md").read_text())
+                self.assertEqual(reference_names(gemini.read_text()), own, gemini)
 
 if __name__ == "__main__":
     unittest.main()
