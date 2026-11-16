@@ -259,7 +259,10 @@ class StageTests(TempRepoCase):
         self.assertTrue((work / "calc" / "ops.py").is_file())
         self.assertTrue((work / ".kb-references" / "cat" / "ref.md").is_file())
         self.assertIn(".kb-references", (work / ".git" / "info" / "exclude").read_text())
+        self.assertIn("__pycache__/", (work / ".git" / "info" / "exclude").read_text())
         self.assertLess(seed.index("fixture.sh"), seed.index(".kb-references"))
+        vanilla = (self.stage("vanilla") / "evals-effects" / "j-demo--effect-cache" / "seed.sh").read_text()
+        self.assertIn("__pycache__/", vanilla)
 
     def test_case_yaml_has_schema_name_and_scaffold(self):
         plugin = self.stage()
@@ -281,6 +284,29 @@ class StageTests(TempRepoCase):
         plugin = self.stage()
         trigger = plugin / "evals-triggers" / "demo-skill--trigger-should-rate" / "prompt.md"
         self.assertEqual(body_of(trigger), "Help me design a rate limiter for my API.")
+
+    def test_git_cases_name_a_working_git_in_both_arms(self):
+        note = kstage.GIT_NOTE.format(git="/brew/bin/git")
+        with mock.patch.object(kstage, "working_git", return_value="/brew/bin/git"):
+            for staging in ("kb", "vanilla"):
+                plugin = self.stage(staging)
+                git_case = body_of(plugin / "evals-effects" / "j-demo--effect-cache" / "prompt.md")
+                self.assertTrue(git_case.endswith(note + "\n\n" + NON_INTERACTIVE), (staging, git_case))
+                plain = body_of(plugin / "evals-effects" / "demo-skill--effect-limiter" / "prompt.md")
+                self.assertNotIn(note, plain)
+        with mock.patch.object(kstage, "working_git", return_value=None):
+            plugin = self.stage()
+            git_case = body_of(plugin / "evals-effects" / "j-demo--effect-cache" / "prompt.md")
+            self.assertNotIn("/usr/bin/git", git_case)
+
+    def test_working_git_skips_the_system_shim(self):
+        brew = self.tmp / "brew-bin"
+        brew.mkdir()
+        (brew / "git").write_text("#!/bin/sh\n")
+        (brew / "git").chmod(0o755)
+        path = os.pathsep.join(["/nowhere", "/usr/bin", str(brew)])
+        self.assertEqual(kstage.working_git(path), str(brew / "git"))
+        self.assertIsNone(kstage.working_git(os.pathsep.join(["/nowhere", "/usr/bin"])))
 
     def test_stage_vanilla_strips_kb_directives(self):
         plugin = self.stage("vanilla")
@@ -494,6 +520,15 @@ class LintTests(TempRepoCase):
                     f"---\ntype: regex\npattern: {pattern}\ntarget: {{ source: file, path: design.md }}\n---\n"
                 )
                 self.assert_problem(r"j-demo--effect-cache: .*inline flags")
+
+    def test_lint_mid_file_heading_anchor_needs_multiline(self):
+        grader = self.repo / "evals/cases/effects/j-demo--effect-cache/graders/re.md"
+        grader.write_text("---\ntype: regex\npattern: '^## Risks'\ntarget: { source: file, path: design.md }\n---\n")
+        self.assert_problem(r"j-demo--effect-cache: grader re: .*`flags: m`")
+        grader.write_text(
+            "---\ntype: regex\npattern: '^## Risks'\nflags: m\ntarget: { source: file, path: design.md }\n---\n"
+        )
+        self.assertEqual([p for p in self.problems() if "flags: m" in p], [])
 
     def test_lint_graded_file_under_dot_claude(self):
         self.edit("effects/j-demo--effect-cache/graders/result.md", "path: design.md", "path: .claude/settings.json")
@@ -1372,6 +1407,20 @@ class RealFixtureTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertTrue((work / ".kb-references").is_dir())
+
+    def test_py_calc_planned_is_py_calc_plus_a_plan(self):
+        fixtures = REPO / "evals" / "fixtures"
+
+        def files(root: Path) -> dict:
+            return {
+                p.relative_to(root): p.read_bytes() for p in root.rglob("*")
+                if p.is_file() and "__pycache__" not in p.parts
+            }
+
+        planned = files(fixtures / "py-calc-planned")
+        plan = planned.pop(Path("plans") / "plan.md")
+        self.assertEqual(planned, files(fixtures / "py-calc"))
+        self.assertIn(b"mean([])", plan)
 
     def test_py_calc_keeps_its_seeded_bug(self):
         fixture = REPO / "evals" / "fixtures" / "py-calc"

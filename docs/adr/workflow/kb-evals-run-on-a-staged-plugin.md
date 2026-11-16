@@ -45,7 +45,7 @@ CLI keeps graders, judge votes, isolation, and cost ceilings in one maintained t
 - No settings or hooks load.
 - Bash is sandboxed.
 - No network and no `gh`.
-- `git` is the macOS shim, which sometimes fails under the sandbox.
+- Git cases name a working git in the prompt, because the sandbox's `/usr/bin/git` shim fails.
 
 Every asset needs cases, and each run costs money.
 
