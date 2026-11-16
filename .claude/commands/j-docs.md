@@ -14,6 +14,13 @@ Before starting, gather diagnostic context:
 3. **Check for API schemas** by searching for openapi.yaml, swagger.json, or GraphQL schema files.
 4. **Get scope overview** of the target area (if $ARGUMENTS specifies a component, scope to that; otherwise scan for documentation directories).
 
-For deep documentation guidance, delegate to the `documentation-writer` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills (post-ship-doc-sync, output-completeness) and the `references/documentation/` library, then returns specific guidance. Verify its output before presenting.
+Load the relevant references for the topic, based on the diagnostic context:
+
+Reference library at `references/documentation/`:
+- ai-writing-tells, api-doc-template, changelog-automation, changelog-patterns
+- openapi-spec-generation, quickstart-template, readme-template
+- technical-writing-for-devtools
+
+For deep documentation guidance, you may instead delegate to the `documentation-writer` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills (post-ship-doc-sync, output-completeness) and the `references/documentation/` library, then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

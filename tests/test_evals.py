@@ -638,6 +638,70 @@ class RealTreeTests(unittest.TestCase):
         gaps = kcases.coverage(found, REPO)
         self.assertEqual(gaps, [], "\n".join(gaps))
 
+    @staticmethod
+    def real_graders(case_prefix: str, name: str) -> list:
+        found = kcases.discover(REPO / "evals" / "cases")
+        cases = [c for c in found if c.name.startswith(case_prefix)]
+        return [g for c in cases for g in c.graders if g.name == name]
+
+    def assert_grades(self, graders: list, failing: list, passing: list) -> None:
+        """Grade in Python `re`, as lint's grounding check does: pass = found != not_contains.
+
+        The harness grades in JavaScript; these patterns use only syntax both dialects share.
+        """
+        self.assertTrue(graders)
+        for g in graders:
+            flags = kcases._python_flags(kcases.unquote(g.fields.get("flags", "")))
+            pattern = re.compile(kcases.unquote(g.fields["pattern"]), flags)
+            negate = kcases.unquote(g.fields.get("match", "")) == "not_contains"
+            for text in failing:
+                found = pattern.search(text) is not None
+                self.assertFalse(found != negate, f"{g.name} should fail: {text}")
+            for text in passing:
+                found = pattern.search(text) is not None
+                self.assertTrue(found != negate, f"{g.name} should pass: {text}")
+
+    def test_j_explain_self_contained_rejects_external_resources(self):
+        graders = self.real_graders("j-explain--effect-", "self-contained")
+        self.assertEqual(len(graders), 2)
+        self.assert_grades(
+            graders,
+            failing=[
+                '<link rel="stylesheet" href="https://cdn.x/a.css">',
+                '<script src="https://x/y.js"></script>',
+                '<img src="//cdn.x/i.png">',
+                "<style>@import url(https://x/f.css);</style>",
+                '<div style="background:url(https://x/b.png)">',
+            ],
+            passing=[
+                '<style>b{color:red}</style><svg></svg><a href="#s1">x</a>',
+                "<script>document.title = 'x';</script>",
+                '<div style="background:url(data:image/png;base64,AAAA)">',
+            ],
+        )
+
+    def test_j_data_no_serial_ignores_sql_comments(self):
+        graders = self.real_graders("j-data--effect-orders-schema", "no-serial")
+        self.assertEqual(len(graders), 1)
+        self.assert_grades(
+            graders,
+            failing=[
+                "id serial PRIMARY KEY,",
+                "  price money,",
+                "name varchar(50),",
+                "created timestamp NOT NULL,",
+                "CREATE TABLE t (id bigserial, x int);",
+                "id serial PRIMARY KEY, -- pk",
+            ],
+            passing=[
+                "-- id (no serial)",
+                "-- ids are uuid, not serial",
+                "total numeric(12,2) NOT NULL, -- cents, not money",
+                "  id uuid, -- not serial",
+                "created_at timestamptz NOT NULL,",
+            ],
+        )
+
 
 
 # --- runner and ledger -------------------------------------------------------------------------

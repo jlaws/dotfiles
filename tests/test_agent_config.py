@@ -498,6 +498,65 @@ def description(path: Path) -> str:
     return match.group(1)
 
 
+# Consult commands list their agent's reference index beside optional delegation
+# (docs/adr/workflow/consult-commands-offer-references-and-delegation.md).
+CONSULT_AGENTS = {
+    "j-arch": ("architecture-specialist",),
+    "j-cloud": ("cloud-architect",),
+    "j-devops": ("devops-engineer",),
+    "j-docs": ("documentation-writer",),
+    "j-frontend": ("frontend-engineer",),
+    "j-lang": ("language-specialist",),
+    "j-data": ("data-engineer",),
+    "j-system-design": (
+        "architecture-specialist",
+        "data-engineer",
+        "security-reviewer",
+        "devops-engineer",
+    ),
+}
+REFERENCE_BLOCK = re.compile(r"^(?:Reference library at|Also see) `?([^`\n]+?)`?:$")
+
+
+def reference_blocks(text: str) -> list[str]:
+    """Return the path of each `Reference library at` or `Also see` block."""
+    matches = (REFERENCE_BLOCK.match(line.strip()) for line in text.splitlines())
+    return [match.group(1) for match in matches if match]
+
+
+def reference_names(text: str) -> set[str]:
+    """Return "<dir>/<name>" for each name under a `Reference library at` or `Also see` block."""
+    names: set[str] = set()
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        match = REFERENCE_BLOCK.match(line.strip())
+        if match is None:
+            continue
+        directory = match.group(1).rstrip("/").rsplit("/", 1)[-1]
+        for item in lines[index + 1 :]:
+            if not item.startswith("- "):
+                break
+            names.update(
+                f"{directory}/{name.strip()}" for name in item[2:].split(",") if name.strip()
+            )
+    return names
+
+
+def command_copies(command: str) -> tuple[tuple[Path, str], ...]:
+    """Return each tree's copy of a command with the reference path prefix that tree uses."""
+    return (
+        (REPO / ".claude" / "commands" / f"{command}.md", "references/"),
+        (REPO / ".agents" / "skills" / f"cmd-{command}" / "SKILL.md", ".agents/references/"),
+        (REPO / ".codex" / "prompts" / f"{command}.md", ".agents/references/"),
+        (REPO / ".gemini" / "antigravity-cli" / "skills" / command / "SKILL.md", "references/"),
+    )
+
+
+def agent_reference_names(agent: str) -> set[str]:
+    path = REPO / ".claude" / "agents" / f"{agent}.md"
+    return reference_names(path.read_text(encoding="utf-8"))
+
+
 class AgentConfigArchitectureTests(unittest.TestCase):
     # Heading lists run past the 640-char default for 58 of 191 references, and a truncated
     # diff names no section -- which is the one thing the failure exists to tell you.
@@ -1885,6 +1944,37 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             )
             with self.subTest(tree=tree):
                 self.assertIn("Session Boundaries", heading_texts(text))
+
+    def test_consult_commands_list_their_agent_references(self):
+        for command, agents in CONSULT_AGENTS.items():
+            want = set().union(*(agent_reference_names(agent) for agent in agents))
+            for path, prefix in command_copies(command):
+                with self.subTest(path=str(path.relative_to(REPO))):
+                    self.assertTrue(want)
+                    text = path.read_text(encoding="utf-8")
+                    self.assertEqual(reference_names(text), want)
+                    for block in reference_blocks(text):
+                        self.assertTrue(block.startswith(prefix), f"{block} lacks {prefix}")
+        for agent in sorted({a for agents in CONSULT_AGENTS.values() for a in agents}):
+            gemini = REPO / ".gemini" / "config" / "agents" / f"{agent}.md"
+            with self.subTest(path=str(gemini.relative_to(REPO))):
+                got = reference_names(gemini.read_text(encoding="utf-8"))
+                self.assertEqual(got, agent_reference_names(agent))
+
+    def test_consult_cases_measure_reference_reads(self):
+        """Each consult case carries a read-refs grader on its agents' reference directories."""
+        cases_root = REPO / "evals" / "cases" / "effects"
+        for command, agents in CONSULT_AGENTS.items():
+            dirs = {name.split("/")[0] for a in agents for name in agent_reference_names(a)}
+            dirs.discard("workflow")
+            case_dirs = sorted(cases_root.glob(f"{command}--effect-*"))
+            self.assertTrue(case_dirs, command)
+            for case in case_dirs:
+                with self.subTest(case=case.name):
+                    grader = (case / "graders" / "read-refs.md").read_text(encoding="utf-8")
+                    self.assertIn("tool: Read", grader)
+                    for directory in dirs:
+                        self.assertIn(directory, grader)
 
 
 if __name__ == "__main__":

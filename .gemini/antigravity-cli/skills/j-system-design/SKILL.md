@@ -13,7 +13,7 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
 - If `$ARGUMENTS` is empty, ask the user for a system description.
 
-**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`) and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
+**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`, `devops-engineer`) and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
 
 ## Design Process
 
@@ -40,6 +40,43 @@ Hand each Phase 2 perspective to its agent, in parallel -- they load the relevan
 - Component Architecture, API Design -> `architecture-specialist`
 - Data Architecture -> `data-engineer`
 - Security & Operations -> `security-reviewer` (security) + `devops-engineer` (deployment/observability)
+
+Analyzing a perspective inline, load the relevant references for it:
+
+Reference library at `references/architecture/`:
+- api-design-checklist, api-design-principles, architecture-decision-records
+- architecture-patterns, background-job-processing, caching-strategies
+- distributed-communication-patterns, error-management
+- event-sourcing-examples, graphql-schema-design, grpc-examples
+- mcp-client-configuration, mcp-server-development, message-queue-examples
+- microservices-patterns, ml-system-design, notification-systems
+- pagination-patterns, real-time-systems, rest-api-template
+- rest-best-practices, retry-patterns, saas-multi-tenancy
+- server-examples, testing-and-integration, testing-strategies
+
+Also see `references/workflow/`:
+- existing-code-discipline
+
+Reference library at `references/data/`:
+- airflow-dag-patterns, analytics-and-transformations, data-platform-architecture
+- database-migration, database-optimization, eda-and-visualization, jupyter-notebook-patterns
+- ml-pipeline-orchestration, nosql-data-modeling, postgresql-table-design
+- search-infrastructure, spark-optimization, streaming-data-processing
+- web-scraping-and-data-collection
+
+Reference library at `references/security/`:
+- auth-implementation-patterns, ci-and-supply-chain, compliance-and-data-privacy
+- dependabot-renovate-config, dependency-auditing, secrets-management
+- security-analysis, vulnerability-review-pipeline
+
+Reference library at `references/devops/`:
+- docker-patterns, github-actions-patterns, gitops-workflow
+- incident-management, incident-readiness, kubernetes-configuration, monorepo-tools
+- observability, pipeline-design, security-policies
+- sre-practices, terraform-module-library
+
+Also see `references/workflow/`:
+- release-versioning
 
 Synthesize their findings in Phase 4 and verify each against the codebase. For small systems, analyze the perspectives inline instead.
 

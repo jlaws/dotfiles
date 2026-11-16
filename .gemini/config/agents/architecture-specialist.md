@@ -19,17 +19,18 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - subagent-report-contract
 
 Reference library at `~/.agents/references/architecture/`:
-- api-design-checklist, api-design-principles, architecture-decision-records, rest-api-template
-
-Also see `~/.agents/references/workflow/`:
-- existing-code-discipline
+- api-design-checklist, api-design-principles, architecture-decision-records
 - architecture-patterns, background-job-processing, caching-strategies
 - distributed-communication-patterns, error-management
 - event-sourcing-examples, graphql-schema-design, grpc-examples
-- mcp-server-development, message-queue-examples, microservices-patterns
-- ml-system-design, notification-systems, pagination-patterns
-- real-time-systems, rest-best-practices, retry-patterns
+- mcp-client-configuration, mcp-server-development, message-queue-examples
+- microservices-patterns, ml-system-design, notification-systems
+- pagination-patterns, real-time-systems, rest-api-template
+- rest-best-practices, retry-patterns, saas-multi-tenancy
 - server-examples, testing-and-integration, testing-strategies
+
+Also see `~/.agents/references/workflow/`:
+- existing-code-discipline
 
 Read the relevant reference file(s) for the user's topic before responding.
 Provide specific, actionable guidance with code examples and architecture diagrams.

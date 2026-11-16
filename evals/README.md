@@ -65,7 +65,7 @@ kept trace is scanned for `sk-ant-`; a hit quarantines the result and aborts the
 ```text
 evals/
 ├── budget.json, spend.json, harness.json
-├── kbeval/                     # stage, lint, run, summarize, compare
+├── kbeval/                     # stage, lint, run, summarize, compare; determination checks
 ├── fixtures/<name>/            # frozen fixture trees (specs below)
 ├── cases/
 │   ├── triggers/<asset>--<kind>-<slug>/
@@ -114,8 +114,9 @@ path through `target`/`focus: { source: file, path: <path> }`.
 - At least one result grader: `regex` on a produced file, `file_exists`, or `llm` with 2-5
   concrete `PASS if` / `FAIL if` claims, all required. Result graders never mention `kb:`.
 - At least one process grader: `tool_used` on `Skill`, or on `Agent` with
-  `"subagent_type"\s*:\s*"kb:<agent>"`, or `tool_order`. Process graders are indicators; the summary
-  leaves them out of delta. They also match tool calls made inside a subagent, so a `gh` call
+  `"subagent_type"\s*:\s*"kb:<agent>"`, or `tool_order`, or `tool_used` on `Read` with
+  `input_match: '(?:\.kb-references|_refs)/<dir>/'` (both `refsMode` layouts). Process graders
+  are indicators; the summary leaves them out of delta. They also match tool calls made inside a subagent, so a `gh` call
   the `create-pr` agent makes counts.
 - Effects: `max_turns: 40`, `timeout_seconds: 900`,
   `allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]`.
@@ -320,7 +321,8 @@ triggers $0.07 (no judge), effects $0.29 kb and $0.19 vanilla including the judg
 at $1.00. Opus was priced at twice Sonnet. Estimate: about $274 Sonnet and $548 Opus, $822 in all,
 against $2,383 left of the $2,500 budget, so no trim applied. Actual: $245.26 Sonnet and $416.18
 Opus, $661.44 in all (Opus ran about 1.7 times Sonnet; workflows about $0.31 per Opus run). Period
-total after the baseline, pilot and smoke included: $778.83 of $2,500 (`evals/spend.json`).
+total after the baseline, pilot and smoke included: $778.83 of $2,500 (`evals/spend.json` at that
+time; the post-fix rerun below moved it).
 
 Results (2026-11-16, Claude Code 2.1.325, judge Fable 5.2). Means are per-case scores on result
 graders (triggers: the Skill grader), each column rounded on its own, with case-level bootstrap 95%
@@ -352,7 +354,9 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
 - Effects: the gain is small, and it comes from cases where the asset fired. Where the kb arm's
   process grader fired at least once, delta is +0.075 (Opus, 124 cases) and +0.073 (Sonnet, 114);
   where it never fired, about -0.01 (38 and 48 cases), which is noise. The kb arm is the whole
-  plugin, not only the named asset.
+  plugin, not only the named asset. `firedRate` averages every process
+  grader, behavioral ones included, so this split is not by whether the asset loaded; see
+  `tasks/kbeval-summarize-stale-results.md`.
 - Effects headroom is thin: 130 of 162 cases have delta 0 on both models, and about 120 score 1.0 in
   both arms. The gain rests on about 25 cases. Grouping each asset's cases in the bootstrap leaves
   the delta CI above zero: [+0.02, +0.09] Opus, [+0.02, +0.08] Sonnet.
@@ -362,3 +366,134 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
   that fired the skill before the cap counts as fired.
 - Five effect cases change pass state from Sonnet to Opus (four to pass, one to fail). With three
   runs and a 2/3 pass line, flips this few are within run-to-run noise.
+
+## Asset determination
+
+Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63, 3 kb runs per
+case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`)
+reads the raw per-run results under `~/.local/state/dotfiles-kbeval/results/<purpose>/kb/`
+(machine-local, so it reruns only where those results exist), keeping only batches
+with a `.key` and `partial` false, as `summary._load` does. Its checks are `html-lead`,
+`writing-plans-risks`, `research-claim-c`, `j-explain-self-contained`, `arch-design`,
+`no-regression`, and `library-use`; `figures` produced the counts below. Each llm-grader record
+stores the graded file in `evidence`, so a failure can be read, not only counted.
+
+**Verdict**: delete none; fix four assets and three graders; consult commands offer both their
+references and delegation.
+
+**Deletion.** No asset meets the skill-audit bar, "both unreferenced and unmentioned": every asset
+is referenced. 130 of 162 effect cases have delta 0 on both models and about 120 score 1.0 in both
+arms (see Reading the numbers): those cases have no headroom, which says nothing about the asset.
+Every negative asset delta is a one- or two-run flip at 3 runs per arm.
+
+**Fixes.**
+
+| Asset | Defect | Baseline evidence (kb runs) | Change |
+|---|---|---|---|
+| html-report-authoring | Template puts `<h1>` then `nav.toc`, against its own BLUF rule | latency-readout `html` 3/6 (Opus 1/3, Sonnet 2/3); 0 of 6 graded files put a lead before the TOC | A `<p class="lead">` headline line between `<h1>` and the TOC |
+| writing-plans | Header template `**Risks:**` overrides a prompt's "under a Risks heading" | Opus id-collision: `risks-section` 0/2 among runs that loaded the skill | `## Risks` |
+| research-analyst | `confidence-scoring.md` flags "any contradiction" in one place and only unresolved ones in step 5 | claim-confidence `claims` 4/6 (Opus 2/3, Sonnet 2/3); both failing runs called the Claim C conflict resolved and did not flag it | Step 5 flags every contradiction, resolved ones included |
+| skill-lookup-discipline | Claims a session-start hook triggers it; none exists (`.claude/settings.json` registers only `UserPromptSubmit`) | n/a (false statement) | Claim removed |
+
+**Triggers.** Own Skill grader passes over trigger-should and effect kb runs, both models: 0/18 for
+debugging-methodology, dispatching-parallel-agents, documentation-validation, executing-plans,
+output-completeness, refactoring-and-debt, and subagent-report-contract; 0/6 for the j-arch,
+j-debug, and j-devops commands. Each has another reach path: debugging-methodology through
+`/j-debug`; dispatching-parallel-agents through `/j-plan` and `subagent-driven-development`;
+documentation-validation through the `create-pr` and `documentation-writer` agents' `skills:`
+preloads and the workflow commands; executing-plans through `/j-execute-plan` and `/j-next`;
+output-completeness and subagent-report-contract through agent `skills:` preloads;
+refactoring-and-debt through `/j-defrag`; the commands are typed. Descriptions stay unchanged:
+within skills, description length does not predict firing (all 47-86 characters; 47-character
+skills fire 6 of 6).
+
+**Consult commands.** `delegated` passed in 0 of 12 kb runs for each of j-arch, j-cloud, j-devops,
+j-docs, j-frontend, j-lang, and j-data (0 of 84), and in 0 of 12 for j-system-design. Stored graded
+files cite `.kb-references/` in 1 of 12 j-cloud runs, 4 of 12 j-system-design runs, and none for the
+others with evidence (j-lang has no llm grader, so no stored file); this is a lower bound on library
+reads. The commands named their library only inside a conditional delegation sentence, a path the
+model never took ("the file is 25 lines, so a direct review costs less than a handoff"). Each consult
+command now lists its agent's reference index beside optional delegation, and j-system-design lists
+one per perspective: [consult commands offer references and delegation](../docs/adr/workflow/consult-commands-offer-references-and-delegation.md).
+Their cases gain a `read-refs` process grader (`tool_used` on `Read` of `<dir>` under `.kb-references/`, or `_refs/` under
+`refsMode: add_dirs`).
+
+**Measurement defects.**
+- j-explain `self-contained` had no `match: not_contains`, so it passed only on external resources.
+  Re-scored on stored files with the fix: 12/12 pass, against 0/12 stored.
+- j-data `no-serial` matched SQL comments. Re-scored on stored files with the fix: Opus 3/3 (0/3
+  stored), Sonnet 3/3 (3/3 stored).
+- architecture-specialist `not-retried` rejected correct non-retry rows (Sonnet runs 0 and 1); its
+  claim moves into the `design` llm grader.
+- Case defects and harness gaps that need more than a grader fix:
+  [kbeval-case-defects](../tasks/kbeval-case-defects.md),
+  [kbeval-summarize-stale-results](../tasks/kbeval-summarize-stale-results.md).
+
+### Post-fix rerun
+
+Each change is committed, then re-measured on the kb arm under ledger purpose `fix-asset-defects`
+and compared run by run with the stored baseline. `evals/baselines/` is not rewritten, so no summary
+mixes KB versions. Criteria:
+- `html-lead`: latency-readout `html` passes in at least 5/6 of runs (6 runs per model).
+- `writing-plans-risks`: every Opus id-collision run that loaded the skill passes `risks-section`;
+  fewer than 2 such runs is BLOCKED.
+- `research-claim-c`: claim-confidence `claims` passes in at least 11/12 of runs.
+- `j-explain-self-contained`: `self-contained` passes in at least 11/12 of runs across both cases.
+- `arch-design`: retry-policy-adr `design` passes in at least 5/6 of runs.
+- `no-regression`: per case, a kb score drop of at least 1/3 on both models, or at least 2/3 on one,
+  fails; graders changed in this work are skipped.
+- `library-use` (report only): consult and j-system-design runs that delegated, and runs that read
+  references inline.
+
+Results (2026-11-16, Claude Code 2.1.325 at every rerun, kb arm only, ledger purpose
+`fix-asset-defects`). Baseline is KB 479cc63 at 3 runs per model; "KB" is the commit each rerun
+staged on a clean tree. Counts are passing runs over graded runs.
+
+| Asset | KB | Runs per model | Check | Baseline | Post-fix | Result |
+|---|---|---|---|---|---|---|
+| architecture-specialist | 123dbee | 3 | `design` (now carries the non-retry claim) | 6/6 (old claims) | 6/6 (Opus 3/3, Sonnet 3/3) | PASS |
+| html-report-authoring | 43a4a49 | 6 | latency-readout `html` | 3/6 (Opus 1/3, Sonnet 2/3) | 10/12 (Opus 4/6, Sonnet 6/6) | PASS |
+| html-report-authoring | 43a4a49 | 6 | lead before the TOC (report only) | 0/6 | 12/12 | |
+| j-explain | 43a4a49 | 3 | `self-contained`, both cases | 0/12 | 12/12 | PASS |
+| writing-plans | 56fe485 | 6, Opus only | id-collision `risks-section`, runs that loaded the skill | 0/2 | 5/5 | PASS |
+| research-analyst | 617b357 | 6 | claim-confidence `claims` | 4/6 (Opus 2/3, Sonnet 2/3) | 11/12 (Opus 6/6, Sonnet 5/6) | PASS |
+
+`self-contained` catches `src`/`href` loads, `@import`, and `url()`; it misses `srcset`,
+`<object data>`, SVG `<image href>`, and script-issued requests, so 12/12 is a lower bar than the
+skill's zero-network-requests rule (`tasks/kbeval-case-defects.md`).
+
+`no-regression` passed for every rerun asset. Per-case kb scores that moved (baseline -> post-fix):
+architecture-specialist catalog-cache-traps Opus 1.00 -> 0.67 (one model, under the 2/3 line);
+html-report-authoring latency-readout Opus 0.83 -> 0.92, Sonnet 0.92 -> 1.00; writing-plans
+id-collision-risk 0.67 -> 1.00; research-analyst claim-confidence Opus 0.67 -> 1.00, Sonnet
+0.67 -> 0.83, seed-claim-review Opus 1.00 -> 0.83, Sonnet 0.67 -> 1.00. Every other case held its
+score. Nothing was reverted or BLOCKED. The research-analyst rerun staged 617b357, which also holds
+the skill-lookup-discipline sentence removal (no rerun; it adds no behavior).
+
+Consult commands (ed0c8c5) and j-system-design (a2d8077), 3 runs per model: every case scored 1.00
+before and after, on both models. `library-use` (post-fix only; `read-refs` is new):
+
+| Command | Delegated | Read references inline, Opus | Read references inline, Sonnet |
+|---|---|---|---|
+| j-arch | 0/12 | 6/6 | 6/6 |
+| j-cloud | 0/12 | 3/6 | 6/6 |
+| j-devops | 0/12 | 0/6 | 5/6 |
+| j-docs | 0/12 | 2/6 | 3/6 |
+| j-frontend | 0/12 | 0/6 | 3/6 |
+| j-lang | 0/12 | 2/6 | 3/6 |
+| j-data | 0/12 | 0/6 | 4/6 |
+| j-system-design | 0/12 | 3/6 | 3/6 |
+
+The model still never delegates; with the list beside it, it reads the library inline in 49 of 96
+runs (Opus 16 of 48, Sonnet 33 of 48). The change also softened "delegate to" to "you may instead
+delegate to", so the reads are not credited to the list alone. No case score moved: these cases sit
+at the ceiling, so the reads show reach, not a quality gain.
+
+A review follow-up labeled j-system-design's lists by perspective and moved them below "Synthesize
+their findings ... For small systems, analyze the perspectives inline instead." Rerun at 6faff20
+(3 runs per model): scores held at 1.00, delegated 0/12, inline reads Opus 3/6, Sonnet 0/6 (from
+3/6). Not significant at n=6, but the move was reverted; the table above is a2d8077's result, and
+the shipped text differs from it only by naming `devops-engineer` in the opening delegation line.
+
+Purpose spend: $89.71 of the $100 cap (estimate $84.60, plus $7.24 for the 6faff20 rerun). Period
+total after the reruns: $868.54 of $2,500 (`evals/spend.json`). `evals/baselines/` is unchanged.
