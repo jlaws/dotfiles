@@ -32,6 +32,6 @@ cat > api/config.py <<'PY'
 """Settings."""
 import os
 
-PAYMENT_API_KEY = "pk_live_51Hx9RkExampleExampleExample"
+PAYMENT_API_SECRET = "7f3a9c2e-payments-hmac-d41b"
 DEBUG = os.environ.get("DEBUG", "0") == "1"
 PY

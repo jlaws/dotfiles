@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: '\b(SELECTIVE EXPAND|EXPAND)\b'
+pattern: '^\W*(?:[\w ]*(?:[Mm]ode|[Rr]ecommend\w*|[Vv]erdict)\W*)?(?:SELECTIVE )?EXPAND\b'
 target: { source: file, path: scope-review.md }
 ---

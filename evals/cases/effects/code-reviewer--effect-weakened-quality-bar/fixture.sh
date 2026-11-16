@@ -49,7 +49,7 @@ Title: Make CI green again
 +fail_under = 60
 --- a/tests/test_pricing.py
 +++ b/tests/test_pricing.py
-@@ -8,6 +8,7 @@
+@@ -7,6 +7,7 @@
      def test_discount(self):
          self.assertEqual(apply_discount(200, 10), 180)
  
@@ -59,7 +59,7 @@ Title: Make CI green again
              apply_discount(200, 150)
 --- a/svc/pricing.py
 +++ b/svc/pricing.py
-@@ -2,8 +2,10 @@
+@@ -2,8 +2,9 @@
  
  
  def apply_discount(price, pct):

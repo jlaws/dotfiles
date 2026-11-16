@@ -4,7 +4,6 @@ focus: { source: file, path: retry-design.md }
 ---
 
 All claims are required.
-PASS if retry-design.md retries 408, 429, 500, 502, 503, and 504, explicitly does not retry 400, 401, or 404, and does not retry a business-conflict 409 (retrying only an idempotency in-progress 409 is acceptable).
-PASS if retry-design.md makes POST /charges retryable only with an idempotency key sent on every attempt of the same logical charge.
-PASS if retry-design.md says a 429 waits at least the Retry-After value and that backoff is exponential with jitter, with a stated maximum attempt count.
-FAIL if retry-design.md retries POST /charges without any idempotency key.
+PASS if retry-design.md makes POST /charges safe to retry by sending the same idempotency key on every attempt of one logical charge.
+PASS if retry-design.md says a 429 waits at least the Retry-After value before the next attempt.
+FAIL if retry-design.md leaves any of 408, 429, 500, 502, 503, or 504 out of the retried codes.

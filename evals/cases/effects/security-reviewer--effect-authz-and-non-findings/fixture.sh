@@ -13,12 +13,19 @@ def get_invoice(request, invoice_id):
 def list_my_invoices(request):
     rows = Invoice.objects.filter(owner_id=request.user.id)
     return [{"id": r.id, "total": r.total} for r in rows]
+PY
+cat > invoices/cli.py <<'PY'
+"""Command-line tool an invoice owner runs on their own machine: python -m invoices.cli <path>."""
+import sys
 
 
-def download_own_export(request, path):
-    # CLI-style helper run by the user on their own machine against their own files
+def download_own_export(path):
     with open(path) as handle:
         return handle.read()
+
+
+if __name__ == "__main__":
+    print(download_own_export(sys.argv[1]))
 PY
 cat > invoices/settings.py <<'PY'
 """Settings."""

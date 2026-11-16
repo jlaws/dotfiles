@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: '19,?440(?:\.00)?'
+pattern: '(?<![\d,])19,?440'
 target: { source: file, path: kpis.md }
 ---
