@@ -54,7 +54,3 @@ An instruction that says *what* to do ("add X", "fix Y") is not an instruction t
 
 Conversational replies with no action, reading a file you were asked to read, and informational git
 commands (`status`, `log`, `diff`).
-
-## Integration
-
-The session-start hook triggers this skill, so it applies to every session.

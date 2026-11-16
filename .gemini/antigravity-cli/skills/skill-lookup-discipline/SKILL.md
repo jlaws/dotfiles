@@ -73,7 +73,3 @@ Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows. 
 - Pure conversational responses (greetings, explanations with no action)
 - Reading files the user explicitly asked you to read
 - Git status / log / diff commands (informational only)
-
-## Integration
-
-This skill is auto-triggered by the session-start hook. It applies to every session.
