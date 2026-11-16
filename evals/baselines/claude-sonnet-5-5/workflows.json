@@ -9,9 +9,9 @@
   "schema": 1,
   "suite": "workflows",
   "cases": [
-    {"asset": "wf--debug-failing-test", "delta": 0.0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--debug-failing-test", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
-    {"asset": "wf--doc-sync-after-change", "delta": 0.0, "errors": [], "firedRate": 0.3333, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--doc-sync-after-change", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
-    {"asset": "wf--execute-plan-to-review", "delta": 0.0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--execute-plan-to-review", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
-    {"asset": "wf--tdd-fix-seeded-bug", "delta": 0.0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--tdd-fix-seeded-bug", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0}
+    {"asset": "wf--debug-failing-test", "delta": 0.0, "errorRuns": 0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--debug-failing-test", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
+    {"asset": "wf--doc-sync-after-change", "delta": 0.0, "errorRuns": 0, "errors": [], "firedRate": 0.3333, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--doc-sync-after-change", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
+    {"asset": "wf--execute-plan-to-review", "delta": 0.0, "errorRuns": 0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--execute-plan-to-review", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
+    {"asset": "wf--tdd-fix-seeded-bug", "delta": 0.0, "errorRuns": 0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--tdd-fix-seeded-bug", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0}
   ]
 }
