@@ -65,7 +65,7 @@ kept trace is scanned for `sk-ant-`; a hit quarantines the result and aborts the
 ```text
 evals/
 ├── budget.json, spend.json, harness.json
-├── kbeval/                     # stage, lint, run, summarize, compare
+├── kbeval/                     # stage, lint, run, summarize, compare; determination checks
 ├── fixtures/<name>/            # frozen fixture trees (specs below)
 ├── cases/
 │   ├── triggers/<asset>--<kind>-<slug>/
@@ -370,8 +370,9 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
 ## Asset determination
 
 Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63, 3 kb runs per
-case per model). Method: `scratchpad/kbeval_check.py` (not committed) reads the raw per-run results
-under `~/.local/state/dotfiles-kbeval/results/<purpose>/kb/` (machine-local), keeping only batches
+case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`)
+reads the raw per-run results under `~/.local/state/dotfiles-kbeval/results/<purpose>/kb/`
+(machine-local, so it reruns only where those results exist), keeping only batches
 with a `.key` and `partial` false, as `summary._load` does. Its checks are `html-lead`,
 `writing-plans-risks`, `research-claim-c`, `j-explain-self-contained`, `arch-design`,
 `no-regression`, and `library-use`; `figures` produced the counts below. Each llm-grader record
