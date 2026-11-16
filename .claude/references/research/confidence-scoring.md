@@ -68,7 +68,7 @@ When sources disagree:
 2. **Assess source quality**: Which sources are more authoritative?
 3. **Check recency**: Is one source outdated?
 4. **Look for context**: Could both be true in different contexts?
-5. **Flag unresolved**: If contradiction persists, report both positions
+5. **Flag every contradiction**: report both positions and how steps 2-4 resolved it, or that it stays unresolved. A resolved contradiction keeps its flag.
 
 ### 5. Confidence Reporting
 
