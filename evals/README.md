@@ -442,4 +442,45 @@ mixes KB versions. Criteria:
 - `library-use` (report only): consult and j-system-design runs that delegated, and runs that read
   references inline.
 
-Results land here after the rerun.
+Results (2026-11-16, Claude Code 2.1.325 at every rerun, kb arm only, ledger purpose
+`fix-asset-defects`). Baseline is KB 479cc63 at 3 runs per model; "KB" is the commit each rerun
+staged on a clean tree. Counts are passing runs over graded runs.
+
+| Asset | KB | Runs per model | Check | Baseline | Post-fix | Result |
+|---|---|---|---|---|---|---|
+| architecture-specialist | 123dbee | 3 | `design` (now carries the non-retry claim) | 6/6 (old claims) | 6/6 (Opus 3/3, Sonnet 3/3) | PASS |
+| html-report-authoring | 43a4a49 | 6 | latency-readout `html` | 3/6 (Opus 1/3, Sonnet 2/3) | 10/12 (Opus 4/6, Sonnet 6/6) | PASS |
+| html-report-authoring | 43a4a49 | 6 | lead before the TOC (report only) | 0/6 | 12/12 | |
+| j-explain | 43a4a49 | 3 | `self-contained`, both cases | 0/12 | 12/12 | PASS |
+| writing-plans | 56fe485 | 6, Opus only | id-collision `risks-section`, runs that loaded the skill | 0/2 | 5/5 | PASS |
+| research-analyst | 617b357 | 6 | claim-confidence `claims` | 4/6 (Opus 2/3, Sonnet 2/3) | 11/12 (Opus 6/6, Sonnet 5/6) | PASS |
+
+`no-regression` passed for every rerun asset. Per-case kb scores that moved (baseline -> post-fix):
+architecture-specialist catalog-cache-traps Opus 1.00 -> 0.67 (one model, under the 2/3 line);
+html-report-authoring latency-readout Opus 0.83 -> 0.92, Sonnet 0.92 -> 1.00; writing-plans
+id-collision-risk 0.67 -> 1.00; research-analyst claim-confidence Opus 0.67 -> 1.00, Sonnet
+0.67 -> 0.83, seed-claim-review Opus 1.00 -> 0.83, Sonnet 0.67 -> 1.00. Every other case held its
+score. Nothing was reverted or BLOCKED. The research-analyst rerun staged 617b357, which also holds
+the skill-lookup-discipline sentence removal (no rerun; it adds no behavior).
+
+Consult commands (ed0c8c5) and j-system-design (a2d8077), 3 runs per model: every case scored 1.00
+before and after, on both models. `library-use` (post-fix only; `read-refs` is new):
+
+| Command | Delegated | Read references inline, Opus | Read references inline, Sonnet |
+|---|---|---|---|
+| j-arch | 0/12 | 6/6 | 6/6 |
+| j-cloud | 0/12 | 3/6 | 6/6 |
+| j-devops | 0/12 | 0/6 | 5/6 |
+| j-docs | 0/12 | 2/6 | 3/6 |
+| j-frontend | 0/12 | 0/6 | 3/6 |
+| j-lang | 0/12 | 2/6 | 3/6 |
+| j-data | 0/12 | 0/6 | 4/6 |
+| j-system-design | 0/12 | 3/6 | 3/6 |
+
+The model still never delegates; with the list beside it, it reads the library inline in 49 of 96
+runs (Opus 16 of 48, Sonnet 33 of 48). The change also softened "delegate to" to "you may instead
+delegate to", so the reads are not credited to the list alone. No case score moved: these cases sit
+at the ceiling, so the reads show reach, not a quality gain.
+
+Purpose spend: $82.47 of the $100 cap (estimate $84.60). Period total after the rerun: $861.30 of
+$2,500 (`evals/spend.json`). `evals/baselines/` is unchanged.
