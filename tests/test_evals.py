@@ -641,18 +641,25 @@ class RealTreeTests(unittest.TestCase):
     @staticmethod
     def real_graders(case_prefix: str, name: str) -> list:
         found = kcases.discover(REPO / "evals" / "cases")
-        return [g for c in found if c.name.startswith(case_prefix) for g in c.graders if g.name == name]
+        cases = [c for c in found if c.name.startswith(case_prefix)]
+        return [g for c in cases for g in c.graders if g.name == name]
 
     def assert_grades(self, graders: list, failing: list, passing: list) -> None:
-        """Grade like the harness: a regex grader passes when found != (match == not_contains)."""
+        """Grade in Python `re`, as lint's grounding check does: pass = found != not_contains.
+
+        The harness grades in JavaScript; these patterns use only syntax both dialects share.
+        """
         self.assertTrue(graders)
         for g in graders:
-            pattern = re.compile(kcases.unquote(g.fields["pattern"]), kcases._python_flags(g.fields.get("flags", "")))
-            negate = g.fields.get("match") == "not_contains"
+            flags = kcases._python_flags(kcases.unquote(g.fields.get("flags", "")))
+            pattern = re.compile(kcases.unquote(g.fields["pattern"]), flags)
+            negate = kcases.unquote(g.fields.get("match", "")) == "not_contains"
             for text in failing:
-                self.assertFalse((pattern.search(text) is not None) != negate, f"{g.name} should fail: {text}")
+                found = pattern.search(text) is not None
+                self.assertFalse(found != negate, f"{g.name} should fail: {text}")
             for text in passing:
-                self.assertTrue((pattern.search(text) is not None) != negate, f"{g.name} should pass: {text}")
+                found = pattern.search(text) is not None
+                self.assertTrue(found != negate, f"{g.name} should pass: {text}")
 
     def test_j_explain_self_contained_rejects_external_resources(self):
         graders = self.real_graders("j-explain--effect-", "self-contained")
@@ -666,7 +673,11 @@ class RealTreeTests(unittest.TestCase):
                 "<style>@import url(https://x/f.css);</style>",
                 '<div style="background:url(https://x/b.png)">',
             ],
-            passing=['<style>b{color:red}</style><svg></svg><a href="#s1">x</a>'],
+            passing=[
+                '<style>b{color:red}</style><svg></svg><a href="#s1">x</a>',
+                "<script>document.title = 'x';</script>",
+                '<div style="background:url(data:image/png;base64,AAAA)">',
+            ],
         )
 
     def test_j_data_no_serial_ignores_sql_comments(self):
