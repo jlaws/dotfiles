@@ -148,6 +148,9 @@ Run the `skill-audit` skill's mechanical check with `--type {type}s`.
 Fix what it reports. Then confirm by judgment: does every section teach something a strong model would
 otherwise get wrong or vague? Cut what does not.
 
+If the repository keeps an eval suite for its assets, add the new asset's trigger and effect cases and
+run its smoke target.
+
 ## Phase 6: Present and register
 
 Show the file, get approval, write it, and confirm the path.
