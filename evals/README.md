@@ -489,5 +489,11 @@ runs (Opus 16 of 48, Sonnet 33 of 48). The change also softened "delegate to" to
 delegate to", so the reads are not credited to the list alone. No case score moved: these cases sit
 at the ceiling, so the reads show reach, not a quality gain.
 
-Purpose spend: $82.47 of the $100 cap (estimate $84.60). Period total after the rerun: $861.30 of
-$2,500 (`evals/spend.json`). `evals/baselines/` is unchanged.
+A review follow-up labeled j-system-design's lists by perspective and moved them below "Synthesize
+their findings ... For small systems, analyze the perspectives inline instead." Rerun at 6faff20
+(3 runs per model): scores held at 1.00, delegated 0/12, inline reads Opus 3/6, Sonnet 0/6 (from
+3/6). Not significant at n=6, but the move was reverted; the table above is a2d8077's result, and
+the shipped text differs from it only by naming `devops-engineer` in the opening delegation line.
+
+Purpose spend: $89.71 of the $100 cap (estimate $84.60, plus $7.24 for the 6faff20 rerun). Period
+total after the reruns: $868.54 of $2,500 (`evals/spend.json`). `evals/baselines/` is unchanged.
