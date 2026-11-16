@@ -115,8 +115,8 @@ path through `target`/`focus: { source: file, path: <path> }`.
   concrete `PASS if` / `FAIL if` claims, all required. Result graders never mention `kb:`.
 - At least one process grader: `tool_used` on `Skill`, or on `Agent` with
   `"subagent_type"\s*:\s*"kb:<agent>"`, or `tool_order`. Process graders are indicators; the summary
-  leaves them out of delta. They also match tool calls made inside a subagent, so a `gh` call the `create-pr` agent makes
-  counts.
+  leaves them out of delta. They also match tool calls made inside a subagent, so a `gh` call
+  the `create-pr` agent makes counts.
 - Effects: `max_turns: 40`, `timeout_seconds: 900`,
   `allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]`.
 - Workflows: `max_turns: 150`, `timeout_seconds: 3600`, same tools.
@@ -181,6 +181,8 @@ What an offline run can show, per asset where it differs from a real session:
 | j-retro | History is synthetic: the fixture writes dated commits, a tag, a revert, and an unmerged branch on a local repo |
 | j-config-audit | The audited `.claude/` and `.codex/` trees are seeded into the workspace as test input (they do not load as config); no user-level `~/.claude` |
 | j-email-consolidate | Per-email reports are pre-written by the fixture; no source emails or downloads |
+| create-pr | Same as j-create-pr: push to the local remote; the `gh pr create` attempt is graded as a call |
+| research-analyst | Local sources only; no WebFetch or WebSearch |
 | j-cloud, j-devops, j-observe, j-data, j-frontend | Artifacts are written, not deployed, run, or built |
 
 ## Divergences
