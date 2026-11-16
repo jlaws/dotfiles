@@ -1066,6 +1066,21 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual((row["kind"], row["kbScore"], row["vanillaScore"]), ("trigger-should", 1.0, None))
         self.assertEqual(ksummary.check(summary), [])
 
+    def test_error_runs_are_counted_per_case(self):
+        errors = [None, "exit 1: Reached maximum number of turns (6)", "timed out after 120s"]
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], errors))
+        (row,) = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"]
+        self.assertEqual(row["errorRuns"], 2)
+
+    def test_write_refuses_local_paths_and_request_ids(self):
+        for leak in ("open /Users/someone/x", "/home/someone/x", "/var/folders/ab/T/x",
+                     "Request ID: req_011abc", "Message ID: msg_011abc"):
+            with self.subTest(leak=leak):
+                self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, leak, None]))
+                doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+                with self.assertRaises(ValueError):
+                    ksummary.write(doc, self.results / "out.json")
+
     def test_write_refuses_secret_shaped_text(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, "sk-ant-leak", None]))
         doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)

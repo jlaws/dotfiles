@@ -244,12 +244,15 @@ Checked on `2.1.325 (Claude Code)`: every flag the runner passes exists in
 
 `python3 -m evals.kbeval summarize [--check]` writes `evals/baselines/<model>/<suite>.json`: the run
 settings, Claude Code version, judge, date, cost, and one line per case with `kbScore`,
-`vanillaScore`, `delta`, `firedRate`, run counts, and errors. Scores use result graders only;
-`firedRate` is the process-grader pass rate in kb. A case `passed` when `kbScore`, its mean run score,
+`vanillaScore`, `delta`, `firedRate`, run counts, `errorRuns`, and the distinct error strings.
+Scores use result graders only; `firedRate` is the process-grader pass rate in kb (for a
+near-miss or noauto trigger, 1.0 means the skill did not fire). A case `passed` when `kbScore`, its mean run score,
 is at least 2/3. Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
 It reads only results the runner accepted (those with a `.key`), and it checks before writing: if
 any case is missing runs or still holds an API error, it writes nothing and exits 1 (`--check` is
-accepted and changes nothing).
+accepted and changes nothing). It also refuses to write text holding an `sk-ant-` key, a local
+path (`/Users/`, `/home/`, `/var/folders/`), or an API request or message ID, because summaries
+are committed to a public repo.
 
 `make eval-compare OLD=... NEW=...` compares two summaries: the suite means with both intervals,
 cases whose `kbScore` dropped by at least 1/3, and pass/fail flips. Cases in only one file are
@@ -288,8 +291,8 @@ The CLI deletes each run's trace unless `--keep-temp` is passed, so smoke runs p
 traces stay under `/private/tmp/e-*` (sealed, read-only) for transcript review; the key scan covers
 them.
 
-**Extrapolation** (a dated estimate, 2026-11-15; recompute it from `make eval-lint` case counts
-before the baseline). Planned cases, from the coverage rules: about 124 trigger cases, about 187
+**Extrapolation** (the pilot-era estimate of 2026-11-15, superseded by `## Baseline` below; kept for
+the record). Planned cases, from the coverage rules: about 124 trigger cases, about 187
 effect cases (about 71 skill, 76 command, 39 agent, counting third cases), and 4 workflow cases.
 Three runs per case; effects and workflows run in both stagings. Workflows are priced at five times
 the effect-command rate.
@@ -310,4 +313,52 @@ smoke data.
 
 ## Baseline
 
-Empty until the baseline runs.
+**Settings** (re-extrapolated 2026-11-15 from `make eval-lint` counts and smoke costs): 124 trigger,
+162 effect, and 4 workflow cases; three kb runs per case, and for effects and workflows three
+vanilla runs on both models (`VANILLA_RUNS=3`); no tags excluded. Measured Sonnet means per run:
+triggers $0.07 (no judge), effects $0.29 kb and $0.19 vanilla including the judge; workflows priced
+at $1.00. Opus was priced at twice Sonnet. Estimate: about $274 Sonnet and $548 Opus, $822 in all,
+against $2,383 left of the $2,500 budget, so no trim applied. Actual: $245.26 Sonnet and $416.18
+Opus, $661.44 in all (Opus ran about 1.7 times Sonnet; workflows about $0.31 per Opus run). Period
+total after the baseline, pilot and smoke included: $778.83 of $2,500 (`evals/spend.json`).
+
+Results (2026-11-16, Claude Code 2.1.325, judge Fable 5.2). Means are per-case scores on result
+graders (triggers: the Skill grader), each column rounded on its own, with case-level bootstrap 95%
+CIs; delta is kb minus vanilla per case.
+
+| Model | Suite | Cases | kb | Vanilla | Delta | Spend |
+|---|---|---|---|---|---|---|
+| Opus 5.5 | Triggers, should fire | 60 | 0.72 [0.61, 0.83] | n/a (kb only) | n/a | |
+| Opus 5.5 | Triggers, near and noauto | 64 | 1.00 | n/a (kb only) | n/a | |
+| Opus 5.5 | Triggers, all | 124 | 0.87 [0.80, 0.92] | n/a (kb only) | n/a | $48.37 |
+| Opus 5.5 | Effects | 162 | 0.95 [0.92, 0.97] | 0.89 [0.85, 0.93] | +0.05 [+0.03, +0.08] | $360.48 |
+| Opus 5.5 | Workflows | 4 | 1.00 | 1.00 | 0.00 | $7.33 |
+| Sonnet 5.5 | Triggers, should fire | 60 | 0.60 [0.48, 0.71] | n/a (kb only) | n/a | |
+| Sonnet 5.5 | Triggers, near and noauto | 64 | 1.00 | n/a (kb only) | n/a | |
+| Sonnet 5.5 | Triggers, all | 124 | 0.81 [0.73, 0.87] | n/a (kb only) | n/a | $25.03 |
+| Sonnet 5.5 | Effects | 162 | 0.93 [0.90, 0.96] | 0.88 [0.84, 0.92] | +0.05 [+0.02, +0.08] | $216.20 |
+| Sonnet 5.5 | Workflows | 4 | 1.00 | 1.00 | 0.00 | $4.03 |
+
+Per-case rows are in `evals/baselines/<model>/<suite>.json`. Cross-model, effects:
+
+```bash
+make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/baselines/claude-opus-5-5/effects.json
+```
+
+**Reading the numbers**
+- Triggers: near-miss and noauto cases sit at the ceiling, so the all-triggers mean overstates
+  recall. The should-fire rows are the trigger signal: descriptions miss about 28% (Opus) and 40%
+  (Sonnet) of requests they should catch.
+- Effects: the gain is small, and it comes from cases where the asset fired. Where the kb arm's
+  process grader fired at least once, delta is +0.075 (Opus, 124 cases) and +0.073 (Sonnet, 114);
+  where it never fired, about -0.01 (38 and 48 cases), which is noise. The kb arm is the whole
+  plugin, not only the named asset.
+- Effects headroom is thin: 130 of 162 cases have delta 0 on both models, and about 120 score 1.0 in
+  both arms. The gain rests on about 25 cases. Grouping each asset's cases in the bootstrap leaves
+  the delta CI above zero: [+0.02, +0.09] Opus, [+0.02, +0.08] Sonnet.
+- Workflows show no headroom: plain Claude also completes all four, and n=4 gives no usable CI.
+- Errors: 26 Opus and 20 Sonnet trigger runs hit the 6-turn cap or the 120 s timeout, and one Opus
+  effect run hit 900 s; each case's `errorRuns` counts them. Capped runs are still scored: a run
+  that fired the skill before the cap counts as fired.
+- Five effect cases change pass state from Sonnet to Opus (four to pass, one to fail). With three
+  runs and a 2/3 pass line, flips this few are within run-to-run noise.

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import random
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -20,6 +21,8 @@ SCHEMA = 1
 RESULT_TYPES = frozenset({"regex", "file_exists", "llm"})
 BOOTSTRAP_SAMPLES = 2000
 PASS_AT = 2 / 3  # a case passes when its mean run score is at least 2/3
+# Summaries are committed to a public repo: refuse keys, local paths, and API request IDs.
+LEAK = re.compile(r"sk-ant-|/Users/|/home/|/var/folders/|\b(?:req|msg)_[0-9A-Za-z]{6,}")
 
 
 def _load(results: Path, staging: str, model: str, suite: str) -> Tuple[Dict[str, dict], List[dict]]:
@@ -115,11 +118,13 @@ def summarize(results: Path, model: str, suite: str, settings: dict) -> dict:
         van_score, van_runs = _arm_score(van, result=not trigger)
         fired, _ = _arm_score(kb, result=False)
         errors = sorted({str(r["error"]) for c in (kb, van) if c for r in _runs(c) if r.get("error")})
+        error_runs = sum(1 for c in (kb, van) if c for r in _runs(c) if r.get("error"))
         asset, kind = _identity(name)
         rows.append(
             {
                 "asset": asset,
                 "delta": None if kb_score is None or van_score is None else round(kb_score - van_score, 4),
+                "errorRuns": error_runs,
                 "errors": errors,
                 "firedRate": None if fired is None else round(fired, 4),
                 "kbRuns": kb_runs,
@@ -183,7 +188,8 @@ def write(doc: dict, out: Path) -> None:
     lines.append("  ]")
     lines.append("}")
     text = "\n".join(lines) + "\n"
-    if "sk-ant-" in text:
-        raise ValueError(f"refusing to write {out}: the summary contains an sk-ant- string")
+    leak = LEAK.search(text)
+    if leak:
+        raise ValueError(f"refusing to write {out}: the summary contains {leak.group(0)!r}")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text, encoding="utf-8")
