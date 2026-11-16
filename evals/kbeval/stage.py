@@ -8,10 +8,11 @@ empty plugin, which is plain Claude. See `docs/adr/workflow/kb-evals-run-on-a-st
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from evals.kbeval.cases import FRONTMATTER, Case, discover
 
@@ -26,6 +27,9 @@ REFS_NOTE = (
     "KB references cited as `.claude/references/<p>` or `references/<p>` are at {where}<p>; they "
     "are not project files."
 )
+GIT_SHIM_DIR = "/usr/bin"  # macOS's git shim calls xcrun, which the run's sandbox blocks
+GIT_NOTE = "In this sandbox `/usr/bin/git` fails; run git as `{git}`."
+GIT_FIXTURE = re.compile(r"\bgit init\b")
 COMMAND_DIRECTIVE = re.compile(r"^/kb:([a-z0-9-]+) ")
 AGENT_DIRECTIVE = re.compile(r"^Use the kb:([a-z0-9-]+) agent to ")
 IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc")
@@ -101,6 +105,15 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
     return plugin
 
 
+def working_git(path: Optional[str] = None) -> Optional[str]:
+    """Return the first git on `path` (default: PATH) other than the system shim."""
+    for entry in (os.environ.get("PATH", "") if path is None else path).split(os.pathsep):
+        candidate = os.path.join(entry, "git")
+        if entry and entry != GIT_SHIM_DIR and os.access(candidate, os.X_OK):
+            return candidate
+    return None
+
+
 def _transform_body(case: Case, staging: str, command_form: str) -> str:
     body = case.body
     if not (case.suite == "workflows" or case.kind == "effect"):
@@ -111,6 +124,10 @@ def _transform_body(case: Case, staging: str, command_form: str) -> str:
             body = stripped[:1].upper() + stripped[1:]
     elif command_form == "skill":
         body = COMMAND_DIRECTIVE.sub(r"Use the kb:\1 command to: ", body, count=1)
+    # The CLI builds the run's PATH itself, so git cases name a working git in both arms' prompts.
+    git = working_git() if GIT_FIXTURE.search(case.fixture or "") else None
+    if git:
+        body += "\n\n" + GIT_NOTE.format(git=git)
     return body + "\n\n" + NON_INTERACTIVE
 
 
@@ -165,6 +182,10 @@ def _write_seed(case: Case, dest: Path, fixtures: Path, refs) -> None:
     ]
     if case.fixture is not None:
         lines.append(f"bash {_quote(dest / 'fixture.sh')} {_quote(fixtures)}")
+        # Running Python in the workspace must not show up as an untracked change.
+        lines.append(
+            "if [ -d .git ]; then mkdir -p .git/info; printf '%s\\n' __pycache__/ >> .git/info/exclude; fi"
+        )
     if refs is not None:
         lines.append("mkdir -p .kb-references")
         lines.append(f"cp -R {_quote(refs)}/. .kb-references/")

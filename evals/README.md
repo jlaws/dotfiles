@@ -96,6 +96,9 @@ and `refsMode` (`workspace`, or `add_dirs`).
 - The builder appends one fixed line to every effect and workflow prompt, in both stagings: "Run
   non-interactively: do not ask questions; take the recommended option for every decision and state
   it."
+- For a case whose `fixture.sh` runs `git init`, the builder adds one line before that, in both
+  stagings: "In this sandbox `/usr/bin/git` fails; run git as `<git>`." `<git>` is the first `git`
+  on the staging machine's `PATH` outside `/usr/bin`; with none, the line is left out.
 
 **Grading contract.** The prompt states every graded criterion and every graded artifact path, such
 as "save the plan to ./plans/plan.md". A `regex` or `llm` result grader that reads a file names one
@@ -112,7 +115,8 @@ path through `target`/`focus: { source: file, path: <path> }`.
   concrete `PASS if` / `FAIL if` claims, all required. Result graders never mention `kb:`.
 - At least one process grader: `tool_used` on `Skill`, or on `Agent` with
   `"subagent_type"\s*:\s*"kb:<agent>"`, or `tool_order`. Process graders are indicators; the summary
-  leaves them out of delta. They reference main-loop tool calls only, never a subagent's own calls.
+  leaves them out of delta. They also match tool calls made inside a subagent, so a `gh` call the `create-pr` agent makes
+  counts.
 - Effects: `max_turns: 40`, `timeout_seconds: 900`,
   `allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]`.
 - Workflows: `max_turns: 150`, `timeout_seconds: 3600`, same tools.
@@ -142,6 +146,9 @@ path through `target`/`focus: { source: file, path: <path> }`.
 - Regex: JavaScript syntax only. No inline flags (`(?i)`), `(?P<name>`, POSIX classes, or
   `\A`/`\Z`/`\z`; use `flags:` (letters from `dgimsuvy`) and `^`/`$`. A pattern that matches
   everything is rejected.
+- A pattern that starts with a `^##` heading anchor needs `flags: m`; without it `^` matches only
+  at file start, where a level-2 heading never sits.
+- Seed checks see only files a fixture copies from `evals/fixtures/`, not files its heredocs write.
 - `llm` graders hold 2-5 `PASS if` / `FAIL if` claims.
 - Grounding: every graded path is named in the prompt or seeded by the fixture. A result grader
   that already passes on the seeded files, or a `file_exists` with `exists: false`, is rejected,
@@ -187,7 +194,14 @@ Absolute scores differ from a real session in these ways; comparisons within the
 - No network and no `gh`.
 - Files under `.claude/` cannot be written (the run's permission mode denies it), so cases
   write skill, agent, and settings drafts to workspace paths.
-- Inside the Bash sandbox the `/usr/bin/git` shim fails; Homebrew's `git` on `PATH` works.
+- Inside the Bash sandbox `git` resolves to the macOS `/usr/bin/git` shim, which fails (`xcrun`
+  cannot write its cache; often `xcode-select: Failed to locate 'git'`). The CLI builds the run's
+  `PATH` itself, and a case's `env:` accepts only `EVAL_*` keys, so the caller cannot fix it. Without
+  help, most git-fixture runs in the `smoke-feat-kb-evals-workflow-commands` smoke hit it, and kb
+  runs stopped on it more often than they switched binaries (the KB's stop-after-two-failures
+  rule), which biases against kb. The builder's git line (Prompts) names a working git in both
+  arms.
+- The seed adds `__pycache__/` to `.git/info/exclude`, so running Python leaves `git status` clean.
 - The child session inherits `ANTHROPIC_API_KEY`, so a run granted Bash could print it. The
   sandbox blocks network, and the key scan covers results, logs, and kept traces; traces of runs
   without `--keep-temp` are deleted by the CLI unscanned.
@@ -196,9 +210,10 @@ Absolute scores differ from a real session in these ways; comparisons within the
 
 The specs are frozen; cases depend on these exact contents. Each fixture ships with the case PR
 that first uses it; `py-calc`, `py-calc-red`, `ts-todo`, `docs-drift`, `kb-mini`, `email-digest`,
-and `paper-stub` ship so far. A case's `fixture.sh` may layer state on top of a frozen fixture
+`paper-stub`, and `py-calc-planned` ship so far. A case's `fixture.sh` may layer state on top of a frozen fixture
 (appended commits, extra files); the fixture itself does not change. Tests pin `py-calc`'s seeded
-bug, `py-calc-red`'s one failing test, and `docs-drift` rejecting `--out`.
+bug, `py-calc-red`'s one failing test, `docs-drift` rejecting `--out`, and `py-calc-planned` being
+`py-calc` plus `plans/plan.md`.
 
 | Fixture | Contents |
 |---|---|
