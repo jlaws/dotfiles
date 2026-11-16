@@ -1,0 +1,17 @@
+{
+  "aggregates": {"delta": {"ci95": [0.0, 0.0], "mean": 0.0}, "kb": {"ci95": [1.0, 1.0], "mean": 1.0}, "vanilla": {"ci95": [1.0, 1.0], "mean": 1.0}},
+  "claudeVersion": "2.1.325",
+  "costUsd": 4.0297,
+  "date": "2026-11-16",
+  "judgeModel": "claude-fable-5-2",
+  "model": "claude-sonnet-5-5",
+  "runs": {"excludeTags": [], "kbRuns": 3, "vanillaModels": ["claude-opus-5-5", "claude-sonnet-5-5"], "vanillaRuns": 3},
+  "schema": 1,
+  "suite": "workflows",
+  "cases": [
+    {"asset": "wf--debug-failing-test", "delta": 0.0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--debug-failing-test", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
+    {"asset": "wf--doc-sync-after-change", "delta": 0.0, "errors": [], "firedRate": 0.3333, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--doc-sync-after-change", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
+    {"asset": "wf--execute-plan-to-review", "delta": 0.0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--execute-plan-to-review", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
+    {"asset": "wf--tdd-fix-seeded-bug", "delta": 0.0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--tdd-fix-seeded-bug", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0}
+  ]
+}

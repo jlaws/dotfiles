@@ -317,4 +317,25 @@ effects $0.29 kb and $0.19 vanilla; workflows are priced at $1.00. Opus is price
 (the pilot measured about 1.8 times). Estimate: about $274 Sonnet and $548 Opus, $822 in all,
 against $2,383 left of the $2,500 budget, so no trim applies.
 
-Results: pending.
+Results (2026-11-16, Claude Code 2.1.325, judge Fable 5.2). Means are per-case scores on result
+graders (triggers: the Skill grader), with bootstrap 95% CIs; delta is kb minus vanilla per case.
+
+| Model | Suite | Cases | kb | Vanilla | Delta | Spend |
+|---|---|---|---|---|---|---|
+| Opus 5.5 | Triggers | 124 | 0.87 [0.80, 0.92] | n/a (kb only) | n/a | $48.37 |
+| Opus 5.5 | Effects | 162 | 0.95 [0.92, 0.97] | 0.89 [0.85, 0.93] | +0.05 [+0.03, +0.08] | $360.48 |
+| Opus 5.5 | Workflows | 4 | 1.00 | 1.00 | 0.00 | $7.33 |
+| Sonnet 5.5 | Triggers | 124 | 0.81 [0.73, 0.87] | n/a (kb only) | n/a | $25.03 |
+| Sonnet 5.5 | Effects | 162 | 0.93 [0.90, 0.96] | 0.88 [0.84, 0.92] | +0.05 [+0.02, +0.08] | $216.20 |
+| Sonnet 5.5 | Workflows | 4 | 1.00 | 1.00 | 0.00 | $4.03 |
+
+Baseline spend $661.44; the period total, smoke and pilot included, is in `evals/spend.json`.
+Per-case rows are in `evals/baselines/<model>/<suite>.json`. Cross-model, effects:
+
+```bash
+make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/baselines/claude-opus-5-5/effects.json
+```
+
+The kb gain on effects is small but its CI excludes zero on both models. Workflows show no
+headroom: plain Claude also completes all four. Five effect cases change pass state from Sonnet to
+Opus (four to pass, one to fail).
