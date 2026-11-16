@@ -87,5 +87,4 @@ printf "notes\n" > scratch.txt
 git add -A
 git commit -q -m "Return 0.0 for the mean of an empty list"
 git push -q origin main
-printf "half-finished thought
-" >> scratch.txt
+printf 'half-finished thought\n' >> scratch.txt
