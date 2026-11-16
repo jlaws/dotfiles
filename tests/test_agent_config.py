@@ -508,6 +508,7 @@ CONSULT_AGENTS = {
     "j-frontend": ("frontend-engineer",),
     "j-lang": ("language-specialist",),
     "j-data": ("data-engineer",),
+    "j-system-design": ("architecture-specialist", "data-engineer", "security-reviewer", "devops-engineer"),
 }
 REFERENCE_BLOCK = re.compile(r"^(?:Reference library at|Also see) `?([^`\n]+?)`?:$")
 
