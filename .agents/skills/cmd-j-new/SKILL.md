@@ -252,6 +252,7 @@ After writing:
 2. If skill: confirm the directory was created
 3. Suggest: "Run `$cmd-j-skill-audit {type}s` to verify full conformance"
 4. Register and document the new asset. Commands require the shared skill plus native Claude, Codex, and Gemini command counterparts. Agents require native definitions in all three tool trees. Shared workflow skills require a `.claude/skills/` mirror with the same body. See `documentation-validation`.
+5. If the repository keeps an eval suite for its assets, add the new asset's cases (trigger and effect cases for a skill or command, effect cases for an agent). Offer to run its smoke target; it may bill.
 
 ---
 

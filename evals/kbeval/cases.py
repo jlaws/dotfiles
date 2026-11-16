@@ -16,19 +16,6 @@ SUITES = ("triggers", "effects", "workflows")
 KINDS = ("trigger-should", "trigger-near", "trigger-noauto", "effect")
 TRIGGER_KINDS = KINDS[:3]
 
-# Assets whose cases are not written yet. Shrinks with each case PR and is deleted, with its
-# exemption branch in `coverage`, once every asset has cases.
-PENDING_EVAL_COVERAGE = frozenset(
-    {
-        # agents
-        "architecture-specialist", "business-analyst", "cloud-architect", "code-reviewer",
-        "create-pr", "data-engineer", "devops-engineer", "documentation-writer",
-        "frontend-engineer", "language-specialist", "ml-engineer", "product-manager",
-        "research-analyst", "scope-reviewer", "security-reviewer", "test-writer",
-        "workflow-architect",
-    }
-)  # fmt: skip
-
 PROMPT_KEYS = frozenset(
     {"description", "tags", "runs", "expected_outcome", "max_turns", "timeout_seconds",
      "allowed_tools", "env"}
@@ -567,7 +554,7 @@ def _lint_files(case: Case) -> List[str]:
     return problems
 
 
-def coverage(cases: List[Case], repo: Path, exempt: frozenset) -> List[str]:
+def coverage(cases: List[Case], repo: Path) -> List[str]:
     """Return one `<asset>: <gap>` string per asset missing required cases."""
     counts: Dict[str, Dict[str, int]] = {}
     for case in cases:
@@ -576,8 +563,6 @@ def coverage(cases: List[Case], repo: Path, exempt: frozenset) -> List[str]:
             per[case.kind] = per.get(case.kind, 0) + 1
     gaps: List[str] = []
     for asset, kind in sorted(assets(repo).items()):
-        if asset in exempt:
-            continue
         have = counts.get(asset, {})
         if kind in ("skill", "command"):
             need = {"trigger-should": 1, "trigger-near": 1, "effect": 2}

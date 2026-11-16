@@ -161,6 +161,9 @@ sets, the repo's own CLAUDE.md names it; declare any single-tree asset in that t
 Update the MEMORY.md index (if present) if the asset set changed, then run the repo's
 lint and test commands. See `documentation-validation`.
 
+If the repository keeps an eval suite for its assets, add the new asset's cases (trigger and effect
+cases for a skill or command, effect cases for an agent). Offer to run its smoke target; it may bill.
+
 ### Frontmatter reference
 
 | Field | Command | Skill | Agent |
