@@ -13,6 +13,9 @@ asset. Three grader bugs were fixed in that work; these need case rewrites or a 
 - code-quality marker-audit: the fixture has no lock file.
 - verification mocked-green and using-git-worktrees isolated-from-origin fail in both arms, so they
   measure nothing about the asset.
+- j-explain `self-contained` (both cases) misses `srcset`, `<object data>`, SVG `<image href>`,
+  `fetch`/XHR, and meta refresh, so a report that makes network requests can pass. It also fails a
+  self-contained page with a `data:` `<link>` or inline `@import` text. Widening it needs a rerun.
 - `docs/adr/workflow/side-effect-commands-are-user-invoked.md` (Consequences) says Claude reaches
   j-defrag logic through `refactoring-and-debt`; that skill fired in none of its 18 trigger-should
   or effect kb runs.
@@ -22,4 +25,5 @@ asset. Three grader bugs were fixed in that work; these need case rewrites or a 
 2. Make feature-order's `order` accept the lookup skill listed first, or state the intended order.
 3. Add a lock file to the marker-audit fixture, or drop the claim that needs one.
 4. Rework or retire the two cases that fail in both arms.
-5. Correct the side-effect ADR's reach-path consequence, or record why it still holds.
+5. Widen j-explain `self-contained` to every network-loading construct, then rerun j-explain.
+6. Correct the side-effect ADR's reach-path consequence, or record why it still holds.

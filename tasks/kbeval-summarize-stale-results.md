@@ -12,7 +12,7 @@ separate purpose so no summary mixes KB versions; these gaps are why.
   sorts before `.`, so the asset batch loads last and wins (`summary.py:37-44`).
 - A deleted asset's results stay on disk and resurrect its rows.
 - `firedRate` averages every process grader, behavioral ones such as `delegated` or `read-refs`
-  included (`summary.py:57-64`), so the README's fired/never-fired split is not by whether the
+  included (`summary.py:119`, through `_arm_score` at `:71-76`), so the README's fired/never-fired split is not by whether the
   asset loaded.
 
 ## Scope

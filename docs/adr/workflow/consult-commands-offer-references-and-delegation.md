@@ -13,8 +13,9 @@ domain reference library only inside a conditional sentence: delegate to the spe
 loads it. In the first KB eval baseline (2026-11-16, KB 479cc63) the model declined to delegate in
 all 84 kb runs of these commands, and in all 12 of j-system-design. One stored run gave the reason:
 "the file is 25 lines, so a direct review costs less than a handoff". Stored graded files cite
-`.kb-references/` in only 1 of 12 j-cloud runs and none of the others with evidence. So the library
-was named only on a path the model never took (`evals/README.md`, Asset determination).
+`.kb-references/` in only 1 of 12 j-cloud runs, none for the other consult commands with evidence,
+and 4 of 12 j-system-design runs. So the library was named only on a path the model never took
+(`evals/README.md`, Asset determination).
 
 ## Decision Drivers
 * **Must reach the domain library** whether the model works inline or delegates
@@ -28,7 +29,9 @@ delegation**, and let the model choose. The command says "Load the relevant refe
 topic, based on the diagnostic context:" followed by the agent's `Reference library at` and
 `Also see` blocks, names verbatim, in that tree's path form; the delegation sentence reads "you may
 instead delegate to". j-system-design carries each perspective agent's index the same way. The full
-index, not a curated j-observe-style shortlist: it is complete and can be tested for equality.
+index, not a curated j-observe-style shortlist: it carries everything the agent would load and can
+be tested for equality. It inherits the agent index's own gaps (some agents omit files in their
+directory).
 
 ## Rationale
 
@@ -55,11 +58,11 @@ index drifts from the `.claude` agent.
 ## Enforcement
 - Owner: `.claude/commands/j-{arch,cloud,devops,docs,frontend,lang,data,system-design}.md` and their
   `.agents/`, `.codex/`, `.gemini/` twins
-- Pinned by: `tests/test_agent_config.py::AgentConfigTests::test_consult_commands_list_their_agent_references`
+- Pinned by: `tests/test_agent_config.py::AgentConfigArchitectureTests::test_consult_commands_list_their_agent_references`
 
 ## Reversal Conditions
-Across a later baseline, inline `read-refs` passes in under 1 of 6 kb runs for at least 4 of the 8
-commands, or a consult case's kb score drops at least 1/3 on both models.
+Across a later baseline, inline `read-refs` passes in under 1 of 6 kb runs, pooled over both models, for at
+least 4 of the 8 commands, or a consult case's kb score drops at least 1/3 on both models.
 
 ## Related
 - [Commands inherit the session model](commands-inherit-the-session-model.md)

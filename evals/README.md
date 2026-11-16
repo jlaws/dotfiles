@@ -321,7 +321,8 @@ triggers $0.07 (no judge), effects $0.29 kb and $0.19 vanilla including the judg
 at $1.00. Opus was priced at twice Sonnet. Estimate: about $274 Sonnet and $548 Opus, $822 in all,
 against $2,383 left of the $2,500 budget, so no trim applied. Actual: $245.26 Sonnet and $416.18
 Opus, $661.44 in all (Opus ran about 1.7 times Sonnet; workflows about $0.31 per Opus run). Period
-total after the baseline, pilot and smoke included: $778.83 of $2,500 (`evals/spend.json`).
+total after the baseline, pilot and smoke included: $778.83 of $2,500 (`evals/spend.json` at that
+time; the post-fix rerun below moved it).
 
 Results (2026-11-16, Claude Code 2.1.325, judge Fable 5.2). Means are per-case scores on result
 graders (triggers: the Skill grader), each column rounded on its own, with case-level bootstrap 95%
@@ -454,6 +455,10 @@ staged on a clean tree. Counts are passing runs over graded runs.
 | j-explain | 43a4a49 | 3 | `self-contained`, both cases | 0/12 | 12/12 | PASS |
 | writing-plans | 56fe485 | 6, Opus only | id-collision `risks-section`, runs that loaded the skill | 0/2 | 5/5 | PASS |
 | research-analyst | 617b357 | 6 | claim-confidence `claims` | 4/6 (Opus 2/3, Sonnet 2/3) | 11/12 (Opus 6/6, Sonnet 5/6) | PASS |
+
+`self-contained` catches `src`/`href` loads, `@import`, and `url()`; it misses `srcset`,
+`<object data>`, SVG `<image href>`, and script-issued requests, so 12/12 is a lower bar than the
+skill's zero-network-requests rule (`tasks/kbeval-case-defects.md`).
 
 `no-regression` passed for every rerun asset. Per-case kb scores that moved (baseline -> post-fix):
 architecture-specialist catalog-cache-traps Opus 1.00 -> 0.67 (one model, under the 2/3 line);
