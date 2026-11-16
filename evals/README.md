@@ -114,7 +114,8 @@ path through `target`/`focus: { source: file, path: <path> }`.
 - At least one result grader: `regex` on a produced file, `file_exists`, or `llm` with 2-5
   concrete `PASS if` / `FAIL if` claims, all required. Result graders never mention `kb:`.
 - At least one process grader: `tool_used` on `Skill`, or on `Agent` with
-  `"subagent_type"\s*:\s*"kb:<agent>"`, or `tool_order`. Process graders are indicators; the summary
+  `"subagent_type"\s*:\s*"kb:<agent>"`, or `tool_order`, or `tool_used` on `Read` with
+  `input_match` on a `\.kb-references/<dir>/` path. Process graders are indicators; the summary
   leaves them out of delta. They also match tool calls made inside a subagent, so a `gh` call
   the `create-pr` agent makes counts.
 - Effects: `max_turns: 40`, `timeout_seconds: 900`,
@@ -352,7 +353,9 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
 - Effects: the gain is small, and it comes from cases where the asset fired. Where the kb arm's
   process grader fired at least once, delta is +0.075 (Opus, 124 cases) and +0.073 (Sonnet, 114);
   where it never fired, about -0.01 (38 and 48 cases), which is noise. The kb arm is the whole
-  plugin, not only the named asset.
+  plugin, not only the named asset. `firedRate` averages every process
+  grader, behavioral ones included, so this split is not by whether the asset loaded; see
+  `tasks/kbeval-summarize-stale-results.md`.
 - Effects headroom is thin: 130 of 162 cases have delta 0 on both models, and about 120 score 1.0 in
   both arms. The gain rests on about 25 cases. Grouping each asset's cases in the bootstrap leaves
   the delta CI above zero: [+0.02, +0.09] Opus, [+0.02, +0.08] Sonnet.
@@ -362,3 +365,81 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
   that fired the skill before the cap counts as fired.
 - Five effect cases change pass state from Sonnet to Opus (four to pass, one to fail). With three
   runs and a 2/3 pass line, flips this few are within run-to-run noise.
+
+## Asset determination
+
+Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63, 3 kb runs per
+case per model). Method: `scratchpad/kbeval_check.py` (not committed) reads the raw per-run results
+under `~/.local/state/dotfiles-kbeval/results/<purpose>/kb/` (machine-local), keeping only batches
+with a `.key` and `partial` false, as `summary._load` does. Its checks are `html-lead`,
+`writing-plans-risks`, `research-claim-c`, `j-explain-self-contained`, `arch-design`,
+`no-regression`, and `library-use`; `figures` produced the counts below. Each llm-grader record
+stores the graded file in `evidence`, so a failure can be read, not only counted.
+
+**Verdict**: delete none; fix four assets and three graders; consult commands offer both their
+references and delegation.
+
+**Deletion.** No asset meets the skill-audit bar, "both unreferenced and unmentioned": every asset
+is referenced. 130 of 162 effect cases have delta 0 on both models and about 120 score 1.0 in both
+arms (see Reading the numbers): those cases have no headroom, which says nothing about the asset.
+Every negative asset delta is a one- or two-run flip at 3 runs per arm.
+
+**Fixes.**
+
+| Asset | Defect | Baseline evidence (kb runs) | Change |
+|---|---|---|---|
+| html-report-authoring | Template puts `<h1>` then `nav.toc`, against its own BLUF rule | latency-readout `html` 3/6 (Opus 1/3, Sonnet 2/3); 0 of 6 graded files put a lead before the TOC | A `<p class="lead">` headline line between `<h1>` and the TOC |
+| writing-plans | Header template `**Risks:**` overrides a prompt's "under a Risks heading" | Opus id-collision: `risks-section` 0/2 among runs that loaded the skill | `## Risks` |
+| research-analyst | `confidence-scoring.md` flags "any contradiction" in one place and only unresolved ones in step 5 | claim-confidence `claims` 4/6 (Opus 2/3, Sonnet 2/3); both failing runs called the Claim C conflict resolved and did not flag it | Step 5 flags every contradiction, resolved ones included |
+| skill-lookup-discipline | Claims a session-start hook triggers it; none exists (`.claude/settings.json` registers only `UserPromptSubmit`) | n/a (false statement) | Claim removed |
+
+**Triggers.** Own Skill grader passes over trigger-should and effect kb runs, both models: 0/18 for
+debugging-methodology, dispatching-parallel-agents, documentation-validation, executing-plans,
+output-completeness, refactoring-and-debt, and subagent-report-contract; 0/6 for the j-arch,
+j-debug, and j-devops commands. Each has another reach path: debugging-methodology through
+`/j-debug`; dispatching-parallel-agents through `/j-plan` and `subagent-driven-development`;
+documentation-validation through the `create-pr` and `documentation-writer` agents' `skills:`
+preloads and the workflow commands; executing-plans through `/j-execute-plan` and `/j-next`;
+output-completeness and subagent-report-contract through agent `skills:` preloads;
+refactoring-and-debt through `/j-defrag`; the commands are typed. Descriptions stay unchanged:
+within skills, description length does not predict firing (all 47-86 characters; 47-character
+skills fire 6 of 6).
+
+**Consult commands.** `delegated` passed in 0 of 12 kb runs for each of j-arch, j-cloud, j-devops,
+j-docs, j-frontend, j-lang, and j-data (0 of 84), and in 0 of 12 for j-system-design. Stored graded
+files cite `.kb-references/` in 1 of 12 j-cloud runs, 4 of 12 j-system-design runs, and none for the
+others with evidence (j-lang has no llm grader, so no stored file); this is a lower bound on library
+reads. The commands named their library only inside a conditional delegation sentence, a path the
+model never took ("the file is 25 lines, so a direct review costs less than a handoff"). Each consult
+command now lists its agent's reference index beside optional delegation, and j-system-design lists
+one per perspective: [consult commands offer references and delegation](../docs/adr/workflow/consult-commands-offer-references-and-delegation.md).
+Their cases gain a `read-refs` process grader (`tool_used` on `Read` of `.kb-references/<dir>/`).
+
+**Measurement defects.**
+- j-explain `self-contained` had no `match: not_contains`, so it passed only on external resources.
+  Re-scored on stored files with the fix: 12/12 pass, against 0/12 stored.
+- j-data `no-serial` matched SQL comments. Re-scored on stored files with the fix: Opus 3/3 (0/3
+  stored), Sonnet 3/3 (3/3 stored).
+- architecture-specialist `not-retried` rejected correct non-retry rows (Sonnet runs 0 and 1); its
+  claim moves into the `design` llm grader.
+- Case defects and harness gaps that need more than a grader fix:
+  [kbeval-case-defects](../tasks/kbeval-case-defects.md),
+  [kbeval-summarize-stale-results](../tasks/kbeval-summarize-stale-results.md).
+
+### Post-fix rerun
+
+Each change is committed, then re-measured on the kb arm under ledger purpose `fix-asset-defects`
+and compared run by run with the stored baseline. `evals/baselines/` is not rewritten, so no summary
+mixes KB versions. Criteria:
+- `html-lead`: latency-readout `html` passes in at least 5/6 of runs (6 runs per model).
+- `writing-plans-risks`: every Opus id-collision run that loaded the skill passes `risks-section`;
+  fewer than 2 such runs is BLOCKED.
+- `research-claim-c`: claim-confidence `claims` passes in at least 11/12 of runs.
+- `j-explain-self-contained`: `self-contained` passes in at least 11/12 of runs across both cases.
+- `arch-design`: retry-policy-adr `design` passes in at least 5/6 of runs.
+- `no-regression`: per case, a kb score drop of at least 1/3 on both models, or at least 2/3 on one,
+  fails; graders changed in this work are skipped.
+- `library-use` (report only): consult and j-system-design runs that delegated, and runs that read
+  references inline.
+
+Results land here after the rerun.
