@@ -310,4 +310,11 @@ smoke data.
 
 ## Baseline
 
-Empty until the baseline runs.
+**Settings** (re-extrapolated 2026-11-15 from `make eval-lint` counts and smoke costs): 124 trigger,
+162 effect, and 4 workflow cases; three runs per case in both stagings (`VANILLA_RUNS=3`), vanilla
+on both models, no tags excluded. Measured Sonnet means per run, agent plus judge: triggers $0.07,
+effects $0.29 kb and $0.19 vanilla; workflows are priced at $1.00. Opus is priced at twice Sonnet
+(the pilot measured about 1.8 times). Estimate: about $274 Sonnet and $548 Opus, $822 in all,
+against $2,383 left of the $2,500 budget, so no trim applies.
+
+Results: pending.
