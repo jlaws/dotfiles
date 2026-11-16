@@ -3,15 +3,15 @@
   "totals": {
     "byModel": {
       "claude-opus-5-5": 2.5521,
-      "claude-sonnet-5-5": 101.1175
+      "claude-sonnet-5-5": 114.8389
     },
     "byPurpose": {
       "pilot": 3.4145,
-      "smoke-feat-kb-evals-agents": 21.3248,
+      "smoke-feat-kb-evals-agents": 35.0462,
       "smoke-feat-kb-evals-consult-commands": 20.8341,
       "smoke-feat-kb-evals-skills": 39.1492,
       "smoke-feat-kb-evals-workflow-commands": 18.947
     },
-    "totalUsd": 103.6696
+    "totalUsd": 117.391
   }
 }
