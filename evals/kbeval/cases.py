@@ -66,6 +66,8 @@ FORBIDDEN_FIXTURE = re.compile(
 )
 HEREDOC_START = re.compile(r"<<-?\s*['\"]?(\w+)['\"]?")
 PARENT_PATH = re.compile(r"(?:^|[/\s'\"=])\.\.(?:/|\s|$|['\"])")
+# A level-2+ heading is never a file's first line, so `^##` without `m` can never match.
+MID_FILE_HEADING = re.compile(r"\^#{2,} ")
 # JavaScript regex has no inline flag groups like (?i), no Python named groups (?P<x>), no POSIX
 # classes, and no \A, \Z, or \z anchors. An escaped backslash (\\A) is a literal and passes.
 JS_UNSUPPORTED = re.compile(r"\(\?[a-zA-Z]+\)|\(\?[a-zA-Z]+:|\(\?P<|\[\[:|(?<!\\)(?:\\\\)*\\[AZz]")
@@ -387,6 +389,11 @@ def _lint_graders(case: Case, known: Dict[str, str]) -> List[str]:
             problems.append(
                 f"grader {grader.name}: regex uses inline flags, (?P<, POSIX classes, or \\A/\\Z/\\z; "
                 "JS regex needs `flags:` and ^/$"
+            )
+        pattern = unquote(grader.fields.get("pattern", ""))
+        if MID_FILE_HEADING.match(pattern) and "m" not in unquote(grader.fields.get("flags", "")):
+            problems.append(
+                f"grader {grader.name}: a leading ^## heading anchor matches only at file start; add `flags: m`"
             )
         bad_flags = set(unquote(grader.fields.get("flags", ""))) - JS_FLAGS
         if bad_flags:
