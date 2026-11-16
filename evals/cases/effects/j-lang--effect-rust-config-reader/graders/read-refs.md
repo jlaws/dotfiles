@@ -1,5 +1,5 @@
 ---
 type: tool_used
 tool: Read
-input_match: '\.kb-references/languages/'
+input_match: '(?:\.kb-references|_refs)/languages/'
 ---

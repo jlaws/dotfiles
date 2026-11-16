@@ -1,5 +1,5 @@
 ---
 type: tool_used
 tool: Read
-input_match: '\.kb-references/frontend/'
+input_match: '(?:\.kb-references|_refs)/frontend/'
 ---

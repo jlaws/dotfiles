@@ -1,5 +1,5 @@
 ---
 type: tool_used
 tool: Read
-input_match: '\.kb-references/(?:architecture|data|security|devops)/'
+input_match: '(?:\.kb-references|_refs)/(?:architecture|data|security|devops)/'
 ---

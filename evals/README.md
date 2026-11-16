@@ -115,8 +115,8 @@ path through `target`/`focus: { source: file, path: <path> }`.
   concrete `PASS if` / `FAIL if` claims, all required. Result graders never mention `kb:`.
 - At least one process grader: `tool_used` on `Skill`, or on `Agent` with
   `"subagent_type"\s*:\s*"kb:<agent>"`, or `tool_order`, or `tool_used` on `Read` with
-  `input_match` on a `\.kb-references/<dir>/` path. Process graders are indicators; the summary
-  leaves them out of delta. They also match tool calls made inside a subagent, so a `gh` call
+  `input_match: '(?:\.kb-references|_refs)/<dir>/'` (both `refsMode` layouts). Process graders
+  are indicators; the summary leaves them out of delta. They also match tool calls made inside a subagent, so a `gh` call
   the `create-pr` agent makes counts.
 - Effects: `max_turns: 40`, `timeout_seconds: 900`,
   `allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]`.
@@ -415,7 +415,8 @@ reads. The commands named their library only inside a conditional delegation sen
 model never took ("the file is 25 lines, so a direct review costs less than a handoff"). Each consult
 command now lists its agent's reference index beside optional delegation, and j-system-design lists
 one per perspective: [consult commands offer references and delegation](../docs/adr/workflow/consult-commands-offer-references-and-delegation.md).
-Their cases gain a `read-refs` process grader (`tool_used` on `Read` of `.kb-references/<dir>/`).
+Their cases gain a `read-refs` process grader (`tool_used` on `Read` of `<dir>` under `.kb-references/`, or `_refs/` under
+`refsMode: add_dirs`).
 
 **Measurement defects.**
 - j-explain `self-contained` had no `match: not_contains`, so it passed only on external resources.
