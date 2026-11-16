@@ -187,7 +187,11 @@ Absolute scores differ from a real session in these ways; comparisons within the
 - No network and no `gh`.
 - Files under `.claude/` cannot be written (the run's permission mode denies it), so cases
   write skill, agent, and settings drafts to workspace paths.
-- Inside the Bash sandbox the `/usr/bin/git` shim fails; Homebrew's `git` on `PATH` works.
+- Inside the Bash sandbox `git` resolves to the macOS `/usr/bin/git` shim. The CLI builds the run's
+  `PATH` itself, so reordering the caller's `PATH` does not change it. The shim prints `xcrun` cache
+  warnings and sometimes exits non-zero (15 of 93 shim-warned git results in the PR 5 smoke). Both
+  arms see it, so it adds variance to git-heavy cases rather than bias; a run may switch to
+  `/opt/homebrew/bin/git` itself.
 - The child session inherits `ANTHROPIC_API_KEY`, so a run granted Bash could print it. The
   sandbox blocks network, and the key scan covers results, logs, and kept traces; traces of runs
   without `--keep-temp` are deleted by the CLI unscanned.
