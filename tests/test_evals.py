@@ -607,8 +607,8 @@ class LintTests(TempRepoCase):
 
 
 class CoverageTests(TempRepoCase):
-    def gaps(self, exempt: frozenset = frozenset()) -> list:
-        return kcases.coverage(kcases.discover(self.repo / "evals" / "cases"), self.repo, exempt)
+    def gaps(self) -> list:
+        return kcases.coverage(kcases.discover(self.repo / "evals" / "cases"), self.repo)
 
     def test_coverage_rules(self):
         gaps = self.gaps()
@@ -627,10 +627,6 @@ class CoverageTests(TempRepoCase):
         self.assertTrue(any("effect" in g for g in agent), agent)
         self.assertFalse(any("trigger" in g for g in agent), agent)
 
-    def test_exempt_assets_are_skipped(self):
-        exempt = frozenset({"demo-skill", "j-demo", "j-quiet", "demo-agent"})
-        self.assertEqual(self.gaps(exempt), [])
-
 
 class RealTreeTests(unittest.TestCase):
     def test_real_cases_pass_lint(self):
@@ -639,12 +635,8 @@ class RealTreeTests(unittest.TestCase):
 
     def test_real_assets_meet_coverage(self):
         found = kcases.discover(REPO / "evals" / "cases")
-        gaps = kcases.coverage(found, REPO, kcases.PENDING_EVAL_COVERAGE)
+        gaps = kcases.coverage(found, REPO)
         self.assertEqual(gaps, [], "\n".join(gaps))
-
-    def test_pending_names_only_real_assets(self):
-        assets = set(kcases.assets(REPO))
-        self.assertEqual(sorted(kcases.PENDING_EVAL_COVERAGE - assets), [])
 
 
 

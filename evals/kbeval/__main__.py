@@ -36,7 +36,7 @@ def _stage(args: argparse.Namespace) -> int:
 
 def _lint(args: argparse.Namespace) -> int:
     found = kcases.discover(REPO / "evals" / "cases")
-    problems = kcases.lint(found, REPO) + kcases.coverage(found, REPO, kcases.PENDING_EVAL_COVERAGE)
+    problems = kcases.lint(found, REPO) + kcases.coverage(found, REPO)
     for problem in problems:
         print(problem)
     print(f"{len(found)} cases, {len(problems)} problems")
