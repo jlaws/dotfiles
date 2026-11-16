@@ -11,7 +11,7 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
 - If `$ARGUMENTS` is empty, ask the user for a system description.
 
-**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`) and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
+**You may delegate independent design perspectives to specialist agents (`architecture-specialist`, `security-reviewer`, `data-engineer`, `devops-engineer`) and run them in parallel. Synthesize their findings and verify each against the codebase before presenting.**
 
 ## Design Process
 
