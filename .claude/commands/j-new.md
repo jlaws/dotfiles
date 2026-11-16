@@ -148,9 +148,6 @@ Run the `skill-audit` skill's mechanical check with `--type {type}s`.
 Fix what it reports. Then confirm by judgment: does every section teach something a strong model would
 otherwise get wrong or vague? Cut what does not.
 
-If the repository keeps an eval suite for its assets, add the new asset's trigger and effect cases and
-run its smoke target.
-
 ## Phase 6: Present and register
 
 Show the file, get approval, write it, and confirm the path.
@@ -163,6 +160,9 @@ sets, the repo's own CLAUDE.md names it; declare any single-tree asset in that t
 
 Update the MEMORY.md index (if present) if the asset set changed, then run the repo's
 lint and test commands. See `documentation-validation`.
+
+If the repository keeps an eval suite for its assets, add the new asset's cases (trigger and effect
+cases for a skill or command, effect cases for an agent). Offer to run its smoke target; it may bill.
 
 ### Frontmatter reference
 
