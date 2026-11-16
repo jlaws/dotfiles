@@ -101,6 +101,7 @@ Where the reader may act on content, add copy buttons ("copy as Markdown", "copy
 <body>
 <div class="wrap">
   <h1>TITLE</h1>
+  <p class="lead"><!-- reports: the headline finding (BLUF) --></p>
   <nav class="toc">
     <a href="#overview">Overview</a>
     <a href="#diagram">Diagram</a>

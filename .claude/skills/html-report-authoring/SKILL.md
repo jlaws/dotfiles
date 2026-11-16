@@ -79,6 +79,7 @@ Everything lives in one document, in this order:
 </head>
 <body>
   <h1>…</h1>
+  <p class="lead"><!-- reports: the headline finding (BLUF) --></p>
   <nav class="toc"><!-- in-page jump links --></nav>
   <section id="…">…</section>
   <script>/* the few lines of JS, if any */</script>
