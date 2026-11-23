@@ -21,29 +21,38 @@ Each skill has one should-fire trigger case, so any rewrite tuned on it fits tha
 
 ## Decision
 We will tune a `.claude` skill description that misses its should-fire cases **for content, not
-length**, against held-out trigger cases. Each tuned skill has one tuning case (`tune-` slug) and two
-held-out cases (`held-` slug: one should-fire, one near-miss) that the tuner never reads. A new
+length**, against held-out trigger cases. Each measured skill gains one tuning case (`tune-` slug;
+the existing unprefixed cases also count as tuning cases) and two held-out cases (`held-` slug: one
+should-fire, one near-miss) that a separate author writes and the tuner never reads. A new
 description is adopted only when all of these hold:
 - the held-out should case gains at least 4 of 12 runs across both models;
 - the existing should case does not drop;
 - every near-miss case stays at zero fires;
 - the skill's effect cases show no regression;
-- no untuned skill's trigger cases move.
+- no untuned skill's trigger cases move on Sonnet: no near case fires, and no should case fires in
+  2 or more fewer runs than the stored baseline. When one moves and the kept trace names the tuned
+  skill that fired instead, that description is restored. A drop with no tuned skill firing in its
+  place is recorded with the result and decided by the owner.
 
-Skills reached by an agent preload or a command are not tuned.
+Skills reached only through an agent preload or a command, whose trigger prompts cannot exercise
+them, are not tuned.
 
 ## Rationale
-A gain of 4 of 12 runs separates a real change from run-to-run noise. Two Binomial(12, p) draws with
-no real change differ by 4 or more in at most 7.6% of cases at p = 0.5, and far less at the low base
-rates these skills start from. A separate author for the held-out cases keeps the tuner from fitting
-them. The effect check catches a description that turns into a workflow summary the model follows
-instead of the body.
+A gain of 4 of 12 runs separates a real change from run-to-run noise. With no real change, a second
+Binomial(12, p) draw gains 4 or more over the first in at most 7.6% of cases (one-sided, at p =
+0.5), and far less at the low base rates these skills start from. A separate author for the held-out
+cases keeps the tuner from fitting them. The effect check guards against a description that leads
+the model away from the body; `writing-skills` still bans a workflow summary in a description, and
+review enforces it.
 
 ## Consequences
 **Gained**: a description change carries a held-out before and after on both models.
-**Accepted**: `.claude` descriptions diverge from the shared ones. Each tuned skill carries three
-more trigger cases, which adds about 21 USD to a full two-model baseline. The should-fire mean is not
-comparable with baselines taken before the new cases existed.
+**Accepted**: `.claude` descriptions diverge from the shared ones. Across many skills the chance
+that some no-change description passes adds up, so each adoption is a single-skill bet, not a
+family-wise guarantee. A skill whose held-out base is 9 of 12 or higher cannot gain 4 and is
+restored by rule. Each measured skill carries three more trigger cases, which adds about 21 USD to a
+full two-model baseline. The should-fire mean is not comparable with baselines taken before the new
+cases existed.
 
 ## Ruled Out
 | Idea | Why ruled out | When |
