@@ -9,11 +9,14 @@ Usage: python3 -m evals.kbeval.determination <subcommand>
   check --purpose P --asset A [A ...]   per-asset checks; exits 1 on any FAIL
   figures                                determination figures from the baseline results
   spend --purpose P                      purpose spend in the current budget period
+  triggers --purpose P --asset A [A ...] [--split tune|held]
+                                         per-case trigger fire counts for a purpose
 """
 
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import re
 import sys
@@ -385,6 +388,86 @@ def spend(purpose: str) -> int:
     return 0
 
 
+TRIGGER_KINDS = ("trigger-should", "trigger-near", "trigger-noauto")
+TriggerRow = Tuple[str, str, str, int, int]
+
+
+def _trigger_kind(name: str) -> Tuple[str, str]:
+    """Split a trigger case name into (kind, slug); kind is "" for a non-trigger case."""
+    rest = name.split("--", 1)[1] if "--" in name else ""
+    for kind in TRIGGER_KINDS:
+        if rest.startswith(kind + "-"):
+            return kind, rest[len(kind) + 1:]
+    return "", ""
+
+
+def _trigger_batches(root: Path, asset: str) -> List[Path]:
+    """Return an asset's complete result files under `root`, oldest first.
+
+    A file counts only with its `.key` sibling and `partial` false; others are reported on stderr.
+    Ordering by modification time lets a newer batch (full-asset or exact-case) replace an older one.
+    """
+    found = [root / f"{asset}.json", *root.glob(f"{glob.escape(asset)}@*.json"),
+             *root.glob(f"{glob.escape(asset)}--*.json")]
+    complete = []
+    for path in found:
+        if not path.is_file():
+            continue
+        if not path.with_suffix(".key").is_file():
+            print(f"SKIPPED {path} (no .key)", file=sys.stderr)
+            continue
+        if json.loads(path.read_text(encoding="utf-8")).get("partial"):
+            print(f"SKIPPED {path} (partial)", file=sys.stderr)
+            continue
+        complete.append(path)
+    return sorted(complete, key=lambda path: (path.stat().st_mtime, path.name))
+
+
+def trigger_rows(purpose: str, assets: List[str], split: Optional[str] = None) -> List[TriggerRow]:
+    """Return (case, kind, model, fired runs, graded runs) for each trigger case under a purpose.
+
+    Reads `<asset>.json`, `<asset>@*.json`, and exact-case `<asset>--*.json` files under
+    `results/<purpose>/kb/<model>/triggers/`; the newest batch wins for a case. A run counts as
+    graded only when its `fired` grader is present. For trigger-near and trigger-noauto cases a
+    passing `fired` grader means the skill was not called, so fired = graded runs minus passes.
+    `split` "held" keeps cases whose slug starts "held-"; "tune" keeps every other case, unprefixed
+    ones included.
+    """
+    rows: List[TriggerRow] = []
+    base = RESULTS / purpose / "kb"
+    model_dirs = sorted(d for d in base.iterdir() if d.is_dir()) if base.is_dir() else []
+    for model_dir in model_dirs:
+        root = model_dir / "triggers"
+        for asset in assets:
+            seen: Cases = {}
+            for path in _trigger_batches(root, asset):
+                doc = json.loads(path.read_text(encoding="utf-8"))
+                for case in doc.get("cases", []):
+                    if case.get("name", "").startswith(asset + "--"):
+                        seen[case["name"]] = case
+            for name, case in seen.items():
+                kind, slug = _trigger_kind(name)
+                held = slug.startswith("held-")
+                if not kind or (split == "held" and not held) or (split == "tune" and held):
+                    continue
+                graded = [run for run in runs(case) if grader(run, "fired")]
+                hits = sum(passed(run, "fired") for run in graded)
+                fired = hits if kind == "trigger-should" else len(graded) - hits
+                rows.append((name, kind, model_dir.name, fired, len(graded)))
+    return sorted(rows, key=lambda row: (row[0], row[2]))
+
+
+def triggers(purpose: str, assets: List[str], split: Optional[str]) -> int:
+    """Print one TRIGGER line per trigger case and model; exit 1 when nothing matched."""
+    rows = trigger_rows(purpose, assets, split)
+    for name, kind, model, fired, graded in rows:
+        print(f"TRIGGER {name} {kind} {model} {fired}/{graded}")
+    if not rows:
+        print(f"no trigger results for purpose={purpose} assets={' '.join(assets)}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def main() -> int:
     """Parse arguments and run a subcommand."""
     parser = argparse.ArgumentParser(
@@ -397,11 +480,17 @@ def main() -> int:
     sub.add_parser("figures")
     s = sub.add_parser("spend")
     s.add_argument("--purpose", required=True)
+    t = sub.add_parser("triggers")
+    t.add_argument("--purpose", required=True)
+    t.add_argument("--asset", nargs="+", required=True)
+    t.add_argument("--split", choices=("tune", "held"))
     args = parser.parse_args()
     if args.cmd == "check":
         return check(args.purpose, args.asset)
     if args.cmd == "figures":
         return figures()
+    if args.cmd == "triggers":
+        return triggers(args.purpose, args.asset, args.split)
     return spend(args.purpose)
 
 

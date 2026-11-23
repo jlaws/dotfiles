@@ -637,6 +637,20 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertLessEqual(len(value), 64)
                 self.assertTrue(value.startswith("Use when"))
 
+    def test_claude_skill_descriptions_are_one_quoted_line_of_200_chars(self):
+        """Owner: .claude/skills/writing-skills/SKILL.md (Description = triggering conditions only)."""
+        checked = 0
+        for path in sorted((REPO / ".claude" / "skills").glob("*/SKILL.md")):
+            line = next(
+                (x for x in frontmatter_block(path).splitlines() if x.startswith("description:")), ""
+            )
+            value = line[len("description:"):].strip()
+            checked += 1
+            with self.subTest(skill=path.parent.name):
+                self.assertRegex(value, r'^"[^"]*"$', f"{path.parent.name}: one quoted line")
+                self.assertLessEqual(len(value) - 2, 200, f"{path.parent.name}: over 200 characters")
+        self.assertGreater(checked, 0, "no Claude skills checked; the check is vacuous")
+
     def test_shared_skill_frontmatter_is_name_and_description_only(self):
         """Shared skills carry only name and description (owner: .agents/skills/writing-skills/SKILL.md)."""
         checked = 0

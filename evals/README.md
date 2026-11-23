@@ -24,7 +24,11 @@ python3 -m evals.kbeval summarize    # free: check every result, then write eval
 ```
 
 `python3 -m evals.kbeval run --suite ... --staging ... --plugin ...` runs one suite for one staging
-and model; the make targets call the plans built on it.
+and model; the make targets call the plans built on it. Add `--keep-temp` to keep each run's trace.
+`python3 -m evals.kbeval.determination triggers --purpose <label> --asset <names> [--split tune|held]`
+prints `TRIGGER <case> <kind> <model> <fired>/<runs>` for every trigger case run under that purpose,
+where `<fired>` counts runs in which the skill was called, for every kind. `tune` keeps every case whose slug does not start `held-`, unprefixed ones included;
+the command exits 1 when nothing matches, and reports skipped partial or key-less batches on stderr.
 
 `J ?= 8` sets `-j` (concurrent runs). `eval-baseline` also takes `VANILLA_RUNS` (default 3),
 `VANILLA_MODELS` (default both models), and `EXCLUDE_TAGS` (default empty); the kb staging always
@@ -109,6 +113,9 @@ path through `target`/`focus: { source: file, path: <path> }`.
 - `trigger-should`: `min: 1`. `trigger-near` and `trigger-noauto`: `min: 0`, `max: 0`.
 - `max_turns: 6`, `timeout_seconds: 120`, `allowed_tools: [Skill, Read, Glob, Grep]`. Six, not
   three: at three, runs that read a file first hit the turn cap before reaching the skill.
+- An asset may hold more than one trigger case. A slug starting `tune-` marks a case used to tune a
+  description. A slug starting `held-` marks a case used only to decide whether to adopt it; whoever
+  tunes the description does not read it.
 
 **Effects and workflows**
 - At least one result grader: `regex` on a produced file, `file_exists`, or `llm` with 2-5
@@ -370,7 +377,7 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
 ## Asset determination
 
 Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63, 3 kb runs per
-case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`)
+case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`, `triggers`)
 reads the raw per-run results under `~/.local/state/dotfiles-kbeval/results/<purpose>/kb/`
 (machine-local, so it reruns only where those results exist), keeping only batches
 with a `.key` and `partial` false, as `summary._load` does. Its checks are `html-lead`,
@@ -403,9 +410,49 @@ j-debug, and j-devops commands. Each has another reach path: debugging-methodolo
 documentation-validation through the `create-pr` and `documentation-writer` agents' `skills:`
 preloads and the workflow commands; executing-plans through `/j-execute-plan` and `/j-next`;
 output-completeness and subagent-report-contract through agent `skills:` preloads;
-refactoring-and-debt through `/j-defrag`; the commands are typed. Descriptions stay unchanged:
-within skills, description length does not predict firing (all 47-86 characters; 47-character
-skills fire 6 of 6).
+refactoring-and-debt through `/j-defrag`; the commands are typed. Within skills, description
+length did not predict firing (all 47-86 characters; 47-character skills fire 6 of 6).
+
+**Trigger tuning (2026-11-23, Claude Code 2.1.330).** Twelve skills (eleven low-recall, plus
+dependency-upgrade, which already fired) were measured with a tuning case (`tune-`) and two held-out cases (`held-`) each, then descriptions were rewritten for
+content and adopted only on held-out evidence (`docs/adr/workflow/skill-descriptions-are-tuned-against-held-out-triggers.md`).
+Counts are fired runs, both models together: existing should case of 6, held-out should case of 12
+(6 runs per model), near cases (existing plus held-out) of 12. Base is before any rewrite; final is
+after tuning round 3.
+
+| Skill | Class | Existing should | Held-out should | Near fires | Outcome |
+|---|---|---|---|---|---|
+| code-agent-meta-patterns | MISS | 1 -> 6 | 7 -> 12 | 0 -> 0 | adopted |
+| code-migration | MISS | 4 -> 6 | 0 -> 12 | 0 -> 0 | adopted |
+| code-review-patterns | MISS | 5 -> 6 | 5 -> 12 | 0 -> 0 | adopted |
+| debugging-methodology | MISS | 0 -> 5 | 1 -> 4 | 0 -> 0 | restored: held-out gain +3 |
+| dependency-upgrade | FIRES | 5 | 6 | 0 | not tuned |
+| design-first | MISS | 3 -> 6 | 7 -> 7 | 0 -> 0 | restored: held-out gain +0 |
+| documentation-validation | MISS | 0 -> 6 | 0 -> 0 | 0 -> 0 | restored: held-out gain +0 |
+| finishing-branch | MISS | 0 -> 6 | 0 -> 2 | 0 -> 0 | restored: held-out gain +2 |
+| html-report-authoring | MISS | 0 -> 0 | 12 -> 12 | 0 -> 0 | restored: held-out gain +0 (at ceiling) |
+| refactoring-and-debt | MISS | 0 -> 6 | 1 -> 10 | 0 -> 0 | adopted |
+| subagent-driven-development | MISS | 3 -> 6 | 3 -> 10 | 0 -> 0 | adopted (rewritten after review; re-measured) |
+| writing-plans | MISS | 3 -> 6 | 0 -> 2 | 0 -> 0 | restored: held-out gain +2 |
+
+No skill was ROUTED: finishing-branch and writing-plans went to `/j-create-pr` and `/j-plan` on one
+case and model only. Left out by decision, because an agent preload or a command reaches them and
+their trigger prompts cannot exercise them: analysis-output-patterns, dispatching-parallel-agents,
+executing-plans, output-completeness, skill-lookup-discipline, subagent-report-contract. Every
+adopted description passed the effects `no-regression` check on both models
+(code-agent-meta-patterns trim-claudemd fell 0.83 -> 0.50 on Opus within the rule). The neighbour
+check (untuned skills, Sonnet) moved one case: verification-before-completion proof-of-fix fired
+2/3 at baseline, 0/3 at final, and 2/6 on a recheck; no tuned skill fired in its place, and the
+five adopted descriptions were kept by decision. The subagent-driven-development held-out prompts
+closely paraphrase its existing cases, so its held-out gain is weaker evidence than the others'. The skill listing was not observable in kept
+traces. Total `.claude` skill and command description length went from 10,387 to 10,911
+characters. Purposes: `trigger-recall-base`, `trigger-recall-held-base`, `trigger-recall-r1` to
+`-r3`, `trigger-recall-final`, `trigger-recall-held-final`, `trigger-recall-neighbour-recheck`,
+`trigger-recall-effects`, and `trigger-recall-{final,held-final,effects}-sdd`. Review found the first
+adopted subagent-driven-development description summarized the skill's workflow; its rewrite was
+re-measured under the `-sdd` purposes (held-out 10 of 12, existing 6 of 6, no near fires, effects
+`no-regression` PASS on both models). The should-fire mean is not comparable with baselines taken before these
+cases existed.
 
 **Consult commands.** `delegated` passed in 0 of 12 kb runs for each of j-arch, j-cloud, j-devops,
 j-docs, j-frontend, j-lang, and j-data (0 of 84), and in 0 of 12 for j-system-design. Stored graded

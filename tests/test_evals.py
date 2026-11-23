@@ -1535,5 +1535,140 @@ class RealFixtureTests(unittest.TestCase):
         self.assertIn("--out", (work / "README.md").read_text())
 
 
+
+from evals.kbeval import __main__ as kmain  # noqa: E402
+from evals.kbeval import determination as kdet  # noqa: E402
+
+
+class RunKeepTempTests(unittest.TestCase):
+    """`run --keep-temp` is forwarded to runner.run as `keep_temp`."""
+
+    def _keep_temp(self, extra):
+        recorded = {}
+
+        def fake_run(*args, **kwargs):
+            recorded.update(kwargs)
+            return 0
+
+        argv = ["run", "--suite", "triggers", "--staging", "kb", "--plugin", "/tmp/p",
+                "--model", "m", "--purpose", "p", *extra]
+        with mock.patch.object(kmain.runner, "run", fake_run):
+            self.assertEqual(kmain.main(argv), 0)
+        return recorded["keep_temp"]
+
+    def test_run_command_passes_keep_temp(self):
+        self.assertIs(self._keep_temp(["--keep-temp"]), True)
+        self.assertIs(self._keep_temp([]), False)
+
+
+class TriggerReportTests(unittest.TestCase):
+    """`determination triggers` counts fired runs per trigger case."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        patcher = mock.patch.object(kdet, "RESULTS", self.tmp)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _write(self, model, stem, cases, partial=False, key=True):
+        root = self.tmp / "p" / "kb" / model / "triggers"
+        root.mkdir(parents=True, exist_ok=True)
+        doc = {"partial": partial, "cases": [
+            {"name": name, "arms": {"with": [
+                {"graders": [{"name": "fired", "passed": ok}]} for ok in outcomes
+            ]}}
+            for name, outcomes in cases.items()
+        ]}
+        (root / f"{stem}.json").write_text(json.dumps(doc), encoding="utf-8")
+        if key:
+            (root / f"{stem}.key").write_text("k", encoding="utf-8")
+
+    def test_trigger_rows_counts_fired_runs(self):
+        self._write("m", "a", {"a--trigger-should-x": [True, False, True]})
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-should-x", "trigger-should", "m", 2, 3)]
+        )
+
+    def test_trigger_rows_inverts_near_cases(self):
+        self._write("m", "a", {"a--trigger-near-x": [True, True, True]})
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-near-x", "trigger-near", "m", 0, 3)]
+        )
+
+    def test_trigger_rows_filters_by_split(self):
+        self._write("m", "a", {
+            "a--trigger-should-held-x": [True],
+            "a--trigger-should-tune-y": [True],
+            "a--trigger-should-z": [False],
+        })
+        held = [row[0] for row in kdet.trigger_rows("p", ["a"], split="held")]
+        tune = [row[0] for row in kdet.trigger_rows("p", ["a"], split="tune")]
+        self.assertEqual(held, ["a--trigger-should-held-x"])
+        self.assertEqual(tune, ["a--trigger-should-tune-y", "a--trigger-should-z"])
+
+    def test_trigger_rows_reads_exact_case_files(self):
+        self._write("m", "a--trigger-should-x", {"a--trigger-should-x": [True, True]})
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-should-x", "trigger-should", "m", 2, 2)]
+        )
+
+    def test_trigger_rows_inverts_noauto_and_mixed_near_cases(self):
+        self._write("m", "a", {
+            "a--trigger-noauto-x": [True, False],
+            "a--trigger-near-y": [True, False, False],
+        })
+        self.assertEqual(kdet.trigger_rows("p", ["a"]), [
+            ("a--trigger-near-y", "trigger-near", "m", 2, 3),
+            ("a--trigger-noauto-x", "trigger-noauto", "m", 1, 2),
+        ])
+
+    def test_trigger_rows_skips_partial_and_keyless_batches(self):
+        self._write("m", "a", {"a--trigger-should-x": [True]}, partial=True)
+        self._write("m", "a--trigger-should-y", {"a--trigger-should-y": [True]}, key=False)
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(kdet.trigger_rows("p", ["a"]), [])
+        self.assertIn("(partial)", err.getvalue())
+        self.assertIn("(no .key)", err.getvalue())
+
+    def test_trigger_rows_newest_batch_wins(self):
+        self._write("m", "a--trigger-should-x", {"a--trigger-should-x": [False, False]})
+        self._write("m", "a@2", {"a--trigger-should-x": [True, True]})
+        old = self.tmp / "p" / "kb" / "m" / "triggers" / "a--trigger-should-x.json"
+        os.utime(old, (1, 1))
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-should-x", "trigger-should", "m", 2, 2)]
+        )
+
+    def test_trigger_rows_keeps_assets_apart_and_drops_non_trigger_cases(self):
+        self._write("m", "a", {
+            "a--trigger-should-x": [True],
+            "a-b--trigger-should-y": [True],
+            "a--effect-z": [True],
+        })
+        self._write("m", "a-b--trigger-should-w", {"a-b--trigger-should-w": [True]})
+        self.assertEqual(
+            [row[0] for row in kdet.trigger_rows("p", ["a"])], ["a--trigger-should-x"]
+        )
+
+    def test_trigger_rows_ignores_runs_without_the_fired_grader(self):
+        root = self.tmp / "p" / "kb" / "m" / "triggers"
+        root.mkdir(parents=True)
+        doc = {"partial": False, "cases": [{"name": "a--trigger-near-x", "arms": {"with": [
+            {"graders": [{"name": "fired", "passed": True}]},
+            {"graders": [{"name": "other", "passed": False}]},
+        ]}}]}
+        (root / "a.json").write_text(json.dumps(doc), encoding="utf-8")
+        (root / "a.key").write_text("k", encoding="utf-8")
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-near-x", "trigger-near", "m", 0, 1)]
+        )
+
+    def test_triggers_exits_one_when_nothing_matched(self):
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(kdet.triggers("missing", ["a"], None), 1)
+        self.assertIn("no trigger results", err.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()

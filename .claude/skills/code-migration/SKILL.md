@@ -1,6 +1,6 @@
 ---
 name: code-migration
-description: "Use when migrating code across frameworks or platforms."
+description: "Use when moving an application or service to a different framework, language, runtime, or platform, including planning the port and the order of its steps."
 ---
 
 # Code Migration

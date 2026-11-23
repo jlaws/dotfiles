@@ -2,8 +2,8 @@
   "period": "initial-baseline-2026-11",
   "totals": {
     "byModel": {
-      "claude-opus-5-5": 509.2996,
-      "claude-sonnet-5-5": 410.669
+      "claude-opus-5-5": 608.7009,
+      "claude-sonnet-5-5": 466.3751
     },
     "byPurpose": {
       "baseline": 661.4377,
@@ -14,8 +14,20 @@
       "smoke-feat-kb-evals-agents": 35.0462,
       "smoke-feat-kb-evals-consult-commands": 20.8341,
       "smoke-feat-kb-evals-skills": 39.1492,
-      "smoke-feat-kb-evals-workflow-commands": 18.947
+      "smoke-feat-kb-evals-workflow-commands": 18.947,
+      "trigger-recall-base": 28.547,
+      "trigger-recall-effects": 20.5707,
+      "trigger-recall-effects-sdd": 6.0038,
+      "trigger-recall-final": 35.3765,
+      "trigger-recall-final-sdd": 2.2717,
+      "trigger-recall-held-base": 12.9801,
+      "trigger-recall-held-final": 12.793,
+      "trigger-recall-held-final-sdd": 1.1488,
+      "trigger-recall-neighbour-recheck": 0.2774,
+      "trigger-recall-r1": 15.4934,
+      "trigger-recall-r2": 12.2754,
+      "trigger-recall-r3": 7.3696
     },
-    "totalUsd": 919.9686
+    "totalUsd": 1075.076
   }
 }

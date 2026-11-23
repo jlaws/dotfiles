@@ -1,6 +1,6 @@
 ---
 name: code-review-patterns
-description: "Use when reviewing PRs or responding to review feedback."
+description: "Use when reviewing someone's pull request or diff, deciding how severe a finding is, phrasing review comments, or answering feedback on your own changes."
 ---
 
 # Code Review Patterns
