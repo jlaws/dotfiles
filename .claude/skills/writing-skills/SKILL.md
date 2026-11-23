@@ -24,7 +24,9 @@ Keep a section only if it passes one of these:
 Cut what fails all four. Generic best practice, framework tours, and derivable taxonomies are the
 usual offenders. A skill that could apply to any repo teaches little about this one.
 
-Facts that defy a reasonable assumption go in a `## Gotchas` section of SKILL.md, not a supporting file: the agent needs them before it knows to look. Add one each time a correction exposes a wrong assumption.
+Facts that defy a reasonable assumption go in a `## Gotchas` section of SKILL.md, not a supporting
+file: the agent needs them before it knows to look. Add one each time a correction exposes a wrong
+assumption.
 
 ## Claims and evidence
 
@@ -103,7 +105,8 @@ skills/
 ```
 
 Split a file out when it is heavy reference or a reusable tool. Keep the rest inline, one level deep.
-A pointer says when to load the file: "Read `references/CLAUDE_MD_TESTING.md` when an agent read the skill and still chose wrong", not "see references/".
+A pointer says when to load the file: "Read `references/CLAUDE_MD_TESTING.md` when an agent read the
+skill and still chose wrong", not "see references/".
 
 **For mechanical steps — validation, formatting, deterministic checks — ship a script and call it.**
 Reserve the model for judgment. A prose checklist of things a script could verify is both longer and

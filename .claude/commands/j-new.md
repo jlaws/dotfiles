@@ -181,6 +181,8 @@ cases for a skill or command, effect cases for an agent). Offer to run its smoke
 | `memory` | N/A | N/A | Avoid; see `code-agent-meta-patterns`, Agent memory |
 | `color`, `maxTurns`, `permissionMode` | N/A | N/A | Optional |
 
+A skill under `.agents/skills/` or `.gemini/antigravity-cli/skills/` carries only `name` and `description`; the other Skill-column rows apply to `.claude/skills/`.
+
 Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Agent, Skill. Write `Agent`, not its retired name `Task`.
 
 Field semantics: `writing-skills`, Frontmatter.

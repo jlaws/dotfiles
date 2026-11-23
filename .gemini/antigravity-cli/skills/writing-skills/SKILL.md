@@ -136,7 +136,7 @@ Applies to new skills AND edits. Write skill before testing? Delete it. Start ov
 
 ## Testing Skills
 
-For detailed testing methodology, see `references/CLAUDE_MD_TESTING.md`.
+Read `references/CLAUDE_MD_TESTING.md` when an agent read the skill and still chose wrong.
 
 Run scenarios without skill (RED), write skill addressing failures (GREEN), close loopholes (REFACTOR).
 
