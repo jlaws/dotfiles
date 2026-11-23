@@ -162,7 +162,7 @@ LLM providers cache the key-value computations for identical prompt prefixes. Wh
 - Send mid-session instruction updates as new messages, not edits to the system prompt
 - Track cache-hit rate alongside token counts (see ai-ml:llmops-production-monitoring)
 
-**Anthropic API specifics**. Other providers differ: OpenAI caches prefixes automatically, Gemini uses explicit cached-content objects.
+**Anthropic API specifics.** Other providers differ: OpenAI caches prefixes automatically, Gemini uses explicit cached-content objects.
 - Cache reads are byte-exact across the whole prefix, up to each `cache_control` breakpoint
 - Effort and thinking settings render ahead of your content. Changing the top-level setting misses the cache from that point onward, and on some models from the tools and system prompt as well. A per-message effort change, where supported, keeps the prefix
 - Mark rarely used tools `defer_loading`; they stay out of the cached prefix and load through tool search on demand
@@ -220,7 +220,7 @@ its tokens and then the retry, and the tail carries the spend even when nothing 
 
 ### Budgets and Output Length
 
-- A model-visible task budget saves money because the model plans around it. Anthropic's is a beta: advisory, with a 20,000-token floor, set once on the first request because a change invalidates the cache. A generous budget trades cost for a small score gain
+- A model-visible task budget saves money because the model plans around it. Anthropic's is a beta: advisory, with a 20,000-token floor, set once on the first request because a change invalidates the cache. A generous budget saves cost at a small score loss
 - `max_tokens` is an invisible safety cap: lowering it cut cost per attempt, not cost per solved task. For agentic work set it high (64,000 tokens, or 128,000 where one cut-off is costly), stream the response, and treat `stop_reason: max_tokens` as a failure
 - Ask for the answer you will read: a short final-answer format costs less than a long one
 - An agent loop cannot see a clock. Telling it that time matters, and sending the elapsed time before each later turn, trades some score for speed. Check the score on your own tasks first
@@ -229,8 +229,8 @@ its tokens and then the retry, and the tail carries the spend even when nothing 
 
 Sweep effort first; most workloads end there. Then price the stronger model alone at low effort;
 that is the number an advisor pairing has to beat.
-- **Advisor**: a cheaper executor consults a frontier model on hard decisions. It pays only when the executor asks, and a low-effort executor can stop asking. An advisor pairing costs more than extra effort for a similar gain
-- **Orchestrator**: a frontier lead plans, and cheaper workers take the bulk in parallel. It saved money in two measured cases: work larger than one context window, and a long cost tail on routine tasks. When the work was one dependent chain, or fit one context without a long cost tail, the lead's model alone at lower effort came out ahead every time
+- **Advisor**: a cheaper executor consults a frontier model on hard decisions. It pays only when the executor asks, and a low-effort executor can stop asking. An advisor pairing buys about what more effort buys, at a similar cost (reported elsewhere, unmeasured here)
+- **Orchestrator**: a frontier lead plans, and cheaper workers take the bulk in parallel. It saved money in two measured cases: work larger than one context window, and a long cost tail on routine tasks. When the work was one dependent chain, or fit one context without a long cost tail, the lead's model alone at lower effort came out ahead every time (reported elsewhere, unmeasured here)
 
 ### Measuring Cost on Your Workload
 
