@@ -16,6 +16,7 @@ passes when every claim passes. We compare the judge against two expert graders 
 \centering
 \begin{tabular}{lcc}
 Judge & Agreement with experts & Cohen's $\kappa$ \\
+\hline
 Single quality score & 0.71 & 0.42 \\
 Checkable claims (ours) & 0.88 & 0.74 \\
 \end{tabular}

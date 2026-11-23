@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: '^(?=[\s\S]*R1\.1)(?=[\s\S]*R1\.2)(?=[\s\S]*R1\.3)(?=[\s\S]*R2\.1)(?=[\s\S]*R2\.2)'
+pattern: '^(?=[\s\S]*\|[^\n]*\bR1\.1\b)(?=[\s\S]*\|[^\n]*\bR1\.2\b)(?=[\s\S]*\|[^\n]*\bR1\.3\b)(?=[\s\S]*\|[^\n]*\bR2\.1\b)(?=[\s\S]*\|[^\n]*\bR2\.2\b)'
 target: { source: file, path: triage.md }
 ---
