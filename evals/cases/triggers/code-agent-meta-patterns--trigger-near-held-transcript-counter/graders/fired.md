@@ -1,0 +1,7 @@
+---
+type: tool_used
+tool: Skill
+input_match: '"skill"\s*:\s*"(?:kb:)?code-agent-meta-patterns"'
+min: 0
+max: 0
+---
