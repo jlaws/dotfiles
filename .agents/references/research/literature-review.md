@@ -210,12 +210,15 @@ papers = search_recent("cat:cs.LG AND ti:efficient AND ti:attention")
 
 Before finalizing a bibliography or related-work section:
 
-- **Verify each citation exists** — look it up (Semantic Scholar / DOI), fuzzy-match title + first author + year against the result, and flag near-misses for manual check.
+- **Verify each citation by identifier** - an entry is verified only when its DOI or arXiv ID resolves to a record whose title, first author, and year all match. A resolving DOI alone is not enough: a DOI can point at a different paper. Look up Crossref first, then DataCite for datasets and software, then OpenAlex or Semantic Scholar. With no identifier, match on the exact title and flag near-misses for manual check.
 - **Detect orphan citations** — every `\cite{key}` must resolve to a bib entry, and every bib entry should be cited at least once; report both directions.
 - **Never fabricate fields** — if authors, venue, or year cannot be confirmed, leave the field blank and mark it rather than guessing (see `confidence-scoring`).
 - **Anti-gaming self-review** — do not "pass" your own related-work by lowering the bar. If you cannot verify a citation, halt and report it as `UNVERIFIED` instead of asserting it.
 - **Check claim against passage** - existence is not support. Read the cited passage in the cited version (preprint, accepted manuscript, and proceedings can differ) and confirm it says what the sentence claims. A paywall, JS wall, or refused fetch is an access failure reported as `UNVERIFIED`, never as support. For a sentence with several sources, check each against what it is cited for.
-- **Check retraction status** - confirm the work is not retracted or corrected (publisher page, Retraction Watch) before relying on it.
+- **A missing record is a finding; a failed lookup is not** - when every index answered and none holds the record, report the entry as not found and do not cite it until the user confirms it. Do not call it fabricated. An entry whose lookup failed stays `UNVERIFIED`.
+- **Propose corrections, apply none** - a matched record can supply a missing DOI or show a wrong field. Propose the change to the user; do not edit an existing entry on your own.
+- **Hard cases** - a conference paper with no DOI cites its proceedings page. When a preprint and a peer-reviewed version both exist, cite the peer-reviewed one unless the venue says otherwise.
+- **Check retraction status** - confirm the work is not retracted or corrected (publisher page, Retraction Watch) before relying on it. An expression of concern is not a retraction: report it and let the user decide.
 
 ## Gotchas and Anti-Patterns
 

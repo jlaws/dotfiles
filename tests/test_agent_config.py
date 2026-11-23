@@ -1855,6 +1855,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self._assert_all_contain((*research("output-template.md"), *analysis), "Linchpin check")
         for phrase in ("Keep each claim's strength", "AI-use disclosure"):
             self._assert_all_contain(command("j-paper"), phrase)
+        self._assert_all_contain(command("j-paper"), "Citation Verification")
 
     def test_ui_guidance_is_scoped_and_diagrams_accessible(self):
         def frontend(name):
