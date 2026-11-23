@@ -1993,6 +1993,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self._assert_all_contain(
             (*research("output-template.md"), *analysis), "the change that would resolve it"
         )
+        self._assert_all_contain(command("j-paper"), "upon request")
 
     def test_ui_guidance_is_scoped_and_diagrams_accessible(self):
         def frontend(name):

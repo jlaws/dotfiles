@@ -69,6 +69,9 @@ Look up the target venue's requirements in `.agents/references/research/latex-pa
 | Supplementary structure | Confirm appendix is in the right form for the venue (separate PDF vs appended) |
 | Number provenance | Every number in the draft traces to a saved log, script, or run config; Methods values match the config that ran |
 | AI-use disclosure | Look up the venue's current generative-AI policy page; confirm the required statement is present and placed where the venue asks. Do not fabricate the policy or its URL |
+| Limitations | A limitations section exists and names the conditions under which the main claims do not hold |
+| Reproducibility | Seeds and number of runs, hardware and compute, the hyperparameter search, and code and data availability are stated, and each statement is true today (`.agents/references/research/statistical-analysis.md` for seed counts). "Available upon request" alone fails: state the restriction and the access route |
+| Error bars | Every error bar says whether it is a standard deviation or a standard error (`.agents/references/research/statistical-analysis.md`) |
 
 Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
