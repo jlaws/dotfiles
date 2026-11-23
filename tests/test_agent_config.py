@@ -1987,6 +1987,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self._assert_all_contain(command("j-paper"), "Citation Verification")
         self._assert_all_contain(research("literature-review.md"), "## Citation Verification")
         self._assert_all_contain((*research("rebuttal-writing.md"), *command("j-paper")), "Rebuttal")
+        self._assert_all_contain(
+            (*research("paper-analysis-methodology.md"), *analysis), "Confidential manuscript"
+        )
+        self._assert_all_contain(
+            (*research("output-template.md"), *analysis), "the change that would resolve it"
+        )
 
     def test_ui_guidance_is_scoped_and_diagrams_accessible(self):
         def frontend(name):

@@ -20,6 +20,8 @@ Load skills, in order:
 
 Before analyzing, resolve and fetch the paper, then gather its resources in parallel:
 
+**Confidential manuscript:** if the user says they are reviewing the paper, or the file is marked confidential (see paper-analysis-methodology), work only from the supplied text: skip the resource searches below, write "Not available" for each resource, delegate nothing that searches the web, and note the status in the header. Do not stop to ask.
+
 1. **Resolve the paper**: If given a title or arxiv ID (not a URL), search the web for the canonical paper page (arxiv abs, conference proceedings, or publisher page).
 2. **Fetch the paper content**: Get the full paper text for analysis.
 3. **Gather resources in parallel**: The searches below are independent. **Delegate them to `research-analyst` subagents and run them concurrently in a single message.** Give each subagent a self-contained brief (paper title, authors, arxiv ID) and ask it to return the exact links it finds, or "None found".
@@ -128,7 +130,7 @@ Write the analysis to a file named `{paper-short-title}.md`. Produce these secti
 | Proposed Method | High-level overview; architecture/algorithm components; key equations with what each computes; training/optimization (objective function, optimizer, schedule, key hyperparameters); computational cost (parameters, FLOPs, training cost/hardware, inference time, memory, how cost scales) |
 | Experimental Setup | Datasets (size, task, split); baselines; metrics; hardware and training time; whether baselines get equal compute/tuning/data |
 | Key Results | Main results by method and metric; ablation studies and their effect; statistical rigor (runs/seeds, variance reporting, significance tests) |
-| Critical Analysis | Novelty vs. closest prior work; strengths and weaknesses with reasoning; limitations (acknowledged by authors vs. unacknowledged); failure modes and edge cases; ethical considerations and broader impact (omit entirely if genuinely N/A); missing references; reproducibility assessment (code/data availability, hyperparameters specified, implementation complexity, overall reproducibility) |
+| Critical Analysis | Novelty vs. closest prior work; strengths; weaknesses, each with where it is in the paper, what was observed, the evidence or criterion, why it matters, and the change that would resolve it; limitations (acknowledged by authors vs. unacknowledged); failure modes and edge cases; ethical considerations and broader impact (omit entirely if genuinely N/A); missing references; reproducibility assessment (code/data availability, hyperparameters specified, implementation complexity, overall reproducibility) |
 | Connections & Context | Papers this work builds on with the relationship; potential impact on the field |
 | Future Work & Open Questions | Extensions, improvements, unresolved questions |
 | Reviewer Assessment | Overall score 1-10 with 2-3 sentence justification (see calibration table below); confidence 1-5; recommendation (Accept / Weak Accept / Borderline / Weak Reject / Reject); questions for authors |
@@ -162,6 +164,7 @@ Write the analysis to a file named `{paper-short-title}.md`. Produce these secti
 - Be precise -- use exact numbers from the paper
 - Distinguish between what the paper claims and what the evidence supports
 - **Linchpin check:** would removing any single piece of evidence collapse the argument? Say so
+- **Proportionate requests:** ask for a new experiment only when a central claim needs it; offer a narrower claim or a stated limitation first.
 - **Read scope:** with only an abstract or a paywalled page, write "not assessed (read scope: abstract)" for methods critique rather than inferring weaknesses
 - For critical analysis, be honest and constructive -- identify real issues, not nitpicks
 - The summary should be self-contained: someone reading it should understand the paper without reading the original

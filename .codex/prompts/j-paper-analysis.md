@@ -19,6 +19,8 @@ Load skills, in order:
 
 Before analyzing, resolve and fetch the paper, then gather its resources in parallel:
 
+**Confidential manuscript:** if the user says they are reviewing the paper, or the file is marked confidential (see paper-analysis-methodology), work only from the supplied text: skip the resource searches below, write "Not available" for each resource, delegate nothing that searches the web, and note the status in the header. Do not stop to ask.
+
 1. **Resolve the paper**: If given a title or arxiv ID (not a URL), search the web for the canonical paper page (arxiv abs, conference proceedings, or publisher page).
 2. **Fetch the paper content**: Get the full paper text for analysis.
 3. **Gather resources in parallel**: The searches below are independent. **Delegate them to `research-analyst` subagents and run them concurrently in a single message.** Give each subagent a self-contained brief (paper title, authors, arxiv ID) and ask it to return the exact links it finds, or "None found".
@@ -244,7 +246,7 @@ Create a file named `{paper-short-title}.md`. Use this template:
 1. {Strength with reasoning}
 
 ### Weaknesses
-1. {Weakness with reasoning}
+1. {Weakness: where in the paper, what was observed, the evidence or criterion, why it matters, and the change that would resolve it}
 
 ### Limitations
 - **Acknowledged by authors:** {limitations the authors explicitly discuss}
@@ -315,7 +317,7 @@ Create a file named `{paper-short-title}.md`. Use this template:
 **{Accept / Weak Accept / Borderline / Weak Reject / Reject}**
 
 ### Questions for Authors
-1. {Key question that would affect the assessment}
+1. {Question: where in the paper, what is unclear, and the answer that would change the assessment}
 
 ---
 
@@ -337,6 +339,7 @@ Create a file named `{paper-short-title}.md`. Use this template:
 - Be precise -- use exact numbers from the paper
 - Distinguish between what the paper claims and what the evidence supports
 - **Linchpin check:** would removing any single piece of evidence collapse the argument? Say so
+- **Proportionate requests:** ask for a new experiment only when a central claim needs it; offer a narrower claim or a stated limitation first.
 - **Read scope:** with only an abstract or a paywalled page, write "not assessed (read scope: abstract)" for methods critique rather than inferring weaknesses
 - For critical analysis, be honest and constructive -- identify real issues, not nitpicks
 - The summary should be self-contained: someone reading it should understand the paper without reading the original
