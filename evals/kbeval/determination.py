@@ -387,6 +387,64 @@ def spend(purpose: str) -> int:
     return 0
 
 
+TRIGGER_KINDS = ("trigger-should", "trigger-near", "trigger-noauto")
+TriggerRow = Tuple[str, str, str, int, int]
+
+
+def _trigger_kind(name: str) -> Tuple[str, str]:
+    """Split a trigger case name into (kind, slug); kind is "" for a non-trigger case."""
+    rest = name.split("--", 1)[1] if "--" in name else ""
+    for kind in TRIGGER_KINDS:
+        if rest.startswith(kind + "-"):
+            return kind, rest[len(kind) + 1:]
+    return "", ""
+
+
+def trigger_rows(purpose: str, assets: List[str], split: Optional[str] = None) -> List[TriggerRow]:
+    """Return (case, kind, model, fired runs, graded runs) for each trigger case under a purpose.
+
+    Reads `<asset>.json`, `<asset>@*.json`, and exact-case `<asset>--*.json` files under
+    `results/<purpose>/kb/<model>/triggers/`. For trigger-near and trigger-noauto cases a passing
+    `fired` grader means the skill was not called, so fired = graded runs minus passes. `split`
+    "held" keeps cases whose slug starts "held-"; "tune" keeps every other case.
+    """
+    rows: List[TriggerRow] = []
+    base = RESULTS / purpose / "kb"
+    model_dirs = sorted(d for d in base.iterdir() if d.is_dir()) if base.is_dir() else []
+    for model_dir in model_dirs:
+        root = model_dir / "triggers"
+        for asset in assets:
+            paths = [root / f"{asset}.json", *sorted(root.glob(f"{asset}@*.json")),
+                     *sorted(root.glob(f"{asset}--*.json"))]
+            seen: Cases = {}
+            for path in paths:
+                if not (path.is_file() and path.with_suffix(".key").is_file()):
+                    continue
+                doc = json.loads(path.read_text(encoding="utf-8"))
+                if doc.get("partial"):
+                    continue
+                for case in doc.get("cases", []):
+                    if case["name"].startswith(asset + "--"):
+                        seen[case["name"]] = case
+            for name, case in seen.items():
+                kind, slug = _trigger_kind(name)
+                held = slug.startswith("held-")
+                if not kind or (split == "held" and not held) or (split == "tune" and held):
+                    continue
+                graded = runs(case)
+                hits = sum(passed(run, "fired") for run in graded)
+                fired = hits if kind == "trigger-should" else len(graded) - hits
+                rows.append((name, kind, model_dir.name, fired, len(graded)))
+    return sorted(rows, key=lambda row: (row[0], row[2]))
+
+
+def triggers(purpose: str, assets: List[str], split: Optional[str]) -> int:
+    """Print one TRIGGER line per trigger case and model."""
+    for name, kind, model, fired, graded in trigger_rows(purpose, assets, split):
+        print(f"TRIGGER {name} {kind} {model} {fired}/{graded}")
+    return 0
+
+
 def main() -> int:
     """Parse arguments and run a subcommand."""
     parser = argparse.ArgumentParser(
@@ -399,11 +457,17 @@ def main() -> int:
     sub.add_parser("figures")
     s = sub.add_parser("spend")
     s.add_argument("--purpose", required=True)
+    t = sub.add_parser("triggers")
+    t.add_argument("--purpose", required=True)
+    t.add_argument("--asset", nargs="+", required=True)
+    t.add_argument("--split", choices=("tune", "held"))
     args = parser.parse_args()
     if args.cmd == "check":
         return check(args.purpose, args.asset)
     if args.cmd == "figures":
         return figures()
+    if args.cmd == "triggers":
+        return triggers(args.purpose, args.asset, args.split)
     return spend(args.purpose)
 
 

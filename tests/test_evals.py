@@ -1537,3 +1537,80 @@ class RealFixtureTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+from evals.kbeval import __main__ as kmain  # noqa: E402
+from evals.kbeval import determination as kdet  # noqa: E402
+
+
+class RunKeepTempTests(unittest.TestCase):
+    """`run --keep-temp` reaches runner.run so a trigger rerun's traces can be read."""
+
+    def _keep_temp(self, extra):
+        recorded = {}
+
+        def fake_run(*args, **kwargs):
+            recorded.update(kwargs)
+            return 0
+
+        argv = ["run", "--suite", "triggers", "--staging", "kb", "--plugin", "/tmp/p",
+                "--model", "m", "--purpose", "p", *extra]
+        with mock.patch.object(kmain.runner, "run", fake_run):
+            self.assertEqual(kmain.main(argv), 0)
+        return recorded["keep_temp"]
+
+    def test_run_command_passes_keep_temp(self):
+        self.assertIs(self._keep_temp(["--keep-temp"]), True)
+        self.assertIs(self._keep_temp([]), False)
+
+
+class TriggerReportTests(unittest.TestCase):
+    """`determination triggers` counts fired runs per trigger case."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        patcher = mock.patch.object(kdet, "RESULTS", self.tmp)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _write(self, model, stem, cases):
+        root = self.tmp / "p" / "kb" / model / "triggers"
+        root.mkdir(parents=True, exist_ok=True)
+        doc = {"partial": False, "cases": [
+            {"name": name, "arms": {"with": [
+                {"graders": [{"name": "fired", "passed": ok}]} for ok in outcomes
+            ]}}
+            for name, outcomes in cases.items()
+        ]}
+        (root / f"{stem}.json").write_text(json.dumps(doc), encoding="utf-8")
+        (root / f"{stem}.key").write_text("k", encoding="utf-8")
+
+    def test_trigger_rows_counts_fired_runs(self):
+        self._write("m", "a", {"a--trigger-should-x": [True, False, True]})
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-should-x", "trigger-should", "m", 2, 3)]
+        )
+
+    def test_trigger_rows_inverts_near_cases(self):
+        self._write("m", "a", {"a--trigger-near-x": [True, True, True]})
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-near-x", "trigger-near", "m", 0, 3)]
+        )
+
+    def test_trigger_rows_filters_by_split(self):
+        self._write("m", "a", {
+            "a--trigger-should-held-x": [True],
+            "a--trigger-should-tune-y": [True],
+            "a--trigger-should-z": [False],
+        })
+        held = [row[0] for row in kdet.trigger_rows("p", ["a"], split="held")]
+        tune = [row[0] for row in kdet.trigger_rows("p", ["a"], split="tune")]
+        self.assertEqual(held, ["a--trigger-should-held-x"])
+        self.assertEqual(tune, ["a--trigger-should-tune-y", "a--trigger-should-z"])
+
+    def test_trigger_rows_reads_exact_case_files(self):
+        self._write("m", "a--trigger-should-x", {"a--trigger-should-x": [True, True]})
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-should-x", "trigger-should", "m", 2, 2)]
+        )

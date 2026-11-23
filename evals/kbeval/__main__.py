@@ -46,7 +46,7 @@ def _lint(args: argparse.Namespace) -> int:
 def _run(args: argparse.Namespace) -> int:
     return runner.run(
         args.suite, args.staging, args.model, args.runs, args.purpose, args.assets, args.jobs,
-        plugin=Path(args.plugin),
+        plugin=Path(args.plugin), keep_temp=args.keep_temp,
     )
 
 
@@ -136,6 +136,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     run.add_argument("--purpose", required=True)
     run.add_argument("--assets", nargs="*", default=[])
     run.add_argument("--jobs", type=_positive, default=8)
+    run.add_argument("--keep-temp", action="store_true", help="keep each run's trace")
     run.set_defaults(func=_run)
 
     pilot = sub.add_parser("pilot", help="run the pilot cases (paid)")
