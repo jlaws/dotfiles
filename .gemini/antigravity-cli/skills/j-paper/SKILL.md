@@ -25,7 +25,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 ## Diagnostic scans (run only those relevant to the task)
 
 1. **Paper root**: `Glob` for `*.tex`. Identify the file containing `\documentclass`.
-2. **Venue**: grep the preamble for `neurips_*`, `icml*`, `iclr*`, `aaai*`, `acl*`, `cvpr*`. Note the `[preprint]` vs `[final]` style flag.
+2. **Venue**: grep the preamble for `neurips_*`, `icml*`, `iclr*`, `aaai*`, `acl*`, `cvpr*`. Note the style option: for NeurIPS, none is the anonymous submission, `[preprint]` prints author names, `[final]` is camera-ready.
 3. **Bibliography**: `Glob` for `*.bib`. Identify `\bibliography{...}` or `\addbibresource{...}` directive in the root file.
 4. **Project layout**: `Glob` for `figures/`, `sections/`, `tables/`, `appendix/`.
 5. **Build tool**: check for `latexmkrc`, `.latexmkrc`, or a `Makefile` target.
@@ -36,7 +36,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 
 - Determine target venue from arguments. If ambiguous, ask.
 - Pull the preamble + macros from `references/research/latex-paper-writing.md`.
-- If the venue style file (e.g. `neurips_2024.sty`) is not present locally, tell the user the canonical filename to download from the venue site -- do NOT fabricate a URL.
+- If the venue style file is not present locally, take its current filename from the venue's author guidelines and tell the user to download it from the venue site -- do NOT fabricate a URL.
 - Scaffold: `main.tex`, `references.bib`, `sections/`, `figures/`, `latexmkrc`. Use `Write` only for new files; `Edit` for any pre-existing file.
 
 ### b. Section editing
@@ -71,7 +71,7 @@ Look up the target venue's requirements in `references/research/latex-paper-writ
 |-------|-----|
 | Page count | Compile, then `pdfinfo <pdf>` (one Bash call) -- compare to venue limit |
 | Anonymization | grep `\author{`, acknowledgments block, and self-citations like "in our prior work" / "we previously showed" |
-| Style flag | grep for `[preprint]` vs `[final]` -- must match submission phase |
+| Style flag | grep the style option -- it must match the phase under the venue's current style file. For NeurIPS a submission takes no option; `[preprint]` de-anonymizes it |
 | Font embedding | `pdffonts <pdf>` (one Bash call) -- every font must show "yes" under "emb" |
 | Abstract length | Word-count the abstract block against the venue limit (NeurIPS: 250) |
 | Supplementary structure | Confirm appendix is in the right form for the venue (separate PDF vs appended) |

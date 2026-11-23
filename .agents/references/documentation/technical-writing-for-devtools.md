@@ -46,7 +46,11 @@ See references/documentation/changelog-patterns.md for Keep a Changelog format, 
 ### Sentence Structure
 - Lead with the action or outcome
 - One idea per sentence
-- Max 25 words per sentence for instructional content
+- Steps: at most 20 words. Split "do X, then Y" into two steps.
+- Explanations: at most 25 words per sentence. These are caps, not targets.
+- When a step applies only under a condition, state the condition before the action: "If the build fails, run `make clean`."
+- In a warning, give the instruction before the risk: "Before you run `migrate --drop`, back up the table. The command deletes every row."
+- The caps do not apply to code, commands, or quoted errors.
 - Use "Note:" sparingly; if everything is a note, nothing is
 
 ## Information Architecture
@@ -108,9 +112,9 @@ Every README must pass: **What is this? Why should I care? How do I start?** —
 
 - **Stale examples**: Code examples rot faster than prose. CI-test your docs or use snapshot testing on code blocks. A wrong example is worse than no example.
 - **Untested code blocks**: Every code block should be extracted and run in CI. Tools like `mdx-js/mdx`, `doctest`, or custom scripts can automate this.
-- **Assuming context**: Don't assume the reader just read the previous page. Each doc should state its prerequisites and link to them.
+- **Assuming context**: Don't assume the reader just read the previous page. Each doc should state its prerequisites and link to them. Before a command, name the host, flag, or earlier step it depends on.
 - **Over-documenting internals**: Public docs describe behavior, not implementation. Internal architecture docs are separate.
 - **Version drift**: Pin version numbers in examples. `npm install foo` today installs a different version than tomorrow.
 - **Screenshot dependency**: Screenshots break on every UI change. Prefer text descriptions with code; use screenshots only for visual UI docs.
 - **Wall of text**: If a section exceeds 3 paragraphs without a code block, heading, or table, refactor it.
-- **Jargon without definition**: First use of any domain term gets a parenthetical definition or a glossary link.
+- **Jargon without definition**: First use of any domain term gets a short parenthetical definition or a glossary link. After that, use the same term every time; a second word for the same thing reads as a second thing.
