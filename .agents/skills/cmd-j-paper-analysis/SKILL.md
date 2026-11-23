@@ -13,7 +13,7 @@ If no arguments provided, ask for the paper URL, arxiv ID, or local file path.
 
 Before analyzing, resolve and fetch the paper, then gather its resources in parallel:
 
-**Confidential manuscript:** if the user says they are reviewing the paper, or the file is marked confidential (see paper-analysis-methodology), work only from the supplied text: skip the resource searches below, write "Not available" for each resource, delegate nothing that searches the web, and note the status in the header. Do not stop to ask.
+**Confidential manuscript:** if the user says they are reviewing the paper for a venue (as an assigned reviewer), or the file is marked confidential (`.agents/references/research/paper-analysis-methodology.md`, Confidential manuscript), work only from the supplied text: skip the web search in step 1 and the resource searches below, write "Not searched (confidential manuscript)" for each resource, delegate nothing that searches the web, and note the status in the header. If no manuscript text was supplied, ask for the file and do not search by title. Otherwise do not stop to ask.
 
 1. **Resolve the paper**: If given a title or arxiv ID (not a URL), search the web for the canonical paper page (arxiv abs, conference proceedings, or publisher page).
 2. **Fetch the paper content**: Get the full paper text for analysis.
@@ -341,4 +341,4 @@ Create a file named `{paper-short-title}.md`. Use this template:
 - **Omit N/A sections** rather than filling them with "Not applicable" placeholders
 - **Novelty assessment:** compare against the closest specific prior work, not the field in general
 - **TL;DR:** draft after Pass 1, refine after Pass 3
-- **Resource links:** require genuine search effort -- use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos)
+- **Resource links:** require genuine search effort -- use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos) A confidential manuscript skips the search; write "Not searched (confidential manuscript)" instead.
