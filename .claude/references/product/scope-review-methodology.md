@@ -15,7 +15,7 @@ Challenge assumptions about WHAT to build and how much, before design work begin
 
 | Model | Application |
 |-------|-------------|
-| Inversion (Munger) | "What would make this fail?" — remove those risks |
+| Inversion (Munger) | "What would make this fail?": remove those risks |
 | Regret Minimization (Bezos) | "Will I regret NOT doing this in 5 years?" |
 | Second-Order Effects | "If we ship X, what does that enable/break?" |
 | 10x Thinking | "What would this look like at 10x scale?" |
@@ -23,8 +23,8 @@ Challenge assumptions about WHAT to build and how much, before design work begin
 ## Process
 
 1. **State** the current scope in one sentence
-2. **Identify assumptions** — market, technical, resource, timeline
-3. **Apply each mode** — generate concrete options per mode
+2. **Identify assumptions**: market, technical, resource, timeline
+3. **Apply each mode**: generate concrete options per mode
 4. **Evaluate** options against constraints (time, team, risk appetite)
 5. **Recommend** a mode with reasoning
 
@@ -38,5 +38,5 @@ Challenge assumptions about WHAT to build and how much, before design work begin
 
 - Expanding scope without new evidence supporting it
 - Reducing scope to avoid hard problems (vs genuinely tight constraints)
-- Skipping HOLD — sometimes the current plan is correct
-- Scope review as procrastination — time-box to 15-30 min
+- Skipping HOLD: sometimes the current plan is correct
+- Scope review as procrastination: time-box to 15-30 min

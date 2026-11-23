@@ -96,7 +96,7 @@ Structure research output with confidence metadata:
 
 ## Gap Vocabulary
 
-When a claim cannot be resolved, label it — never silently drop it or count it as false. An unverified claim is not a refuted claim.
+When a claim cannot be resolved, label it: never silently drop it or count it as false. An unverified claim is not a refuted claim.
 
 | Marker | Meaning |
 |--------|---------|

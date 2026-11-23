@@ -84,7 +84,7 @@ Search first, read second. Never bulk-read files speculatively.
 | 4 | a dispatched search subagent | the naming convention itself is unknown, or you want judgement too |
 
 Do not search with Bash. `find`, `grep`, and `rg` in a Bash call return unbounded output straight into
-context; the dedicated tools bound it. Bash search is for what the tools cannot do — `git grep` over
+context; the dedicated tools bound it. Bash search is for what the tools cannot do: `git grep` over
 history, or `git log -S`.
 
 ## Data Cleaning
@@ -104,17 +104,17 @@ External content (web pages, logs, API responses) carries significant bloat. Cle
 
 ## Command Output Shaping
 
-Shape tool and command output before it enters context — most of it is noise.
+Shape tool and command output before it enters context: most of it is noise.
 
 | Tactic | Do |
 |--------|-----|
 | Strip noise | Remove ANSI colors, progress bars, spinners |
 | Collapse passing runs | A green suite becomes one line: "142 passed, 0 failed" |
 | Dedupe | Fold repeated log lines / stack frames to first occurrence + count |
-| Cap large output | Write big output to a scratch file, then Grep it — do not inline megabytes |
+| Cap large output | Write big output to a scratch file, then Grep it: do not inline megabytes |
 | Prefer compact flags | `git status --porcelain`, `git log --oneline`, `ls -1`, `--quiet` |
 
-**Hard constraint:** preserve failures, exit codes, and error strings **verbatim**. Shaping is for noise, never for evidence — `verification-before-completion` depends on the real output.
+**Hard constraint:** preserve failures, exit codes, and error strings **verbatim**. Shaping is for noise, never for evidence: `verification-before-completion` depends on the real output.
 
 **Filtered output proves nothing about what it hid.** A capped, ignore-respecting, or narrowed command cannot support "unused" or "not present". Say what was excluded, and re-run without the filter (`rg -uu`, no `head`) before claiming an absence.
 
@@ -126,7 +126,7 @@ outright when recovery fails. Narrow the read at the source instead (`offset`/`l
 which shrinks what you fetch rather than what you keep.
 
 **Two indicators, not one, before you treat output as an error.** A single keyword false-positives
-on ordinary output that merely mentions the word "error" — source code, a log schema, a help text.
+on ordinary output that merely mentions the word "error": source code, a log schema, a help text.
 Requiring two distinct signals before switching to error handling avoids preserving everything and
 thereby preserving nothing.
 
@@ -152,9 +152,9 @@ When a task involves heavy research that could bloat the main context, consider 
 | File-based handoff | Write findings to a scratch file rather than accumulating in conversation |
 | Single-pass analysis | Complete each analysis phase fully before starting the next |
 
-**Reversible summarization:** before you summarize or drop large output, persist the full original to a scratch file and cite its path — detail stays recoverable. Only summarize (or delegate to a subagent for context savings) when the estimated tokens saved exceed the overhead; scale compression intensity up as the window fills.
+**Reversible summarization:** before you summarize or drop large output, persist the full original to a scratch file and cite its path; detail stays recoverable. Only summarize (or delegate to a subagent for context savings) when the estimated tokens saved exceed the overhead; scale compression intensity up as the window fills.
 
-Five rules make that one safe. Without them it permits a summarize whose persist silently failed —
+Five rules make that one safe. Without them it permits a summarize whose persist silently failed: 
 a lossy compression that believes it is lossless.
 
 **If the original cannot be persisted, do not compress it.** Ship it verbatim and say why. The
@@ -187,7 +187,7 @@ only while the store is alive and the reader actually retrieves.
 **Some output is never a compression candidate.** Suspend compression, and resume after, when the
 content carries a security warning, a confirmation prompt for an irreversible action, or a
 multi-step sequence a fragment would put out of order. Suspend it when compressing would create
-technical ambiguity, and when the user asks you to clarify or repeats a question — the repeat is
+technical ambiguity, and when the user asks you to clarify or repeats a question; the repeat is
 evidence the compressed form already failed. The stopping condition: compress until the rules would
 delete the answer, and no further.
 
@@ -222,7 +222,7 @@ Start a fresh session between unrelated tasks. Choose the model before starting;
 
 ## Cross-References
 
-- **skill:code-agent-meta-patterns** — CLAUDE.md design, context management
-- **skill:session-handoff** — handoff file creation before context pressure
-- **reference:llm-application-patterns** — token reduction, prompt caching, and cost levers in LLM applications
-- **reference:code-efficiency-ladder** — the same economy applied to what gets built rather than what enters context
+- **skill:code-agent-meta-patterns**: CLAUDE.md design, context management
+- **skill:session-handoff**: handoff file creation before context pressure
+- **reference:llm-application-patterns**: token reduction, prompt caching, and cost levers in LLM applications
+- **reference:code-efficiency-ladder**: the same economy applied to what gets built rather than what enters context

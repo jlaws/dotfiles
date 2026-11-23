@@ -6,10 +6,10 @@
 |--------|----------------|
 | **Minimum team size** | 2 primary + 2 secondary (minimum); 3+ primary preferred |
 | **Shadow period** | New members shadow primary for 2 weeks before taking shifts |
-| **Rotation length** | 1 week (recommended), 2 weeks max — longer causes burnout |
+| **Rotation length** | 1 week (recommended), 2 weeks max: longer causes burnout |
 | **Burnout threshold** | >2 pages/week average = team too small or system too noisy |
 | **Compensation** | Time-off (1 day per on-call week) or pay differential |
-| **Handoff day** | Mid-week (Tuesday/Wednesday) — avoids Monday rush and Friday context loss |
+| **Handoff day** | Mid-week (Tuesday/Wednesday): avoids Monday rush and Friday context loss |
 | **Escalation path** | Primary → Secondary → Engineering Manager → VP (each has 5 min to ack) |
 
 ## On-Call Expectations
@@ -32,11 +32,11 @@
 - [ ] Stakeholders notified (at minimum: on-call, manager)
 
 ### Execution Steps
-1. **Announce** — "Game day starting. Injecting [failure] into [system] at [time]."
-2. **Inject** — Apply the failure (kill process, add latency, drop packets)
-3. **Observe** — Did alerts fire? How fast? Did dashboards reflect the issue?
-4. **Recover** — Use the kill switch or let auto-recovery work
-5. **Debrief** — What worked? What surprised us? What do we fix?
+1. **Announce**: "Game day starting. Injecting [failure] into [system] at [time]."
+2. **Inject**: Apply the failure (kill process, add latency, drop packets)
+3. **Observe**: Did alerts fire? How fast? Did dashboards reflect the issue?
+4. **Recover**: Use the kill switch or let auto-recovery work
+5. **Debrief**: What worked? What surprised us? What do we fix?
 
 ### Progressive Complexity
 
@@ -60,7 +60,7 @@
 | **MTTD** (Mean Time to Detect) | Alert fired → human aware | <5 min | <15 min |
 | **MTTR** (Mean Time to Resolve) | Detection → resolution | <1 hour | <4 hours |
 | **MTBF** (Mean Time Between Failures) | Incident → next incident | >30 days | >14 days |
-| **Pages per shift** | Total pages per on-call week | <5 | — |
+| **Pages per shift** | Total pages per on-call week | <5 | - |
 | **False positive rate** | Non-actionable alerts / total | <20% | <20% |
 
 **Deploy correlation:** Track all incidents that occur within 2 hours of a deploy. If >30% correlate, your deploy pipeline needs safety improvements (canary, automated rollback).

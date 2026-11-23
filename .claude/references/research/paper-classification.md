@@ -4,29 +4,29 @@
 
 The library is **selective**. Only papers whose *primary contribution* is a general,
 reusable AI/ML advance in a focus area are kept. Judge every paper by **what it
-contributes, not which folder it could fit** — then assign one `relevance_class`:
+contributes, not which folder it could fit**: then assign one `relevance_class`:
 
 | `relevance_class` | Meaning | Decision |
 |---|---|---|
 | `core` | General, reusable AI/ML advance in a focus area (agentic AI, LLMs, neural architectures, reasoning, RL, multiagent, alignment, efficient computation, scaling, memory/retrieval, interpretability, representation learning, optimization theory, neuro-symbolic, data curation, continual/transfer). | **KEEP** (if quality passes) |
-| `applied` | Domain-specific application — the ML method is a tool applied to medicine, biology, genomics, chemistry, finance, law, climate, education, etc. The contribution is the domain result, not the method. | **DELETE** |
+| `applied` | Domain-specific application: the ML method is a tool applied to medicine, biology, genomics, chemistry, finance, law, climate, education, etc. The contribution is the domain result, not the method. | **DELETE** |
 | `peripheral` | Not advancing LLMs/agents/core architectures: pure robotics control, speech/TTS/ASR, image/video/3D **generation as the output**, standalone computer vision. | **DELETE** |
 | `off-topic` | HCI/user studies, social-science or labor/impact analyses, opinion/position essays, tutorials, proceedings/prefaces, or unrelated work. | **DELETE** |
 
 **Only `core` papers are kept.** DELETE `applied`, `peripheral`, and `off-topic`.
 
 Two clarifying rules:
-- **Generative models — keep methods, reject outputs.** A new sampler, flow-matching
+- **Generative models: keep methods, reject outputs.** A new sampler, flow-matching
   theory, or training method that generalizes is `core`. A paper whose contribution is
   generating specific images/video/3D is `peripheral`.
 - **Domain as evaluation vehicle.** A paper is still `core` if its methodological
   contribution generalizes to the focus areas and the domain is merely where it is
   evaluated. It is `applied` when the contribution is the domain-specific result.
 
-When genuinely uncertain after applying these rules, lean toward **DELETE** — the
+When genuinely uncertain after applying these rules, lean toward **DELETE**: the
 library is curated.
 
-## Routing (topic folder — applies once a paper is KEPT)
+## Routing (topic folder; applies once a paper is KEPT)
 
 Apply top-to-bottom, **first match wins**.
 

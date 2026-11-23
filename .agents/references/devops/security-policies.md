@@ -4,7 +4,7 @@ Reference for network policies, RBAC patterns, and security configurations in Ku
 
 ## NetworkPolicy Strategy
 
-Start with default-deny, then allowlist required traffic. This is the only safe approach — permissive defaults leak.
+Start with default-deny, then allowlist required traffic. This is the only safe approach: permissive defaults leak.
 
 | Policy Type | Purpose | Apply When |
 |-------------|---------|------------|
@@ -88,7 +88,7 @@ spec:
 |-----------|---------------|
 | Least privilege | Start with no permissions, add specific verbs/resources |
 | Namespace-scoped | Use `Role` + `RoleBinding` (not `ClusterRole`) unless cross-namespace |
-| No wildcard verbs | Never `verbs: ["*"]` — enumerate get, list, watch, create, update, delete |
+| No wildcard verbs | Never `verbs: ["*"]` (enumerate get, list, watch, create, update, delete) |
 | Service account per workload | One SA per deployment, not shared across services |
 | Audit bindings | `kubectl auth can-i --list --as=system:serviceaccount:ns:sa` |
 
@@ -167,17 +167,17 @@ kubectl describe networkpolicy default-deny-all -n production
 
 ## Gotchas
 
-- **NetworkPolicy requires CNI support**: Calico, Cilium, Weave enforce NetworkPolicies. Default kubenet does NOT — policies are created but silently ignored.
+- **NetworkPolicy requires CNI support**: Calico, Cilium, Weave enforce NetworkPolicies. Default kubenet does NOT; policies are created but silently ignored.
 - **DNS breaks with deny-all**: Always pair default-deny with DNS egress allow, or all service discovery fails.
 - **RBAC wildcard drift**: `verbs: ["*"]` grants current AND future verbs. Enumerate explicitly.
-- **automountServiceAccountToken**: Default is `true` — every pod gets a token. Set `false` on SA and opt-in per pod.
+- **automountServiceAccountToken**: Default is `true`; every pod gets a token. Set `false` on SA and opt-in per pod.
 - **NetworkPolicy is additive**: Multiple policies on the same pod are OR'd for ingress/egress. You can't override a permissive policy with a restrictive one.
 - **Drift between environments**: Use overlays/values files per env, never manual edits. Diff configs across envs in CI.
-- **Hot-reload pitfalls**: Validate new config before applying. If validation fails in prod, keep current config and alert — never crash.
+- **Hot-reload pitfalls**: Validate new config before applying. If validation fails in prod, keep current config and alert: never crash.
 - **Config migration**: Version your config schema. When schema changes, write explicit up/down migrations. Never silently ignore unknown fields.
 - **Sensitive values**: Validate that secrets are references (ESO, Vault paths), not plaintext. Regex-scan values files for high-entropy strings.
 
 ## Cross-References
 
-- **devops:kubernetes-configuration** — pod security standards, security contexts, resource limits
-- **security:secrets-management** — Vault, AWS Secrets Manager, External Secrets Operator
+- **devops:kubernetes-configuration**: pod security standards, security contexts, resource limits
+- **security:secrets-management**: Vault, AWS Secrets Manager, External Secrets Operator

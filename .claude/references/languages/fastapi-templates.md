@@ -8,7 +8,7 @@ Extends Python Patterns skill conventions.
 
 - **Naming**: follow Python Patterns skill conventions (`_internal` prefix, descriptive names, boolean `is_`/`has_` prefix)
 - Google-style docstrings (`Args:`/`Returns:`/`Raises:`) on all endpoints and services
-- Type annotations on all public functions — FastAPI uses them for validation and docs generation
+- Type annotations on all public functions: FastAPI uses them for validation and docs generation
 
 ## Preferred Structure
 

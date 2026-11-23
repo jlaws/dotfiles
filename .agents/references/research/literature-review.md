@@ -211,9 +211,9 @@ papers = search_recent("cat:cs.LG AND ti:efficient AND ti:attention")
 Before finalizing a bibliography or related-work section:
 
 - **Verify each citation by identifier** - an entry is verified only when its DOI or arXiv ID resolves to a record whose title, first author, and year all match. A resolving DOI alone is not enough: a DOI can point at a different paper. Look up Crossref first, then DataCite for datasets and software, then OpenAlex or Semantic Scholar. With no identifier, match on the normalized title (lowercase, punctuation stripped) and flag near-misses for manual check.
-- **Detect orphan citations** — every `\cite{key}` must resolve to a bib entry, and every bib entry should be cited at least once; report both directions.
-- **Never fabricate fields** — if authors, venue, or year cannot be confirmed, leave the field blank and mark it rather than guessing (see `confidence-scoring`).
-- **Anti-gaming self-review** — do not "pass" your own related-work by lowering the bar. If you cannot verify a citation, halt and report it as `UNVERIFIED` instead of asserting it.
+- **Detect orphan citations**: every `\cite{key}` must resolve to a bib entry, and every bib entry should be cited at least once; report both directions.
+- **Never fabricate fields**: if authors, venue, or year cannot be confirmed, leave the field blank and mark it rather than guessing (see `confidence-scoring`).
+- **Anti-gaming self-review**: do not "pass" your own related-work by lowering the bar. If you cannot verify a citation, halt and report it as `UNVERIFIED` instead of asserting it.
 - **Check claim against passage** - existence is not support. Read the cited passage in the cited version (preprint, accepted manuscript, and proceedings can differ) and confirm it says what the sentence claims. A paywall, JS wall, or refused fetch is an access failure reported as `UNVERIFIED`, never as support. For a sentence with several sources, check each against what it is cited for.
 - **A missing record is a finding; a failed lookup is not** - when every index answered and none holds the record, report the entry as not found and do not cite it until the user confirms it. Do not call it fabricated. An entry whose lookup failed stays `UNVERIFIED`.
 - **Propose corrections, apply none** - a matched record can supply a missing DOI or show a wrong field. Propose the change to the user; do not edit an existing entry on your own.
@@ -254,10 +254,10 @@ Before finalizing a bibliography or related-work section:
 
 For broad, fact-checked reviews, fan out instead of searching linearly:
 
-- **Multi-angle fan-out** — search several ways in parallel (by method, by task, by author, by venue, by citation graph); each angle is blind to what the others surface.
-- **Per-claim verification** — extract atomic claims, then verify each against its sources independently; spawn N skeptics per high-stakes claim and keep only those that survive (see the adversarial pattern in `code-review-patterns`). High-stakes means a headline conclusion, a number, a causal claim, a methods-critical claim, or a disputed one.
-- **Cited synthesis** — every sentence in the synthesis traces to a source; mark unverifiable claims `UNVERIFIED` (see `confidence-scoring`), never drop them silently.
-- **Completeness critic** — a final pass asks "what modality, source, or claim is missing?" and feeds the next round.
+- **Multi-angle fan-out**: search several ways in parallel (by method, by task, by author, by venue, by citation graph); each angle is blind to what the others surface.
+- **Per-claim verification**: extract atomic claims, then verify each against its sources independently; spawn N skeptics per high-stakes claim and keep only those that survive (see the adversarial pattern in `code-review-patterns`). High-stakes means a headline conclusion, a number, a causal claim, a methods-critical claim, or a disputed one.
+- **Cited synthesis**: every sentence in the synthesis traces to a source; mark unverifiable claims `UNVERIFIED` (see `confidence-scoring`), never drop them silently.
+- **Completeness critic**: a final pass asks "what modality, source, or claim is missing?" and feeds the next round.
 
 The harness `deep-research` skill and the Workflow tool implement this fan-out -> verify -> synthesize loop; prefer them over re-implementing orchestration.
 
@@ -265,8 +265,8 @@ The harness `deep-research` skill and the Workflow tool implement this fan-out -
 
 For reviews covering 30+ papers across multiple sources, analyze sequentially:
 
-1. **Database Search** — Systematic search across databases (Semantic Scholar, arXiv, Google Scholar, ACL Anthology)
-2. **Citation Analysis** — Forward/backward citation tracing from seed papers
-3. **Methodology Review** — Categorize methods, identify trends, assess rigor
-4. **Gap Analysis** — Synthesize findings, identify contradictions and research gaps
+1. **Database Search**: Systematic search across databases (Semantic Scholar, arXiv, Google Scholar, ACL Anthology)
+2. **Citation Analysis**: Forward/backward citation tracing from seed papers
+3. **Methodology Review**: Categorize methods, identify trends, assess rigor
+4. **Gap Analysis**: Synthesize findings, identify contradictions and research gaps
 

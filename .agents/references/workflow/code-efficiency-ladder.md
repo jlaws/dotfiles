@@ -9,7 +9,7 @@ thing belongs in scope at all.
 Stop at the first rung that holds:
 
 1. **Does this need to exist at all?** Speculative need = skip it, and say so in one line. (YAGNI)
-2. **Already in this codebase?** A helper, util, type, or pattern that already lives here — reuse it. Look before you write; re-implementing what is a few files over is the most common slop.
+2. **Already in this codebase?** A helper, util, type, or pattern that already lives here: reuse it. Look before you write; re-implementing what is a few files over is the most common slop.
 3. **Stdlib does it?** Use it.
 4. **Native platform feature covers it?** `<input type="date">` over a picker lib, CSS over JS, a DB constraint over app code.
 5. **Already-installed dependency solves it?** Use it. Never add a new one for what a few lines can do.
@@ -20,7 +20,7 @@ Two rungs work? Take the higher one and move on.
 
 ## It Runs After Understanding, Never Instead Of It
 
-The ladder is a reflex, not a research project — but it runs *after* you understand the problem.
+The ladder is a reflex, not a research project; but it runs *after* you understand the problem.
 Read the task and the code it touches, trace the real flow end to end, then climb.
 
 **This is the carve-out that matters most.** Laziness that skips comprehension to ship a small diff
@@ -29,7 +29,7 @@ shortens the solution, never the reading. The smallest change in the wrong place
 a second bug.
 
 **Bug fix = root cause, not symptom.** A report names a symptom. Before editing, grep every caller
-of the function you are about to touch. The root-cause fix *is* the smaller diff — one guard in the
+of the function you are about to touch. The root-cause fix *is* the smaller diff: one guard in the
 shared function beats one guard in every caller, and patching only the path the ticket names leaves
 every sibling caller broken. That framing is deliberate: it points the laziness reflex at the root
 cause rather than away from it.
@@ -59,7 +59,7 @@ with an edge-case hole: a stdlib one-liner can accept input the longer check rej
 **Weakening counts as removing.** Swapping a control for a laxer implementation of the same control
 simplifies it away even though the line count barely moves.
 
-If the user insists on the full version, build it — no re-arguing. These five are why the ladder is
+If the user insists on the full version, build it: no re-arguing. These five are why the ladder is
 safe to run.
 
 ## No Unrequested Abstractions
@@ -71,7 +71,7 @@ safe to run.
 | A config value | It never varies |
 | Scaffolding "for later" | No current caller |
 
-Deletion over addition. Boring over clever — clever is what someone decodes at 3am. Fewest files
+Deletion over addition. Boring over clever: clever is what someone decodes at 3am. Fewest files
 possible.
 
 ## Thinking Is Billed Too
@@ -100,8 +100,8 @@ problem is actually hard, nowhere else.
 
 ## Cross-References
 
-- **reference:completeness-principle** — the other half: thorough about quality dimensions, lazy about new scope
-- **skill:code-quality** — the smells this ladder prevents, and the `// SIMPLIFIED:` marker for shortcuts it sanctions
-- **skill:refactoring-and-debt** — removing what was already built
-- **agent:scope-reviewer** — rung 1 at the feature level rather than the code level
-- **reference:context-efficiency** — the same economy applied to what enters context rather than what gets built
+- **reference:completeness-principle**: the other half; thorough about quality dimensions, lazy about new scope
+- **skill:code-quality**: the smells this ladder prevents, and the `// SIMPLIFIED:` marker for shortcuts it sanctions
+- **skill:refactoring-and-debt**: removing what was already built
+- **agent:scope-reviewer**: rung 1 at the feature level rather than the code level
+- **reference:context-efficiency**: the same economy applied to what enters context rather than what gets built

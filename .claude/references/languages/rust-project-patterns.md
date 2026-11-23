@@ -18,7 +18,7 @@ Only rules linters/formatters cannot enforce.
 ### Practices
 - `///` line doc comments; `//!` for module/crate-level only
 - Doc comments before attributes, not after
-- Single `#[derive(...)]` — don't split into multiple
+- Single `#[derive(...)]`: don't split into multiple
 - Comments: complete sentences, capital letter, period
 
 ### Error Handling
@@ -230,9 +230,9 @@ bench: ; cargo bench
 
 ### Integration Tests
 - Place in `tests/` directory at project root
-- Each file in `tests/` is compiled as a separate crate — only tests public API
+- Each file in `tests/` is compiled as a separate crate: only tests public API
 - No `#[cfg(test)]` needed (Cargo handles this automatically)
-- Shared test helpers go in `tests/common/mod.rs` (NOT `tests/common.rs` — that becomes a test crate)
+- Shared test helpers go in `tests/common/mod.rs` (NOT `tests/common.rs`: that becomes a test crate)
 
 ### Binary Crate Testing
-- Keep `src/main.rs` thin — move logic to `src/lib.rs` so integration tests can exercise it
+- Keep `src/main.rs` thin: move logic to `src/lib.rs` so integration tests can exercise it

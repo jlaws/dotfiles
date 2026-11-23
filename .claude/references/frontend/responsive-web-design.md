@@ -33,7 +33,7 @@
 ## Fluid Typography
 
 ```css
-/* clamp(min, preferred, max) — no breakpoints needed */
+/* clamp(min, preferred, max) - no breakpoints needed */
 :root {
   --text-sm: clamp(0.8rem, 0.17vw + 0.76rem, 0.89rem);
   --text-base: clamp(1rem, 0.34vw + 0.91rem, 1.19rem);
@@ -207,18 +207,18 @@ body {
 
 | Metric | Target | Measurement |
 |---|---|---|
-| **LCP** (Largest Contentful Paint) | <2.5s | Core Web Vital — largest visible element render time |
-| **FID** (First Input Delay) | <100ms | Core Web Vital — time to first interaction response |
+| **LCP** (Largest Contentful Paint) | <2.5s | Core Web Vital (largest visible element render time) |
+| **FID** (First Input Delay) | <100ms | Core Web Vital (time to first interaction response) |
 | **INP** (Interaction to Next Paint) | <200ms | Core Web Vital (replaces FID March 2024) |
-| **CLS** (Cumulative Layout Shift) | <0.1 | Core Web Vital — visual stability score |
+| **CLS** (Cumulative Layout Shift) | <0.1 | Core Web Vital (visual stability score) |
 | **Lighthouse Performance** | 90+ | Synthetic benchmark floor |
-| **Page load (3G)** | <3s | Mobile constraint — test with Chrome DevTools throttling |
+| **Page load (3G)** | <3s | Mobile constraint (test with Chrome DevTools throttling) |
 | **Total page weight** | <500KB initial | First load; lazy-load the rest |
 | **JavaScript bundle** | <150KB gzipped | Main bundle; code-split aggressively |
 
 ### Enforcement
 
-- Run Lighthouse CI in pull requests — block merge if score drops below 85
+- Run Lighthouse CI in pull requests: block merge if score drops below 85
 - Set `performance.budgets` in `next.config.js` or webpack config
 - Track Core Web Vitals in production via `web-vitals` library → analytics pipeline
 

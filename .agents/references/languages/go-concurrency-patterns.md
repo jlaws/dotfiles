@@ -9,7 +9,7 @@ Only rules linters/formatters cannot enforce.
 ### Naming
 - Names must not repeat context: `db.UserStore` not `db.DBUserStore`
 - Shorter names preferred when context is clear: `i` in a loop, `r` for reader in small scope
-- Exported names carry the package name — `http.Server` not `http.HTTPServer`
+- Exported names carry the package name: `http.Server` not `http.HTTPServer`
 - Getters: `Owner()` not `GetOwner()`; setters: `SetOwner()`
 - Interfaces: single-method uses method name + `er` suffix: `Reader`, `Writer`
 - Package names: single lowercase word, no underscores, no `mixedCaps`
@@ -19,7 +19,7 @@ Only rules linters/formatters cannot enforce.
 ### Practices
 - Comments explain *why* not *what*; don't restate obvious code
 - Simplicity: fewest concepts needed; standard library first, then internal, then external
-- No fixed line length — refactor long functions instead of splitting lines
+- No fixed line length: refactor long functions instead of splitting lines
 
 ## Primitive Selection
 

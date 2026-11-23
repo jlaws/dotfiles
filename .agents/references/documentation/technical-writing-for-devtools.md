@@ -86,7 +86,7 @@ Level 5: Architecture    → "How and why it works internally"
 
 ## Documentation System (Divio Framework)
 
-Four documentation types — don't mix them in a single document:
+Four documentation types; don't mix them in a single document:
 
 | Type | Orientation | Answers | Example |
 |---|---|---|---|
@@ -99,7 +99,7 @@ Four documentation types — don't mix them in a single document:
 
 ### The 5-Second Test
 
-Every README must pass: **What is this? Why should I care? How do I start?** — answerable within 5 seconds of opening the page. If it takes longer, restructure.
+Every README must pass: **What is this? Why should I care? How do I start?** (answerable within 5 seconds of opening the page). If it takes longer, restructure.
 
 ### Docs-as-Code CI
 
