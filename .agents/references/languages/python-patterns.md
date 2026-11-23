@@ -4,7 +4,7 @@ Tooling opinions, concurrency decisions, async guardrails, profiling workflow, a
 
 ## Style Guide
 
-Source: Google Python Style Guide. Only rules linters/formatters cannot enforce.
+Only rules linters/formatters cannot enforce.
 
 ### Naming
 - `_internal` prefix for module-internal names

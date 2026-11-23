@@ -4,10 +4,6 @@ A stopping rule for deciding whether code should exist before writing it. Where
 `completeness-principle` governs how thoroughly to build what is in scope, this governs whether a
 thing belongs in scope at all.
 
-Adapted from [ponytail](https://github.com/DietrichGebert/ponytail) (`skills/ponytail/SKILL.md`),
-which is the origin of the seven-rung form. Its rung 2 was added on 2026-06-22; anything carrying
-seven rungs with reuse at position 2 derives from that version or later.
-
 ## The Ladder
 
 Stop at the first rung that holds:

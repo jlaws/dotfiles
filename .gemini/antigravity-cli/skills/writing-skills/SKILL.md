@@ -71,7 +71,7 @@ Use MUST / MUST NOT / SHOULD / MAY with their RFC 2119 meanings so a hard gate r
 
 ## Claims and Evidence
 
-A number in a skill is a claim the reader will act on, so every quantitative claim carries how it was measured or is marked unmeasured. Distinguish a claim from a target: "min 80% coverage" is a gate and needs no provenance, while "cuts tokens 2-3x" is a claim and does. Numbers from a third party are that party's claim, not yours; attribute them or leave them out.
+A number in a skill is a claim the reader will act on, so every quantitative claim carries how it was measured or is marked unmeasured. Distinguish a claim from a target: "min 80% coverage" is a gate and needs no provenance, while "cuts tokens 2-3x" is a claim and does. Numbers from a third party are that party's claim, not yours. Leave them out of the asset: state the rule, mark it "reported elsewhere, unmeasured here" where the reader needs to know, and credit the source in `REFERENCES.md`.
 
 | Instead of | Write |
 |---|---|
@@ -82,7 +82,7 @@ Say when a practice loses, not only when it wins. A rule with no stated cost rea
 
 **A counterfactual is not a measurement.** "This saved N tokens" about work you did is unknowable -- the unwritten version was never written, so there is no baseline to subtract from. Either run a holdout (leave a fraction unshaped and compare) or label the figure an estimate and give its range. Naming a saving you cannot have observed is the most common way a real technique acquires a fake number.
 
-**Link the counter-evidence.** Where someone has published a measurement against a claim you are making, cite it and say which part survives your fix and which part stands. A claim with the strongest objection linked beside it is more trustworthy than one without, and a reader who finds the objection elsewhere first will discount everything around it.
+**Link the counter-evidence.** Where someone has published a measurement against a claim you are making, say which part survives your fix and which part stands, and credit it in `REFERENCES.md`. A claim with the strongest objection linked beside it is more trustworthy than one without, and a reader who finds the objection elsewhere first will discount everything around it.
 
 **Retract in place.** A figure that stops reproducing gets struck where it was published, with what replaced it -- not quietly deleted. Deleting it hides that it was ever believed, which is what a later reader most needs to know.
 
@@ -195,7 +195,7 @@ Before shipping behavior-shaping wording, run the same prompt about 5 times (or 
 
 ## Persuasion Principles for Skill Design
 
-LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) tested 7 principles with N=28,000 AI conversations. Persuasion techniques doubled compliance rates (33% -> 72%, p < .001).
+LLMs respond to the same persuasion principles as humans (reported elsewhere, unmeasured here).
 
 ### Effective Principles
 
@@ -213,9 +213,9 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 | Collaborative | Unity + Commitment | Authority, Liking |
 | Reference | Clarity only | All persuasion |
 
-## Anthropic Best Practices
+## Authoring Practices
 
-### Skill Categories (from Anthropic's Guide)
+### Skill Categories
 
 | Category | Description | Examples |
 |----------|-------------|---------|
@@ -241,7 +241,7 @@ LLMs respond to the same persuasion principles as humans. Meincke et al. (2025) 
 5. Write minimal instructions that address the recorded failures.
 6. Iterate one change at a time: evaluate, compare with the baseline, refine (references/ai-ml/eval-and-benchmarking.md, Hillclimbing).
 
-### Quick Checklist (from Anthropic's Reference A)
+### Quick Checklist
 - [ ] Frontmatter: `name`, `description` (with trigger phrases)
 - [ ] Description starts with "Use when..." and includes negative triggers
 - [ ] Body is concise (under 500 words for most skills)

@@ -4,7 +4,7 @@ Architecture decisions and gotchas for Node.js backends.
 
 ## Style Guide
 
-Source: Google JS + TS Style Guides. Extends JS/TS Patterns skill conventions.
+Extends JS/TS Patterns skill conventions.
 
 - **Naming**: follow JS/TS Patterns skill; abbreviations as words (`httpServer` not `HTTPServer`)
 - Named exports only (no default exports)

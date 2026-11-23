@@ -45,7 +45,9 @@ Say when a practice loses, not only when it wins. A rule with no stated cost rea
 reader stops looking for the cost. Where a technique has fixed overhead — a skill body preloaded on
 every dispatch, a subagent's dispatch cost — say at what size the overhead exceeds the benefit.
 
-Numbers from a third party are that party's claim, not yours. Attribute them or leave them out.
+Numbers from a third party are that party's claim, not yours. Leave them out of the asset: state the
+rule, mark it "reported elsewhere, unmeasured here" where the reader needs to know, and credit the
+source in `REFERENCES.md`.
 
 **A counterfactual is not a measurement.** "This saved N tokens" about work you did is unknowable —
 the unwritten version was never written, so there is no baseline to subtract from. Either run a
@@ -54,9 +56,9 @@ its range. Naming a saving you cannot have observed is the most common way a rea
 a fake number.
 
 **Link the counter-evidence.** Where someone has published a measurement against a claim you are
-making, cite it and say which part survives your fix and which part stands. A claim with the
-strongest objection linked beside it is more trustworthy than one without, and a reader who finds
-the objection elsewhere first will discount everything around it.
+making, say which part survives your fix and which part stands, and credit it in `REFERENCES.md`. A
+claim with the strongest objection linked beside it is more trustworthy than one without, and a
+reader who finds the objection elsewhere first will discount everything around it.
 
 **Retract in place.** A figure that stops reproducing gets struck where it was published, with what
 replaced it — not quietly deleted. Deleting it hides that it was ever believed, which is the thing a
