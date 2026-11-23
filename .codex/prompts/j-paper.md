@@ -1,6 +1,6 @@
 ---
 name: j-paper
-description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, and submission readiness. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, or preparing a venue submission. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use $cmd-j-docs)."
+description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, submission readiness, and rebuttals. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, or preparing a venue submission. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use $cmd-j-docs)."
 argument-hint: "<task: e.g., 'init neurips template', 'compile and fix errors', 'add citation for <url>', 'check page limit'>"
 ---
 
@@ -83,6 +83,10 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 - Flag entries with missing year or venue, and entries with no DOI unless they cite a proceedings page. Propose a DOI only when a resolved record matches on title, first author, and year (`.agents/references/research/literature-review.md`, Citation Verification).
 - Propose merges -- never silently delete entries.
 
+### g. Rebuttal / response to reviewers
+
+- Read `.agents/references/research/rebuttal-writing.md` and follow it: triage every comment into a table first, then draft the response.
+
 ## Communication contract
 
 - Lead with the answer, fix, or generated content.
@@ -97,6 +101,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 - **.agents/references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
 - **.agents/references/documentation/ai-writing-tells.md** -- prose habits to revise before delivering text
 - **.agents/references/research/literature-review.md** -- before adding or cleaning a citation (Citation Verification), or when scope expands to surveying related work
+- **.agents/references/research/rebuttal-writing.md** -- triage, response structure, and what never to claim
 - **.agents/references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
 - **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate (it loads `.agents/references/research/`); verify its output
 - **skill:analysis-output-patterns** -- output structure rules
