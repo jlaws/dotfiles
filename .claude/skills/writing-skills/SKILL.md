@@ -147,8 +147,9 @@ skill costs context on every turn or only when it is relevant.
 **Description = triggering conditions only.** Never summarize the workflow there; testing showed
 Claude follows a description shortcut instead of reading the body. Shared skills under `.agents/`
 also carry a hard 64-character budget and must start with "Use when", enforced by `tests/`.
-A `.claude` skill description is one quoted line of at most 200 characters. Tune one against `tune-`
-trigger cases and adopt it only on `held-` cases (`evals/README.md`, case-authoring rules).
+A `.claude` skill description is one quoted line of at most 200 characters (`tests/`). A description
+that misses its should-fire cases is tuned against `tune-` trigger cases and adopted only on `held-`
+cases (`docs/adr/workflow/skill-descriptions-are-tuned-against-held-out-triggers.md`).
 
 ```yaml
 # BAD: summarizes the workflow
