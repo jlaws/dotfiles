@@ -1993,7 +1993,13 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self._assert_all_contain(
             (*research("output-template.md"), *analysis), "the change that would resolve it"
         )
-        self._assert_all_contain(command("j-paper"), "upon request")
+        self._assert_all_contain(command("j-paper"), "rebuttal-writing.md")
+        for phrase in ("| Limitations |", "| Reproducibility |", "| Error bars |", "upon request"):
+            self._assert_all_contain(command("j-paper"), phrase)
+        self._assert_all_contain(
+            (*research("output-template.md"), *analysis), "Proportionate requests"
+        )
+        self._assert_all_contain(analysis, "do not search by title")
 
     def test_ui_guidance_is_scoped_and_diagrams_accessible(self):
         def frontend(name):
