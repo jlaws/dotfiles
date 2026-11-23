@@ -30,10 +30,7 @@ Not all formats are equally efficient. Prefer higher-density formats when convey
 **Counter-rule, and it is the one that gets violated:** density is measured *per unit of
 information carried*. Structure the question did not ask for is a net cost even in table form,
 because the scaffolding invents content to fill. A "summarize/compare X vs Y" prompt answered with
-headed pro/con walls and "Pick A if / Pick B if" sections is the canonical case — Chisle measured
-one such answer at 173% of a no-tool baseline, then rewrote the rule and re-measured it at 93%
-(n=3). claude-token-efficient found the same thing from the other direction: "Words drop more
-consistently than tokens. Markdown and structure tokens partly offset word savings."
+headed pro/con walls and "Pick A if / Pick B if" sections is the canonical case.
 
 So the two halves are: use the densest format for information you have already decided to include,
 and do not let the format decide what to include.
@@ -47,27 +44,19 @@ for. Two tight paragraphs beat five headed sections when the reader asked "which
 ### Output Rules Earn Their Place Or Cost You
 
 An instruction file is re-sent on every request, so a rule that changes nothing is pure overhead.
-claude-token-efficient measured **Claude** baselines at **0%** incidence of preamble, sycophancy,
-"as an AI", and smart quotes, and concluded: "rules targeting those behaviors carry input cost
-without changing output. Trim accordingly." Do not add such a rule to a Claude-facing config
-without evidence the behavior still occurs.
+Claude does not show preamble, sycophancy, "as an AI", or smart quotes without a rule (reported
+elsewhere, unmeasured here), so a rule targeting those behaviors carries input cost without changing
+output. Do not add such a rule to a Claude-facing config without evidence the behavior still occurs.
 
-Scope the finding to the model it was measured on. `.claude/CLAUDE.md` carries none of these rules;
-`.codex/AGENTS.md` does, and that stays, because a measurement on Claude says nothing about what
-another harness's model emits. Trimming it on this evidence would be exactly the unsourced
-generalization the Evidence axis forbids.
+Scope any such finding to the model it was measured on. `.claude/CLAUDE.md` carries none of these
+rules; `.codex/AGENTS.md` does, and that stays, because a finding on Claude says nothing about what
+another harness's model emits.
 
-The asymmetry within the same measurement is instructive: the em-dash rule *did* move its marker
-(one model went 100% to 20% incidence), which is why that rule is worth its bytes. It was not
-monotonic — one cell regressed from 0% to 40% — so treat it as directional.
-
-**A terseness ruleset loses money on short interactions.** Four sources measured this
-independently: ponytail at +26.2% and +38.7% cost on two reasoning models ("the ruleset is re-sent
-as input every call and the baseline output is already terse, so the input and reasoning-token
-overhead outweighs the lines saved"); Chisle losing its short-coding segment 70% to 62%;
-claude-token-efficient finding short prompts "roughly cost-neutral"; and a third party measuring
-173 of their own sessions and finding injection overhead roughly cancelling the savings. The rules
-in this file pay off on long, tool-heavy, code-bearing work. On a one-line throwaway they do not.
+**A terseness ruleset loses money on short interactions.** The ruleset is re-sent as input on every
+call, and on short work the baseline output is already terse, so the input overhead outweighs the
+savings. Reasoning models lose more, because reasoning tokens add to that overhead (reported
+elsewhere, unmeasured here). The rules in this file pay off on long, tool-heavy, code-bearing work.
+On a one-line throwaway they do not.
 
 ## Two-Phase Retrieval
 
@@ -131,11 +120,10 @@ Shape tool and command output before it enters context — most of it is noise.
 
 **Shaping applies to command output, never to file reads.** A `Read` result's exact bytes feed the
 `old_string` of a later `Edit`, so shaping one makes you edit against text you never saw. This is a
-correctness rule, not an efficiency preference, and it has measured consequences: headroom observed
-that lossy-compressing file reads caused agents to re-read the same file (`cat` then `cat -A` then
-`cat -n`) to recover exact detail — turn inflation — and to lose the content outright when recovery
-failed. Narrow the read at the source instead (`offset`/`limit`, `sed -n`), which shrinks what you
-fetch rather than what you keep.
+correctness rule, not an efficiency preference: lossy-compressing file reads makes agents re-read
+the same file (`cat` then `cat -A` then `cat -n`) to recover exact detail, and lose the content
+outright when recovery fails. Narrow the read at the source instead (`offset`/`limit`, `sed -n`),
+which shrinks what you fetch rather than what you keep.
 
 **Two indicators, not one, before you treat output as an error.** A single keyword false-positives
 on ordinary output that merely mentions the word "error" — source code, a log schema, a help text.
@@ -171,18 +159,17 @@ a lossy compression that believes it is lossless.
 
 **If the original cannot be persisted, do not compress it.** Ship it verbatim and say why. The
 recovery path is what makes the compression reversible, so losing the path means losing the licence
-to compress. squeez states the consequence plainly: "No stash means no recovery path, so
-compressing would silently destroy the dropped lines ... Fail open: ship the verbatim original."
-This is `hook-patterns`' fail-open rule for transforms, applied to your own summarizing.
+to compress. This is `hook-patterns`' fail-open rule for transforms, applied to your own
+summarizing.
 
 **Round-trip before you trust a fold.** A transformation you call lossless carries its inverse and
 gets checked: if the round trip does not reproduce the original, or the result is not actually
-smaller, return the original unchanged. headroom does this per call rather than claiming it once in
-a doc, which is the difference between a guarantee and a promise.
+smaller, return the original unchanged. Check it per call rather than claiming it once in a doc:
+that is the difference between a guarantee and a promise.
 
 **The citation counts inside the gate, not after it.** A pointer, marker, or path is overhead that
-exists only because you compressed, so it belongs in the arithmetic. squeez shipped and then fixed
-exactly this bug: a call saving 25 tokens emitted a ~40-token marker and still reported a win.
+exists only because you compressed, so it belongs in the arithmetic: a call that saves 25 tokens and
+emits a 40-token marker is a net loss.
 
 **A pointer has to survive compaction.** Compaction can evict the content an in-conversation
 reference points at, leaving the reader a pointer to nothing. A file path does not have this
@@ -201,8 +188,8 @@ only while the store is alive and the reader actually retrieves.
 content carries a security warning, a confirmation prompt for an irreversible action, or a
 multi-step sequence a fragment would put out of order. Suspend it when compressing would create
 technical ambiguity, and when the user asks you to clarify or repeats a question — the repeat is
-evidence the compressed form already failed. Chisle states the stopping condition as well as it can
-be put: compress until the rules would delete the answer, and no further.
+evidence the compressed form already failed. The stopping condition: compress until the rules would
+delete the answer, and no further.
 
 ## CLAUDE.md as Stable Prefix
 

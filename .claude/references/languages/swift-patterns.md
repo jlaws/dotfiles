@@ -4,7 +4,7 @@ Tooling opinions, memory management, concurrency decisions, and non-linter-enfor
 
 ## Style Guide
 
-Source: Google Swift Style Guide + Swift API Design Guidelines. Only rules linters/formatters cannot enforce.
+Only rules linters/formatters cannot enforce.
 
 ### Naming
 - Treat acronyms as whole words: `loadHttpUrl` not `loadHTTPURL`

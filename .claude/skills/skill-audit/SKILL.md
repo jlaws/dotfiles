@@ -120,7 +120,7 @@ Rate each and name the weakest - that is where to invest next.
 | Coverage | Is each common task type served by some asset, with no large gap? |
 | Freshness | Does anything describe behavior that changed, or point at a deleted file? |
 | Structure | Do the assets read as goals and interfaces, or as rulebooks? |
-| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number attributed rather than adopted? Is a counterfactual saving labelled an estimate? Is behavior shipped on a hunch labelled speculative? |
+| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number left out of the asset, with its source credited in `REFERENCES.md`? Is a counterfactual saving labelled an estimate? Is behavior shipped on a hunch labelled speculative? |
 
 ### What to look for
 

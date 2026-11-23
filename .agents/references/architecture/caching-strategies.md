@@ -117,7 +117,7 @@ def update_product(product_id: str, data: dict):
 import math, random, time
 
 def xfetch(key: str, ttl: int, beta: float, fetch_fn):
-    """XFetch (Vattani et al.): recompute early with a probability that rises
+    """XFetch: recompute early with a probability that rises
     as expiry nears, scaled by how long the recompute takes (delta).
     beta=1.0 is standard; higher = earlier refresh."""
     cached = r.get(key)

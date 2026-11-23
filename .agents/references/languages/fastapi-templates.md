@@ -4,7 +4,7 @@ Architecture decisions and gotchas for FastAPI projects.
 
 ## Style Guide
 
-Source: Google Python Style Guide. Extends Python Patterns skill conventions.
+Extends Python Patterns skill conventions.
 
 - **Naming**: follow Python Patterns skill conventions (`_internal` prefix, descriptive names, boolean `is_`/`has_` prefix)
 - Google-style docstrings (`Args:`/`Returns:`/`Raises:`) on all endpoints and services

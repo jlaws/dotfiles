@@ -1,6 +1,6 @@
 # Paper Analysis Methodology
 
-Analyze ML/AI research papers using S. Keshav's three-pass reading method. Produces structured, self-contained summaries that capture all key information.
+Analyze ML/AI research papers using the three-pass reading method. Produces structured, self-contained summaries that capture all key information.
 
 ## Overview
 

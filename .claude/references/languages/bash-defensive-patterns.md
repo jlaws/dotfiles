@@ -4,7 +4,7 @@ Non-obvious safety patterns for production Bash scripts.
 
 ## Style Guide
 
-Source: Google Shell Style Guide. Only rules linters/formatters cannot enforce.
+Only rules linters/formatters cannot enforce.
 
 ### Naming
 - Functions: `lower_with_under()` — descriptive verb phrases (`check_deps`, `parse_args`)

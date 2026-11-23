@@ -4,7 +4,7 @@ Project scaffolding, async patterns, and opinionated tooling for Rust.
 
 ## Style Guide
 
-Source: Rust Style Guide. Only rules linters/formatters cannot enforce.
+Only rules linters/formatters cannot enforce.
 
 ### Naming
 - Types/traits: `UpperCamelCase`

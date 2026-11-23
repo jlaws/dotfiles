@@ -345,6 +345,18 @@ SHARED_SKILL_ROOTS = (
 )
 SHARED_SKILL_FRONTMATTER_KEYS = frozenset({"name", "description"})
 
+# Credit forms, not source names: a name list goes stale and collides with ordinary words.
+# `(?!Author\b)` spares placeholders: "First Author et al." in the j-email-analysis templates and
+# "(Author, 2024)" in the latex-paper-writing citation gotcha.
+SOURCE_CREDIT_PATTERNS = (
+    re.compile(r"^\s*(?:[-*>]\s*)?(?:\*\*)?Source:(?:\*\*)?\s"),
+    re.compile(r"^\s*(?:[-*>]\s*)?Adapted from "),
+    re.compile(r"\(from [A-Z][a-z]+'s "),
+    re.compile(r"\b(?!Author\b)[A-Z][a-z]+ et al\."),
+    re.compile(r"\((?!Author\b)[A-Z][a-z]+(?: et al\.)?, (?:19|20)\d{2}\)"),
+    re.compile(r"\((?:per|from) \[[^\]]*\]\(https?://"),
+)
+
 # Both execution modes close a plan boundary through the diff review, whose Step 7 opens the PR.
 EXECUTION_CLOSE_OWNERS = tuple(
     root / skill / "SKILL.md"
@@ -1359,6 +1371,59 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         commands = sorted(gemini_root.glob("cmd-*/SKILL.md"))
         self.assertEqual(wrappers, [])
         self.assertEqual(commands, [])
+
+    def test_kb_assets_carry_no_source_credit(self):
+        """Credit lives in REFERENCES.md, one line per source (owner: writing-skills, Claims and
+        evidence). Tracked `.md` and `.toml` files under the four trees only."""
+        tracked = subprocess.run(
+            ["git", "ls-files", "-z", *TREE_ROOTS],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split("\0")
+        scanned = 0
+        credits = []
+        for name in tracked:
+            path = REPO / name
+            if path.suffix not in {".md", ".toml"} or not path.is_file():
+                continue
+            scanned += 1
+            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if any(pattern.search(line) for pattern in SOURCE_CREDIT_PATTERNS):
+                    credits.append(
+                        f"{name}:{lineno}: source credit belongs in REFERENCES.md: {line.strip()}"
+                    )
+        self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
+        self.assertEqual(credits, [], "\n".join(credits))
+
+    def test_source_credit_patterns_catch_each_credit_form(self):
+        """Positive and negative controls, so a loosened pattern cannot pass on a clean tree."""
+        credits = (
+            "Source: Google Python Style Guide. Only rules linters cannot enforce.",
+            "- Source: a style guide",
+            "**Source:** a style guide",
+            "Adapted from [x](https://example.com), the origin of the form.",
+            "### Skill Categories (from Anthropic's Guide)",
+            "Meincke et al. (2025) tested 7 principles.",
+            "*Analysis generated using the three-pass method (Keshav, 2016).*",
+            "**API specifics** (per [the caching docs](https://example.com/docs)).",
+        )
+        plain = (
+            "First Author et al. (2026)",
+            '`\\citep` for "(Author, 2024)"',
+            "**Source email:** {email subject line}",
+            "Source Confidence: [0.0-1.0 per source]",
+            "The source of truth is the plan file.",
+            "Sources only in REFERENCES.md.",
+            "XFetch: recompute early.",
+        )
+        for line in credits:
+            with self.subTest(credit=line):
+                self.assertTrue(any(p.search(line) for p in SOURCE_CREDIT_PATTERNS))
+        for line in plain:
+            with self.subTest(plain=line):
+                self.assertFalse(any(p.search(line) for p in SOURCE_CREDIT_PATTERNS))
 
     def test_no_tree_names_a_script_it_does_not_ship(self):
         """`.gemini/.../j-new` told the reader to run an `audit.py` under

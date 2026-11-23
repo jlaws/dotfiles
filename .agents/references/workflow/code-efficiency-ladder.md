@@ -4,10 +4,6 @@ A stopping rule for deciding whether code should exist before writing it. Where
 `completeness-principle` governs how thoroughly to build what is in scope, this governs whether a
 thing belongs in scope at all.
 
-Adapted from [ponytail](https://github.com/DietrichGebert/ponytail) (`skills/ponytail/SKILL.md`),
-which is the origin of the seven-rung form. Its rung 2 was added on 2026-06-22; anything carrying
-seven rungs with reuse at position 2 derives from that version or later.
-
 ## The Ladder
 
 Stop at the first rung that holds:
@@ -48,11 +44,9 @@ at the first option that works, and the cheaper option is usually the weaker one
 the ladder selects the flimsier algorithm in exactly the case below. Validation, parsing of
 untrusted input, and auth are decided on correctness first and length second.
 
-This rule is load-bearing, not a platitude. It exists because the ladder has a measured failure
-mode: reaching for the laziest stdlib helper can pick one with an edge-case hole. ponytail's own
-audit found `parseaddr` accepted `"@missing-local.com"` because it does not require a local part,
-and reported email-validation accuracy dropping from 100% to 79% on one non-Claude model. Its
-diagnosis: "a genuine (if minor) cost of pushing toward one-liners."
+This rule is load-bearing, not a platitude. Reaching for the laziest stdlib helper can pick one
+with an edge-case hole: a stdlib one-liner can accept input the longer check rejected
+(`email.utils.parseaddr("@missing-local.com")` returns an address with no local part).
 
 ## Never Simplify Away
 
@@ -63,11 +57,10 @@ diagnosis: "a genuine (if minor) cost of pushing toward one-liners."
 - Anything explicitly requested
 
 **Weakening counts as removing.** Swapping a control for a laxer implementation of the same control
-simplifies it away even though the line count barely moves. That is what the regression below was.
+simplifies it away even though the line count barely moves.
 
 If the user insists on the full version, build it — no re-arguing. These five are why the ladder is
-safe to run; ponytail measured a paraphrase that dropped them scoring 95% safe against the full
-ruleset's 100%.
+safe to run.
 
 ## No Unrequested Abstractions
 
@@ -91,41 +84,19 @@ do not re-derive the rungs above it, weigh alternatives already excluded, or dra
 to pick the shorter. Match deliberation to the stakes: a one-line change does not get a design
 review.
 
-This has receipts. ponytail's first version lost to a prose-only competitor on wall-clock time
-(228s vs 136s) because it "deliberated about what not to build"; an anti-deliberation clause cut
-that to 158s, and trimming the ruleset itself to 127s.
-
 The exception is the same as the ladder's: never think less about *understanding* the problem.
 Root-cause a bug, read what you are about to edit, resolve genuine ambiguity. Depth where the
 problem is actually hard, nowhere else.
 
-## Measured Scope
-
-ponytail's own agentic benchmark, which is the strongest evidence available for this ruleset:
-12 feature tasks plus 6 safety tasks against a real repo
-(`tiangolo/full-stack-fastapi-template @ cd83fc1`), Haiku 4.5, n=4 per cell, LOC counted as
-`git diff` added lines, safety checked deterministically rather than by an LLM judge. The safety
-column scores the 5 security tasks at 4 runs each, so its denominator is 20 and not 24.
-
-| Arm | LOC | Tokens | Cost | Time | Safe (20 runs) |
-|---|--:|--:|--:|--:|--:|
-| Prose compression only | -20% | +7% | +3% | +2% | 100% |
-| The full ladder | **-54%** | **-22%** | **-20%** | **-27%** | **100%** |
-| A "YAGNI + one-liners" paraphrase | -33% | -14% | -21% | -30% | 95% |
-
-These are ponytail's numbers, not measured here. Three limits it states itself, which decide what
-they mean:
+## Where It Loses
 
 - **The win is on the code axis.** The ladder needs an abstraction to skip or a stdlib call to
   reach for, so it bites hardest on code and least on explanation-only prompts, where the prose
-  half of the pairing does the work instead. A figure for that split circulated in an earlier
-  draft; it is left out because it could not be tied to a named source.
-- **It can cost more than it saves on short work, and on reasoning models.** ponytail measured
-  +26.2% and +38.7% cost on two reasoning models — "the ruleset is re-sent as input every call and
-  the baseline output is already terse, so the input and reasoning-token overhead outweighs the
-  lines saved." On a small local model the aggregate flipped sign depending on the sample.
-- **One model, deterministic safety checks on six tasks.** A floor that shows whether a known guard
-  gets dropped, not proof that the code is secure.
+  half of the pairing does the work instead.
+- **It can cost more than it saves on short work and on reasoning models.** A ruleset re-sent on
+  every call costs input tokens, and reasoning models add reasoning-token overhead (reported
+  elsewhere, unmeasured here), so it can lose on short tasks (`references/workflow/context-efficiency.md`, Output Rules
+  Earn Their Place Or Cost You).
 
 ## Cross-References
 

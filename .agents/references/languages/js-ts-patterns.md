@@ -4,7 +4,7 @@ Tooling opinions, type-level decisions, and non-obvious patterns. Opus knows the
 
 ## Style Guide
 
-Source: Google JS + TS Style Guides. Only rules linters/formatters cannot enforce.
+Only rules linters/formatters cannot enforce.
 
 ### Naming
 - Treat abbreviations as whole words: `loadHttpUrl` not `loadHTTPURL`

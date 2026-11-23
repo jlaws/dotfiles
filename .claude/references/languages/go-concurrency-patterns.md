@@ -4,7 +4,7 @@ Decision frameworks and gotchas for Go concurrency.
 
 ## Style Guide
 
-Source: Google Go Style Guide. Only rules linters/formatters cannot enforce.
+Only rules linters/formatters cannot enforce.
 
 ### Naming
 - Names must not repeat context: `db.UserStore` not `db.DBUserStore`

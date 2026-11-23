@@ -295,7 +295,7 @@ Beyond PASS/WARN/FAIL, rate the KB on five axes and name the weakest — that is
 | Coverage | Are the common task types covered by a skill, with no large gaps? |
 | Freshness | Any asset unreferenced by an agent/command/config, or pointing at deleted files? |
 | Structure | Frontmatter valid, cross-references resolve, naming conventions hold, within line budgets? |
-| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number attributed rather than adopted? Is a counterfactual saving labelled an estimate? Is behavior shipped on a hunch labelled speculative? |
+| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number left out of the asset, with its source credited in `REFERENCES.md`? Is a counterfactual saving labelled an estimate? Is behavior shipped on a hunch labelled speculative? |
 
 **Documentation currency:** mirror parity across trees and description-behavior match are part of freshness — see checks DOC-1..3.
 
