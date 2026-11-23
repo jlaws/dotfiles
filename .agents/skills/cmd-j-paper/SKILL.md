@@ -51,7 +51,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 - Accept inputs: URL, DOI, arXiv ID, plain title.
 - Use `WebFetch` to retrieve the source page (arxiv.org/abs/..., DOI resolver, venue page). Extract title, authors, year, venue, abstract.
 - Generate a deterministic BibTeX key: `firstauthorlast_year_keyword` (e.g. `vaswani_2017_attention`).
-- Verify the entry first (literature-review, Citation Verification), then append it to the detected `.bib` file. Dedupe by DOI first, then normalized title.
+- Verify the entry first (`.agents/references/research/literature-review.md`, Citation Verification), then append it to the detected `.bib` file. Dedupe by DOI first, then normalized title.
 - If the user's provided input indicates where to cite, insert `\cite{key}` at that location (Edit). Otherwise report the key for the user to place.
 - Never fabricate citation fields. If authors / abstract / venue cannot be extracted, say so explicitly and leave the field blank rather than guess.
 
@@ -76,7 +76,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
 - Parse `.bib` entries. Use `bibtool` if installed; otherwise grep-based scan.
 - Detect duplicates by DOI first, then by normalized title (lowercase, strip punctuation).
-- Flag entries with missing DOI, year, or venue. Propose a DOI only when a resolved record matches on title, first author, and year (literature-review, Citation Verification).
+- Flag entries with missing year or venue, and entries with no DOI unless they cite a proceedings page. Propose a DOI only when a resolved record matches on title, first author, and year (`.agents/references/research/literature-review.md`, Citation Verification).
 - Propose merges -- never silently delete entries.
 
 ## Communication contract
@@ -92,7 +92,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
 - **.agents/references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
 - **.agents/references/documentation/ai-writing-tells.md** -- prose habits to revise before delivering text
-- **.agents/references/research/literature-review.md** -- when scope expands to surveying related work
+- **.agents/references/research/literature-review.md** -- before adding or cleaning a citation (Citation Verification), or when scope expands to surveying related work
 - **.agents/references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
 - **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate to the `research-analyst` agent (it loads `.agents/references/research/`); verify its output
 - **skill:analysis-output-patterns** -- output structure rules

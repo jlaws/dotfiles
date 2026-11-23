@@ -210,7 +210,7 @@ papers = search_recent("cat:cs.LG AND ti:efficient AND ti:attention")
 
 Before finalizing a bibliography or related-work section:
 
-- **Verify each citation by identifier** - an entry is verified only when its DOI or arXiv ID resolves to a record whose title, first author, and year all match. A resolving DOI alone is not enough: a DOI can point at a different paper. Look up Crossref first, then DataCite for datasets and software, then OpenAlex or Semantic Scholar. With no identifier, match on the exact title and flag near-misses for manual check.
+- **Verify each citation by identifier** - an entry is verified only when its DOI or arXiv ID resolves to a record whose title, first author, and year all match. A resolving DOI alone is not enough: a DOI can point at a different paper. Look up Crossref first, then DataCite for datasets and software, then OpenAlex or Semantic Scholar. With no identifier, match on the normalized title (lowercase, punctuation stripped) and flag near-misses for manual check.
 - **Detect orphan citations** — every `\cite{key}` must resolve to a bib entry, and every bib entry should be cited at least once; report both directions.
 - **Never fabricate fields** — if authors, venue, or year cannot be confirmed, leave the field blank and mark it rather than guessing (see `confidence-scoring`).
 - **Anti-gaming self-review** — do not "pass" your own related-work by lowering the bar. If you cannot verify a citation, halt and report it as `UNVERIFIED` instead of asserting it.
