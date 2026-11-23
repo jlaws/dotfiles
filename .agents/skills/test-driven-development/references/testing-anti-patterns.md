@@ -279,7 +279,7 @@ test('renders without crashing', () => {
 **Why this is wrong:**
 - Tautologies that restate source code as assertions
 - No decision, transformation, or behavior path exercised
-- Pass by definition — can only fail if source code changes (which is what you want)
+- Pass by definition: can only fail if source code changes (which is what you want)
 - Inflate coverage without catching any bugs
 
 **The fix:**

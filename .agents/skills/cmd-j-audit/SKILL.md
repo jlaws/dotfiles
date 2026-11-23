@@ -186,16 +186,16 @@ Every security requirement must link back to:
 
 For complex systems with multiple trust boundaries, analyze sequentially from each perspective:
 
-1. **STRIDE Analyst** — Systematic STRIDE analysis per component and trust boundary
-2. **Compliance Mapper** — Map controls to regulatory requirements (SOC2, GDPR, HIPAA)
-3. **Attack Path Analyst** — Build attack trees for high-value targets
-4. **Mitigation Planner** — Prioritize mitigations by risk score
+1. **STRIDE Analyst**: Systematic STRIDE analysis per component and trust boundary
+2. **Compliance Mapper**: Map controls to regulatory requirements (SOC2, GDPR, HIPAA)
+3. **Attack Path Analyst**: Build attack trees for high-value targets
+4. **Mitigation Planner**: Prioritize mitigations by risk score
 
 Synthesize into Threat Model Document.
 
 ### References
 
-For deep code-level vulnerability review, delegate to the `security-reviewer` agent, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `.agents/references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting. For the review protocol itself — threat-model-before-scanning, execution-verify N/N, an independent grader, and the patch-validation gate — follow `.agents/references/security/vulnerability-review-pipeline.md`.
+For deep code-level vulnerability review, delegate to the `security-reviewer` agent, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `.agents/references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting. For the review protocol itself (threat-model-before-scanning, execution-verify N/N, an independent grader, and the patch-validation gate) follow `.agents/references/security/vulnerability-review-pipeline.md`.
 
 When the target includes AI/ML components, also read `.agents/references/ai-ml/ai-safety-and-alignment` for AI-specific security and safety considerations.
 

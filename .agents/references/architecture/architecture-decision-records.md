@@ -6,13 +6,13 @@
 |------|---------|
 | **Architectural Decision (AD)** | A justified design choice that addresses an architecturally significant requirement. |
 | **Architecturally Significant Requirement (ASR)** | A requirement important enough that the decision it drives warrants a record. |
-| **Architecture Decision Record (ADR)** | A document capturing a single AD and its rationale — context, options, decision, consequences. |
+| **Architecture Decision Record (ADR)** | A document capturing a single AD and its rationale: context, options, decision, consequences. |
 | **Decision Log** | The full collection of ADRs kept for a project (the `docs/adr/` set). |
-| **ADR id** | An ADR's path under `docs/adr/` minus the extension — `data/postgres-primary-store`. There are no ADR numbers. |
+| **ADR id** | An ADR's path under `docs/adr/` minus the extension: `data/postgres-primary-store`. There are no ADR numbers. |
 
 ### Architectural Significance Test
 
-Write an ADR when a decision meets any of these — it is an ASR:
+Write an ADR when a decision meets any of these; it is an ASR:
 - Affects the system's structure or a component boundary.
 - Cross-cutting: touches multiple components or teams.
 - Hard or costly to reverse later.
@@ -29,14 +29,14 @@ Proposed -> Deleted
 ```
 
 Status values:
-- `status: proposed` — under discussion, not yet decided.
-- `status: accepted` — the decision is in force. It stays `accepted` for the ADR's whole life; a
+- `status: proposed`: under discussion, not yet decided.
+- `status: accepted`: the decision is in force. It stays `accepted` for the ADR's whole life; a
   revised decision is still a decision in force.
 
 There is no `superseded`, `deprecated`, or `rejected` status, because there is no file left to carry
 one. **A record whose decision no longer exists is deleted, not archived.** It is dead documentation,
 and dead documentation costs every future reader the time to work out that it is dead. Git holds the
-history. Anything still worth knowing — why the old approach failed, what it cost — moves into the
+history. Anything still worth knowing (why the old approach failed, what it cost) moves into the
 successor ADR's `## Ruled Out` table as one dated row.
 
 ## When to Write an ADR
@@ -51,7 +51,7 @@ successor ADR's `## Ruled Out` table as one dated row.
 
 ## Frontmatter
 
-Every ADR opens with a YAML frontmatter block. It is the machine-readable half of the record — status
+Every ADR opens with a YAML frontmatter block. It is the machine-readable half of the record: status
 and dates are read by globbing, not by parsing prose.
 
 ```yaml
@@ -66,9 +66,9 @@ updated: 2026-09-13     # last substantive edit
 Three invariants:
 - **`created` never changes. It records when the *record* was first written, not when the current
   decision was made.** Those are the same date until the first in-place reversal; after one they
-  differ, and the record's date is the one worth keeping — it is when this question first became
+  differ, and the record's date is the one worth keeping; it is when this question first became
   worth deciding. The newest `## Ruled Out` row dates the current decision.
-- **`updated` is the date of the last substantive edit.** It is the timeliness signal — a reader
+- **`updated` is the date of the last substantive edit.** It is the timeliness signal: a reader
   weighing whether an ADR still describes the system starts here. A new ADR has `updated` equal to
   `created`. Fixing a typo is not substantive; changing what the record asserts is.
 - **The path is authoritative for `topic`.** The field mirrors the containing directory so a reader
@@ -89,7 +89,7 @@ record.
 | Clarification, corrected detail, or new consequence | Edit the text in place; bump `updated` | stays `accepted` |
 | The decision changes | Edit `## Decision` and `## Rationale` in place, add the previous approach to `## Ruled Out` with its reason and date, bump `updated` | stays `accepted` |
 | A finding invalidates an option, but the decision holds | Add the option to `## Ruled Out` with the finding and date, bump `updated` | stays `accepted` |
-| The decision no longer exists — the component, constraint, or question is gone | **Delete the file.** Move anything still worth knowing into the successor's `## Ruled Out` | file removed |
+| The decision no longer exists; the component, constraint, or question is gone | **Delete the file.** Move anything still worth knowing into the successor's `## Ruled Out` | file removed |
 | One decision splits into two, or two merge into one | Write the new ADRs, carry forward what still applies, delete the old file | file removed |
 
 Editing in place is the default, not the exception. Three things make it safe:
@@ -151,7 +151,7 @@ We will use **[choice]**.
 
 ## Enforcement
 - Owner: `path/to/the/file/this/decision/governs`
-- Pinned by: `tests/test_x.py::test_y`, or "nothing — convention only"
+- Pinned by: `tests/test_x.py::test_y`, or "nothing: convention only"
 
 ## Reversal Conditions
 [What would have to become true for this decision to be revisited. Concrete enough that a future
@@ -213,7 +213,7 @@ to achieve **[goals]**,
 accepting that **[tradeoff]**.
 ```
 
-(Single-sentence format — no table sections, so it carries neither `## Ruled Out` nor
+(Single-sentence format; no table sections, so it carries neither `## Ruled Out` nor
 `## Reversal Conditions`. Use it only where the decision genuinely fits one sentence; revise the
 sentence in place and bump `updated`.)
 
@@ -244,8 +244,8 @@ Two cases still touch shared state, both rarer than writing an ADR:
 
 Two scaffold files sit beside the topic directories:
 
-- `docs/adr/README.md` — the repo's topic list with one line on what each covers, the scope test, and the keep-it-current rule. It states explicitly that there is no index: discover ADRs with `docs/adr/**/*.md` and read frontmatter.
-- `docs/adr/template.md` — the Standard ADR template above, verbatim, ready to copy.
+- `docs/adr/README.md`: the repo's topic list with one line on what each covers, the scope test, and the keep-it-current rule. It states explicitly that there is no index: discover ADRs with `docs/adr/**/*.md` and read frontmatter.
+- `docs/adr/template.md`: the Standard ADR template above, verbatim, ready to copy.
 
 Both scaffold files match `docs/adr/**/*.md` and neither is an ADR. Exclude `README.md` and `template.md` by name whenever that glob is used to enumerate decisions.
 

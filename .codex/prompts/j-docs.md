@@ -1,6 +1,6 @@
 ---
 name: j-docs
-description: "Documentation consultation — technical writing, API docs, and changelogs. Use when writing docs, generating OpenAPI specs, or automating changelogs. Do NOT use for inline code comments (write directly)."
+description: "Documentation consultation: technical writing, API docs, and changelogs. Use when writing docs, generating OpenAPI specs, or automating changelogs. Do NOT use for inline code comments (write directly)."
 argument-hint: "<question-or-task>"
 ---
 

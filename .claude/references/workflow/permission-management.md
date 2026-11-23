@@ -112,5 +112,5 @@ When Claude says "permission denied":
 
 ## Cross-References
 
-- **reference:hook-patterns** — pre/post tool hooks that work alongside permissions
-- **skill:code-agent-meta-patterns** — broader CLAUDE.md and agent configuration
+- **reference:hook-patterns**: pre/post tool hooks that work alongside permissions
+- **skill:code-agent-meta-patterns**: broader CLAUDE.md and agent configuration

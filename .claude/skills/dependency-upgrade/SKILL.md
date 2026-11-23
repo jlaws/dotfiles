@@ -28,11 +28,11 @@ High risk on ANY factor = dedicated spike, staging validation, phased rollout.
 ## Phase 1: Assessment
 
 1. **Read migration guides** for every major version between current and target (not just the target version)
-2. **Check dependency compatibility** — peer deps, transitive deps, plugin ecosystem
-3. **Search GitHub issues** for the specific upgrade path — others have hit the gotchas
-4. **Inventory affected code** — run grep/ast searches to quantify the blast radius
-5. **Run existing test suite** as baseline — record pass count, coverage %
-6. **Review supply chain risk** — see `references/security-audit-and-supply-chain.md`
+2. **Check dependency compatibility**: peer deps, transitive deps, plugin ecosystem
+3. **Search GitHub issues** for the specific upgrade path; others have hit the gotchas
+4. **Inventory affected code**: run grep/ast searches to quantify the blast radius
+5. **Run existing test suite** as baseline: record pass count, coverage %
+6. **Review supply chain risk**: see `references/security-audit-and-supply-chain.md`
 
 ### Ecosystem-Specific Assessment
 
@@ -57,9 +57,9 @@ High risk on ANY factor = dedicated spike, staging validation, phased rollout.
 
 When upgrading changes many models/types (e.g., Pydantic v1→v2 with 120 models):
 
-1. **Use official codemods first** — they handle the mechanical renames
-2. **Batch by dependency order** — migrate leaf models first, then models that depend on them
-3. **Verify after each batch** — don't migrate all 120 at once
+1. **Use official codemods first**: they handle the mechanical renames
+2. **Batch by dependency order**: migrate leaf models first, then models that depend on them
+3. **Verify after each batch**: don't migrate all 120 at once
 4. **Track progress**: create a checklist of all affected files
 
 ### Common Codemod Tools
@@ -73,7 +73,7 @@ When upgrading changes many models/types (e.g., Pydantic v1→v2 with 120 models
 | React upgrades | `react-codemod` | `npx react-codemod <transform>` |
 | ESLint flat config | `@eslint/migrate-config` | `npx @eslint/migrate-config .eslintrc.json` |
 
-**Always review codemod output** — they handle most cases but miss edge cases.
+**Always review codemod output**: they handle most cases but miss edge cases.
 
 ## Phase 3: Validation
 
@@ -110,7 +110,7 @@ When upgrading changes many models/types (e.g., Pydantic v1→v2 with 120 models
 Document ALL overrides with comments explaining why they exist.
 
 ### Peer Dependency Conflicts
-- `--legacy-peer-deps` is a bandaid, not a fix — understand why it's needed
+- `--legacy-peer-deps` is a bandaid, not a fix: understand why it's needed
 - If a peer dep has no compatible version: check if maintainer has a beta/rc, or fork temporarily
 
 ### Workspace/Monorepo Upgrades
@@ -139,7 +139,7 @@ Document ALL overrides with comments explaining why they exist.
 - [ ] Full regression test
 - [ ] Deploy to staging with real data
 - [ ] Monitor errors 24-48h
-- [ ] Validate documentation — dependency docs (README install/requirements, CHANGELOG, version-pinned examples) reflect the new version, or N/A (see `documentation-validation`)
+- [ ] Validate documentation: dependency docs (README install/requirements, CHANGELOG, version-pinned examples) reflect the new version, or N/A (see `documentation-validation`)
 - [ ] Remove any temporary overrides/workarounds
 
 ## Integration

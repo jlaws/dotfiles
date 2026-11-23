@@ -3,10 +3,10 @@
 ## EXPLAIN ANALYZE Workflow
 
 1. Run `EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)` on the slow query
-2. Check for **Seq Scan** on large tables (>10K rows) — likely missing index
-3. Compare **estimated vs actual rows** — >10× difference means stale stats → run `ANALYZE tablename`
-4. Look for **Nested Loop** on large sets — consider Hash Join via better indexing
-5. Check for **Sort** operations without index support — add index matching ORDER BY
+2. Check for **Seq Scan** on large tables (>10K rows): likely missing index
+3. Compare **estimated vs actual rows**: >10× difference means stale stats → run `ANALYZE tablename`
+4. Look for **Nested Loop** on large sets: consider Hash Join via better indexing
+5. Check for **Sort** operations without index support: add index matching ORDER BY
 
 ### Annotated Example
 
@@ -53,7 +53,7 @@ orders = Order.query.options(joinedload(Order.user)).all()
 | **Session** | Connection held for entire client session | Yes | Long-running connections, prepared statements |
 | **Statement** | Connection returned after each statement | No | Simple queries, maximum sharing |
 
-**Pool sizing:** `connections = (cores × 2) + effective_spindle_count` — typically 20–50 for most apps. More connections ≠ more throughput; too many causes contention.
+**Pool sizing:** `connections = (cores × 2) + effective_spindle_count` (typically 20–50 for most apps). More connections ≠ more throughput; too many causes contention.
 
 **Warning:** PgBouncer in transaction mode breaks prepared statements and `SET` commands. Use session mode or application-level pooling if you need these.
 
@@ -93,7 +93,7 @@ INCLUDE (status, total, created_at);
 
 | Percentile | OLTP Target | Action If Exceeded |
 |------------|-------------|-------------------|
-| p50 | <10ms | — |
+| p50 | <10ms | - |
 | p95 | <50ms | Investigate; likely needs index |
 | p99 | <200ms | Optimize or add to slow query log |
 | Any query | >1s | Mandatory optimization or rewrite |

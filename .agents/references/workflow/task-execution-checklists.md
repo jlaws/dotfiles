@@ -6,10 +6,10 @@ Reusable checklists for implementing, reviewing, and completing tasks. Reference
 
 For each task in a plan, follow this cycle:
 
-1. **Implement** — follow the Implementation Checklist below
-2. **Spec compliance check** — use the Spec Compliance Checklist below
+1. **Implement**: follow the Implementation Checklist below
+2. **Spec compliance check**: use the Spec Compliance Checklist below
 3. **If spec issues:** fix and re-check. If issues remain after two fix rounds, stop, report them, and do not mark the task complete.
-4. **Code quality check** — use the Code Quality Checklist below (only after spec compliance passes)
+4. **Code quality check**: use the Code Quality Checklist below (only after spec compliance passes)
 5. **If quality issues:** fix and re-check. If issues remain after two fix rounds, stop, report them, and do not mark the task complete.
 6. **Mark task complete**, move to next
 
@@ -18,9 +18,9 @@ For each task in a plan, follow this cycle:
 ## Implementation Checklist
 
 Before starting a task, ensure you have:
-- **Full task description** — requirements, acceptance criteria
-- **Context** — where this fits, dependencies, architectural constraints
-- **Constraints** — what NOT to change, scope boundaries
+- **Full task description**: requirements, acceptance criteria
+- **Context**: where this fits, dependencies, architectural constraints
+- **Constraints**: what NOT to change, scope boundaries
 
 While implementing:
 1. Implement exactly what the task specifies
@@ -34,7 +34,7 @@ While implementing:
 
 ## Spec Compliance Checklist
 
-Verify the implementation matches the specification — nothing more, nothing less.
+Verify the implementation matches the specification: nothing more, nothing less.
 
 **CRITICAL: Do not trust your own summary. Read the actual code.**
 
@@ -111,7 +111,7 @@ Success criteria:
 
 ---
 
-## Red Flags — Stop and Reassess
+## Red Flags: Stop and Reassess
 
 - Skipping reviews (spec compliance OR code quality)
 - Accepting "close enough" on spec compliance
@@ -129,4 +129,4 @@ Success criteria:
 | "Fix the race condition" (no context) | Paste error messages and test names |
 | No constraints | "Do NOT change production code" |
 | "Fix it" (vague output) | "Return summary of root cause and changes" |
-| No scope declared | "Files (read-write): src/auth/** — do not touch other paths" |
+| No scope declared | "Files (read-write): src/auth/** (do not touch other paths)" |

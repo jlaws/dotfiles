@@ -81,11 +81,11 @@ When resuming from a handoff:
 
 ## Rules
 
-- Write the handoff BEFORE context is lost — don't wait until the last message
+- Write the handoff BEFORE context is lost: don't wait until the last message
 - Include exact file paths (not relative descriptions)
 - Include exact test commands (not "run the tests")
-- List decisions with rationale — the "why" is harder to reconstruct than the "what"
-- Keep it under 100 lines — this is a resume document, not documentation
+- List decisions with rationale; the "why" is harder to reconstruct than the "what"
+- Keep it under 100 lines; this is a resume document, not documentation
 - Write/update at context-fill milestones (e.g. 50%, 75%), not only at the limit
 - After a compaction, emit a short re-orientation digest (task + current file + next step) before continuing
 - Delete the handoff after successful resumption

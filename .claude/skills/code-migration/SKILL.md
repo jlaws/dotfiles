@@ -15,7 +15,7 @@ Complete the assessment phase before migrating any code -- skipping it leads to 
 
 ## Phase 1: Migration Assessment
 
-### Step 1 — Quantify Scope
+### Step 1: Quantify Scope
 
 ```bash
 # Gather hard numbers before estimating anything
@@ -25,7 +25,7 @@ grep -r "import\|require" src/ | wc -l             # Dependency touchpoints
 find src/ -name "*.test.*" -o -name "*_test.*" | wc -l  # Test coverage proxy
 ```
 
-### Step 2 — Score Complexity (per factor: Low / Medium / High)
+### Step 2: Score Complexity (per factor: Low / Medium / High)
 
 | Factor | Low | Medium | High |
 |--------|-----|--------|------|
@@ -37,7 +37,7 @@ find src/ -name "*.test.*" -o -name "*_test.*" | wc -l  # Test coverage proxy
 
 Judge overall complexity from the worst factor, not an average -- one High on Data or Coupling can dominate effort even if everything else is Low. There's no valid formula that collapses five independent risk dimensions into a single number; naming the riskiest factor is more useful than a score.
 
-### Step 3 — Identify Risk Patterns
+### Step 3: Identify Risk Patterns
 
 Scan the codebase for patterns that cause migration failures:
 
@@ -49,7 +49,7 @@ Scan the codebase for patterns that cause migration failures:
 | Implicit behavior | Convention-based routing, magic methods | Easy to miss during migration |
 | Serialized data | Pickle, Marshal, binary formats | Format may not survive version change |
 
-### Step 4 — Produce Assessment Document
+### Step 4: Produce Assessment Document
 
 ```markdown
 ## Migration Assessment: [Source] → [Target]
@@ -65,14 +65,14 @@ Scan the codebase for patterns that cause migration failures:
 - Test coverage: X% (measured, not guessed)
 
 ### Critical Risks
-1. [Risk] — Impact: [what breaks] — Mitigation: [strategy]
+1. [Risk] - Impact: [what breaks] - Mitigation: [strategy]
 
 ### Dependencies Without Direct Equivalents
 | Source Dependency | Purpose | Target Replacement | Effort |
 |---|---|---|---|
 
 ### Unresolved Questions
-- [List every ambiguity — do NOT proceed with assumptions]
+- [List every ambiguity - do NOT proceed with assumptions]
 ```
 
 **If ANY unresolved questions exist: present the assessment and ask before proceeding to Phase 2.**
@@ -83,9 +83,9 @@ Pick ONE strategy. Do not combine them.
 
 | Strategy | When to Use | Trade-off |
 |----------|-------------|-----------|
-| **Strangler Fig** | Large codebase, can run old+new side by side | Slower but lowest risk — migrate piece by piece behind a facade |
+| **Strangler Fig** | Large codebase, can run old+new side by side | Slower but lowest risk (migrate piece by piece behind a facade) |
 | **Branch by Abstraction** | Shared codebase, can't run two versions | Introduce abstraction layer, swap implementations underneath |
-| **Big Bang** | Small codebase (<20 files) or forced by breaking changes | Fast but high risk — everything migrates at once |
+| **Big Bang** | Small codebase (<20 files) or forced by breaking changes | Fast but high risk (everything migrates at once) |
 | **Parallel Run** | Data pipelines, APIs where correctness is critical | Run both, compare outputs, cut over when equivalent |
 
 ### Strangler Fig Implementation Pattern
@@ -122,7 +122,7 @@ Duration depends on team size, module count, and how much of the touched code al
 
 ### Migration Order
 
-Migrate in dependency order — leaves first, roots last:
+Migrate in dependency order; leaves first, roots last:
 
 ```
 1. Utilities / helpers (no internal dependencies)
@@ -142,9 +142,9 @@ Before migrating any module, write tests that capture current behavior:
 ```
 1. Identify public API of the module (functions, endpoints, events)
 2. Write tests against the OLD code that assert current behavior
-3. Run tests — they must pass on old code
+3. Run tests - they must pass on old code
 4. Migrate the module
-5. Run the SAME tests against new code — they must still pass
+5. Run the SAME tests against new code - they must still pass
 ```
 
 This catches behavioral regressions that unit tests miss.
@@ -161,7 +161,7 @@ This catches behavioral regressions that unit tests miss.
 
 ## Phase 5: Rollback
 
-### Rollback Triggers — Decide These BEFORE Migrating
+### Rollback Triggers: Decide These BEFORE Migrating
 
 | Condition | Threshold | Detection |
 |-----------|-----------|-----------|
@@ -185,8 +185,8 @@ The mechanism determines the speed: a config or flag change rolls back in the ti
 
 For large codebases (>50 files affected), organize migration into independent module batches:
 
-1. Group files by module/package — each batch must be independently migratable
-2. Process batches sequentially — migrate one module at a time
+1. Group files by module/package: each batch must be independently migratable
+2. Process batches sequentially: migrate one module at a time
 3. After each batch: run tests, verify no regressions, commit
 4. After all batches: run full test suite, verify cross-module interactions
 
@@ -198,7 +198,7 @@ For large codebases (>50 files affected), organize migration into independent mo
 - [ ] Comparison tests for each module (written before migration)
 - [ ] Rollback triggers and procedures defined
 - [ ] Progress tracking per module
-- [ ] Documentation updated for the target stack (README, API reference, config/CLI docs, CHANGELOG) — or N/A per change (see `documentation-validation`)
+- [ ] Documentation updated for the target stack (README, API reference, config/CLI docs, CHANGELOG), or N/A per change (see `documentation-validation`)
 
 ## Integration
 

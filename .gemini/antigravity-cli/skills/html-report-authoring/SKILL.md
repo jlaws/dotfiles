@@ -7,7 +7,7 @@ description: "Use when creating a self-contained interactive HTML report."
 
 ## Overview
 
-When information has shape — comparisons, diffs, call-graphs, timelines, hierarchies — or a reader needs to scan and explore it, a self-contained HTML document beats a wall of markdown. HTML carries higher information density (tables, CSS, SVG, layout), renders natively in any browser, and is shareable as one file. Markdown flattens spatial information; HTML keeps it.
+When information has shape (comparisons, diffs, call-graphs, timelines, hierarchies) or a reader needs to scan and explore it, a self-contained HTML document beats a wall of markdown. HTML carries higher information density (tables, CSS, SVG, layout), renders natively in any browser, and is shareable as one file. Markdown flattens spatial information; HTML keeps it.
 
 ## When to Use
 
@@ -32,7 +32,7 @@ Non-negotiable: everything inline in one `.html` file.
 - Consistent section headers; one idea per section.
 - Color-code by category or severity so the eye finds things fast.
 - Tables and callout boxes over long prose paragraphs.
-- For reports: BLUF — lead with the finding, methodology after.
+- For reports: BLUF; lead with the finding, methodology after.
 
 ## Make the Shape Visible
 
@@ -53,7 +53,7 @@ Diagrams earn their space. Draw one only if the reader learns more from it than 
 
 ## Export Affordances
 
-Where the reader may act on content, add copy buttons ("copy as Markdown", "copy as JSON", "copy diff"). This keeps the human-in-the-loop feedback cycle tight — they can take output straight back to the agent.
+Where the reader may act on content, add copy buttons ("copy as Markdown", "copy as JSON", "copy diff"). This keeps the human-in-the-loop feedback cycle tight; they can take output straight back to the agent.
 
 ## Accessibility & Robustness
 
@@ -169,6 +169,6 @@ Where the reader may act on content, add copy buttons ("copy as Markdown", "copy
 
 ## Cross-References
 
-- **output-completeness** — never truncate the generated file.
-- **analysis-output-patterns** — findings-first structure and data-vs-inference labeling for reports.
-- **dataviz** — color and format rules when the page includes charts.
+- **output-completeness**: never truncate the generated file.
+- **analysis-output-patterns**: findings-first structure and data-vs-inference labeling for reports.
+- **dataviz**: color and format rules when the page includes charts.

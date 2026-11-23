@@ -154,8 +154,8 @@ For hypothesis validation, not production features. Ship ugly, learn fast.
 4. **DECISION**: Signal met → invest more. Signal absent → pivot or kill. Ambiguous → tighter scope, run again.
 
 ### Rules
-- No feature flags, no A/B tests, no polish — raw signal only
-- If you can't ship in 3 days, your scope is too big — cut until you can
+- No feature flags, no A/B tests, no polish: raw signal only
+- If you can't ship in 3 days, your scope is too big: cut until you can
 - Every prototype gets a written decision at the end, not a "let's keep going"
 
 ## Gotchas and Anti-Patterns

@@ -1,4 +1,4 @@
-# Refactoring Catalog — Code Examples
+# Refactoring Catalog: Code Examples
 
 ## Extract Function / Method
 
@@ -125,7 +125,7 @@ if response.status_code == RATE_LIMIT_STATUS:
     time.sleep(RATE_LIMIT_COOLDOWN_SECONDS)
 ```
 
-## Strangler Fig — Detailed Example
+## Strangler Fig: Detailed Example
 
 ```python
 # Phase 1: Facade over legacy

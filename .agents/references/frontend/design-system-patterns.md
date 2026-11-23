@@ -26,7 +26,7 @@ No inline styles, hardcoded colors, or magic pixel values in components.
 ### Compound Components
 
 ```typescript
-// Expose composable parts — consumer controls layout
+// Expose composable parts - consumer controls layout
 const Select = { Root, Trigger, Content, Item, Value }
 
 // Usage: full layout control

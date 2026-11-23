@@ -1,6 +1,6 @@
 ---
 name: j-system-design
-description: "Comprehensive system design suite — produce architecture documents covering multiple perspectives. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /j-arch instead)."
+description: "Comprehensive system design suite: produce architecture documents covering multiple perspectives. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /j-arch instead)."
 argument-hint: "<system-description>"
 ---
 
@@ -35,7 +35,7 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 3. Identify existing architecture patterns, APIs, data models
 
 **Step 4 -- Delegate perspectives to specialist agents (recommended when the system is large):**
-Hand each Phase 2 perspective to its agent via the Agent tool, in parallel — they load the relevant skills + `references/` libraries and return findings:
+Hand each Phase 2 perspective to its agent via the Agent tool, in parallel; they load the relevant skills + `references/` libraries and return findings:
 - Component Architecture, API Design -> `architecture-specialist`
 - Data Architecture -> `data-engineer`
 - Security & Operations -> `security-reviewer` (security) + `devops-engineer` (deployment/observability)
@@ -87,7 +87,7 @@ Analyze the system from each perspective (inline, or delegated in parallel per S
 - Dependencies and interaction patterns (who calls whom, sync vs async)
 - Data flow between components
 - Identify god classes, circular dependencies, unclear ownership
-- Map the dependency graph — are layers clean or tangled?
+- Map the dependency graph: are layers clean or tangled?
 
 **2.2 API Design**
 - Public interfaces and contracts
@@ -102,7 +102,7 @@ Analyze the system from each perspective (inline, or delegated in parallel per S
 - Storage strategy and access patterns (read-heavy? write-heavy? mixed?)
 - Migration and evolution approach
 - Data consistency model (strong, eventual, causal)
-- Data lifecycle — creation, transformation, archival, deletion
+- Data lifecycle: creation, transformation, archival, deletion
 - Sensitive data identification and handling
 
 **2.4 Security & Operations**
@@ -111,7 +111,7 @@ Analyze the system from each perspective (inline, or delegated in parallel per S
 - Observability: metrics, logging, tracing, alerting
 - Failure modes and recovery strategy
 - Capacity planning and scaling approach
-- Incident response — what can be rolled back, what can't
+- Incident response: what can be rolled back, what can't
 
 ### Phase 3: Cross-Cutting Analysis
 
@@ -140,10 +140,10 @@ Combine findings into a unified architecture document:
 ### Phase 5: Implementation Planning
 
 Produce an actionable implementation plan:
-1. **Task breakdown** — ordered list of implementation tasks with dependencies
-2. **Risk-first ordering** — tackle the hardest/riskiest parts first
-3. **Vertical slices** — each task should produce something testable end-to-end
-4. **Test strategy** — what tests are needed at each level (unit, integration, e2e)
+1. **Task breakdown**: ordered list of implementation tasks with dependencies
+2. **Risk-first ordering**: tackle the hardest/riskiest parts first
+3. **Vertical slices**: each task should produce something testable end-to-end
+4. **Test strategy**: what tests are needed at each level (unit, integration, e2e)
 
 ---
 
@@ -177,7 +177,7 @@ For each significant design decision:
 
 These four fields map one-to-one onto an ADR; persist each significant decision as an ADR at `docs/adr/<topic>/<slug>.md` following the `architecture-decision-records` reference.
 
-### Red Flags — Redesign Before Implementing
+### Red Flags: Redesign Before Implementing
 - Component has multiple unrelated responsibilities
 - Circular dependencies between components
 - Design requires coordination between components for basic operations

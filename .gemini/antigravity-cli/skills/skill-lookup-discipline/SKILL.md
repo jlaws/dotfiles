@@ -17,7 +17,7 @@ Invoke relevant skills BEFORE any response or action. Even a 1% chance a skill m
 BEFORE acting on any task:
 1. IDENTIFY: What kind of work is this? (feature, bug, refactor, review, plan, etc.)
 2. CHECK: Scan .agents/skills/ and .agents/references/ for applicable patterns
-3. PRUNE: Keep only the smallest set of skills that covers the task — loading extras dilutes attention
+3. PRUNE: Keep only the smallest set of skills that covers the task - loading extras dilutes attention
 4. LOAD: Invoke matching skills via the Skill tool
 5. THEN: Proceed with the task following loaded skill guidance
 ```
@@ -26,8 +26,8 @@ BEFORE acting on any task:
 
 When multiple skills could apply, use this order:
 
-1. **Process skills first** (design-first, debugging, verification) — these determine HOW to approach the task
-2. **Implementation skills second** (code-quality, code-review-patterns, TDD) — these guide execution
+1. **Process skills first** (design-first, debugging, verification): these determine HOW to approach the task
+2. **Implementation skills second** (code-quality, code-review-patterns, TDD): these guide execution
 
 Examples:
 - "Build feature X" → design-first skill first, then implementation skills
@@ -48,7 +48,7 @@ If the skill contains a checklist or numbered process, create matching todos so 
 
 The skill itself tells you which type it is.
 
-## Red Flags — STOP
+## Red Flags: STOP
 
 These thoughts mean you're rationalizing skipping a skill check:
 

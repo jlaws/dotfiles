@@ -13,7 +13,7 @@ type: reference
 | RLHF/compute pressure | Token cost (~$0.0001/token) creates implicit brevity pressure during training |
 | Training data bias | Stack Overflow/GitHub overrepresents partial code (answers, snippets, not full files) |
 | Output token asymmetry | Models accept ~2M input tokens but generate only ~8K output tokens by default |
-| Cognitive shortcuts | Models deliberately skip "simple" sections — truncation is intentional, not a decoding error |
+| Cognitive shortcuts | Models deliberately skip "simple" sections: truncation is intentional, not a decoding error |
 | Alignment layer | Primary constraint: RLHF reward models penalize verbose outputs even when completeness is needed |
 
 ## Reported Findings
@@ -21,7 +21,7 @@ type: reference
 These come from third-party write-ups, not from measurement in this repo. Treat the effects as real
 and the magnitudes as unverified.
 
-- **Truncation is deliberate**: Not a probabilistic decoding failure — the model makes a purposeful choice to stop
+- **Truncation is deliberate**: Not a probabilistic decoding failure; the model makes a purposeful choice to stop
 - **Stakes framing helps**: prompts that raise the stakes ("your career depends on this") cut truncation; the reported magnitude is not reproduced here
 - **Step-by-step reasoning** improves logic accuracy (the chain-of-thought effect); the size of the gain depends on the model and the task
 - **Seasonal patterns**: Outputs measurably shorter in December (attributed to training data distribution)
@@ -57,9 +57,9 @@ and the magnitudes as unverified.
 
 ## Key Insight
 
-The alignment layer — not architecture — is the primary constraint. Models *can* generate complete outputs; they need explicit permission and structure to do so. The most effective intervention is changing the reward signal in-context: frame completeness as the correct behavior, incompleteness as a failure.
+The alignment layer (not architecture) is the primary constraint. Models *can* generate complete outputs; they need explicit permission and structure to do so. The most effective intervention is changing the reward signal in-context: frame completeness as the correct behavior, incompleteness as a failure.
 
 ## Cross-References
 
-- **workflow:completeness-principle** — project-level completeness standards
-- **workflow:output-completeness** — skill for enforcing complete output in active sessions
+- **workflow:completeness-principle**: project-level completeness standards
+- **workflow:output-completeness**: skill for enforcing complete output in active sessions

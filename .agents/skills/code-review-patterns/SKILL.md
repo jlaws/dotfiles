@@ -67,7 +67,7 @@ Tag a finding `(pre-existing)` when no hunk in the diff introduces it, exposes i
 
 - **Ask questions** instead of stating problems: "What happens if `items` is empty?"
 - **Suggest, don't command**: "Would it make sense to extract this? It appears in 3 places."
-- **Be specific and actionable**: "Race condition when concurrent access — consider a mutex here."
+- **Be specific and actionable**: "Race condition when concurrent access; consider a mutex here."
 
 ### Handling Disagreements
 
@@ -87,7 +87,7 @@ Tag a finding `(pre-existing)` when no hunk in the diff introduces it, exposes i
 | **Rubber stamping** | Approving without reading | Use the phased review process above |
 | **Bike shedding** | Debating trivial choices at length | Time-box; default to author's preference |
 | **Drip-feed comments** | Incomplete feedback across multiple rounds | Give complete feedback in one round; forces thorough upfront analysis |
-| **Gatekeeper framing** | Reviews as compliance gates | Frame as knowledge transfer — every comment should teach something. Mentor, not gatekeeper |
+| **Gatekeeper framing** | Reviews as compliance gates | Frame as knowledge transfer; every comment should teach something. Mentor, not gatekeeper |
 
 ---
 
@@ -114,7 +114,7 @@ RIGHT: "Understand 1,2,3,6. Need clarification on 4 and 5 before proceeding."
 WRONG: Implement 1,2,3,6 now, ask about 4,5 later
 ```
 
-### From External Reviewers — Verify Before Implementing
+### From External Reviewers: Verify Before Implementing
 
 Before implementing: technically correct for THIS codebase? Breaks existing functionality? Reason for current implementation? Works on all platforms? Does reviewer understand full context?
 
@@ -151,40 +151,40 @@ Reply inline in comment threads (`gh api repos/{owner}/{repo}/pulls/{pr}/comment
 
 For large diffs (>500 lines), ensure thorough coverage by analyzing sequentially from each perspective:
 
-1. **Security** — STRIDE analysis, vulnerability patterns, secrets detection, auth gaps
-2. **Code Quality** — Code smells, edge cases, error handling, naming, DRY violations
-3. **Testing** — Coverage gaps, test quality (behavior vs implementation), missing integration tests
-4. **Language-Specific** — Language-specific gotchas, idiom violations, anti-patterns; see [references/language-gotchas.md](references/language-gotchas.md)
+1. **Security**: STRIDE analysis, vulnerability patterns, secrets detection, auth gaps
+2. **Code Quality**: Code smells, edge cases, error handling, naming, DRY violations
+3. **Testing**: Coverage gaps, test quality (behavior vs implementation), missing integration tests
+4. **Language-Specific**: Language-specific gotchas, idiom violations, anti-patterns; see [references/language-gotchas.md](references/language-gotchas.md)
 
 Analyze each perspective independently, then synthesize: deduplicate, resolve contradictions, produce unified findings report.
 
 ## Verdict & Evidence
 
-Conclude every review with one standard verdict — **PASS / CONCERNS / FAIL / BLOCKED** — and tag each finding **P0-P3** (see `verification-before-completion`: Verdict Grammar). Weight findings by the Evidence Hierarchy (reproduced > static-traced > pattern-match) and cite a concrete `file:line` for every one. **BLOCKED means the review could not cover something (tool or coverage limit) — never silently turn it into an approval or a product defect.** Reviewers work under the read-only contract: find and report, do not mutate.
+Conclude every review with one standard verdict (**PASS / CONCERNS / FAIL / BLOCKED**) and tag each finding **P0-P3** (see `verification-before-completion`: Verdict Grammar). Weight findings by the Evidence Hierarchy (reproduced > static-traced > pattern-match) and cite a concrete `file:line` for every one. **BLOCKED means the review could not cover something (tool or coverage limit): never silently turn it into an approval or a product defect.** Reviewers work under the read-only contract: find and report, do not mutate.
 
-## Adversarial Debate Mode (optional — high-risk or high-stakes diffs)
+## Adversarial Debate Mode (optional; high-risk or high-stakes diffs)
 
 For risky changes, run reviewers as a debate instead of a single pass:
 
-1. **Freeze a shared packet** — the diff, the HEAD SHA, and context, identical for every reviewer.
+1. **Freeze a shared packet**: the diff, the HEAD SHA, and context, identical for every reviewer.
 2. **Fan out 2+ independent reviewers, one lens each** (e.g. correctness, security, tests, performance). Keep them **blind to each other** on the first pass. Scale the count to change risk.
-3. **Cross-critique, 1-2 rounds** — broadcast round-1 findings; each reviewer may revise. Any change of position **must state a technical reason** — "good point" is banned.
-4. **Report survivors and disputes** — findings that survive cross-critique are high-confidence; flag unresolved disputes for the human rather than forcing consensus.
+3. **Cross-critique, 1-2 rounds**: broadcast round-1 findings; each reviewer may revise. Any change of position **must state a technical reason**; "good point" is banned.
+4. **Report survivors and disputes**: findings that survive cross-critique are high-confidence; flag unresolved disputes for the human rather than forcing consensus.
 
 Every finding cites `file:line`. Run this with the harness Workflow / `deep-research` primitives (independent subagents plus adversarial verification) rather than re-implementing orchestration here.
 
 ## Cross-References
 
 Load these skills if the review scope requires them:
-- `workflow:code-quality` — if detecting code smells or anti-patterns not covered above
-- `security:security-analysis` — if the diff touches auth, crypto, network, or trust boundaries
-- `security:auth-implementation-patterns` — if reviewing auth/authz logic specifically
-- `security:secrets-management` — if the diff contains credentials, tokens, or env var handling
-- `testing:language-testing-patterns` — if assessing test coverage or test quality
-- `testing:test-driven-development` — if evaluating test design or TDD compliance
-- `workflow:verification-before-completion` — if implementing fixes discovered during review
-- `workflow:pr-comment-resolution` — if responding to reviewer feedback on your own PR
-- `languages:*-patterns` — load the language-specific skill matching the primary language in the diff
-- `workflow:documentation-validation` — if the diff changes public surface or documented behavior and docs may be stale
+- `workflow:code-quality`: if detecting code smells or anti-patterns not covered above
+- `security:security-analysis`: if the diff touches auth, crypto, network, or trust boundaries
+- `security:auth-implementation-patterns`: if reviewing auth/authz logic specifically
+- `security:secrets-management`: if the diff contains credentials, tokens, or env var handling
+- `testing:language-testing-patterns`: if assessing test coverage or test quality
+- `testing:test-driven-development`: if evaluating test design or TDD compliance
+- `workflow:verification-before-completion`: if implementing fixes discovered during review
+- `workflow:pr-comment-resolution`: if responding to reviewer feedback on your own PR
+- `languages:*-patterns`: load the language-specific skill matching the primary language in the diff
+- `workflow:documentation-validation`: if the diff changes public surface or documented behavior and docs may be stale
 
 If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `references/workflow/review-checklists` for domain-specific checklists.

@@ -6,7 +6,7 @@ description: "Use when starting a task that may match an existing skill."
 # Skill-Lookup Discipline
 
 Check for an applicable skill before acting, not after. A skill exists because someone already hit the
-problem and wrote down what worked — finding it afterward means redoing that work, and the rework costs
+problem and wrote down what worked; finding it afterward means redoing that work, and the rework costs
 far more than the check.
 
 Check even when a match seems unlikely. Reading a skill and deciding it does not fit is cheap; the
@@ -41,7 +41,7 @@ gets dropped.
 
 ## How closely to follow a skill
 
-Some skills encode a discipline where the sequence is the point — TDD's write-the-test-first,
+Some skills encode a discipline where the sequence is the point: TDD's write-the-test-first,
 `debugging-methodology`'s find-the-cause-before-fixing. Departing from the sequence discards the thing
 that makes it work, so if you think you should, say why rather than doing it quietly.
 

@@ -57,7 +57,7 @@ One shape for every log line, so queries work across services:
 | `error.type`, `error.message`, `error.stack` | Nested so the fields stay queryable |
 | `context` | Everything task-specific, namespaced under one key |
 
-Inject `trace_id` into every line rather than logging it separately — see
+Inject `trace_id` into every line rather than logging it separately: see
 `devops/observability.md` for the tracing side.
 
 ## Correlation ID Pattern
@@ -147,4 +147,4 @@ def fingerprint(error_type: str, message: str, top_frame: str) -> str:
 Order matters: normalize UUIDs and addresses before the bare-number pass, or the digits inside them
 get replaced first and the groups split anyway.
 
-Sentry does this natively — hand-roll it only when aggregating logs yourself.
+Sentry does this natively: hand-roll it only when aggregating logs yourself.

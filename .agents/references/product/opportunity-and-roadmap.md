@@ -7,7 +7,7 @@ Score = (Reach × Impact × Confidence) / Effort
 | Dimension | 1 | 2 | 3 | 4 | 5 |
 |-----------|---|---|---|---|---|
 | **Reach** | <100 users/quarter | 100-500 | 500-2K | 2K-10K | >10K |
-| **Impact** | Minimal improvement | Minor improvement | Moderate — notable UX gain | High — solves key pain | Massive — unlocks new segment |
+| **Impact** | Minimal improvement | Minor improvement | Moderate (notable UX gain) | High (solves key pain) | Massive (unlocks new segment) |
 | **Confidence** | Gut feel only | Anecdotal feedback | Survey/interview data | A/B test or prototype data | Production data proves it |
 | **Effort** | >3 months | 2-3 months | 1-2 months | 2-4 weeks | <2 weeks |
 
@@ -24,14 +24,14 @@ Score = (Reach × Impact × Confidence) / Effort
 
 | Tier | Timeframe | Required Artifact | Commitment Level |
 |------|-----------|-------------------|------------------|
-| **Now** | This sprint/month | Full PRD + acceptance criteria | Committed — staffed and in progress |
-| **Next** | Next quarter | Problem statement + evidence + RICE score | Planned — scoped but not started |
-| **Later** | Backlog | 1-line description | Aspirational — revisit quarterly |
+| **Now** | This sprint/month | Full PRD + acceptance criteria | Committed (staffed and in progress) |
+| **Next** | Next quarter | Problem statement + evidence + RICE score | Planned (scoped but not started) |
+| **Later** | Backlog | 1-line description | Aspirational (revisit quarterly) |
 
 **Rules:**
 - Now items cannot exceed team capacity (WIP limit)
 - Moving from Next → Now requires a PRD
-- Later items are culled quarterly — delete anything with no champion
+- Later items are culled quarterly: delete anything with no champion
 - Stakeholders can see all tiers; only Now is a promise
 
 ## North Star Metric

@@ -17,7 +17,7 @@ Only rules linters/formatters cannot enforce.
 - `CONSTANT_CASE` only for deeply immutable module-level values, not local `const`
 
 ### Practices
-- Named exports only — no default exports
+- Named exports only: no default exports
 - Prefer `interface` over `type` for object shapes
 - Avoid type assertions (`as`); use runtime checks
 - Catch errors as `unknown`, assert `Error` type

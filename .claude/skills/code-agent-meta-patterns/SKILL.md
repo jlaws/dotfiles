@@ -12,7 +12,7 @@ Mechanics of the harness that are easy to get wrong, and the conventions this re
 | Include | Leave out |
 |---------|-----------|
 | Project conventions a reader could not guess | Anything a strong model already knows |
-| Build, test, and lint commands | API documentation — link to it |
+| Build, test, and lint commands | API documentation (link to it) |
 | Architecture decisions and their rationale | Content already in `package.json` or `pyproject.toml` |
 | A file and directory purpose map | Copy-pasted README |
 | Non-obvious constraints and real footguns | Instructions that change week to week |
@@ -59,13 +59,13 @@ Skill frontmatter offers two more levers: `paths` glob-gates a skill to matching
 ## Command design
 
 Commands route; skills hold the logic. A command gathers context, then invokes a skill or delegates to
-an agent. When a command starts explaining *how* to do the thing, that content belongs in a skill —
+an agent. When a command starts explaining *how* to do the thing, that content belongs in a skill;
 otherwise it is duplicated wherever else the skill applies.
 
 `$ARGUMENTS` passes user context through. Declare `argument-hint` whenever a command reads it, so
 autocomplete tells the user what to type.
 
-Skill authoring conventions — frontmatter, descriptions, structure, testing — live in the
+Skill authoring conventions (frontmatter, descriptions, structure, testing) live in the
 `writing-skills` skill rather than here.
 
 ## Hooks
@@ -99,7 +99,7 @@ overrides allow; `settings.local.json` holds personal overrides that should not 
 
 ## Delegation
 
-Delegate work that is genuinely independent and large enough to be worth a separate context — a wide
+Delegate work that is genuinely independent and large enough to be worth a separate context: a wide
 multi-file investigation, several unrelated tracks that can run at once. Work you could finish in a few
 tool calls costs more to delegate than to do.
 

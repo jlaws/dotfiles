@@ -36,8 +36,8 @@ Track each as PASS / WARN / FAIL. Report actual values (redacted) on failure. Ex
 
 | # | Check |
 |---|-------|
-| PERM-1 | `settings.json` permission allow-lists are least-privilege — flag wildcard `Bash(*)` or blanket allow-all |
-| PERM-2 | Agent `tools:` fields grant only what the role needs — flag write/exec tools on read-only reviewer/audit agents |
+| PERM-1 | `settings.json` permission allow-lists are least-privilege: flag wildcard `Bash(*)` or blanket allow-all |
+| PERM-2 | Agent `tools:` fields grant only what the role needs: flag write/exec tools on read-only reviewer/audit agents |
 | PERM-3 | Hook allow-lists and `.codex/rules/default.rules` do not auto-approve destructive ops (`rm -rf`, force-push, curl-to-shell) |
 | PERM-4 | No hook or command runs `eval` or pipes remote content straight to a shell |
 
@@ -54,7 +54,7 @@ Track each as PASS / WARN / FAIL. Report actual values (redacted) on failure. Ex
 
 1. Enumerate the scope files (Glob per tree), and record any you could not read.
 2. Run the checks (Grep patterns for A and B; read prose for C).
-3. Report grouped by severity; redact any secret you surface — show only the match location and type, never the value.
+3. Report grouped by severity; redact any secret you surface: show only the match location and type, never the value.
 4. Exit non-zero if any CRITICAL finding exists (a leaked secret or a destructive auto-approve).
 
 ## Report
@@ -70,11 +70,11 @@ Injection:    {n} checks | {pass} pass | {warn} warn | {fail} fail
 Result: PASS | CONCERNS | FAIL | BLOCKED   (FAIL exits non-zero; BLOCKED when a scope path was unreadable)
 ```
 
-List each finding as `[SEVERITY] CHECK-ID: file:line — what (redacted)`.
+List each finding as `[SEVERITY] CHECK-ID: file:line - what (redacted)`.
 
 ## Cross-References
 
-- `skill-audit` — conformance/structure audit; run alongside, this is the security lens
-- `security-analysis` — STRIDE + SAST for application code
-- `references/security/secrets-management` — secret-handling patterns
-- `verification-before-completion` — verdict grammar (PASS/CONCERNS/FAIL/BLOCKED), read-only contract
+- `skill-audit`: conformance/structure audit; run alongside, this is the security lens
+- `security-analysis`: STRIDE + SAST for application code
+- `references/security/secrets-management`: secret-handling patterns
+- `verification-before-completion`: verdict grammar (PASS/CONCERNS/FAIL/BLOCKED), read-only contract

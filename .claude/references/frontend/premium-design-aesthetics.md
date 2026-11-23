@@ -1,6 +1,6 @@
 ---
 name: premium-design-aesthetics
-description: "Opinionated rules for premium UI design — banned fonts, color constraints, layout anti-patterns, and AI fingerprints to eliminate. Load when building or auditing UIs for quality."
+description: "Opinionated rules for premium UI design: banned fonts, color constraints, layout anti-patterns, and AI fingerprints to eliminate. Load when building or auditing UIs for quality."
 type: reference
 ---
 
@@ -23,9 +23,9 @@ Name the surface mode before applying any rule here:
 
 | Rule | Detail |
 |------|--------|
-| **Banned for premium contexts** | Inter, Roboto — too generic, AI default fingerprint |
+| **Banned for premium contexts** | Inter, Roboto (too generic, AI default fingerprint) |
 | **Choosing a face** | Pick from the subject's world and name the reason; a fixed favorites list becomes the next fingerprint |
-| **Body text** | Off-black only: `#111111` or `#2F3437` — never pure `#000000` |
+| **Body text** | Off-black only: `#111111` or `#2F3437` (never pure `#000000`) |
 | **Weight discipline** | Limit to 2 weights per component; avoid weight mixing for hierarchy |
 
 ## Color
@@ -34,7 +34,7 @@ Name the surface mode before applying any rule here:
 |------|--------|
 | **Accent saturation** | Single accent color, <80% saturation |
 | **Backgrounds** | Warm neutrals: `#F9FAFB` (off-white) or `#FFFFFF`; never pure gray |
-| **Body text** | `#111111` or `#2F3437` — off-black, not pure black |
+| **Body text** | `#111111` or `#2F3437` (off-black, not pure black) |
 | **Banned palettes** | Purple/neon gradients (AI fingerprint), equal blue/purple duotones |
 | **Gradient discipline** | Subtle background gradients OK; gradient cards and gradient buttons = AI fingerprint |
 
@@ -60,7 +60,7 @@ All interactive components **must implement** all four states. Omitting any = br
 
 | State | Requirement |
 |-------|-------------|
-| Loading | Skeleton or spinner — never blank |
+| Loading | Skeleton or spinner (never blank) |
 | Empty | Illustrated empty state with CTA |
 | Error | Inline error with recovery action |
 | Success | Confirmation feedback (toast, inline, or animation) |
@@ -70,7 +70,7 @@ All interactive components **must implement** all four states. Omitting any = br
 | Rule | Detail |
 |------|--------|
 | **Physics model** | Spring animations only: `stiffness: 100, damping: 20` |
-| **GPU-safe properties** | Only animate `transform` and `opacity` — never `width`, `height`, `top`, `left` |
+| **GPU-safe properties** | Only animate `transform` and `opacity`: never `width`, `height`, `top`, `left` |
 | **Duration** | 150–300ms for micro-interactions; 400–600ms for page transitions |
 | **Banned** | Circular spinners (AI fingerprint), bounce easing on non-playful UIs, CSS `transition: all` |
 
@@ -113,6 +113,6 @@ Run this before shipping any UI, relaxing the items the Scope table relaxes for 
 
 ## Cross-References
 
-- **frontend:design-system-patterns** — token hierarchy, component APIs, headless libraries
-- **frontend:tailwind-design-system** — Tailwind-specific implementation of these constraints
-- **frontend:web-animation-patterns** — spring animation implementation with Framer Motion / CSS
+- **frontend:design-system-patterns**: token hierarchy, component APIs, headless libraries
+- **frontend:tailwind-design-system**: Tailwind-specific implementation of these constraints
+- **frontend:web-animation-patterns**: spring animation implementation with Framer Motion / CSS

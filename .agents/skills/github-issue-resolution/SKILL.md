@@ -100,7 +100,7 @@ gh issue close ${ISSUE_NUMBER} --comment "Resolved via #${PR_NUMBER}"
 
 **Trigger:** "Fix bug from GitHub issue #42"
 **Action:** Fetch issue details, reproduce the bug, implement fix, add tests, open PR referencing #42
-**Result:** PR created with `Fixes #42` — issue auto-closes on merge
+**Result:** PR created with `Fixes #42`; issue auto-closes on merge
 
 ## Delivery Checklist
 
@@ -110,7 +110,7 @@ gh issue close ${ISSUE_NUMBER} --comment "Resolved via #${PR_NUMBER}"
 4. Pull request with issue linking
 5. Verification steps for reviewers
 6. Rollback plan
-7. Documentation validated — product docs and any KB self-docs current, or N/A with reason (see `documentation-validation`)
+7. Documentation validated: product docs and any KB self-docs current, or N/A with reason (see `documentation-validation`)
 
 ## Integration
 

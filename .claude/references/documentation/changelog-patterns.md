@@ -23,7 +23,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - Default timeout increased from 10s to 30s
 
 ### Deprecated
-- `client.widgets.poll()` — use `stream()` instead, removal in v3.0
+- `client.widgets.poll()` - use `stream()` instead, removal in v3.0
 
 ### Fixed
 - Race condition when creating multiple widgets simultaneously (#234)

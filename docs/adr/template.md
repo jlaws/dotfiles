@@ -30,7 +30,7 @@ We will use **[choice]**.
 
 ## Enforcement
 - Owner: `path/to/the/file/this/decision/governs`
-- Pinned by: `tests/test_x.py::test_y`, or "nothing — convention only"
+- Pinned by: `tests/test_x.py::test_y`, or "nothing: convention only"
 
 ## Reversal Conditions
 [What would have to become true for this decision to be revisited. Concrete enough that a future

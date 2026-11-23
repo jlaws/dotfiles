@@ -11,8 +11,8 @@ Only rules linters/formatters cannot enforce.
 - Avoid single-char names except counters (`i`, `j`), exceptions (`e`), file handles (`f`)
 - Names describe purpose, not type: `user_list` not `l`, `count` not `n`
 - Boolean variables/functions: `is_`, `has_`, `can_`, `should_` prefix
-- Avoid generic names: `data`, `info`, `temp`, `val` — be specific
-- Module names: short, lowercase, no dashes — `utilities` not `my-utils`
+- Avoid generic names: `data`, `info`, `temp`, `val`; be specific
+- Module names: short, lowercase, no dashes: `utilities` not `my-utils`
 
 ### Docstrings
 - Google-style with `Args:`/`Returns:`/`Raises:` sections
@@ -20,7 +20,7 @@ Only rules linters/formatters cannot enforce.
 
 ### Practices
 - No mutable default args; use `None` + assign inside
-- No `assert` for validation — use `raise ValueError`
+- No `assert` for validation: use `raise ValueError`
 - Logging: `%` formatting not f-strings (`logger.info('Val: %s', val)`)
 - Comprehensions: simple only, no multiple `for` clauses
 - Lambda: one-liners only, prefer named functions
@@ -104,5 +104,5 @@ twine upload dist/*
 
 ## References
 
-- `references/ai-ml/jax-patterns.md` — JAX-specific Python patterns
-- `references/data/spark-optimization.md` — PySpark optimization patterns
+- `references/ai-ml/jax-patterns.md`: JAX-specific Python patterns
+- `references/data/spark-optimization.md`: PySpark optimization patterns

@@ -1,6 +1,6 @@
 ---
 name: j-execute-plan
-description: "Execute a written implementation plan task-by-task with verification gates — inline batches or a fresh subagent per task, picked from the plan; each PR boundary closes with /j-diff-review, which opens the PR. Use when you have a saved plan ready to implement. Do NOT use for creating the plan (use /j-plan) or ad-hoc changes without a plan."
+description: "Execute a written implementation plan task-by-task with verification gates: inline batches or a fresh subagent per task, picked from the plan; each PR boundary closes with /j-diff-review, which opens the PR. Use when you have a saved plan ready to implement. Do NOT use for creating the plan (use /j-plan) or ad-hoc changes without a plan."
 argument-hint: "<path to plan file>"
 ---
 
@@ -18,4 +18,4 @@ Each PR boundary ends with /j-diff-review (`executing-plans`, Step 5). It fixes 
 
 Plan file: $ARGUMENTS
 
-If no path provided, use the plan file that plan mode assigned this session. Outside plan mode, check `~/.claude/plans/` for entries prefixed with this repo's name — that directory is shared across every project, so a plan from another repo is not a candidate. Ask if more than one fits.
+If no path provided, use the plan file that plan mode assigned this session. Outside plan mode, check `~/.claude/plans/` for entries prefixed with this repo's name; that directory is shared across every project, so a plan from another repo is not a candidate. Ask if more than one fits.

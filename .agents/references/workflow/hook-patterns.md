@@ -2,7 +2,7 @@
 
 Reference for Claude Code hook configuration patterns. Hooks run shell commands at specific lifecycle points, enabling automated validation, formatting, and guardrails.
 
-> **Note:** Hook `"command"` values are shell commands executed outside the Bash tool — they run as regular shell scripts. The "no compound commands" rule applies to Bash tool calls only, not to hook shell commands. However, prefer simple, focused hook commands where possible.
+> **Note:** Hook `"command"` values are shell commands executed outside the Bash tool; they run as regular shell scripts. The "no compound commands" rule applies to Bash tool calls only, not to hook shell commands. However, prefer simple, focused hook commands where possible.
 
 ## Hook Lifecycle Points
 
@@ -80,7 +80,7 @@ claiming a hook it cannot honor, and say which kind of evidence you have.
 | exit 0, no `permissionDecision` | Advisory only. Normal permission flow applies, the command runs unchanged |
 | exit 0 + `systemMessage` / `additionalContext` | The model sees the message; the command still runs |
 | `permissionDecision: "deny"` + `permissionDecisionReason` | Blocks the call, reason shown to the model |
-| exit 2 | Blocks the call regardless of JSON — this is why the blocking examples below `exit 2`, not `exit 1` |
+| exit 2 | Blocks the call regardless of JSON; this is why the blocking examples below `exit 2`, not `exit 1` |
 | `updatedInput` | Rewrites the tool input. Avoid: it puts a lossy layer between the agent and its evidence |
 
 A hook that only ever emits a message and exits 0 is advisory by construction; see `### Failure
@@ -180,11 +180,11 @@ Direction by Component` below.
 
 ## Design Principles
 
-- **Fast** — Hooks should complete in <5s; slow hooks degrade the workflow
-- **Loud failures** — Exit non-zero with a clear error message to block the action
-- **Narrow scope** — Use matchers to avoid running on every tool call
-- **Idempotent** — Hooks may fire multiple times; ensure safe re-runs
-- **Test manually first** — Run the hook command by hand before configuring
+- **Fast**: Hooks should complete in <5s; slow hooks degrade the workflow
+- **Loud failures**: Exit non-zero with a clear error message to block the action
+- **Narrow scope**: Use matchers to avoid running on every tool call
+- **Idempotent**: Hooks may fire multiple times; ensure safe re-runs
+- **Test manually first**: Run the hook command by hand before configuring
 - **Hooks enforce; prose advises**: skills and CLAUDE.md are advisory. A rule that must hold needs a hook, or a test or review check where no hook exists
 
 ## Troubleshooting
@@ -224,10 +224,10 @@ A PreToolUse gate can classify an action into three tiers instead of a binary al
 
 ### Failure Direction by Component
 
-A hook that filters or transforms tool content (not a safety gate) MUST pass content through unchanged if it errors — never block or corrupt the workflow because a formatter crashed. Safety gates are the opposite: fail closed (block on error).
+A hook that filters or transforms tool content (not a safety gate) MUST pass content through unchanged if it errors: never block or corrupt the workflow because a formatter crashed. Safety gates are the opposite: fail closed (block on error).
 
 **Detectors fail neutral, not open.** The rule above is for transforms, which have a correct
-inert behavior: emit the input. A detector — "is this an error?", "is this content important?" —
+inert behavior: emit the input. A detector ("is this an error?", "is this content important?")
 has no such fallback, and failing open means fabricating a low-confidence positive that downstream
 logic then trusts. A detector with no information MUST return neutral and say so.
 
@@ -236,11 +236,11 @@ directions, so the row is chosen by what the component is *for*:
 
 | Component | On error / no information |
 |-----------|---------------------------|
-| Transform that is not itself a control | Fail **open** — pass the content through unchanged |
-| Transform that *is* a control — redaction, scrubbing, sanitizing | Fail **closed**. A redactor that fails open emits the secret it exists to remove |
-| Safety gate | Fail **closed** — block |
-| Detector whose output feeds a safety gate | Fail **closed** — it inherits the gate's direction, because there the expensive error is the false negative |
-| Detector feeding anything else | Fail **neutral** — report no signal, never a weak positive |
+| Transform that is not itself a control | Fail **open** (pass the content through unchanged) |
+| Transform that *is* a control: redaction, scrubbing, sanitizing | Fail **closed**. A redactor that fails open emits the secret it exists to remove |
+| Safety gate | Fail **closed** (block) |
+| Detector whose output feeds a safety gate | Fail **closed** (it inherits the gate's direction, because there the expensive error is the false negative) |
+| Detector feeding anything else | Fail **neutral** (report no signal, never a weak positive) |
 
 The middle two rows are the ones that get misread. A secret-redacting `PostToolUse` hook is a
 transform by shape and a control by function, and the tiered gate above is a detector feeding a
@@ -248,9 +248,9 @@ gate: "neutral" there means the dangerous command is allowed.
 
 ### PreCompact Snapshot
 
-A `PreCompact` hook can write current task, open files, and next step to a scratch file, and a `SessionStart` hook can read it back — enforcing the Context Preservation rule mechanically instead of relying on the model to remember.
+A `PreCompact` hook can write current task, open files, and next step to a scratch file, and a `SessionStart` hook can read it back: enforcing the Context Preservation rule mechanically instead of relying on the model to remember.
 
 ## Cross-References
 
-- **reference:permission-management** — settings hierarchy and permission patterns
-- **skill:code-agent-meta-patterns** — broader CLAUDE.md and agent configuration
+- **reference:permission-management**: settings hierarchy and permission patterns
+- **skill:code-agent-meta-patterns**: broader CLAUDE.md and agent configuration

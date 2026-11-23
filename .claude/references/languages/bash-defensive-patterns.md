@@ -7,7 +7,7 @@ Non-obvious safety patterns for production Bash scripts.
 Only rules linters/formatters cannot enforce.
 
 ### Naming
-- Functions: `lower_with_under()` — descriptive verb phrases (`check_deps`, `parse_args`)
+- Functions: `lower_with_under()`: descriptive verb phrases (`check_deps`, `parse_args`)
 - Local variables: `lower_with_under`
 - Constants/env vars: `UPPER_WITH_UNDER`
 - Source filenames: `lower_with_under.sh`

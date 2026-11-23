@@ -30,7 +30,7 @@ Enumerate all assets by type:
 
 For each asset, record: type, category, name, file path, any supporting files.
 
-**Multi-tree scope.** Audit shared workflows and references in `.agents/`, their Claude copies, and each tool's native agents and commands. Shared workflow bodies duplicated in `.claude/` should differ only by supported frontmatter. Reference bodies are held to section parity, not byte parity — see docs/adr/workflow/reference-tree-section-parity.md. Every `cmd-j-*` skill must have Claude, Codex, and Gemini command counterparts. Native agent name sets must match across the three tools.
+**Multi-tree scope.** Audit shared workflows and references in `.agents/`, their Claude copies, and each tool's native agents and commands. Shared workflow bodies duplicated in `.claude/` should differ only by supported frontmatter. Reference bodies are held to section parity, not byte parity; see docs/adr/workflow/reference-tree-section-parity.md. Every `cmd-j-*` skill must have Claude, Codex, and Gemini command counterparts. Native agent name sets must match across the three tools.
 
 ## Phase 2: Automated Checks
 
@@ -177,7 +177,7 @@ For each `.md` file under `.claude/references/`:
 |---|-------|-----|------|
 | CF-C1 | `.claude/CLAUDE.md` exists | FAIL | Required config |
 | CF-C2 | Has at least one heading | WARN | Should be structured |
-| CF-C3 | Under 10,000 words | WARN | Token budget — large files waste context |
+| CF-C3 | Under 10,000 words | WARN | Token budget; large files waste context |
 
 **Settings**
 
@@ -207,8 +207,8 @@ Verify links between assets resolve:
 | # | Check | Sev | Rule |
 |---|-------|-----|------|
 | DOC-1 | Parity: shared workflow/reference bodies match Claude copies; every `cmd-j-*` has three native command counterparts; native agent name sets match | WARN | Drift means one tool's assets are stale |
-| DOC-2 | Description reflects behavior — the `description` still matches what the body does after edits (no stale/misleading trigger) | WARN | Stale description misroutes invocation |
-| DOC-3 | Registration — a new or renamed asset lives in a directory the harness config lists (`.claude/CLAUDE.md` Knowledge base, `.gemini/GEMINI.md` Knowledge Base Structure) (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
+| DOC-2 | Description reflects behavior: the `description` still matches what the body does after edits (no stale/misleading trigger) | WARN | Stale description misroutes invocation |
+| DOC-3 | Registration: a new or renamed asset lives in a directory the harness config lists (`.claude/CLAUDE.md` Knowledge base, `.gemini/GEMINI.md` Knowledge Base Structure) (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
 
 ## Phase 2H: Adoption (by hand, on request)
 
@@ -265,10 +265,10 @@ Total:      {N} checks   |  {P} pass     |  {W} warn     |  {F} fail
 
 ## Commands
 ### {command-name}
-- [FAIL] CM-C3: References skill "nonexistent" — not found
+- [FAIL] CM-C3: References skill "nonexistent" - not found
 
 ## Cross-References
-- [FAIL] XR-1: Agent "ml-engineer" → skill "ai-ml/training" — not found
+- [FAIL] XR-1: Agent "ml-engineer" → skill "ai-ml/training" - not found
 ```
 
 ### Warnings Only
@@ -287,7 +287,7 @@ References: auth-implementation-patterns, ...
 
 ## Health Score (qualitative)
 
-Beyond PASS/WARN/FAIL, rate the KB on five axes and name the weakest — that is where to invest next.
+Beyond PASS/WARN/FAIL, rate the KB on five axes and name the weakest; that is where to invest next.
 
 | Axis | Question |
 |------|----------|
@@ -297,7 +297,7 @@ Beyond PASS/WARN/FAIL, rate the KB on five axes and name the weakest — that is
 | Structure | Frontmatter valid, cross-references resolve, naming conventions hold, within line budgets? |
 | Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number left out of the asset, with its source credited in `REFERENCES.md`? Is a counterfactual saving labelled an estimate? Is behavior shipped on a hunch labelled speculative? |
 
-**Documentation currency:** mirror parity across trees and description-behavior match are part of freshness — see checks DOC-1..3.
+**Documentation currency:** mirror parity across trees and description-behavior match are part of freshness; see checks DOC-1..3.
 
 **Evidence rule:** the axis covers four failure shapes, not one. A number with no provenance. A
 *counterfactual* saving -- "this saved N tokens" about work never done the other way -- stated as
@@ -306,9 +306,9 @@ image, a rule the repo advertises that nothing enforces. And a best-case figure 
 general one beside it. Full rules in `writing-skills`, Claims and evidence; this axis is where they
 get checked.
 
-**Groundedness rule:** prefer concrete file paths and repo-specific examples over generic advice — a skill that could apply to any repo teaches little about this one. Flag generic-only skills for grounding.
+**Groundedness rule:** prefer concrete file paths and repo-specific examples over generic advice; a skill that could apply to any repo teaches little about this one. Flag generic-only skills for grounding.
 
-**Staleness:** an asset never referenced by any agent, command, or config across all trees is a removal/merge candidate — report it.
+**Staleness:** an asset never referenced by any agent, command, or config across all trees is a removal/merge candidate; report it.
 
 ## Execution Notes
 

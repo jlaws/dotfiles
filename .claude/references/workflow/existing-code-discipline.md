@@ -6,7 +6,7 @@ Rules for working within an existing codebase. Complements code-quality (smells/
 ## Match Existing Patterns
 
 - **Never introduce a new pattern** alongside an existing one without explicitly flagging the inconsistency
-- If the codebase uses pattern A for X, use pattern A — even if you prefer pattern B
+- If the codebase uses pattern A for X, use pattern A: even if you prefer pattern B
 - If you believe a pattern should change, propose the migration as a separate task
 - **Check current docs for version-sensitive code** - before writing framework- or library-specific code, read the pinned version from the dependency file and the official docs page for that API at that version, not memory. Cite the page. Mark what the docs do not cover `UNVERIFIED`. When the docs and the existing code disagree, follow the code and flag the conflict.
 
@@ -23,7 +23,7 @@ Code may be used in ways not visible through static analysis:
 ## Separate Refactoring from Features
 
 - Different commits minimum, different branches preferred
-- Never mix behavior changes with structural changes — reviewers can't tell what's intentional
+- Never mix behavior changes with structural changes; reviewers can't tell what's intentional
 - Refactoring should be verifiable independently (tests still pass, behavior unchanged)
 
 ## Surface Hidden Assumptions
@@ -36,18 +36,18 @@ Watch for and document when you encounter:
 
 ## State Your Assumptions
 
-State them numbered and falsifiable — something a reader can check and call wrong. "Inputs are under
+State them numbered and falsifiable: something a reader can check and call wrong. "Inputs are under
 10k rows and fit in memory" is an assumption. "The code should be maintainable" is not.
 
 Cover whichever rows the work actually touches:
 
 - **Data:** shape, volume, trust level, encoding, and what a malformed input looks like
-- **Failure:** what happens on timeout, partial write, or a downstream 500 — retry, fail loud, or degrade
+- **Failure:** what happens on timeout, partial write, or a downstream 500 (retry, fail loud, or degrade)
 - **Boundaries:** who calls this, what is public API versus internal, what backwards-compat it owes
 - **State:** concurrency, idempotency, transactionality, ordering guarantees
 - **Environment:** runtime version, where it deploys, what it is allowed to reach
 - **Scope:** what you are deliberately not doing, and what you are leaving as a TODO
 - **Testing:** what you will cover, and what you will leave uncovered
 
-Auth, money, migrations, and deletion get more suspicion than the rest — there, be more skeptical of
+Auth, money, migrations, and deletion get more suspicion than the rest; there, be more skeptical of
 your own assumptions than the work seems to warrant.

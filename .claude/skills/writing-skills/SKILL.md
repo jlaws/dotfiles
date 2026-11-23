@@ -16,7 +16,7 @@ tools. A parity test, where the repo has one, pins which skills exist in each, n
 
 Keep a section only if it passes one of these:
 
-- The model would get it wrong or vague from memory — version-gated behavior, a non-obvious default
+- The model would get it wrong or vague from memory: version-gated behavior, a non-obvious default
 - It is a number or threshold with provenance, not a guess
 - It is an opinionated choice that closes a decision the model would otherwise re-litigate
 - It is specific to this repo: a real path, a real gotcha, a real convention
@@ -42,14 +42,14 @@ Distinguish a claim from a target. "min 80% coverage" is a gate and needs no pro
 2-3x" is a claim and does.
 
 Say when a practice loses, not only when it wins. A rule with no stated cost reads as free, and the
-reader stops looking for the cost. Where a technique has fixed overhead — a skill body preloaded on
-every dispatch, a subagent's dispatch cost — say at what size the overhead exceeds the benefit.
+reader stops looking for the cost. Where a technique has fixed overhead: a skill body preloaded on
+every dispatch, a subagent's dispatch cost: say at what size the overhead exceeds the benefit.
 
 Numbers from a third party are that party's claim, not yours. Leave them out of the asset: state the
 rule, mark it "reported elsewhere, unmeasured here" where the reader needs to know, and credit the
 source in `REFERENCES.md`.
 
-**A counterfactual is not a measurement.** "This saved N tokens" about work you did is unknowable —
+**A counterfactual is not a measurement.** "This saved N tokens" about work you did is unknowable;
 the unwritten version was never written, so there is no baseline to subtract from. Either run a
 holdout (leave a fraction of the work unshaped and compare) or label the figure an estimate and give
 its range. Naming a saving you cannot have observed is the most common way a real technique acquires
@@ -62,18 +62,18 @@ it is more trustworthy than one without, and a reader who finds the objection el
 discount everything around it.
 
 **Retract in place.** A figure that stops reproducing gets struck where it was published, with what
-replaced it — not quietly deleted. Deleting it hides that it was ever believed, which is the thing a
+replaced it: not quietly deleted. Deleting it hides that it was ever believed, which is the thing a
 later reader most needs to know.
 
 **A feature is a claim too.** Behavior shipped on a hunch carries the same burden as a number:
 either evidence that it fires, or the label. Say it is speculative and say what would retire the
-label. The opposite failure is worse and quieter — a rule the repo advertises but nothing enforces.
+label. The opposite failure is worse and quieter: a rule the repo advertises but nothing enforces.
 
 **Cherry-picking is only dishonest when it is silent.** A best-case example is a fair answer to
 "what does this look like when it works", provided the general number sits next to it.
 
 **If you do build a measurement, two things make it defensible.** Include cases where the technique
-should *not* win, and fail loudly if it starts claiming a win there — a suite of only favourable
+should *not* win, and fail loudly if it starts claiming a win there; a suite of only favourable
 inputs proves the fixtures were chosen well, not that the technique works. And compare against a
 *length-matched naive control*: for a compressor, plain truncation to the same output size. Beating
 nothing is easy; beating the dumbest thing that produces the same volume is the real question.
@@ -95,7 +95,7 @@ skill also forbids noticing. Say what you want and why it matters.
 **Create when** the technique was not obvious, it is reusable, and someone else would benefit.
 
 **Do not create for** one-off solutions, well-documented standard practice, project conventions
-(those go in CLAUDE.md), or anything a script can enforce — automate those instead.
+(those go in CLAUDE.md), or anything a script can enforce: automate those instead.
 
 ## Structure
 
@@ -111,7 +111,7 @@ Split a file out when it is heavy reference or a reusable tool. Keep the rest in
 A pointer says when to load the file: "Read `references/CLAUDE_MD_TESTING.md` when an agent read the
 skill and still chose wrong", not "see references/".
 
-**For mechanical steps — validation, formatting, deterministic checks — ship a script and call it.**
+**For mechanical steps (validation, formatting, deterministic checks) ship a script and call it.**
 Reserve the model for judgment. A prose checklist of things a script could verify is both longer and
 less reliable. List a script's dependencies; do not assume they are installed.
 
@@ -163,7 +163,7 @@ description: Use when executing implementation plans with independent tasks
 - Prefer concrete triggers over language-specific ones.
 
 **Cross-references:** name the skill in prose (`use the code-review-patterns skill`). Never use `@`
-links — they force-load and burn context.
+links; they force-load and burn context.
 
 ## Flowcharts
 

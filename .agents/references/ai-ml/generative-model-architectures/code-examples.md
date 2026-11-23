@@ -1,4 +1,4 @@
-# Generative Model Architectures — Code Reference
+# Generative Model Architectures: Code Reference
 
 ## Diffusion Training Loop (DDPM, Epsilon Prediction)
 

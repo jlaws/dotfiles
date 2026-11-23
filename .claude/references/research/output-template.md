@@ -23,12 +23,12 @@ Create a file named `{paper-short-title}.md`. Use this template:
 |----------|------|
 | Paper page | {arxiv abs, conference page, or publisher URL} |
 | PDF | {direct PDF link} |
-| Official code | {repository URL — or "Not available"} |
-| PapersWithCode | {PapersWithCode URL — or "None found"} |
-| Community implementations | {URLs with framework noted — or "None found"} |
-| Video / Talk | {URL — or "None found"} |
-| Blog post / Explainer | {URL — or "None found"} |
-| Supplementary materials | {URL — or "None found"} |
+| Official code | {repository URL - or "Not available"} |
+| PapersWithCode | {PapersWithCode URL - or "None found"} |
+| Community implementations | {URLs with framework noted - or "None found"} |
+| Video / Talk | {URL - or "None found"} |
+| Blog post / Explainer | {URL - or "None found"} |
+| Supplementary materials | {URL - or "None found"} |
 
 ### Citation
 
@@ -70,7 +70,7 @@ Create a file named `{paper-short-title}.md`. Use this template:
 - {Component N}: {description}
 
 ### Key Equations
-1. {Equation name}: `{equation}` — {what it computes}
+1. {Equation name}: `{equation}` - {what it computes}
 
 ### Training / Optimization
 - **Objective function:** {loss}
@@ -118,7 +118,7 @@ Create a file named `{paper-short-title}.md`. Use this template:
 
 ### Statistical Rigor
 - **Runs/seeds:** {number of independent runs}
-- **Variance reporting:** {std dev, CI, IQR — what's reported?}
+- **Variance reporting:** {std dev, CI, IQR - what's reported?}
 - **Significance tests:** {statistical tests used, if any}
 
 ---
@@ -149,10 +149,10 @@ Create a file named `{paper-short-title}.md`. Use this template:
 {Important related work not cited by the paper.}
 
 ### Reproducibility Assessment
-- **Code available:** {Yes/No — see Resources & Links}
-- **Data available:** {Yes/No — public datasets vs. proprietary}
+- **Code available:** {Yes/No - see Resources & Links}
+- **Data available:** {Yes/No - public datasets vs. proprietary}
 - **Hyperparameters specified:** {Yes/Partially/No}
-- **Implementation complexity:** {Low/Medium/High — effort to reimplement}
+- **Implementation complexity:** {Low/Medium/High - effort to reimplement}
 - **Overall reproducibility:** {High/Medium/Low}
 
 ---
@@ -192,11 +192,11 @@ Create a file named `{paper-short-title}.md`. Use this template:
 
 | Score | Meaning |
 |-------|---------|
-| 1 | Low — outside area of expertise |
+| 1 | Low - outside area of expertise |
 | 2 | Willing to defend but not certain |
 | 3 | Fairly confident |
-| 4 | Confident — checked key details |
-| 5 | Very confident — deeply familiar with area |
+| 4 | Confident - checked key details |
+| 5 | Very confident - deeply familiar with area |
 
 **Confidence: {X}/5**
 
@@ -223,14 +223,14 @@ Create a file named `{paper-short-title}.md`. Use this template:
 ## Process Guidelines
 
 - Read the full paper across all three passes before writing the summary
-- Be precise — use exact numbers from the paper
+- Be precise: use exact numbers from the paper
 - Distinguish between what the paper claims and what the evidence supports
 - **Linchpin check:** would removing any single piece of evidence collapse the argument? Say so
 - **Read scope:** with only an abstract or a paywalled page, write "not assessed (read scope: abstract)" for methods critique rather than inferring weaknesses
-- For critical analysis, be honest and constructive — identify real issues, not nitpicks
+- For critical analysis, be honest and constructive: identify real issues, not nitpicks
 - The summary should be self-contained: someone reading it should understand the paper without reading the original
 - **Score calibration:** 6-7 = good paper with solid contribution; 8+ = genuinely strong/exceptional; don't grade-inflate
 - **Omit N/A sections** rather than filling them with "Not applicable" placeholders
 - **Novelty assessment:** compare against the closest specific prior work, not the field in general
 - **TL;DR:** draft after Pass 1, refine after Pass 3
-- **Resource links:** require genuine search effort — use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos)
+- **Resource links:** require genuine search effort; use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos)

@@ -1,5 +1,5 @@
 # =============================================================================
-# Git — all operations allowed (matches Claude Code: Bash(git <subcmd> *))
+# Git - all operations allowed (matches Claude Code: Bash(git <subcmd> *))
 # =============================================================================
 
 prefix_rule(
@@ -62,7 +62,7 @@ prefix_rule(
 )
 
 # =============================================================================
-# GitHub CLI — all operations allowed (matches Claude Code: Bash(gh *))
+# GitHub CLI - all operations allowed (matches Claude Code: Bash(gh *))
 # =============================================================================
 
 prefix_rule(
@@ -222,7 +222,7 @@ prefix_rule(
 )
 
 # =============================================================================
-# Package installs — prompt (not auto-allowed in Claude Code either)
+# Package installs - prompt (not auto-allowed in Claude Code either)
 # =============================================================================
 
 prefix_rule(
@@ -241,7 +241,7 @@ prefix_rule(
 )
 
 # =============================================================================
-# Denied — dangerous commands (matches Claude Code deny list)
+# Denied - dangerous commands (matches Claude Code deny list)
 # =============================================================================
 
 prefix_rule(

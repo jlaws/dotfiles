@@ -44,7 +44,7 @@ BEFORE claiming any status:
 | Docs current | Docs updated for the change, or N/A stated with reason | "Code works, docs later" |
 | Absence (not found, unused) | The scope searched: queries, sections read, filters applied | "Not found" from a capped or ignore-respecting search |
 
-For UI/web changes, prefer an accessibility-tree snapshot over raw HTML — semantic and far cheaper in tokens.
+For UI/web changes, prefer an accessibility-tree snapshot over raw HTML: semantic and far cheaper in tokens.
 
 ## Green Is Not Enough: Why Did It Pass?
 
@@ -56,7 +56,7 @@ A passing check counts only if it exercised the target. Judge *why* it is green:
 | INCONCLUSIVE | Green, but the assertion never exercised the target (dead test, wrong path, mocked away) |
 
 - A green result must cite the oracle output **and** evidence the target condition actually ran (log line, coverage, instrumented print).
-- Never judge on pre-action evidence. Capture a **fresh post-action observation**; if it disagrees with the claim, report a **DEVIATION** — do not retro-fit the claim to stale state.
+- Never judge on pre-action evidence. Capture a **fresh post-action observation**; if it disagrees with the claim, report a **DEVIATION**; do not retro-fit the claim to stale state.
 - Judge iteration by a mechanical metric (count, exit code, measured value), never "seems better".
 
 ## Verdict Grammar
@@ -68,18 +68,18 @@ Report review/verification status with one standard verdict plus severity:
 | PASS | Verified, no blocking issues |
 | CONCERNS | Works, but non-blocking issues found (list them) |
 | FAIL | A defect is proven with evidence |
-| BLOCKED | Could not verify — a coverage or tooling limit |
+| BLOCKED | Could not verify: a coverage or tooling limit |
 
 - Findings carry a priority: **P0** (must fix now) through **P3** (nice to have).
-- **BLOCKED is a limitation of the check, never a product defect.** Do not downgrade BLOCKED into FAIL or PASS — state what you could not verify and why.
+- **BLOCKED is a limitation of the check, never a product defect.** Do not downgrade BLOCKED into FAIL or PASS; state what you could not verify and why.
 
 ## Evidence Hierarchy
 
 Weight evidence by strength; prefer the strongest available:
 
-1. **Reproduced** — a deterministic run or observation of the behavior (strongest)
-2. **Static-traced** — followed the code path by reading, no run
-3. **Pattern-match** — "looks like" a known issue (weakest; verify before claiming)
+1. **Reproduced**: a deterministic run or observation of the behavior (strongest)
+2. **Static-traced**: followed the code path by reading, no run
+3. **Pattern-match**: "looks like" a known issue (weakest; verify before claiming)
 
 ## Read-Only Reviewer Contract
 
@@ -120,6 +120,6 @@ Agent:     Agent reports -> Check VCS diff -> Verify changes -> Report actual st
 
 **Run the gate before:** any success/completion claim, any positive statement about work state, committing, PR creation, task completion, moving to next task, delegating to agents.
 
-For any change that ships (feature, behavior change, refactor/rename, new KB asset), a documentation decision is part of "complete" — see `documentation-validation`.
+For any change that ships (feature, behavior change, refactor/rename, new KB asset), a documentation decision is part of "complete"; see `documentation-validation`.
 
 **Claim a result only after reading the output of the command that proves it; a claim without that output is a guess.**

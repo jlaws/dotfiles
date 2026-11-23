@@ -13,7 +13,7 @@ Map all execution paths before coding. Every branch must be specified:
 │   └── Response returned (200)
 ├── Validation Failure
 │   ├── Input rejected
-│   └── Error returned (400) — no side effects
+│   └── Error returned (400) - no side effects
 ├── Timeout
 │   ├── Upstream timeout → retry with backoff OR fail gracefully
 │   └── Budget exhausted → return 504 with partial result if safe
@@ -107,9 +107,9 @@ Before specifying a workflow, inventory what exists:
 | `DRAFT` | → `SUBMITTED` | All required fields present | Validate, assign ID |
 | `SUBMITTED` | → `APPROVED`, → `REJECTED` | Reviewer assigned | Notify reviewer |
 | `APPROVED` | → `IN_PROGRESS` | Resources available | Reserve resources |
-| `IN_PROGRESS` | → `COMPLETED`, → `FAILED` | — | Execute workflow |
+| `IN_PROGRESS` | → `COMPLETED`, → `FAILED` | - | Execute workflow |
 | `COMPLETED` | → `ARCHIVED` | Retention period met | Release resources |
-| `FAILED` | → `SUBMITTED` (retry), → `CANCELLED` | — | Compensate, alert |
-| `CANCELLED` | (terminal) | — | Release all resources |
+| `FAILED` | → `SUBMITTED` (retry), → `CANCELLED` | - | Compensate, alert |
+| `CANCELLED` | (terminal) | - | Release all resources |
 
 **Rules:** Every state must have at least one outbound transition (except terminal states). Every transition must have a guard condition or be unconditional. Side effects must be idempotent if the transition can be retried.

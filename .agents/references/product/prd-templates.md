@@ -7,7 +7,7 @@
 | **Problem Statement** | What's broken, for whom, with evidence (metrics, quotes, tickets) | Yes |
 | **Proposed Solution** | What we're building and how it solves the problem | Yes |
 | **Success Metrics** | Leading indicators (adoption, activation) + lagging (revenue, retention) | Yes |
-| **Non-Goals** | Explicitly what this does NOT solve — prevents scope creep | Yes |
+| **Non-Goals** | Explicitly what this does NOT solve: prevents scope creep | Yes |
 | **Acceptance Criteria** | Given/When/Then conditions for "done" | Yes |
 | **Launch Plan** | Rollout stages, rollback triggers, monitoring | Yes |
 | **Sprint Health Snapshot** | Velocity trend, blockers, scope changes since kickoff | Optional |
@@ -19,7 +19,7 @@ Every PRD starts with the problem + evidence. If you can't fill in all three col
 | Column | Example |
 |--------|---------|
 | **Who** has the problem | "Enterprise customers with >50 team members" |
-| **What** they can't do | "Cannot bulk-invite users — must add one at a time" |
+| **What** they can't do | "Cannot bulk-invite users: must add one at a time" |
 | **Evidence** it matters | "37 support tickets/month, 3 churned accounts cited this" |
 
 ## Press-Release-Before-PRD
@@ -70,7 +70,7 @@ Use Given/When/Then format for testable criteria:
 - Metrics: [relevant data points]
 
 ## Press Release (1 paragraph)
-[Write as if the feature shipped — make it compelling or rethink]
+[Write as if the feature shipped - make it compelling or rethink]
 
 ## Proposed Solution
 [What we're building. Include wireframes/mockups link if available.]
@@ -92,8 +92,8 @@ Use Given/When/Then format for testable criteria:
 
 ## Launch Plan
 - **Stage 1:** Internal dogfood (1 week)
-- **Stage 2:** Beta — 10% of users (2 weeks)
-- **Stage 3:** GA — 100% rollout
+- **Stage 2:** Beta - 10% of users (2 weeks)
+- **Stage 3:** GA - 100% rollout
 - **Rollback trigger:** [error rate >X% OR latency >Yms OR user complaints >Z]
 
 ## Open Questions

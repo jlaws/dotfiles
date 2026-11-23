@@ -5,7 +5,7 @@ description: "Use when output risks truncation, stubs, or omitted sections."
 
 # Output Completeness
 
-**Core principle:** A partial output is a broken output. Do not optimize for brevity — optimize for completeness.
+**Core principle:** A partial output is a broken output. Do not optimize for brevity; optimize for completeness.
 
 **Violating the letter of this rule is violating the spirit of this rule.**
 
@@ -58,7 +58,7 @@ When a response genuinely cannot fit in one output:
 
 **DO:**
 ```
-[PAUSING — remaining sections: X, Y, Z. Reply "continue" to proceed.]
+[PAUSING - remaining sections: X, Y, Z. Reply "continue" to proceed.]
 ```
 
 **DO NOT:**
@@ -89,5 +89,5 @@ Load proactively when:
 
 ## Cross-References
 
-- **workflow:llm-output-completeness** — root cause research and parameter tuning for truncation
-- **workflow:completeness-principle** — project-level completeness standards
+- **workflow:llm-output-completeness**: root cause research and parameter tuning for truncation
+- **workflow:completeness-principle**: project-level completeness standards

@@ -25,7 +25,7 @@ Precedence: local/project > user. Keep secrets out of committed project config.
 
 - Reference secrets by env var (`${GITHUB_TOKEN}`), never inline them in committed config.
 - Prefer OAuth over long-lived API keys where the server supports it.
-- Grant least privilege — read-only scopes/flags when the task only reads.
+- Grant least privilege: read-only scopes/flags when the task only reads.
 - Keep machine-local server config in an untracked/gitignored file.
 
 ## Verify & troubleshoot
@@ -37,7 +37,7 @@ Precedence: local/project > user. Keep secrets out of committed project config.
 |---------|-----|
 | Server not found | Check scope/precedence; a user-scope server may be shadowed by project config |
 | Auth failure | Verify the env var is set in the launching shell; check token scopes |
-| Tools missing | Server started but registered no tools — check its logs/stderr |
+| Tools missing | Server started but registered no tools: check its logs/stderr |
 | Slow every turn | Too many servers enabled; each injects tool definitions each turn |
 
 ## Context cost
@@ -50,6 +50,6 @@ Each enabled MCP server injects its tool definitions into context every turn. So
 
 ## Cross-References
 
-- `mcp-server-development` — producer side: building an MCP server
-- `security/secrets-management` — credential handling
-- `config-security-audit` (skill) — scans MCP config for leaked secrets and over-broad scopes
+- `mcp-server-development`: producer side (building an MCP server)
+- `security/secrets-management`: credential handling
+- `config-security-audit` (skill): scans MCP config for leaked secrets and over-broad scopes
