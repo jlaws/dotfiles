@@ -38,6 +38,7 @@ TREE_SCRIPT_PATH = re.compile(
 )
 SKILL_DIR_SCRIPT_PATH = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+\.(?:py|sh|mjs|js))")
 TREE_ROOTS = (".claude", ".codex", ".agents", ".gemini")
+EM_DASH = "\u2014"
 
 # Side-effect commands nothing invokes; user-only in Claude and Codex
 # (docs/adr/workflow/side-effect-commands-are-user-invoked.md).
@@ -346,9 +347,6 @@ SHARED_SKILL_ROOTS = (
 SHARED_SKILL_FRONTMATTER_KEYS = frozenset({"name", "description"})
 
 # Credit forms, not source names: a name list goes stale and collides with ordinary words.
-EM_DASH = "\u2014"
-EM_DASH_FREE_ROOTS: tuple[str, ...] = TREE_ROOTS
-
 # `(?!Author\b)` spares placeholders: "First Author et al." in the j-email-analysis templates and
 # "(Author, 2024)" in the latex-paper-writing citation gotcha.
 SOURCE_CREDIT_PATTERNS = (
@@ -1402,15 +1400,20 @@ class AgentConfigArchitectureTests(unittest.TestCase):
 
     def test_kb_assets_contain_no_em_dash(self):
         """KB assets use a comma, semicolon, colon, or parentheses instead (rule: CLAUDE.md,
-        Editing Guidelines). Tracked files only; files that do not decode as UTF-8 are skipped."""
+        Editing Guidelines). Tracked files only; a file that does not decode as UTF-8 is reported
+        rather than skipped silently."""
+        self.assertIn(EM_DASH, "a \u2014 b", "EM_DASH is not the em dash; the check is vacuous")
+        self.assertNotIn(EM_DASH, "a \u2013 b - c", "EM_DASH matches an en dash or a hyphen")
         tracked = subprocess.run(
-            ["git", "ls-files", "-z", *EM_DASH_FREE_ROOTS],
+            ["git", "ls-files", "-z", *TREE_ROOTS],
             cwd=REPO,
             capture_output=True,
             text=True,
             check=True,
         ).stdout.split("\0")
         scanned = 0
+        dashes = []
+        undecodable = []
         for name in tracked:
             path = REPO / name
             if not path.is_file():
@@ -1418,16 +1421,17 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             try:
                 text = path.read_text(encoding="utf-8")
             except UnicodeDecodeError:
+                undecodable.append(name)
                 continue
             scanned += 1
-            count = text.count(EM_DASH)
-            with self.subTest(path=name):
-                self.assertEqual(
-                    count,
-                    0,
-                    f"{name}: {count} em dash(es); use a comma, semicolon, colon, or parentheses",
-                )
+            for lineno, line in enumerate(text.splitlines(), 1):
+                if EM_DASH in line:
+                    dashes.append(
+                        f"{name}:{lineno}: em dash; use a comma, semicolon, colon, or parentheses"
+                    )
         self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
+        self.assertEqual(undecodable, [], "tracked KB files that are not UTF-8 text")
+        self.assertEqual(dashes, [], "\n".join(dashes))
 
     def test_source_credit_patterns_catch_each_credit_form(self):
         """Positive and negative controls, so a loosened pattern cannot pass on a clean tree."""
