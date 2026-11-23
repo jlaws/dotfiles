@@ -54,8 +54,9 @@ another harness's model emits.
 
 **A terseness ruleset loses money on short interactions.** The ruleset is re-sent as input on every
 call, and on short work the baseline output is already terse, so the input overhead outweighs the
-savings. The rules in this file pay off on long, tool-heavy, code-bearing work. On a one-line
-throwaway they do not.
+savings. Reasoning models lose more, because reasoning tokens add to that overhead (reported
+elsewhere, unmeasured here). The rules in this file pay off on long, tool-heavy, code-bearing work.
+On a one-line throwaway they do not.
 
 ## Two-Phase Retrieval
 
@@ -121,8 +122,8 @@ Shape tool and command output before it enters context — most of it is noise.
 `old_string` of a later `Edit`, so shaping one makes you edit against text you never saw. This is a
 correctness rule, not an efficiency preference: lossy-compressing file reads makes agents re-read
 the same file (`cat` then `cat -A` then `cat -n`) to recover exact detail, and lose the content
-outright when recovery fails. Narrow the read at the source instead (`offset`/`limit`, `sed -n`), which shrinks what you
-fetch rather than what you keep.
+outright when recovery fails. Narrow the read at the source instead (`offset`/`limit`, `sed -n`),
+which shrinks what you fetch rather than what you keep.
 
 **Two indicators, not one, before you treat output as an error.** A single keyword false-positives
 on ordinary output that merely mentions the word "error" — source code, a log schema, a help text.
@@ -158,7 +159,8 @@ a lossy compression that believes it is lossless.
 
 **If the original cannot be persisted, do not compress it.** Ship it verbatim and say why. The
 recovery path is what makes the compression reversible, so losing the path means losing the licence
-to compress. This is `hook-patterns`' fail-open rule for transforms, applied to your own summarizing.
+to compress. This is `hook-patterns`' fail-open rule for transforms, applied to your own
+summarizing.
 
 **Round-trip before you trust a fold.** A transformation you call lossless carries its inverse and
 gets checked: if the round trip does not reproduce the original, or the result is not actually

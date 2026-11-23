@@ -93,8 +93,9 @@ problem is actually hard, nowhere else.
 - **The win is on the code axis.** The ladder needs an abstraction to skip or a stdlib call to
   reach for, so it bites hardest on code and least on explanation-only prompts, where the prose
   half of the pairing does the work instead.
-- **It can cost more than it saves on short work.** A ruleset re-sent on every call costs input
-  tokens, so it can lose on short tasks (`references/workflow/context-efficiency.md`, Output Rules
+- **It can cost more than it saves on short work and on reasoning models.** A ruleset re-sent on
+  every call costs input tokens, and reasoning models add reasoning-token overhead (reported
+  elsewhere, unmeasured here), so it can lose on short tasks (`references/workflow/context-efficiency.md`, Output Rules
   Earn Their Place Or Cost You).
 
 ## Cross-References
