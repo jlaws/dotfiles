@@ -95,7 +95,7 @@ Follow this order for consistent, scannable skills:
 # Skill Title
 
 ## Decision Table
-(When to use which approach — always first)
+(When to use which approach - always first)
 
 ## Core Patterns
 (The main content, with code examples)
@@ -104,7 +104,7 @@ Follow this order for consistent, scannable skills:
 (Copy-pasteable, realistic examples)
 
 ## Gotchas
-(Non-obvious failure modes — always last)
+(Non-obvious failure modes - always last)
 ```
 
 ### Sizing Guidelines
@@ -183,7 +183,7 @@ See `references/workflow/hook-patterns.md` for full examples (PreToolUse, PostTo
 - Skills: 150-300 lines typical
 - If a skill needs >350 lines, it's trying to do too much
 - Prefer tables and code over prose (higher information density)
-- Avoid volatile content in CLAUDE.md (timestamps, changing metrics) — breaks KV cache prefix
+- Avoid volatile content in CLAUDE.md (timestamps, changing metrics): breaks KV cache prefix
 - See `references/workflow/context-efficiency` for full patterns
 
 ## Task Decomposition
@@ -222,13 +222,13 @@ See `references/workflow/permission-management.md` for full settings hierarchy a
 
 Before declaring work done, check you did not:
 
-1. Assume without checking — guessed a path, API, or behavior instead of verifying
-2. Fail to ask when genuinely confused — proceeded on a guess
+1. Assume without checking: guessed a path, API, or behavior instead of verifying
+2. Fail to ask when genuinely confused: proceeded on a guess
 3. Not surface an inconsistency or tradeoff you noticed
-4. Overcomplicate — bloated abstractions, needless options, premature generality
+4. Overcomplicate: bloated abstractions, needless options, premature generality
 5. Leave dead code, stubs, or commented-out blocks behind
 
-Each maps to a rule already in the harness config (verify-before-claiming, clarifying questions, honest opposition, scope discipline, stop-when-done) — this is the fast pre-flight check.
+Each maps to a rule already in the harness config (verify-before-claiming, clarifying questions, honest opposition, scope discipline, stop-when-done); this is the fast pre-flight check.
 
 ## Gotchas
 

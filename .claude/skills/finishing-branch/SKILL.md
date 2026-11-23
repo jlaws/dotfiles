@@ -7,7 +7,7 @@ description: "Use when completed branch work needs integration."
 
 **Core principle:** Verify tests → Validate docs → Open the PR.
 
-Completed work ends in a pull request. That is the default and it does not need to be asked for — a
+Completed work ends in a pull request. That is the default and it does not need to be asked for: a
 finished branch sitting unpushed is work the reviewer cannot see. Merging locally, parking the branch,
 or discarding it are things the user asks for by name; see Other Outcomes below.
 
@@ -58,7 +58,7 @@ Before pushing, run the `documentation-validation` gate: confirm product docs (R
 git merge-base HEAD origin/main
 ```
 
-Report which branch this split from. Only stop to ask if the answer is not `main`/`master` — an unexpected base usually means the branch was cut from other in-flight work, and the PR target matters.
+Report which branch this split from. Only stop to ask if the answer is not `main`/`master`; an unexpected base usually means the branch was cut from other in-flight work, and the PR target matters.
 
 ### Step 3: Open the PR
 
@@ -81,15 +81,15 @@ EOF
 )"
 ```
 
-Write a real body — never `--fill`. Report the PR URL. If in a worktree, keep it; the user may need it for PR revisions.
+Write a real body: never `--fill`. Report the PR URL. If in a worktree, keep it; the user may need it for PR revisions.
 
-Then stop. Do not merge the PR, and do not start the next work item — the branch is now waiting on review.
+Then stop. Do not merge the PR, and do not start the next work item; the branch is now waiting on review.
 
 ## Other Outcomes
 
 These replace Step 3 only when the user names one. Do not offer them as a menu.
 
-**Merge locally** — for work that genuinely does not need review:
+**Merge locally**: for work that genuinely does not need review:
 
 ```bash
 git checkout <base-branch>
@@ -101,9 +101,9 @@ git branch -d <feature-branch>
 
 Clean up the worktree afterward if there is one.
 
-**Keep as-is** — report `Keeping branch <name>.` and stop. No cleanup, no worktree removal.
+**Keep as-is**: report `Keeping branch <name>.` and stop. No cleanup, no worktree removal.
 
-**Discard** — destructive and unrecoverable, so require typed confirmation:
+**Discard**: destructive and unrecoverable, so require typed confirmation:
 
 ```
 This will permanently delete:
@@ -130,5 +130,5 @@ Wait for that exact word, then `git checkout <base-branch>` and `git branch -D <
 ## Integration
 
 **Called by:** the diff-review command's Step 7 when no PR is open, which `executing-plans` (Step 5) and `subagent-driven-development` (Step 2) run at each plan boundary
-**Pairs with:** `using-git-worktrees` for worktree cleanup — note that worktree agents return on-branch and never call this skill
+**Pairs with:** `using-git-worktrees` for worktree cleanup: note that worktree agents return on-branch and never call this skill
 **Uses:** `documentation-validation` before pushing

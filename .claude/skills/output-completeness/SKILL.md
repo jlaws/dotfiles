@@ -6,7 +6,7 @@ description: "Use when output risks truncation, stubs, or omitted sections."
 # Output Completeness
 
 **A partial output is a broken output.** If you started it, finish it. When generating something
-large, completeness beats brevity — a half-written module or a report with a stubbed section costs the
+large, completeness beats brevity; a half-written module or a report with a stubbed section costs the
 reader more than a longer answer would have.
 
 ## What incompleteness looks like
@@ -26,11 +26,11 @@ present.
 
 ## When output genuinely will not fit
 
-Stop at a clean breakpoint — the end of a function or a section, never mid-sentence — and say what is
+Stop at a clean breakpoint (the end of a function or a section, never mid-sentence) and say what is
 left:
 
 ```
-[PAUSING — remaining sections: X, Y, Z. Reply "continue" to proceed.]
+[PAUSING - remaining sections: X, Y, Z. Reply "continue" to proceed.]
 ```
 
 That is a real handoff. Silent truncation and placeholder characters are not, because the reader
@@ -44,7 +44,7 @@ test suite where skeleton tests would give false confidence.
 
 ## Related
 
-- `verification-before-completion` — how to weigh and report evidence. This skill governs whether the
+- `verification-before-completion`: how to weigh and report evidence. This skill governs whether the
   output is whole; that one governs how you characterize it.
-- `workflow:llm-output-completeness` — root-cause research and parameter tuning for truncation
-- `workflow:completeness-principle` — project-level completeness standards
+- `workflow:llm-output-completeness`: root-cause research and parameter tuning for truncation
+- `workflow:completeness-principle`: project-level completeness standards

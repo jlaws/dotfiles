@@ -346,6 +346,9 @@ SHARED_SKILL_ROOTS = (
 SHARED_SKILL_FRONTMATTER_KEYS = frozenset({"name", "description"})
 
 # Credit forms, not source names: a name list goes stale and collides with ordinary words.
+EM_DASH = "\u2014"
+EM_DASH_FREE_ROOTS: tuple[str, ...] = (".claude/skills", ".gemini/antigravity-cli/skills")
+
 # `(?!Author\b)` spares placeholders: "First Author et al." in the j-email-analysis templates and
 # "(Author, 2024)" in the latex-paper-writing citation gotcha.
 SOURCE_CREDIT_PATTERNS = (
@@ -1396,6 +1399,35 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     )
         self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
         self.assertEqual(credits, [], "\n".join(credits))
+
+    def test_kb_assets_contain_no_em_dash(self):
+        """KB assets use a comma, semicolon, colon, or parentheses instead (rule: CLAUDE.md,
+        Editing Guidelines). Tracked files only; files that do not decode as UTF-8 are skipped."""
+        tracked = subprocess.run(
+            ["git", "ls-files", "-z", *EM_DASH_FREE_ROOTS],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split("\0")
+        scanned = 0
+        for name in tracked:
+            path = REPO / name
+            if not path.is_file():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            scanned += 1
+            count = text.count(EM_DASH)
+            with self.subTest(path=name):
+                self.assertEqual(
+                    count,
+                    0,
+                    f"{name}: {count} em dash(es); use a comma, semicolon, colon, or parentheses",
+                )
+        self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
 
     def test_source_credit_patterns_catch_each_credit_form(self):
         """Positive and negative controls, so a loosened pattern cannot pass on a clean tree."""

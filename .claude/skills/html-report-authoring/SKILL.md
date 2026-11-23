@@ -7,7 +7,7 @@ description: "Use when creating a self-contained interactive HTML report."
 
 ## Overview
 
-When information has shape — comparisons, diffs, call-graphs, timelines, hierarchies — or a reader needs to scan and explore it, a self-contained HTML document beats a wall of markdown. HTML carries higher information density (tables, CSS, SVG, layout), renders natively in any browser, and is shareable as one file. Markdown flattens spatial information; HTML keeps it.
+When information has shape (comparisons, diffs, call-graphs, timelines, hierarchies) or a reader needs to scan and explore it, a self-contained HTML document beats a wall of markdown. HTML carries higher information density (tables, CSS, SVG, layout), renders natively in any browser, and is shareable as one file. Markdown flattens spatial information; HTML keeps it.
 
 ## When to Use
 
@@ -32,7 +32,7 @@ Non-negotiable: everything inline in one `.html` file.
 - Consistent section headers; one idea per section.
 - Color-code by category or severity so the eye finds things fast.
 - Tables and callout boxes over long prose paragraphs.
-- For reports: BLUF — lead with the finding, methodology after.
+- For reports: BLUF: lead with the finding, methodology after.
 
 ## Make the Shape Visible
 
@@ -53,7 +53,7 @@ Diagrams earn their space. Draw one only if the reader learns more from it than 
 
 ## Export Affordances
 
-Where the reader may act on content, add copy buttons ("copy as Markdown", "copy as JSON", "copy diff"). This keeps the human-in-the-loop feedback cycle tight — they can take output straight back to the agent.
+Where the reader may act on content, add copy buttons ("copy as Markdown", "copy as JSON", "copy diff"). This keeps the human-in-the-loop feedback cycle tight; they can take output straight back to the agent.
 
 ## Accessibility & Robustness
 
@@ -75,7 +75,7 @@ Everything lives in one document, in this order:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>…</title>
-  <style>/* all CSS — theme via custom properties + prefers-color-scheme */</style>
+  <style>/* all CSS - theme via custom properties + prefers-color-scheme */</style>
 </head>
 <body>
   <h1>…</h1>
@@ -88,8 +88,8 @@ Everything lives in one document, in this order:
 ```
 
 Design the visual language for the content at hand rather than reusing a fixed palette or spacing scale.
-The constraints above — one file, zero network requests, semantic elements, both color schemes,
-responsive — are what must hold; how it looks is yours to decide. If the page includes charts, follow
+The constraints above: one file, zero network requests, semantic elements, both color schemes,
+responsive: are what must hold; how it looks is yours to decide. If the page includes charts, follow
 `dataviz` for color and format.
 
 ## Quick Reference
@@ -114,6 +114,6 @@ responsive — are what must hold; how it looks is yours to decide. If the page 
 
 ## Cross-References
 
-- **output-completeness** — never truncate the generated file.
-- **analysis-output-patterns** — findings-first structure and data-vs-inference labeling for reports.
-- **dataviz** — color and format rules when the page includes charts.
+- **output-completeness**: never truncate the generated file.
+- **analysis-output-patterns**: findings-first structure and data-vs-inference labeling for reports.
+- **dataviz**: color and format rules when the page includes charts.

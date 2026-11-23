@@ -130,7 +130,7 @@ loses work silently.
 
 **Trigger:** "Start isolated feature work without stashing current changes"
 **Action:** Create a new git worktree with a feature branch, set up the environment
-**Result:** Two independent working directories — original branch untouched, new feature branch ready
+**Result:** Two independent working directories; original branch untouched, new feature branch ready
 
 ## Integration
 

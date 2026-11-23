@@ -20,7 +20,7 @@ This applies to EVERY feature regardless of perceived simplicity.
 Simple-looking work is where unexamined assumptions cost the most, because nobody stops to check them. A
 utility function, a config change, or a single component still has a shape someone expects.
 
-Scale the design to the work — a few sentences is a complete design for something genuinely small. What
+Scale the design to the work; a few sentences is a complete design for something genuinely small. What
 matters is that the shape is agreed before it is built, not that the document is long.
 
 ## The Process
@@ -33,14 +33,14 @@ matters is that the shape is agreed before it is built, not that the document is
 
 ### Phase 2: Ask Clarifying Questions
 
-- One question at a time — don't overwhelm
+- One question at a time: don't overwhelm
 - Prefer multiple-choice questions when possible
-- Each question carries your **recommended answer** — let the user confirm, not explain from scratch
-- **Research before asking** — if the codebase can answer it (Glob/Grep/Read), find out first; only ask what the code can't tell you
-- **Filter for blocking** — a question earns its place when a wrong answer means throwing work away
+- Each question carries your **recommended answer**: let the user confirm, not explain from scratch
+- **Research before asking**: if the codebase can answer it (Glob/Grep/Read), find out first; only ask what the code can't tell you
+- **Filter for blocking**: a question earns its place when a wrong answer means throwing work away
   rather than adjusting it. Anything a minute of searching settles is research you owe, not a question.
   A codebase that contradicts itself on one of those is worth raising.
-- Order questions by dependency — resolve the ones that unlock others first
+- Order questions by dependency: resolve the ones that unlock others first
 - **Ask why first** - when the request does not say why, ask that before anything else. It is the one question asked open, with no options or recommended answer, because a suggested reason gets accepted in place of the real one.
 - Focus on: purpose, constraints, success criteria, edge cases
 - Keep asking until you can predict the user's answers to the next three questions you would ask
@@ -50,24 +50,24 @@ matters is that the shape is agreed before it is built, not that the document is
 - Present 2-3 different approaches with trade-offs
 - Lead with your recommendation and explain why
 - Be honest about complexity and risk of each option
-- Apply YAGNI ruthlessly — remove unnecessary features from all proposals
+- Apply YAGNI ruthlessly: remove unnecessary features from all proposals
 
 ### Phase 4: Present Design
 
 - Scale each section to its complexity (a few sentences if straightforward, more if nuanced)
 - Ask after each major section whether it looks right so far
 - Cover as applicable: architecture, components, data flow, error handling, testing approach
-- **State your assumptions** — numbered and falsifiable, across whichever rows the work touches
+- **State your assumptions**: numbered and falsifiable, across whichever rows the work touches
   (`.claude/references/workflow/existing-code-discipline.md`). Written down, an assumption costs the
   user one line to correct; left implicit, it gets corrected after the code exists.
 - Be ready to revise if something doesn't fit
 
 ### Phase 5: Document
 
-- Save the validated design to the harness's plan storage, not the repository — Claude Code: the plan file assigned by plan mode, or `~/.claude/plans/<repo-name>-<topic>-design.md` outside it; other harnesses: keep it in context, or offer a temp or gitignored path. Never commit it unless the user asks.
-- **Self-review before handing off** — scan the written design for placeholders, internal contradictions, and scope creep (features beyond what was agreed). Fix or flag anything you find.
+- Save the validated design to the harness's plan storage, not the repository; Claude Code: the plan file assigned by plan mode, or `~/.claude/plans/<repo-name>-<topic>-design.md` outside it; other harnesses: keep it in context, or offer a temp or gitignored path. Never commit it unless the user asks.
+- **Self-review before handing off**: scan the written design for placeholders, internal contradictions, and scope creep (features beyond what was agreed). Fix or flag anything you find.
 - Skip file output only if user explicitly says no
-- Design docs are not user docs — when the feature ships, keep README/API/usage docs current too (see `documentation-validation`)
+- Design docs are not user docs: when the feature ships, keep README/API/usage docs current too (see `documentation-validation`)
 
 ### Phase 6: Transition to Implementation
 
@@ -84,12 +84,12 @@ Explore context → Ask questions (one at a time) → Propose 2-3 approaches
 
 ## Key Principles
 
-- **One question at a time** — don't overwhelm with multiple questions
-- **Multiple choice preferred** — easier to answer than open-ended when possible
-- **YAGNI ruthlessly** — remove unnecessary features from all designs
-- **Explore alternatives** — always propose 2-3 approaches before settling
-- **Incremental validation** — present design, get approval before moving on
-- **Be flexible** — go back and clarify when something doesn't make sense
+- **One question at a time**: don't overwhelm with multiple questions
+- **Multiple choice preferred**: easier to answer than open-ended when possible
+- **YAGNI ruthlessly**: remove unnecessary features from all designs
+- **Explore alternatives**: always propose 2-3 approaches before settling
+- **Incremental validation**: present design, get approval before moving on
+- **Be flexible**: go back and clarify when something doesn't make sense
 
 ## Design Size Scale
 
@@ -97,12 +97,12 @@ Scale the process to the task's complexity:
 
 | Task Size | Questions | Approaches | Design Document |
 |-----------|-----------|------------|-----------------|
-| Tiny (utility function, config) | 1-2 quick questions | 1-2 sentences each | Skip — inline approval is fine |
-| Small (single component, endpoint) | 2-3 questions | 2-3 brief approaches | Optional — user's choice |
-| Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes — save to the harness plan file |
-| Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes — save to the harness plan file before proceeding |
+| Tiny (utility function, config) | 1-2 quick questions | 1-2 sentences each | Skip (inline approval is fine) |
+| Small (single component, endpoint) | 2-3 questions | 2-3 brief approaches | Optional (user's choice) |
+| Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes (save to the harness plan file) |
+| Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes (save to the harness plan file before proceeding) |
 
-The process is the same regardless of size — the depth scales, not the steps. Even tiny tasks get clarifying questions.
+The process is the same regardless of size; the depth scales, not the steps. Even tiny tasks get clarifying questions.
 
 ## Red Flags
 

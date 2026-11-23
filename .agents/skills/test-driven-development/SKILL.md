@@ -86,7 +86,7 @@ Confirm:
 
 ### GREEN - Minimal Code
 
-Write simplest code to pass the test. Nothing more. Write the complete solution in one pass — not incrementally (partial code → test → add more → test again wastes cycles).
+Write simplest code to pass the test. Nothing more. Write the complete solution in one pass: not incrementally (partial code → test → add more → test again wastes cycles).
 
 ```typescript
 async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
@@ -178,7 +178,7 @@ Before marking work complete:
 - [ ] Edge cases and errors covered
 - [ ] Every test exercises a decision point, transformation, or behavior path (not config/settings)
 - [ ] All tests target production code (no tests for test helpers/fixtures/utilities)
-- [ ] Documentation validated — product docs (README/API/CHANGELOG) and any KB self-docs reflect the change, or N/A declared with a reason (see `documentation-validation`)
+- [ ] Documentation validated: product docs (README/API/CHANGELOG) and any KB self-docs reflect the change, or N/A declared with a reason (see `documentation-validation`)
 
 Can't check all boxes? You skipped TDD. Start over.
 
@@ -200,10 +200,10 @@ Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix 
 
 Formalized workflow for bug-driven test creation:
 
-1. **Reproduce** — Write a failing test with the exact scenario that triggered the bug
-2. **Name it** — `test_regression_{description}_{scenario}` (e.g., `test_regression_null_user_concurrent_login`)
-3. **Fix** — Minimal code change to make the test pass
-4. **Harden** — Add boundary variants around the fix
+1. **Reproduce**: Write a failing test with the exact scenario that triggered the bug
+2. **Name it**: `test_regression_{description}_{scenario}` (e.g., `test_regression_null_user_concurrent_login`)
+3. **Fix**: Minimal code change to make the test pass
+4. **Harden**: Add boundary variants around the fix
 
 | Bug Type | Regression Test Pattern |
 |----------|----------------------|

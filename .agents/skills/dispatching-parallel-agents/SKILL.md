@@ -5,7 +5,7 @@ description: "Use when independent tasks can run concurrently."
 
 # Dispatching Parallel Agents
 
-**Core principle:** One agent per independent problem domain, dispatched concurrently — parallel investigation beats sequential when the problems don't share state.
+**Core principle:** One agent per independent problem domain, dispatched concurrently; parallel investigation beats sequential when the problems don't share state.
 
 ## When It Works
 
@@ -27,26 +27,26 @@ description: "Use when independent tasks can run concurrently."
 
 Each brief must be:
 
-- **Focused** — one test file, one subsystem, one problem
-- **Self-contained** — all background the agent needs; it can't see your context
-- **Explicit about constraints** — what it must NOT change
-- **Specific about the deliverable** — exact output format (findings file, patch, summary)
+- **Focused**: one test file, one subsystem, one problem
+- **Self-contained**: all background the agent needs; it can't see your context
+- **Explicit about constraints**: what it must NOT change
+- **Specific about the deliverable**: exact output format (findings file, patch, summary)
 
 Hand large inputs over as files (see `subagent-driven-development` handoffs), not inline text.
 
 ## Workspace Selection
 
 Say where each agent works, in its brief. The caller's working tree is almost always right: it is the
-only tree holding your uncommitted changes, so anything that reads your work — review, audit, search,
-analysis — belongs there. A separate worktree earns its cost only when agents write to the same files
+only tree holding your uncommitted changes, so anything that reads your work (review, audit, search,
+analysis) belongs there. A separate worktree earns its cost only when agents write to the same files
 at once.
 
 A worktree is a fresh checkout, not a copy of your workspace. It carries no uncommitted changes, and
-it sits at whatever start point created it — your HEAD only if someone named one. An agent handed one
+it sits at whatever start point created it: your HEAD only if someone named one. An agent handed one
 reads a different commit and reports on code you did not write, with no error to warn you.
 
 Symptom: findings that describe the pre-change code, or a clean verdict on a diff you know is risky.
-`git worktree list` settles it — a listed commit that is not your HEAD means those runs are worthless.
+`git worktree list` settles it; a listed commit that is not your HEAD means those runs are worthless.
 
 ## Report Contract
 
@@ -58,9 +58,9 @@ own definition is not guaranteed to supply it.
 
 Parallel agents finishing is not the end. After they return:
 
-1. **Check for conflicting edits** — did two agents touch the same file? Reconcile.
-2. **Review each report against source** — a subagent reporting success is not proof (`verification-before-completion`). Spot-check the diff. The report is the only artifact, so anything it omits is gone: if a finding looks thin or two agents disagree, re-dispatch that lens with a narrower question rather than guessing at what it left out.
-3. **Run the full suite** — parallel fixes that each pass in isolation can still break in combination.
+1. **Check for conflicting edits**: did two agents touch the same file? Reconcile.
+2. **Review each report against source**: a subagent reporting success is not proof (`verification-before-completion`). Spot-check the diff. The report is the only artifact, so anything it omits is gone: if a finding looks thin or two agents disagree, re-dispatch that lens with a narrower question rather than guessing at what it left out.
+3. **Run the full suite**: parallel fixes that each pass in isolation can still break in combination.
 
 ## Red Flags
 
@@ -74,11 +74,11 @@ Parallel agents finishing is not the end. After they return:
 
 For large or automated fan-outs (e.g. the harness Workflow tool), apply these:
 
-- **Concurrency cap** — run about 16 agents at once (or fewer); excess should queue, not all launch together.
-- **Total-spawn ceiling** — bound the total agents a run may create; a runaway loop is a bug.
-- **Gauge cost on a slice first** — run one representative unit before fanning out the whole set; extrapolate cost and fix the brief before committing to N.
-- **Isolated copy per parallel edit** — agents mutating the same files concurrently each need their own worktree (see Workspace Selection above and `using-git-worktrees`).
-- **Adversarial cross-check** — route each finding to an independent verifier and report only survivors (see `code-review-patterns` debate mode). A finding one agent produced and the same agent confirmed is not verified.
+- **Concurrency cap**: run about 16 agents at once (or fewer); excess should queue, not all launch together.
+- **Total-spawn ceiling**: bound the total agents a run may create; a runaway loop is a bug.
+- **Gauge cost on a slice first**: run one representative unit before fanning out the whole set; extrapolate cost and fix the brief before committing to N.
+- **Isolated copy per parallel edit**: agents mutating the same files concurrently each need their own worktree (see Workspace Selection above and `using-git-worktrees`).
+- **Adversarial cross-check**: route each finding to an independent verifier and report only survivors (see `code-review-patterns` debate mode). A finding one agent produced and the same agent confirmed is not verified.
 
 ### Choosing an execution mode
 

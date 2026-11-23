@@ -5,7 +5,7 @@ description: "Use when shipped changes may have left documentation stale."
 
 # Post-Ship Documentation Sync
 
-## Step 1 — Identify Doc Files
+## Step 1: Identify Doc Files
 
 Search for documentation files in the project:
 - README*, ARCHITECTURE*, CONTRIBUTING*, CLAUDE.md, CHANGELOG*
@@ -13,7 +13,7 @@ Search for documentation files in the project:
 - `docs/adr/**/*.md` (the decision log; `README.md` and `template.md` there are scaffolding, not ADRs)
 - Any *.md files in project root
 
-## Step 2 — Diff Scope
+## Step 2: Diff Scope
 
 Determine what changed since last release:
 
@@ -24,7 +24,7 @@ git diff --name-only <range>
 
 If a range is provided, use it. Otherwise default to last tag..HEAD (`git describe --tags --abbrev=0`..HEAD).
 
-## Step 3 — Staleness Detection
+## Step 3: Staleness Detection
 
 | Doc Section Type | Stale When | Detection Method |
 |------------------|-----------|-----------------|
@@ -38,16 +38,16 @@ If a range is provided, use it. Otherwise default to last tag..HEAD (`git descri
 
 For each doc file, cross-reference its content against the changed files to identify stale sections.
 
-## Step 4 — Generate Minimal Edits
+## Step 4: Generate Minimal Edits
 
 - Preserve existing voice and style
-- No wholesale rewrites — surgical updates only
+- No wholesale rewrites: surgical updates only
 - Update facts, not prose style
 - Add new sections only for genuinely new features
 - Remove references to deleted features
-- When a shipped change contradicts an ADR, update it in place: revise the Decision, add the old approach to `## Ruled Out` with its reason and date, bump `updated`. Delete the file outright when the decision it records no longer exists, and name the deletion in the summary — git holds the history
+- When a shipped change contradicts an ADR, update it in place: revise the Decision, add the old approach to `## Ruled Out` with its reason and date, bump `updated`. Delete the file outright when the decision it records no longer exists, and name the deletion in the summary; git holds the history
 
-## Step 5 — Present for Approval
+## Step 5: Present for Approval
 
 - Show diff preview for each doc file before applying
 - Wait for explicit approval before committing

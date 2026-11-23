@@ -38,10 +38,10 @@ For each task in order:
 1. **Extract the task brief.** Write the single task's requirements (behavioral check, files, steps, acceptance) to a scratch file, e.g. `scratchpad/briefs/task-NN.md`. Do NOT paste the whole plan into the dispatch prompt.
 2. **Dispatch the implementer subagent** (via the Agent tool) with: the brief file path, the model for this task (see Model Selection), explicit constraints (what NOT to touch), and the deliverable (code + passing tests, left uncommitted in the working tree). Answer clarifying questions if the implementer asks.
 3. **Implementer self-reviews.** It follows TDD (failing test -> implement -> pass) and reports the files it touched. It does not commit: the phase commits once, when its last task passes (`writing-plans`, PR Boundaries).
-4. **Generate the review package.** `git diff <phase-base>` scoped to the task's files — capture to a scratch file rather than pasting a large diff into the reviewer prompt.
+4. **Generate the review package.** `git diff <phase-base>` scoped to the task's files: capture to a scratch file rather than pasting a large diff into the reviewer prompt.
 5. **Dispatch the task reviewer** (via the Agent tool). It MUST return **both** verdicts, **spec compliance first, then code quality**:
-   - **Spec compliance** — does the diff satisfy the task brief's behavioral check and acceptance? Flag any acceptance item that **cannot be confirmed from the diff alone** for the orchestrator to resolve — never assume it holds. Treat any **unrequested addition** (extra code, deps, files beyond the brief) as a finding: scope creep is a failure, not a bonus.
-   - **Code quality** — smells, edge cases, error handling, naming, test quality.
+   - **Spec compliance**: does the diff satisfy the task brief's behavioral check and acceptance? Flag any acceptance item that **cannot be confirmed from the diff alone** for the orchestrator to resolve: never assume it holds. Treat any **unrequested addition** (extra code, deps, files beyond the brief) as a finding: scope creep is a failure, not a bonus.
+   - **Code quality**: smells, edge cases, error handling, naming, test quality.
    - An implementer's report is a claim, and its design rationale ("kept simple per YAGNI") is self-grading: a stated rationale never downgrades a finding's severity.
    Reviewer output is a severity-labeled findings list (Critical / Important / Nit).
 6. **Fix loop.** If Critical/Important findings exist, dispatch one fix subagent with the whole findings file, then re-review only the fix diff: the re-reviewer marks each prior finding ADDRESSED or NOT ADDRESSED and flags new breakage in that diff, without re-raising settled findings. Never dismiss findings pre-emptively in the reviewer prompt. Stop after two fix rounds that leave a Critical/Important finding open: report the task as blocked with the findings file and `git status`, leave the working tree as it is, and stop the run: do not mark the task done, start the next task, or commit the phase until the user decides.
@@ -62,7 +62,7 @@ Everything you paste into a dispatch prompt stays resident in your context. Hand
 - **Review package** -> `git diff <base>..<head>` captured to a scratch file; pass the path.
 - **Findings** -> reviewer writes findings to a file; fix subagent reads it.
 
-No helper scripts required — `git diff` + a scratch file is the whole mechanism.
+No helper scripts required; `git diff` + a scratch file is the whole mechanism.
 
 `scratchpad/` is gitignored working space and must never be committed. If the repo does not ignore it yet, add it to `.gitignore` before writing the first brief.
 
@@ -108,6 +108,6 @@ Maintain the same living-document sections as `executing-plans`, in the plan fil
 ## Integration
 
 **Receives plans from:** `writing-plans`
-**Alternative to:** `executing-plans` (inline mode) — same ledger, different dispatch
+**Alternative to:** `executing-plans` (inline mode): same ledger, different dispatch
 **Uses:** `verification-before-completion` for every verdict; `dispatching-parallel-agents` when independent tasks can run concurrently
 **Hands off to:** /j-diff-review after the last task; its Step 7 opens the PR

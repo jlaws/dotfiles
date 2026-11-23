@@ -191,7 +191,7 @@ Three responses:
 
 ### Interpretation Test
 
-Before shipping behavior-shaping wording, run the same prompt about 5 times (or across 5 fresh contexts). Five different interpretations means the wording is ambiguous — rewrite until the readings converge.
+Before shipping behavior-shaping wording, run the same prompt about 5 times (or across 5 fresh contexts). Five different interpretations means the wording is ambiguous; rewrite until the readings converge.
 
 ## Persuasion Principles for Skill Design
 

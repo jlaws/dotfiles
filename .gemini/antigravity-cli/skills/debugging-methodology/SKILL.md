@@ -28,11 +28,11 @@ After 2 failed fix attempts at the same problem, **STOP**:
 |----------|--------|
 | 1-2 | Normal Phase 3 (hypothesis + test) |
 | 3 | STOP. Structured analysis before retrying |
-| 3+ no progress | Ask user — root cause unclear or architectural change needed |
+| 3+ no progress | Ask user: root cause unclear or architectural change needed |
 
 **Structured analysis before attempt 3:**
 1. Write down what you tried and what happened
-2. Articulate your assumptions — which one is wrong?
+2. Articulate your assumptions: which one is wrong?
 3. Identify information gaps
 4. Re-read relevant code with fresh eyes
 5. Return to Phase 1 with a new mental model
@@ -56,7 +56,7 @@ Fix a harness, checker, or environment fault where it lives; changing product co
 
 **1. Read Error Messages Carefully**
 - Read stack traces completely; note line numbers, file paths, error codes
-- The error message often tells you exactly what's wrong — don't skim
+- The error message often tells you exactly what's wrong; don't skim
 
 **2. Build a Red-Capable Loop**
 - Before any hypothesis, build one command you can run that fails on the user's exact symptom: a test, a script, or a request. No red-capable command, no Phase 2.
@@ -87,7 +87,7 @@ echo "=== Layer: Database ==="        # What gets persisted?
 echo "=== Layer: Response ==="        # What goes out?
 ```
 
-**5. Trace Data Flow** — Where does the bad value originate? Keep tracing upstream until you find the source.
+**5. Trace Data Flow**: Where does the bad value originate? Keep tracing upstream until you find the source.
 
 **6. Ask "Why Does It Work Locally?"**
 
@@ -107,7 +107,7 @@ Map every environmental difference. The bug lives in one of these gaps.
 ### Phase 2: Pattern Analysis
 
 1. Find working examples of similar code
-2. Compare against references — list every difference
+2. Compare against references: list every difference
 3. Understand dependencies (settings, config, environment)
 
 ### Phase 3: Hypothesis and Testing
@@ -118,16 +118,16 @@ Map every environmental difference. The bug lives in one of these gaps.
 
 #### Structured Hypothesis Investigation
 
-When the cause is unclear, enumerate 3-5 hypotheses up front (most likely first). Independent hypotheses that share no state may be investigated in parallel via subagents; otherwise investigate sequentially. Either way, keep the confirm/refute discipline for each hypothesis — do not blur evidence across them.
+When the cause is unclear, enumerate 3-5 hypotheses up front (most likely first). Independent hypotheses that share no state may be investigated in parallel via subagents; otherwise investigate sequentially. Either way, keep the confirm/refute discipline for each hypothesis; do not blur evidence across them.
 
 For each hypothesis, note:
-- **What to check** — specific file, function, or state to inspect
-- **Evidence that would confirm** — what you'd expect to see if this IS the cause
-- **Evidence that would refute** — what you'd expect to see if this is NOT the cause
+- **What to check**: specific file, function, or state to inspect
+- **Evidence that would confirm**: what you'd expect to see if this IS the cause
+- **Evidence that would refute**: what you'd expect to see if this is NOT the cause
 
 Investigate each in turn:
 1. Gather evidence (read code, check logs, add instrumentation)
-2. **Confirm or refute** — be explicit about which
+2. **Confirm or refute**: be explicit about which
 3. If confirmed: proceed to Phase 4
 4. If refuted: move to next hypothesis
 5. If inconclusive: note what's missing and continue
@@ -143,7 +143,7 @@ Investigate each in turn:
 {explanation}
 
 ### Hypotheses Tested
-1. {hypothesis} — {confirmed/refuted} — {evidence}
+1. {hypothesis} - {confirmed/refuted} - {evidence}
 2. ...
 
 ### Fix
@@ -155,9 +155,9 @@ Investigate each in turn:
 
 ### Phase 4: Implementation
 
-1. **Create Failing Test** — simplest possible reproduction, automated
-2. **Implement Single Fix** — ONE change at a time
-3. **Verify** — test passes? No other tests broken?
+1. **Create Failing Test**: simplest possible reproduction, automated
+2. **Implement Single Fix**: ONE change at a time
+3. **Verify**: test passes? No other tests broken?
 
 If the bug stems from invalid data flowing through multiple layers, read `references/defense-in-depth.md` to add validation at every layer and make it structurally impossible.
 
@@ -198,14 +198,14 @@ If the root cause traces through multiple upstream callers and you cannot isolat
 | Issue Type | Investigation Approach |
 |-----------|----------------------|
 | **Intermittent** | Add logging with timing, look for race conditions, stress test under load |
-| **Performance** | Profile first — common culprits: N+1 queries, unnecessary re-renders, sync I/O in async paths |
+| **Performance** | Profile first: common culprits: N+1 queries, unnecessary re-renders, sync I/O in async paths |
 | **Production-only** | Gather evidence (Sentry/logs/metrics), map local vs prod differences, reproduce under equivalent conditions |
 | **Connection/resource exhaustion** | Monitor pool metrics, check for leaks in error paths, look for N+1 patterns, check if `finally`/`defer` cleanup runs |
 | **Data-dependent** | Identify which data triggers it, find the minimum failing dataset, check for encoding/null/edge cases |
 
 For language-specific debugging tools (breakpoints, profilers, stack traces), see the corresponding language reference files.
 
-## Red Flags — STOP and Return to Phase 1
+## Red Flags: STOP and Return to Phase 1
 
 - "Quick fix for now, investigate later"
 - "Just try changing X and see"

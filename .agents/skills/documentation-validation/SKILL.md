@@ -13,7 +13,7 @@ whole diff range, use `post-ship-doc-sync`.
 ## When To Apply
 
 Run this gate before claiming any change-shipping task complete, before committing,
-and before opening or updating a PR — for every feature, behavior change,
+and before opening or updating a PR: for every feature, behavior change,
 refactor/rename, or new KB asset.
 
 ## The Gate
@@ -21,7 +21,7 @@ refactor/rename, or new KB asset.
 ```
 BEFORE claiming a change-shipping task done:
 1. CLASSIFY the change (table below).
-2. CHECK the docs that row points to — read them, compare against the diff.
+2. CHECK the docs that row points to - read them, compare against the diff.
 3. RESOLVE: update the doc in the same change, OR declare N/A with a one-line reason.
 4. ONLY THEN claim done.
 ```
@@ -38,9 +38,9 @@ stale. This table decides *which* docs to open per change.
 | Change type | Product docs to check | KB self-docs to check |
 |-------------|-----------------------|-----------------------|
 | Add feature | README feature list, API reference, CHANGELOG, usage/quickstart | (usually N/A unless a KB asset is added) |
-| Modify behavior | API reference, config/CLI reference, CHANGELOG, any doc describing the old behavior | — |
+| Modify behavior | API reference, config/CLI reference, CHANGELOG, any doc describing the old behavior | - |
 | Refactor / rename | Public names in README/API docs, import paths, config keys, CLI flags | cross-references that name the renamed asset |
-| Add new KB asset | — | `description` frontmatter + body, KB-structure docs, MEMORY.md index (if present), cross-references, native command/agent parity, and shared workflow/reference mirror parity |
+| Add new KB asset | - | `description` frontmatter + body, KB-structure docs, MEMORY.md index (if present), cross-references, native command/agent parity, and shared workflow/reference mirror parity |
 
 Product docs = README / API / CHANGELOG / usage. KB self-docs = the asset's own
 `description` and body, the KB-structure index, native asset parity, and any
@@ -50,7 +50,7 @@ required shared workflow or reference mirror.
 
 If a change genuinely needs no doc update, state it explicitly:
 
-`Docs: N/A — internal refactor, no public surface or documented behavior changed.`
+`Docs: N/A - internal refactor, no public surface or documented behavior changed.`
 
 ## Red Flags
 
@@ -63,5 +63,5 @@ If a change genuinely needs no doc update, state it explicitly:
 
 ## Cross-References
 
-- **post-ship-doc-sync** — the heavy post-release sweep over a whole diff range; source of the Step 3 staleness heuristic this gate reuses. This skill is its lightweight per-change counterpart.
-- **verification-before-completion** — the universal completion gate; "Docs current" is one of its Common Failures rows. Run both before any done/PR claim.
+- **post-ship-doc-sync**: the heavy post-release sweep over a whole diff range; source of the Step 3 staleness heuristic this gate reuses. This skill is its lightweight per-change counterpart.
+- **verification-before-completion**: the universal completion gate; "Docs current" is one of its Common Failures rows. Run both before any done/PR claim.
