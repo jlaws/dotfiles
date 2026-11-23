@@ -56,9 +56,10 @@ its range. Naming a saving you cannot have observed is the most common way a rea
 a fake number.
 
 **Link the counter-evidence.** Where someone has published a measurement against a claim you are
-making, say which part survives your fix and which part stands, and credit it in `REFERENCES.md`. A
-claim with the strongest objection linked beside it is more trustworthy than one without, and a
-reader who finds the objection elsewhere first will discount everything around it.
+making, state the objection beside the claim, say which part survives your fix and which part
+stands, and credit its source in `REFERENCES.md`. A claim with the strongest objection stated beside
+it is more trustworthy than one without, and a reader who finds the objection elsewhere first will
+discount everything around it.
 
 **Retract in place.** A figure that stops reproducing gets struck where it was published, with what
 replaced it — not quietly deleted. Deleting it hides that it was ever believed, which is the thing a
