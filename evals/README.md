@@ -27,7 +27,8 @@ python3 -m evals.kbeval summarize    # free: check every result, then write eval
 and model; the make targets call the plans built on it. Add `--keep-temp` to keep each run's trace.
 `python3 -m evals.kbeval.determination triggers --purpose <label> --asset <names> [--split tune|held]`
 prints `TRIGGER <case> <kind> <model> <fired>/<runs>` for every trigger case run under that purpose,
-where `<fired>` counts runs in which the skill was called, for every kind.
+where `<fired>` counts runs in which the skill was called, for every kind. `tune` keeps every case whose slug does not start `held-`, unprefixed ones included;
+the command exits 1 when nothing matches, and reports skipped partial or key-less batches on stderr.
 
 `J ?= 8` sets `-j` (concurrent runs). `eval-baseline` also takes `VANILLA_RUNS` (default 3),
 `VANILLA_MODELS` (default both models), and `EXCLUDE_TAGS` (default empty); the kb staging always
@@ -412,8 +413,8 @@ output-completeness and subagent-report-contract through agent `skills:` preload
 refactoring-and-debt through `/j-defrag`; the commands are typed. Within skills, description
 length did not predict firing (all 47-86 characters; 47-character skills fire 6 of 6).
 
-**Trigger tuning (2026-11-23, Claude Code 2.1.330).** Twelve low-recall skills were measured with a
-tuning case (`tune-`) and two held-out cases (`held-`) each, then descriptions were rewritten for
+**Trigger tuning (2026-11-23, Claude Code 2.1.330).** Twelve skills (eleven low-recall, plus
+dependency-upgrade, which already fired) were measured with a tuning case (`tune-`) and two held-out cases (`held-`) each, then descriptions were rewritten for
 content and adopted only on held-out evidence (`docs/adr/workflow/skill-descriptions-are-tuned-against-held-out-triggers.md`).
 Counts are fired runs, both models together: existing should case of 6, held-out should case of 12
 (6 runs per model), near cases (existing plus held-out) of 12. Base is before any rewrite; final is
@@ -431,7 +432,7 @@ after tuning round 3.
 | finishing-branch | MISS | 0 -> 6 | 0 -> 2 | 0 -> 0 | restored: held-out gain +2 |
 | html-report-authoring | MISS | 0 -> 0 | 12 -> 12 | 0 -> 0 | restored: held-out gain +0 (at ceiling) |
 | refactoring-and-debt | MISS | 0 -> 6 | 1 -> 10 | 0 -> 0 | adopted |
-| subagent-driven-development | MISS | 3 -> 6 | 3 -> 12 | 0 -> 0 | adopted |
+| subagent-driven-development | MISS | 3 -> 6 | 3 -> 10 | 0 -> 0 | adopted (rewritten after review; re-measured) |
 | writing-plans | MISS | 3 -> 6 | 0 -> 2 | 0 -> 0 | restored: held-out gain +2 |
 
 No skill was ROUTED: finishing-branch and writing-plans went to `/j-create-pr` and `/j-plan` on one
@@ -442,11 +443,15 @@ adopted description passed the effects `no-regression` check on both models
 (code-agent-meta-patterns trim-claudemd fell 0.83 -> 0.50 on Opus within the rule). The neighbour
 check (untuned skills, Sonnet) moved one case: verification-before-completion proof-of-fix fired
 2/3 at baseline, 0/3 at final, and 2/6 on a recheck; no tuned skill fired in its place, and the
-five adopted descriptions were kept by decision. The skill listing was not observable in kept
+five adopted descriptions were kept by decision. The subagent-driven-development held-out prompts
+closely paraphrase its existing cases, so its held-out gain is weaker evidence than the others'. The skill listing was not observable in kept
 traces. Total `.claude` skill and command description length went from 10,387 to 10,911
 characters. Purposes: `trigger-recall-base`, `trigger-recall-held-base`, `trigger-recall-r1` to
 `-r3`, `trigger-recall-final`, `trigger-recall-held-final`, `trigger-recall-neighbour-recheck`,
-`trigger-recall-effects`. The should-fire mean is not comparable with baselines taken before these
+`trigger-recall-effects`, and `trigger-recall-{final,held-final,effects}-sdd`. Review found the first
+adopted subagent-driven-development description summarized the skill's workflow; its rewrite was
+re-measured under the `-sdd` purposes (held-out 10 of 12, existing 6 of 6, no near fires, effects
+`no-regression` PASS on both models). The should-fire mean is not comparable with baselines taken before these
 cases existed.
 
 **Consult commands.** `delegated` passed in 0 of 12 kb runs for each of j-arch, j-cloud, j-devops,

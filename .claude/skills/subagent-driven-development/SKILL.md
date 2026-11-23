@@ -1,6 +1,6 @@
 ---
 name: subagent-driven-development
-description: "Use when the user wants a plan's tasks done by separate subagents, one per task, with each result reviewed before the next task starts."
+description: "Use when the user wants each task of a written plan handed to its own fresh subagent instead of being done in the current session."
 ---
 
 # Subagent-Driven Development
