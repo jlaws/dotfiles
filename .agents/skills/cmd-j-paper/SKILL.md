@@ -7,7 +7,7 @@ description: "Use when invoking the j-paper workflow."
 
 Task: the user's provided input
 
-If no arguments provided, ask what the user wants to do (init a new paper, edit a section, compile + diagnose, add a citation from a source, check submission readiness, or clean the bibliography).
+If no arguments provided, ask what the user wants to do (init a new paper, edit a section, compile + diagnose, add a citation from a source, check submission readiness, draft a rebuttal, or clean the bibliography).
 
 ## Setup (always do first)
 
@@ -71,7 +71,7 @@ Look up the target venue's requirements in `.agents/references/research/latex-pa
 | AI-use disclosure | Look up the venue's current generative-AI policy page; confirm the required statement is present and placed where the venue asks. Do not fabricate the policy or its URL |
 | Limitations | A limitations section exists and names the conditions under which the main claims do not hold |
 | Reproducibility | Seeds and number of runs, hardware and compute, the hyperparameter search, and code and data availability are stated, and each statement is true today (`.agents/references/research/statistical-analysis.md` for seed counts). "Available upon request" alone fails: state the restriction and the access route |
-| Error bars | Every error bar says whether it is a standard deviation or a standard error (`.agents/references/research/statistical-analysis.md`) |
+| Error bars | Every error bar says whether it is a standard deviation, a standard error, or a confidence interval (with its level) (`.agents/references/research/statistical-analysis.md`) |
 
 Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 

@@ -1,12 +1,12 @@
 ---
 name: j-paper
-description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, submission readiness, and rebuttals. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, or preparing a venue submission. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
-argument-hint: "<task: e.g., 'init neurips template', 'compile and fix errors', 'add citation for <url>', 'check page limit'>"
+description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, submission readiness, and rebuttals. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, preparing a venue submission, or answering reviewers. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
+argument-hint: "<task: e.g., 'init neurips template', 'compile and fix errors', 'add citation for <url>', 'check page limit', 'draft rebuttal for reviews.md'>"
 ---
 
 Task: $ARGUMENTS
 
-If no arguments provided, ask what the user wants to do (init a new paper, edit a section, compile + diagnose, add a citation from a source, check submission readiness, or clean the bibliography).
+If no arguments provided, ask what the user wants to do (init a new paper, edit a section, compile + diagnose, add a citation from a source, check submission readiness, draft a rebuttal, or clean the bibliography).
 
 ## Setup (always do first)
 
@@ -78,7 +78,7 @@ Look up the target venue's requirements in `references/research/latex-paper-writ
 | AI-use disclosure | Look up the venue's current generative-AI policy page; confirm the required statement is present and placed where the venue asks. Do not fabricate the policy or its URL |
 | Limitations | A limitations section exists and names the conditions under which the main claims do not hold |
 | Reproducibility | Seeds and number of runs, hardware and compute, the hyperparameter search, and code and data availability are stated, and each statement is true today (`references/research/statistical-analysis.md` for seed counts). "Available upon request" alone fails: state the restriction and the access route |
-| Error bars | Every error bar says whether it is a standard deviation or a standard error (`references/research/statistical-analysis.md`) |
+| Error bars | Every error bar says whether it is a standard deviation, a standard error, or a confidence interval (with its level) (`references/research/statistical-analysis.md`) |
 
 Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
