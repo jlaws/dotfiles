@@ -1,8 +1,6 @@
 ---
 name: debugging-methodology
 description: "Use when investigating bugs, failures, or odd behavior."
-skills:
-  - verification-before-completion
 ---
 
 # Debugging Methodology
@@ -246,3 +244,7 @@ If unfixable now: log it, track it, surface it. A silenced error hides the next 
 - [ ] Cache / stale state
 - [ ] Error path cleanup (connections, file handles, locks)
 - [ ] Environment differences (local vs CI vs prod)
+
+## Integration
+
+**Uses:** `verification-before-completion`

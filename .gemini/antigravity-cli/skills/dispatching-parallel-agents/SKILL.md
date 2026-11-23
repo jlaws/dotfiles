@@ -1,8 +1,6 @@
 ---
 name: dispatching-parallel-agents
 description: "Use when independent tasks can run concurrently."
-skills:
-  - verification-before-completion
 ---
 
 # Dispatching Parallel Agents

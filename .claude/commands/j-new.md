@@ -172,7 +172,7 @@ cases for a skill or command, effect cases for an agent). Offer to run its smoke
 | `argument-hint` | If `$ARGUMENTS` | Optional | N/A |
 | `allowed-tools` / `disallowed-tools` | Optional; scoped grants only | Optional; scoped grants only | N/A |
 | `tools` | N/A | N/A | Recommended |
-| `skills` | N/A | Optional (deps) | Optional (preload) |
+| `skills` | N/A | N/A (name dependencies in the body) | Optional (preload) |
 | `model` | Avoid (`CM-F7`) | Only with `context: fork` | Required (alias, `AG-F8`) |
 | `effort` | Lower only (`low`, `medium`) | Lower only inline; any with `context: fork` | Optional |
 | `paths` | N/A | Optional | N/A |

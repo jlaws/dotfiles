@@ -1,8 +1,6 @@
 ---
 name: subagent-driven-development
 description: "Use when executing a plan with isolated tasks delegated."
-skills:
-  - executing-plans
 ---
 
 # Subagent-Driven Development

@@ -1,9 +1,6 @@
 ---
 name: code-review-patterns
 description: "Use when reviewing PRs or responding to review feedback."
-skills:
-  - verification-before-completion
-  - language-testing-patterns
 ---
 
 # Code Review Patterns

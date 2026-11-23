@@ -178,7 +178,7 @@ cases for a skill or command, effect cases for an agent). Offer to run its smoke
 | `argument-hint` | If `$ARGUMENTS` | Optional | N/A |
 | `allowed-tools` / `disallowed-tools` | Optional; scoped grants only | Optional; scoped grants only | N/A |
 | `tools` | N/A | N/A | Recommended |
-| `skills` | N/A | Optional (deps) | Optional (preload) |
+| `skills` | N/A | N/A (name dependencies in the body) | Optional (preload) |
 | `model` | Avoid | Only with `context: fork` | Alias or `inherit` |
 | `effort` | Lower only (`low`, `medium`) | Lower only inline; any with `context: fork` | Optional |
 | `paths` | N/A | Optional | N/A |
@@ -186,6 +186,8 @@ cases for a skill or command, effect cases for an agent). Offer to run its smoke
 | `context: fork`, `agent` | N/A | Optional | N/A |
 | `memory` | N/A | N/A | Avoid; see `code-agent-meta-patterns`, Agent memory |
 | `color`, `maxTurns`, `permissionMode` | N/A | N/A | Optional |
+
+A skill under `.gemini/antigravity-cli/skills/` or `.agents/skills/` carries only `name` and `description`; the other Skill-column rows apply to `.claude/skills/`.
 
 Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Agent, Skill. Write `Agent`, not its retired name `Task`.
 

@@ -1,8 +1,6 @@
 ---
 name: finishing-branch
 description: "Use when completed branch work needs integration."
-skills:
-  - documentation-validation
 ---
 
 # Finishing a Development Branch

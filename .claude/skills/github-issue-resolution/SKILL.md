@@ -1,8 +1,6 @@
 ---
 name: github-issue-resolution
 description: "Use when resolving a GitHub issue through implementation."
-skills:
-  - test-driven-development
 ---
 
 # GitHub Issue Resolution
@@ -113,3 +111,7 @@ gh issue close ${ISSUE_NUMBER} --comment "Resolved via #${PR_NUMBER}"
 5. Verification steps for reviewers
 6. Rollback plan
 7. Documentation validated — product docs and any KB self-docs current, or N/A with reason (see `documentation-validation`)
+
+## Integration
+
+**Uses:** `test-driven-development`

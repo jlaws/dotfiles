@@ -339,6 +339,9 @@ SKILL_TREE_ROOTS = (
     REPO / ".gemini" / "antigravity-cli" / "skills",
 )
 
+SHARED_SKILL_ROOTS = SKILL_TREE_ROOTS[1:]
+SHARED_SKILL_FRONTMATTER_KEYS = frozenset({"name", "description"})
+
 # Both execution modes close a plan boundary through the diff review, whose Step 7 opens the PR.
 EXECUTION_CLOSE_OWNERS = tuple(
     root / skill / "SKILL.md"
@@ -487,6 +490,14 @@ def frontmatter_block(path: Path) -> str:
     return match.group(1)
 
 
+def frontmatter_keys(path: Path) -> set[str]:
+    """Return the top-level keys of a file's frontmatter: its unindented `key:` lines."""
+    return {
+        match.group(1)
+        for match in re.finditer(r"^([A-Za-z][\w-]*):", frontmatter_block(path), re.MULTILINE)
+    }
+
+
 def skill_directories(root: Path) -> set[str]:
     return {path.parent.name for path in root.glob("*/SKILL.md")}
 
@@ -599,6 +610,22 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(skill=skill.parent.name):
                 self.assertLessEqual(len(value), 64)
                 self.assertTrue(value.startswith("Use when"))
+
+    def test_shared_skill_frontmatter_is_name_and_description_only(self):
+        """Shared skills carry only name and description (owner: .agents/skills/writing-skills/SKILL.md)."""
+        checked = 0
+        for root in SHARED_SKILL_ROOTS:
+            for path in sorted(root.glob("*/SKILL.md")):
+                rel = path.relative_to(REPO)
+                keys = frontmatter_keys(path)
+                checked += 1
+                with self.subTest(skill=str(rel)):
+                    self.assertEqual(
+                        keys,
+                        SHARED_SKILL_FRONTMATTER_KEYS,
+                        f"{rel}: shared skill frontmatter must be exactly name and description, found {sorted(keys)}",
+                    )
+        self.assertGreater(checked, 0, "no shared skills checked; the check is vacuous")
 
     def test_workflow_skill_sets_match_claude_mirror(self):
         """Shared workflows and their Claude counterparts must cover the same set of names.
