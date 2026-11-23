@@ -1,6 +1,6 @@
 ---
 name: subagent-driven-development
-description: "Use when executing a plan with isolated tasks delegated."
+description: "Use when the user wants a plan's tasks done by separate subagents, one per task, with each result reviewed before the next task starts."
 ---
 
 # Subagent-Driven Development

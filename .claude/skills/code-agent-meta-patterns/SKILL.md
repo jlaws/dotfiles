@@ -1,6 +1,6 @@
 ---
 name: code-agent-meta-patterns
-description: "Use when designing agent instructions, hooks, or workflows."
+description: "Use when shaping how a coding agent behaves: CLAUDE.md or AGENTS.md rules, skills, subagents, commands, or a hook that runs a check or blocks an action the agent would otherwise take."
 ---
 
 # Claude Code Meta-Patterns

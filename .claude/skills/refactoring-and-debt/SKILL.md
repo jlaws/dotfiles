@@ -1,6 +1,6 @@
 ---
 name: refactoring-and-debt
-description: "Use when refactoring code or reducing technical debt."
+description: "Use when restructuring working code without changing what it does: splitting a large file or class, removing duplication, untangling dependencies, or paying down technical debt."
 ---
 
 # Refactoring & Technical Debt
