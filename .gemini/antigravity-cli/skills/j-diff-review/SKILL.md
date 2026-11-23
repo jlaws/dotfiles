@@ -84,7 +84,7 @@ Do not rely on an agent's own definition to supply the instruction: only `code-r
 
 > Run `git diff origin/main...<HEAD SHA>` yourself, then decide what else to read and how to load it: cross-cutting problems often live in code the diff did not touch.
 > Report only. Return findings and edit nothing. Cite `file:line` for each. If your lens does not apply
-> to this diff, return "no findings -- surface not present" rather than manufacturing material.
+> to this diff, return "no findings - surface not present" rather than manufacturing material.
 > Work in the current directory; do not create or request a worktree. If this packet names a HEAD SHA,
 > run `git rev-parse HEAD` and confirm it matches before reporting. If it moved, run
 > `git diff <named-sha> -- <changed files>` and `git diff --name-only <named-sha> HEAD`: an empty diff and
