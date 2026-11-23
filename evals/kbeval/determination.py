@@ -16,6 +16,7 @@ Usage: python3 -m evals.kbeval.determination <subcommand>
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import re
 import sys
@@ -400,13 +401,37 @@ def _trigger_kind(name: str) -> Tuple[str, str]:
     return "", ""
 
 
+def _trigger_batches(root: Path, asset: str) -> List[Path]:
+    """Return an asset's complete result files under `root`, oldest first.
+
+    A file counts only with its `.key` sibling and `partial` false; others are reported on stderr.
+    Ordering by modification time lets a newer batch (full-asset or exact-case) replace an older one.
+    """
+    found = [root / f"{asset}.json", *root.glob(f"{glob.escape(asset)}@*.json"),
+             *root.glob(f"{glob.escape(asset)}--*.json")]
+    complete = []
+    for path in found:
+        if not path.is_file():
+            continue
+        if not path.with_suffix(".key").is_file():
+            print(f"SKIPPED {path} (no .key)", file=sys.stderr)
+            continue
+        if json.loads(path.read_text(encoding="utf-8")).get("partial"):
+            print(f"SKIPPED {path} (partial)", file=sys.stderr)
+            continue
+        complete.append(path)
+    return sorted(complete, key=lambda path: (path.stat().st_mtime, path.name))
+
+
 def trigger_rows(purpose: str, assets: List[str], split: Optional[str] = None) -> List[TriggerRow]:
     """Return (case, kind, model, fired runs, graded runs) for each trigger case under a purpose.
 
     Reads `<asset>.json`, `<asset>@*.json`, and exact-case `<asset>--*.json` files under
-    `results/<purpose>/kb/<model>/triggers/`. For trigger-near and trigger-noauto cases a passing
-    `fired` grader means the skill was not called, so fired = graded runs minus passes. `split`
-    "held" keeps cases whose slug starts "held-"; "tune" keeps every other case.
+    `results/<purpose>/kb/<model>/triggers/`; the newest batch wins for a case. A run counts as
+    graded only when its `fired` grader is present. For trigger-near and trigger-noauto cases a
+    passing `fired` grader means the skill was not called, so fired = graded runs minus passes.
+    `split` "held" keeps cases whose slug starts "held-"; "tune" keeps every other case, unprefixed
+    ones included.
     """
     rows: List[TriggerRow] = []
     base = RESULTS / purpose / "kb"
@@ -414,24 +439,18 @@ def trigger_rows(purpose: str, assets: List[str], split: Optional[str] = None) -
     for model_dir in model_dirs:
         root = model_dir / "triggers"
         for asset in assets:
-            paths = [root / f"{asset}.json", *sorted(root.glob(f"{asset}@*.json")),
-                     *sorted(root.glob(f"{asset}--*.json"))]
             seen: Cases = {}
-            for path in paths:
-                if not (path.is_file() and path.with_suffix(".key").is_file()):
-                    continue
+            for path in _trigger_batches(root, asset):
                 doc = json.loads(path.read_text(encoding="utf-8"))
-                if doc.get("partial"):
-                    continue
                 for case in doc.get("cases", []):
-                    if case["name"].startswith(asset + "--"):
+                    if case.get("name", "").startswith(asset + "--"):
                         seen[case["name"]] = case
             for name, case in seen.items():
                 kind, slug = _trigger_kind(name)
                 held = slug.startswith("held-")
                 if not kind or (split == "held" and not held) or (split == "tune" and held):
                     continue
-                graded = runs(case)
+                graded = [run for run in runs(case) if grader(run, "fired")]
                 hits = sum(passed(run, "fired") for run in graded)
                 fired = hits if kind == "trigger-should" else len(graded) - hits
                 rows.append((name, kind, model_dir.name, fired, len(graded)))
@@ -439,9 +458,13 @@ def trigger_rows(purpose: str, assets: List[str], split: Optional[str] = None) -
 
 
 def triggers(purpose: str, assets: List[str], split: Optional[str]) -> int:
-    """Print one TRIGGER line per trigger case and model."""
-    for name, kind, model, fired, graded in trigger_rows(purpose, assets, split):
+    """Print one TRIGGER line per trigger case and model; exit 1 when nothing matched."""
+    rows = trigger_rows(purpose, assets, split)
+    for name, kind, model, fired, graded in rows:
         print(f"TRIGGER {name} {kind} {model} {fired}/{graded}")
+    if not rows:
+        print(f"no trigger results for purpose={purpose} assets={' '.join(assets)}", file=sys.stderr)
+        return 1
     return 0
 
 
