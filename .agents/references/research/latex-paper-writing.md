@@ -229,7 +229,7 @@ Ours (small)     & \underline{96.5} & \underline{83.1} & \textbf{79.2} & 12.8 \\
 
 ### Submission Formatting Traps
 - **Missing anonymization**: grep for author names, institution names, GitHub URLs before submission. `\iclrfinalcopy` left in submission = desk reject.
-- **Wrong style option**: `[final]` vs `[preprint]` flag changes page layout. Always double-check.
+- **Wrong style option**: `[final]` vs `[preprint]` flag changes page layout, and `[preprint]` prints author names on a submission. Always double-check.
 - **Overflowing margins**: venue checkers reject margin violations. Use `\usepackage[letterpaper]{geometry}` only if the style file does not set it.
 - **Font embedding**: run `pdffonts output.pdf` to verify all fonts embedded. Missing fonts = rejection at some venues.
 
