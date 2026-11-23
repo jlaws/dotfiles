@@ -2,19 +2,20 @@
   "period": "initial-baseline-2026-11",
   "totals": {
     "byModel": {
-      "claude-opus-5-5": 498.1337,
-      "claude-sonnet-5-5": 404.1565
+      "claude-opus-5-5": 509.2996,
+      "claude-sonnet-5-5": 410.669
     },
     "byPurpose": {
       "baseline": 661.4377,
       "fix-asset-defects": 89.7104,
       "kb-harvest-pr1": 33.7511,
       "pilot": 3.4145,
+      "research-paper-pr4": 17.6784,
       "smoke-feat-kb-evals-agents": 35.0462,
       "smoke-feat-kb-evals-consult-commands": 20.8341,
       "smoke-feat-kb-evals-skills": 39.1492,
       "smoke-feat-kb-evals-workflow-commands": 18.947
     },
-    "totalUsd": 902.2902
+    "totalUsd": 919.9686
   }
 }

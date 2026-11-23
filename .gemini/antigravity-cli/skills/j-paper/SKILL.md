@@ -1,13 +1,13 @@
 ---
 name: j-paper
-description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, and submission readiness. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, or preparing a venue submission. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
+description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, submission readiness, and rebuttals. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, preparing a venue submission, or answering reviewers. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
 ---
 
 # Paper
 
 Task: $ARGUMENTS
 
-If no arguments provided, ask what the user wants to do (init a new paper, edit a section, compile + diagnose, add a citation from a source, check submission readiness, or clean the bibliography).
+If no arguments provided, ask what the user wants to do (init a new paper, edit a section, compile + diagnose, add a citation from a source, check submission readiness, draft a rebuttal, or clean the bibliography).
 
 ## Setup (always do first)
 
@@ -77,6 +77,9 @@ Look up the target venue's requirements in `references/research/latex-paper-writ
 | Supplementary structure | Confirm appendix is in the right form for the venue (separate PDF vs appended) |
 | Number provenance | Every number in the draft traces to a saved log, script, or run config; Methods values match the config that ran |
 | AI-use disclosure | Look up the venue's current generative-AI policy page; confirm the required statement is present and placed where the venue asks. Do not fabricate the policy or its URL |
+| Limitations | A limitations section exists and names the conditions under which the main claims do not hold |
+| Reproducibility | Seeds and number of runs, hardware and compute, the hyperparameter search, and code and data availability are stated, and each statement is true today (`references/research/statistical-analysis.md` for seed counts). "Available upon request" alone fails: state the restriction and the access route |
+| Error bars | Every error bar says whether it is a standard deviation, a standard error, or a confidence interval (with its level) (`references/research/statistical-analysis.md`) |
 
 Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
@@ -86,6 +89,10 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 - Detect duplicates by DOI first, then by normalized title (lowercase, strip punctuation).
 - Flag entries with missing year or venue, and entries with no DOI unless they cite a proceedings page. Propose a DOI only when a resolved record matches on title, first author, and year (`references/research/literature-review.md`, Citation Verification).
 - Propose merges -- never silently delete entries.
+
+### g. Rebuttal / response to reviewers
+
+- Read `references/research/rebuttal-writing.md` and follow it: triage every comment into a table first, then draft the response.
 
 ## Communication contract
 
@@ -101,6 +108,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 - **references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
 - **references/documentation/ai-writing-tells.md** -- prose habits to revise before delivering text
 - **references/research/literature-review.md** -- before adding or cleaning a citation (Citation Verification), or when scope expands to surveying related work
+- **references/research/rebuttal-writing.md** -- triage, response structure, and what never to claim
 - **references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
 - **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate (it loads `references/research/`); verify its output
 - **skill:analysis-output-patterns** -- output structure rules
