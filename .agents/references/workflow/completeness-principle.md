@@ -25,7 +25,7 @@ are the boundary, and they generalize:
 | Quality of what is in scope | Thorough. The marginal cost is near-zero |
 | New scope, new abstractions, new dependencies | Lazy. Stop at the first rung that holds |
 
-So "prefer thorough over good enough" and "stop at the first rung that holds" are not in tension: 
+So "prefer thorough over good enough" and "stop at the first rung that holds" are not in tension:
 they govern different axes. Reach for `code-efficiency-ladder` to decide whether a thing should
 exist; reach for this page to decide how well to build it once it should.
 

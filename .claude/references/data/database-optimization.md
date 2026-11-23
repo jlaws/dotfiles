@@ -53,7 +53,7 @@ orders = Order.query.options(joinedload(Order.user)).all()
 | **Session** | Connection held for entire client session | Yes | Long-running connections, prepared statements |
 | **Statement** | Connection returned after each statement | No | Simple queries, maximum sharing |
 
-**Pool sizing:** `connections = (cores × 2) + effective_spindle_count`; typically 20–50 for most apps. More connections ≠ more throughput; too many causes contention.
+**Pool sizing:** `connections = (cores × 2) + effective_spindle_count` (typically 20–50 for most apps). More connections ≠ more throughput; too many causes contention.
 
 **Warning:** PgBouncer in transaction mode breaks prepared statements and `SET` commands. Use session mode or application-level pooling if you need these.
 

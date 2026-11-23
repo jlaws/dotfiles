@@ -154,7 +154,7 @@ When a task involves heavy research that could bloat the main context, consider 
 
 **Reversible summarization:** before you summarize or drop large output, persist the full original to a scratch file and cite its path; detail stays recoverable. Only summarize (or delegate to a subagent for context savings) when the estimated tokens saved exceed the overhead; scale compression intensity up as the window fills.
 
-Five rules make that one safe. Without them it permits a summarize whose persist silently failed: 
+Five rules make that one safe. Without them it permits a summarize whose persist silently failed:
 a lossy compression that believes it is lossless.
 
 **If the original cannot be persisted, do not compress it.** Ship it verbatim and say why. The

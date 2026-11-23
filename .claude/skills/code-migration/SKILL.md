@@ -122,7 +122,7 @@ Duration depends on team size, module count, and how much of the touched code al
 
 ### Migration Order
 
-Migrate in dependency order: leaves first, roots last:
+Migrate in dependency order; leaves first, roots last:
 
 ```
 1. Utilities / helpers (no internal dependencies)

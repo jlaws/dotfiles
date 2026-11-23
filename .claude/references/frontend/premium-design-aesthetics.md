@@ -1,6 +1,6 @@
 ---
 name: premium-design-aesthetics
-description: "Opinionated rules for premium UI design; banned fonts, color constraints, layout anti-patterns, and AI fingerprints to eliminate. Load when building or auditing UIs for quality."
+description: "Opinionated rules for premium UI design: banned fonts, color constraints, layout anti-patterns, and AI fingerprints to eliminate. Load when building or auditing UIs for quality."
 type: reference
 ---
 
@@ -25,7 +25,7 @@ Name the surface mode before applying any rule here:
 |------|--------|
 | **Banned for premium contexts** | Inter, Roboto (too generic, AI default fingerprint) |
 | **Choosing a face** | Pick from the subject's world and name the reason; a fixed favorites list becomes the next fingerprint |
-| **Body text** | Off-black only: `#111111` or `#2F3437`; never pure `#000000` |
+| **Body text** | Off-black only: `#111111` or `#2F3437` (never pure `#000000`) |
 | **Weight discipline** | Limit to 2 weights per component; avoid weight mixing for hierarchy |
 
 ## Color

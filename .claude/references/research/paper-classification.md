@@ -4,7 +4,7 @@
 
 The library is **selective**. Only papers whose *primary contribution* is a general,
 reusable AI/ML advance in a focus area are kept. Judge every paper by **what it
-contributes, not which folder it could fit**: then assign one `relevance_class`:
+contributes, not which folder it could fit**; then assign one `relevance_class`:
 
 | `relevance_class` | Meaning | Decision |
 |---|---|---|

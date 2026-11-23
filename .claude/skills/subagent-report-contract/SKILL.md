@@ -44,5 +44,5 @@ or trimmed. Brevity applies to your prose, not to what you found.
 ## Integration
 
 **Pairs with:** `dispatching-parallel-agents` (the caller's side)
-**Uses:** `output-completeness`: a report with a dropped section costs the reader more than it saves
-**See also:** `reference:context-efficiency`: Command Output Shaping, the same rule for tool output
+**Uses:** `output-completeness`; a report with a dropped section costs the reader more than it saves
+**See also:** `reference:context-efficiency`; Command Output Shaping, the same rule for tool output

@@ -129,4 +129,4 @@ Success criteria:
 | "Fix the race condition" (no context) | Paste error messages and test names |
 | No constraints | "Do NOT change production code" |
 | "Fix it" (vague output) | "Return summary of root cause and changes" |
-| No scope declared | "Files (read-write): src/auth/**: do not touch other paths" |
+| No scope declared | "Files (read-write): src/auth/** (do not touch other paths)" |

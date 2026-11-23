@@ -32,7 +32,7 @@ Non-negotiable: everything inline in one `.html` file.
 - Consistent section headers; one idea per section.
 - Color-code by category or severity so the eye finds things fast.
 - Tables and callout boxes over long prose paragraphs.
-- For reports: BLUF: lead with the finding, methodology after.
+- For reports: BLUF; lead with the finding, methodology after.
 
 ## Make the Shape Visible
 

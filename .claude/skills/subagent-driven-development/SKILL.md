@@ -108,6 +108,6 @@ Maintain the same living-document sections as `executing-plans`, in the plan fil
 ## Integration
 
 **Receives plans from:** `writing-plans`
-**Alternative to:** `executing-plans` (inline mode): same ledger, different dispatch
+**Alternative to:** `executing-plans` (inline mode); same ledger, different dispatch
 **Uses:** `verification-before-completion` for every verdict; `dispatching-parallel-agents` when independent tasks can run concurrently
 **Hands off to:** /j-diff-review after the last task; its Step 7 opens the PR

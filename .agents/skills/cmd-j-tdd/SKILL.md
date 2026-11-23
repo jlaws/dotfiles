@@ -9,7 +9,7 @@ Feature/bug: the user's provided input
 
 If no arguments provided, ask what the user wants to implement.
 
-Invoke the `test-driven-development` skill before coding. Then follow this execution loop in order: do not skip or reorder steps:
+Invoke the `test-driven-development` skill before coding. Then follow this execution loop in order; do not skip or reorder steps:
 
 1. **Explore**: Read existing code around the feature area. Identify edge cases, existing patterns, and test infrastructure (test runner, fixtures, helpers).
 2. **Write tests**: Cover happy path, error cases, and edge cases. Tests MUST fail initially.

@@ -120,7 +120,7 @@ Pick ONE strategy. Do not combine them.
 
 ### Migration Order
 
-Migrate in dependency order: leaves first, roots last:
+Migrate in dependency order; leaves first, roots last:
 
 ```
 1. Utilities / helpers (no internal dependencies)

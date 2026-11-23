@@ -12,7 +12,7 @@ Only rules linters/formatters cannot enforce.
 - Names describe purpose, not type: `user_list` not `l`, `count` not `n`
 - Boolean variables/functions: `is_`, `has_`, `can_`, `should_` prefix
 - Avoid generic names: `data`, `info`, `temp`, `val`; be specific
-- Module names: short, lowercase, no dashes; `utilities` not `my-utils`
+- Module names: short, lowercase, no dashes: `utilities` not `my-utils`
 
 ### Docstrings
 - Google-style with `Args:`/`Returns:`/`Raises:` sections

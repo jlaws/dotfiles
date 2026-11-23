@@ -45,7 +45,7 @@ Do not ask GitHub; the API is slow, and a squash merge severs ancestry, so `git 
 
 ## Phase 3: Clean slate off main
 
-The `writing-plans` between-PRs sequence: run each as a separate command so a failure points at one thing:
+The `writing-plans` between-PRs sequence; run each as a separate command so a failure points at one thing:
 
 ```bash
 git checkout main

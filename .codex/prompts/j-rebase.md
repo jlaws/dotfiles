@@ -24,7 +24,7 @@ Check all three before touching history, so a failed precondition leaves the bra
 
 1. `git fetch origin main`: get the latest trunk.
 2. `git rev-parse HEAD`: record this as the pre-rewrite recovery point and include it in the final report. Also record `git merge-base HEAD origin/main` as `BASE`: the trunk commit the branch was last built on.
-3. Squash every branch commit into one, based at the pre-rebase merge-base (canonical 3-call sequence: run each as a separate command):
+3. Squash every branch commit into one, based at the pre-rebase merge-base (canonical 3-call sequence; run each as a separate command):
    ```bash
    git add -A
    ```
