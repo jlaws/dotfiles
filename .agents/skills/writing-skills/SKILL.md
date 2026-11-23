@@ -35,6 +35,7 @@ skills/
 ```
 
 Separate files for: heavy reference (100+ lines), reusable tools. Keep everything else inline.
+A pointer says when to load the file: "Read `references/CLAUDE_MD_TESTING.md` when an agent read the skill and still chose wrong", not "see references/".
 
 ## SKILL.md Structure
 
@@ -61,6 +62,7 @@ description: Use when executing implementation plans with independent tasks in t
 ## Core Pattern (before/after code)
 ## Quick Reference (table/bullets)
 ## Common Mistakes (what goes wrong + fixes)
+## Gotchas (facts that defy a reasonable assumption; add one per correction)
 ```
 
 ## Keyword Discipline (RFC 2119)
@@ -134,7 +136,7 @@ Applies to new skills AND edits. Write skill before testing? Delete it. Start ov
 
 ## Testing Skills
 
-For detailed testing methodology, see `references/CLAUDE_MD_TESTING.md`.
+Read `references/CLAUDE_MD_TESTING.md` when an agent read the skill and still chose wrong.
 
 Run scenarios without skill (RED), write skill addressing failures (GREEN), close loopholes (REFACTOR).
 

@@ -24,6 +24,10 @@ Keep a section only if it passes one of these:
 Cut what fails all four. Generic best practice, framework tours, and derivable taxonomies are the
 usual offenders. A skill that could apply to any repo teaches little about this one.
 
+Facts that defy a reasonable assumption go in a `## Gotchas` section of SKILL.md, not a supporting
+file: the agent needs them before it knows to look. Add one each time a correction exposes a wrong
+assumption.
+
 ## Claims and evidence
 
 A number in a KB asset is a claim the reader will act on. Every quantitative claim carries how it was
@@ -101,6 +105,8 @@ skills/
 ```
 
 Split a file out when it is heavy reference or a reusable tool. Keep the rest inline, one level deep.
+A pointer says when to load the file: "Read `references/CLAUDE_MD_TESTING.md` when an agent read the
+skill and still chose wrong", not "see references/".
 
 **For mechanical steps — validation, formatting, deterministic checks — ship a script and call it.**
 Reserve the model for judgment. A prose checklist of things a script could verify is both longer and
@@ -198,7 +204,7 @@ that copies references into each run's workspace.
 - [ ] Every section passes one of the four tests above
 - [ ] Mechanical steps live in a script, not in prose
 - [ ] `description` is a trigger, and any `.agents/` copy fits the 64-character budget
-- [ ] Supporting files are referenced from SKILL.md
+- [ ] Each supporting file has a pointer in SKILL.md that says when to load it
 - [ ] KB self-docs current: the MEMORY.md index if the asset set changed
 - [ ] `cmd-j-*` skills have Claude, Codex, and Gemini command counterparts
 - [ ] The repo's lint and test commands pass

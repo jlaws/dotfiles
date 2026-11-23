@@ -1,8 +1,6 @@
 ---
 name: pr-comment-resolution
 description: "Use when resolving reviewer comments on an open PR."
-skills:
-  - code-review-patterns
 ---
 
 # PR Comment Resolution

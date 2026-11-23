@@ -13,12 +13,14 @@
 | ACL | `acl2024.sty` | 8 + refs | 4 pages | N/A | Yes (ARR) |
 | CVPR | `cvpr.sty` | 8 + refs | Unlimited | N/A | Yes |
 
+The style files and limits in this table are from the 2024 cycle, and venues change them every year. Before formatting, read the target venue's current author guidelines and take the style file name, page limit, and option names from there.
+
 ### Submission vs Camera-Ready
 
 | Aspect | Submission | Camera-Ready |
 |--------|-----------|--------------|
 | Author names | Anonymous | Full names + affiliations |
-| Style option | `\usepackage[preprint]{neurips_2024}` | `\usepackage[final]{neurips_2024}` |
+| Style option | `\usepackage{neurips_2024}` (no option; `[preprint]` prints author names) | `\usepackage[final]{neurips_2024}` |
 | Page limit | Strict | Usually +1 page |
 | Acknowledgments | Omit | Include |
 | Supplementary | Separate or appended | Usually appended |
@@ -28,8 +30,8 @@
 ```latex
 \documentclass{article}
 
-% --- Venue style (swap per target) ---
-\usepackage[preprint]{neurips_2024}
+% --- Venue style (swap per target; no option = anonymous submission) ---
+\usepackage{neurips_2024}
 
 % --- Core packages ---
 \usepackage[utf8]{inputenc}
@@ -227,7 +229,7 @@ Ours (small)     & \underline{96.5} & \underline{83.1} & \textbf{79.2} & 12.8 \\
 
 ### Submission Formatting Traps
 - **Missing anonymization**: grep for author names, institution names, GitHub URLs before submission. `\iclrfinalcopy` left in submission = desk reject.
-- **Wrong style option**: `[final]` vs `[preprint]` flag changes page layout. Always double-check.
+- **Wrong style option**: `[final]` vs `[preprint]` flag changes page layout, and `[preprint]` prints author names on a submission. Always double-check.
 - **Overflowing margins**: venue checkers reject margin violations. Use `\usepackage[letterpaper]{geometry}` only if the style file does not set it.
 - **Font embedding**: run `pdffonts output.pdf` to verify all fonts embedded. Missing fonts = rejection at some venues.
 

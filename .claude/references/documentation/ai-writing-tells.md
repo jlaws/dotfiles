@@ -45,9 +45,11 @@ proves anything either way. Treat the table as habits to revise, not a score to 
 
 ### Inflation and Borrowed Authority
 - Stock words: delve, tapestry, testament, landscape, realm, pivotal, showcase, underscore, foster,
-  seamless, robust. Use the plain word. The tell is density, not a single use.
+  seamless, robust. Use the plain word. Where the word carries no fact ("robust", "seamless"), delete
+  it or name the property it stands for. The tell is density, not a single use.
 - Inflated significance ("a pivotal moment", "reshapes the field"). State the measured effect.
 - "Serves as", "stands as", "boasts" where "is" or "has" fits. Use "is" or "has".
+- Filler verb phrases ("perform an analysis of", "make use of"). Use the verb: "analyze", "use".
 - Trailing "-ing" clauses that add vague meaning (", highlighting its importance"). Cut them or make the
   claim.
 - Vague attribution ("experts say", "studies show"). Cite the source or drop the claim.
@@ -84,7 +86,8 @@ proves anything either way. Treat the table as habits to revise, not a score to 
   passage.
 - Quotations, titles, proper names, and text that discusses a phrase keep their wording.
 - Never invent detail, anecdote, or opinion to sound human. With nothing specific to say, write a
-  shorter, plainer sentence.
+  shorter, plainer sentence. Where a specific value exists but is unknown, leave a visible placeholder
+  such as `[N = ?]` and list every placeholder for the user.
 - A writing sample from the user outranks this catalog: match its sentence length, word choice, and punctuation even where it uses a listed tell.
 
 ## Papers

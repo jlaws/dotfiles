@@ -25,7 +25,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 ## Diagnostic scans (run only those relevant to the task)
 
 1. **Paper root**: `Glob` for `*.tex`. Identify the file containing `\documentclass`.
-2. **Venue**: grep the preamble for `neurips_*`, `icml*`, `iclr*`, `aaai*`, `acl*`, `cvpr*`. Note the `[preprint]` vs `[final]` style flag.
+2. **Venue**: grep the preamble for `neurips_*`, `icml*`, `iclr*`, `aaai*`, `acl*`, `cvpr*`. Note the style option: for NeurIPS, none is the anonymous submission, `[preprint]` prints author names, `[final]` is camera-ready.
 3. **Bibliography**: `Glob` for `*.bib`. Identify `\bibliography{...}` or `\addbibresource{...}` directive in the root file.
 4. **Project layout**: `Glob` for `figures/`, `sections/`, `tables/`, `appendix/`.
 5. **Build tool**: check for `latexmkrc`, `.latexmkrc`, or a `Makefile` target.
@@ -36,7 +36,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 
 - Determine target venue from arguments. If ambiguous, ask.
 - Pull the preamble + macros from `references/research/latex-paper-writing.md`.
-- If the venue style file (e.g. `neurips_2024.sty`) is not present locally, tell the user the canonical filename to download from the venue site -- do NOT fabricate a URL.
+- If the venue style file is not present locally, take its current filename from the venue's author guidelines and tell the user to download it from the venue site -- do NOT fabricate a URL.
 - Scaffold: `main.tex`, `references.bib`, `sections/`, `figures/`, `latexmkrc`. Use `Write` only for new files; `Edit` for any pre-existing file.
 
 ### b. Section editing
@@ -59,7 +59,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 - Accept inputs: URL, DOI, arXiv ID, plain title.
 - Use `WebFetch` to retrieve the source page (arxiv.org/abs/..., DOI resolver, venue page). Extract title, authors, year, venue, abstract.
 - Generate a deterministic BibTeX key: `firstauthorlast_year_keyword` (e.g. `vaswani_2017_attention`).
-- Append the entry to the detected `.bib` file. Dedupe by DOI first, then normalized title.
+- Verify the entry first (`references/research/literature-review.md`, Citation Verification), then append it to the detected `.bib` file. Dedupe by DOI first, then normalized title.
 - If `$ARGUMENTS` indicates where to cite, insert `\cite{key}` at that location (Edit). Otherwise report the key for the user to place.
 - Never fabricate citation fields. If authors / abstract / venue cannot be extracted, say so explicitly and leave the field blank rather than guess.
 
@@ -71,7 +71,7 @@ Look up the target venue's requirements in `references/research/latex-paper-writ
 |-------|-----|
 | Page count | Compile, then `pdfinfo <pdf>` (one Bash call) -- compare to venue limit |
 | Anonymization | grep `\author{`, acknowledgments block, and self-citations like "in our prior work" / "we previously showed" |
-| Style flag | grep for `[preprint]` vs `[final]` -- must match submission phase |
+| Style flag | grep the style option -- it must match the phase under the venue's current style file. For NeurIPS a submission takes no option; `[preprint]` de-anonymizes it |
 | Font embedding | `pdffonts <pdf>` (one Bash call) -- every font must show "yes" under "emb" |
 | Abstract length | Word-count the abstract block against the venue limit (NeurIPS: 250) |
 | Supplementary structure | Confirm appendix is in the right form for the venue (separate PDF vs appended) |
@@ -84,7 +84,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
 - Parse `.bib` entries. Use `bibtool` if installed; otherwise grep-based scan.
 - Detect duplicates by DOI first, then by normalized title (lowercase, strip punctuation).
-- Flag entries with missing DOI, year, or venue.
+- Flag entries with missing year or venue, and entries with no DOI unless they cite a proceedings page. Propose a DOI only when a resolved record matches on title, first author, and year (`references/research/literature-review.md`, Citation Verification).
 - Propose merges -- never silently delete entries.
 
 ## Communication contract
@@ -100,7 +100,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
 - **references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
 - **references/documentation/ai-writing-tells.md** -- prose habits to revise before delivering text
-- **references/research/literature-review.md** -- when scope expands to surveying related work
+- **references/research/literature-review.md** -- before adding or cleaning a citation (Citation Verification), or when scope expands to surveying related work
 - **references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
 - **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate (it loads `references/research/`); verify its output
 - **skill:analysis-output-patterns** -- output structure rules

@@ -339,6 +339,12 @@ SKILL_TREE_ROOTS = (
     REPO / ".gemini" / "antigravity-cli" / "skills",
 )
 
+SHARED_SKILL_ROOTS = (
+    REPO / ".agents" / "skills",
+    REPO / ".gemini" / "antigravity-cli" / "skills",
+)
+SHARED_SKILL_FRONTMATTER_KEYS = frozenset({"name", "description"})
+
 # Both execution modes close a plan boundary through the diff review, whose Step 7 opens the PR.
 EXECUTION_CLOSE_OWNERS = tuple(
     root / skill / "SKILL.md"
@@ -487,6 +493,24 @@ def frontmatter_block(path: Path) -> str:
     return match.group(1)
 
 
+def frontmatter_key_lines(path: Path) -> list[str]:
+    """Return the key of every unindented, non-comment frontmatter line, duplicates kept.
+
+    A line scan, not a YAML parser: quotes are stripped from a key, and an unindented line with no
+    colon (a `? key` complex key) is returned whole, so either form counts as a key.
+    """
+    return [
+        line.split(":", 1)[0].strip().strip("\"'")
+        for line in frontmatter_block(path).splitlines()
+        if line and not line[0].isspace() and not line.startswith("#")
+    ]
+
+
+def frontmatter_keys(path: Path) -> set[str]:
+    """Return the set of top-level frontmatter keys (see `frontmatter_key_lines`)."""
+    return set(frontmatter_key_lines(path))
+
+
 def skill_directories(root: Path) -> set[str]:
     return {path.parent.name for path in root.glob("*/SKILL.md")}
 
@@ -599,6 +623,37 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(skill=skill.parent.name):
                 self.assertLessEqual(len(value), 64)
                 self.assertTrue(value.startswith("Use when"))
+
+    def test_shared_skill_frontmatter_is_name_and_description_only(self):
+        """Shared skills carry only name and description (owner: .agents/skills/writing-skills/SKILL.md)."""
+        checked = 0
+        for root in SHARED_SKILL_ROOTS:
+            for path in sorted(root.glob("*/SKILL.md")):
+                rel = path.relative_to(REPO)
+                checked += 1
+                with self.subTest(skill=str(rel)):
+                    lines = frontmatter_key_lines(path)
+                    self.assertEqual(
+                        sorted(lines),
+                        sorted(SHARED_SKILL_FRONTMATTER_KEYS),
+                        f"{rel}: shared skill frontmatter must be exactly name and description, found {sorted(lines)}",
+                    )
+        self.assertGreater(checked, 0, "no shared skills checked; the check is vacuous")
+
+    def test_no_skill_declares_skills_frontmatter(self):
+        """No harness reads `skills:` in a skill's own frontmatter; name dependencies in the body."""
+        checked = 0
+        for root in SKILL_TREE_ROOTS:
+            for path in sorted(root.glob("*/SKILL.md")):
+                rel = path.relative_to(REPO)
+                checked += 1
+                with self.subTest(skill=str(rel)):
+                    self.assertNotIn(
+                        "skills",
+                        frontmatter_keys(path),
+                        f"{rel}: drop the inert skills: key and name the dependency in the body",
+                    )
+        self.assertGreater(checked, 0, "no skills checked; the check is vacuous")
 
     def test_workflow_skill_sets_match_claude_mirror(self):
         """Shared workflows and their Claude counterparts must cover the same set of names.
@@ -1828,6 +1883,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self._assert_all_contain((*research("output-template.md"), *analysis), "Linchpin check")
         for phrase in ("Keep each claim's strength", "AI-use disclosure"):
             self._assert_all_contain(command("j-paper"), phrase)
+        self._assert_all_contain(command("j-paper"), "Citation Verification")
+        self._assert_all_contain(research("literature-review.md"), "## Citation Verification")
 
     def test_ui_guidance_is_scoped_and_diagrams_accessible(self):
         def frontend(name):

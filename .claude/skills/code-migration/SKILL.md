@@ -1,8 +1,6 @@
 ---
 name: code-migration
 description: "Use when migrating code across frameworks or platforms."
-skills:
-  - test-driven-development
 ---
 
 # Code Migration
@@ -201,3 +199,7 @@ For large codebases (>50 files affected), organize migration into independent mo
 - [ ] Rollback triggers and procedures defined
 - [ ] Progress tracking per module
 - [ ] Documentation updated for the target stack (README, API reference, config/CLI docs, CHANGELOG) — or N/A per change (see `documentation-validation`)
+
+## Integration
+
+**Uses:** `test-driven-development`
