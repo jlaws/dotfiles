@@ -1,6 +1,6 @@
 ---
 name: j-tdd
-description: "Autonomous TDD implementation loop — write tests first, run to confirm failure, implement until green, lint, commit. Use when adding a feature or fixing a bug with test-driven development. Do NOT use for debugging existing failures (use /j-debug)."
+description: "Autonomous TDD implementation loop: write tests first, run to confirm failure, implement until green, lint, commit. Use when adding a feature or fixing a bug with test-driven development. Do NOT use for debugging existing failures (use /j-debug)."
 argument-hint: "<feature or bug description>"
 disable-model-invocation: true
 ---
@@ -9,17 +9,17 @@ Feature/bug: $ARGUMENTS
 
 If no arguments provided, ask what the user wants to implement.
 
-Invoke the `test-driven-development` skill via the Skill tool before coding. Then follow this execution loop in order — do not skip or reorder steps:
+Invoke the `test-driven-development` skill via the Skill tool before coding. Then follow this execution loop in order: do not skip or reorder steps:
 
-1. **Explore** — Read existing code around the feature area. Identify edge cases, existing patterns, and test infrastructure (test runner, fixtures, helpers).
-2. **Write tests** — Cover happy path, error cases, and edge cases. Tests MUST fail initially.
-3. **Verify RED** — Run the new tests. Confirm every one fails for the expected reason (feature missing, not typos or import errors). Paste output.
-4. **Implement** — Make each test pass one-by-one. After each change, re-run the tests covering that change. Write minimal code.
-5. **Lint** — Run the project's formatter and linter (check justfile, Makefile, package.json scripts, or pyproject.toml for commands). Fix all issues.
-6. **Final verification** — Run the full test suite once. Paste output confirming all tests pass and output is clean.
-7. **Validate docs** — Apply the `documentation-validation` gate: if the feature/fix changed public surface or documented behavior, update README/API/CHANGELOG (or declare N/A with a reason).
-8. **Commit** — Create a commit summarizing what was implemented and test coverage achieved.
+1. **Explore**: Read existing code around the feature area. Identify edge cases, existing patterns, and test infrastructure (test runner, fixtures, helpers).
+2. **Write tests**: Cover happy path, error cases, and edge cases. Tests MUST fail initially.
+3. **Verify RED**: Run the new tests. Confirm every one fails for the expected reason (feature missing, not typos or import errors). Paste output.
+4. **Implement**: Make each test pass one-by-one. After each change, re-run the tests covering that change. Write minimal code.
+5. **Lint**: Run the project's formatter and linter (check justfile, Makefile, package.json scripts, or pyproject.toml for commands). Fix all issues.
+6. **Final verification**: Run the full test suite once. Paste output confirming all tests pass and output is clean.
+7. **Validate docs**: Apply the `documentation-validation` gate: if the feature/fix changed public surface or documented behavior, update README/API/CHANGELOG (or declare N/A with a reason).
+8. **Commit**: Create a commit summarizing what was implemented and test coverage achieved.
 
 Do not move to step 4 until ALL tests from step 2 are written. Do not skip running tests between implementations in step 4.
 
-For a large feature, you may delegate test authoring (steps 2-3) to the `test-writer` agent via the Agent tool — it loads test-driven-development + language-testing-patterns + `references/testing/`. Always verify RED/GREEN yourself; a subagent's "tests pass" is not proof.
+For a large feature, you may delegate test authoring (steps 2-3) to the `test-writer` agent via the Agent tool; it loads test-driven-development + language-testing-patterns + `references/testing/`. Always verify RED/GREEN yourself; a subagent's "tests pass" is not proof.

@@ -88,12 +88,12 @@ The downloaded-PDF status cell in the Research Papers table is plain text (`down
 ### Output Template
 
 ```markdown
-# Newsletter Analysis: {newsletter-name} — {date}
+# Newsletter Analysis: {newsletter-name} - {date}
 
 **Source email:** {email subject line}
 
 ## Summary
-{1-2 sentence high-level overview — every mention of a specific paper, repo, product, or article must include an inline `[text](url)` link to the external URL the email cited}
+{1-2 sentence high-level overview - every mention of a specific paper, repo, product, or article must include an inline `[text](url)` link to the external URL the email cited}
 
 ## Topic Overview
 

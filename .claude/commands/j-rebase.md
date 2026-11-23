@@ -4,7 +4,7 @@ description: "Squash a branch to one commit, rebase onto latest origin/main, ver
 argument-hint: "[squash commit message]"
 ---
 
-Collapse the current branch to one commit, rebase it onto the latest `origin/main`, verify the conflict resolutions with targeted tests, and force-push to the open PR. Stay on the branch — do NOT merge to main or clean up.
+Collapse the current branch to one commit, rebase it onto the latest `origin/main`, verify the conflict resolutions with targeted tests, and force-push to the open PR. Stay on the branch: do NOT merge to main or clean up.
 
 Squash commit message: $ARGUMENTS
 
@@ -18,15 +18,15 @@ Run end to end without asking for confirmation. The only exits are the hard gate
 
 Check all three before touching history, so a failed precondition leaves the branch exactly as it was.
 
-1. `git branch --show-current` -> capture as `BRANCH`. If it is `main` or `master`, ABORT — this command never rewrites the trunk.
-2. `git status --porcelain` — require a clean working tree with everything committed. If anything is uncommitted or staged, STOP and tell the user to commit first. Do NOT auto-stash.
-3. `gh pr view --json number,url,state` — require an open PR for `BRANCH`. If there is none, do nothing at all: no fetch, no squash, no rebase, no push. Report that the branch has no PR and stop.
+1. `git branch --show-current` -> capture as `BRANCH`. If it is `main` or `master`, ABORT; this command never rewrites the trunk.
+2. `git status --porcelain`: require a clean working tree with everything committed. If anything is uncommitted or staged, STOP and tell the user to commit first. Do NOT auto-stash.
+3. `gh pr view --json number,url,state`: require an open PR for `BRANCH`. If there is none, do nothing at all: no fetch, no squash, no rebase, no push. Report that the branch has no PR and stop.
 
 ## Phase 2: Fetch & Squash
 
-1. `git fetch origin main` — get the latest trunk.
-2. `git rev-parse HEAD` — record this as the pre-rewrite recovery point and include it in the final report. Also record `git merge-base HEAD origin/main` as `BASE`: the trunk commit the branch was last built on.
-3. Squash every branch commit into one, based at the pre-rebase merge-base (repo's canonical 3-call sequence — run each as a separate command):
+1. `git fetch origin main`: get the latest trunk.
+2. `git rev-parse HEAD`: record this as the pre-rewrite recovery point and include it in the final report. Also record `git merge-base HEAD origin/main` as `BASE`: the trunk commit the branch was last built on.
+3. Squash every branch commit into one, based at the pre-rebase merge-base (repo's canonical 3-call sequence: run each as a separate command):
    ```bash
    git add -A
    ```
@@ -38,12 +38,12 @@ Check all three before touching history, so a failed precondition leaves the bra
    ```
    Use `$ARGUMENTS` as the commit message if provided (imperative, <72-char subject); otherwise summarize `git log --oneline $(git merge-base HEAD origin/main)..HEAD` into one imperative subject.
 
-Squash first, then rebase — a single commit resolves each conflict once instead of per commit.
+Squash first, then rebase; a single commit resolves each conflict once instead of per commit.
 
 ## Phase 3: Rebase onto main
 
 1. `git rebase origin/main`.
-2. On conflict, integrate rather than pick a side. Every behavior from the squashed commit must survive, rewritten to work against the updated trunk — this is the whole point. Taking `--ours` or `--theirs` wholesale is a failure, not a resolution. At each conflict stop, before staging anything, add the output of `git diff --name-only --diff-filter=U` to `CONFLICTED`; `git add` clears it. Also add any path git reports as `Staged '<path>' using previous resolution`: rerere already staged it, so the filter misses it. Re-read each resolved file end to end and confirm the branch's intent is intact, then `git add <files>` and `git rebase --continue`. If the rebase finishes without stopping, `CONFLICTED` is empty.
+2. On conflict, integrate rather than pick a side. Every behavior from the squashed commit must survive, rewritten to work against the updated trunk; this is the whole point. Taking `--ours` or `--theirs` wholesale is a failure, not a resolution. At each conflict stop, before staging anything, add the output of `git diff --name-only --diff-filter=U` to `CONFLICTED`; `git add` clears it. Also add any path git reports as `Staged '<path>' using previous resolution`: rerere already staged it, so the filter misses it. Re-read each resolved file end to end and confirm the branch's intent is intact, then `git add <files>` and `git rebase --continue`. If the rebase finishes without stopping, `CONFLICTED` is empty.
 3. Even with zero textual conflicts, check for semantic drift: the branch may call APIs that `main` renamed, moved, or deleted. After the rebase, `git diff origin/main...HEAD` shows only the branch's side, so read what `main` changed with `git diff "$BASE" origin/main` and find the branch code that still depends on it. Fix drift now. Record every branch file that depends on something `main` changed, edited or not, as `DRIFT`; Phase 4 tests it and amends the edits.
 4. If a conflict cannot be resolved with confidence, run `git rebase --abort` and hand the branch back untouched with an explanation. Never guess at a resolution.
 
@@ -62,7 +62,7 @@ Squash first, then rebase — a single commit resolves each conflict once instea
 ## Phase 5: Force-push
 
 1. Guard: re-confirm `BRANCH` is not `main`/`master`.
-2. `git push --force-with-lease origin "$BRANCH"` — `--force-with-lease` refuses to clobber remote commits you have not seen. Never plain `--force`, never to trunk.
+2. `git push --force-with-lease origin "$BRANCH"`: `--force-with-lease` refuses to clobber remote commits you have not seen. Never plain `--force`, never to trunk.
 
 ## Phase 6: Refresh the PR & Report
 
@@ -77,7 +77,7 @@ Squash first, then rebase — a single commit resolves each conflict once instea
    EOF
    )"
    ```
-   Write a real body — never `--fill`. Carry over any reviewer-relevant detail from the old body that still applies.
+   Write a real body: never `--fill`. Carry over any reviewer-relevant detail from the old body that still applies.
 2. Stay on `BRANCH`. Report the PR URL, the commit count (1), files changed, `CONFLICTED`, `DRIFT`, which targeted tests ran with their result and how you found the callers (or that none ran because the test set was empty), whether the full suite ran and why, and the Phase 2 recovery SHA.
 
 ---

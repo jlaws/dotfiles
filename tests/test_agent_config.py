@@ -347,7 +347,15 @@ SHARED_SKILL_FRONTMATTER_KEYS = frozenset({"name", "description"})
 
 # Credit forms, not source names: a name list goes stale and collides with ordinary words.
 EM_DASH = "\u2014"
-EM_DASH_FREE_ROOTS: tuple[str, ...] = (".claude/skills", ".gemini/antigravity-cli/skills")
+EM_DASH_FREE_ROOTS: tuple[str, ...] = (
+    ".claude/skills",
+    ".gemini/antigravity-cli/skills",
+    ".claude/commands",
+    ".claude/agents",
+    ".agents/skills",
+    ".codex",
+    ".gemini",
+)
 
 # `(?!Author\b)` spares placeholders: "First Author et al." in the j-email-analysis templates and
 # "(Author, 2024)" in the latex-paper-writing citation gotcha.

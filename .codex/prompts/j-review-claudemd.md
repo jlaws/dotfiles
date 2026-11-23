@@ -1,6 +1,6 @@
 ---
 name: j-review-claudemd
-description: "Analyze recent conversation history to improve CLAUDE.md files — find violated instructions, missing patterns, and outdated rules. Use when tuning Claude Code behavior or after a batch of sessions. Do NOT use for quick questions (edit files directly instead)."
+description: "Analyze recent conversation history to improve CLAUDE.md files: find violated instructions, missing patterns, and outdated rules. Use when tuning Claude Code behavior or after a batch of sessions. Do NOT use for quick questions (edit files directly instead)."
 argument-hint: "<scope: global|local|number|empty>"
 ---
 
@@ -11,16 +11,16 @@ If no arguments provided, analyzes both global and local CLAUDE.md against last 
 **You may delegate independent analysis passes (per CLAUDE.md file or per perspective) to subagents and run them in parallel. Synthesize and verify their output before presenting.**
 
 Load these before analyzing:
-- Load skill `code-agent-meta-patterns` — CLAUDE.md design patterns, context budget rules
-- Load skill `verification-before-completion` — evidence-before-claims methodology
-- Load skill `writing-skills` — skill creation and testing methodology
-- Read `.agents/references/workflow/context-efficiency` — context management patterns
-- Read `.agents/references/workflow/task-execution-checklists` — implementation and review checklists
+- Load skill `code-agent-meta-patterns`: CLAUDE.md design patterns, context budget rules
+- Load skill `verification-before-completion`: evidence-before-claims methodology
+- Load skill `writing-skills`: skill creation and testing methodology
+- Read `.agents/references/workflow/context-efficiency`: context management patterns
+- Read `.agents/references/workflow/task-execution-checklists`: implementation and review checklists
 
 ## Review Process
 
 ### Step 1: Gather Conversation History
-1. Read recent conversation logs (use `$ARGUMENTS` to determine scope — global, local, or N conversations)
+1. Read recent conversation logs (use `$ARGUMENTS` to determine scope: global, local, or N conversations)
 2. Identify conversations where Claude Code behavior was suboptimal, instructions were violated, or the user had to correct course
 
 ### Step 2: Analyze Current CLAUDE.md
@@ -50,16 +50,16 @@ Analyze from each perspective (inline, or delegated in parallel per the note abo
 
 ### Step 4: Produce Recommendations
 ```markdown
-## CLAUDE.md Review — {scope}
+## CLAUDE.md Review - {scope}
 
 ### Violations Found
-- {rule} — violated in {N} conversations — {root cause}
+- {rule} - violated in {N} conversations - {root cause}
 
 ### Missing Patterns
-- {pattern} — observed in {context} — suggested rule
+- {pattern} - observed in {context} - suggested rule
 
 ### Stale Rules
-- {rule} — reason it's stale — suggested action (remove/update)
+- {rule} - reason it's stale - suggested action (remove/update)
 
 ### Proposed Changes
 1. {specific edit with file:line reference}
