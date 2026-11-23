@@ -24,7 +24,10 @@ python3 -m evals.kbeval summarize    # free: check every result, then write eval
 ```
 
 `python3 -m evals.kbeval run --suite ... --staging ... --plugin ...` runs one suite for one staging
-and model; the make targets call the plans built on it.
+and model; the make targets call the plans built on it. Add `--keep-temp` to keep each run's trace.
+`python3 -m evals.kbeval.determination triggers --purpose <label> --asset <names> [--split tune|held]`
+prints `TRIGGER <case> <kind> <model> <fired>/<runs>` for every trigger case run under that purpose,
+where `<fired>` counts runs in which the skill was called, for every kind.
 
 `J ?= 8` sets `-j` (concurrent runs). `eval-baseline` also takes `VANILLA_RUNS` (default 3),
 `VANILLA_MODELS` (default both models), and `EXCLUDE_TAGS` (default empty); the kb staging always
@@ -109,6 +112,9 @@ path through `target`/`focus: { source: file, path: <path> }`.
 - `trigger-should`: `min: 1`. `trigger-near` and `trigger-noauto`: `min: 0`, `max: 0`.
 - `max_turns: 6`, `timeout_seconds: 120`, `allowed_tools: [Skill, Read, Glob, Grep]`. Six, not
   three: at three, runs that read a file first hit the turn cap before reaching the skill.
+- An asset may hold more than one trigger case. A slug starting `tune-` marks a case used to tune a
+  description. A slug starting `held-` marks a case used only to decide whether to adopt it; whoever
+  tunes the description does not read it.
 
 **Effects and workflows**
 - At least one result grader: `regex` on a produced file, `file_exists`, or `llm` with 2-5
@@ -370,7 +376,7 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
 ## Asset determination
 
 Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63, 3 kb runs per
-case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`)
+case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`, `triggers`)
 reads the raw per-run results under `~/.local/state/dotfiles-kbeval/results/<purpose>/kb/`
 (machine-local, so it reruns only where those results exist), keeping only batches
 with a `.key` and `partial` false, as `summary._load` does. Its checks are `html-lead`,

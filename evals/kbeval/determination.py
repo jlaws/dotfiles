@@ -9,6 +9,8 @@ Usage: python3 -m evals.kbeval.determination <subcommand>
   check --purpose P --asset A [A ...]   per-asset checks; exits 1 on any FAIL
   figures                                determination figures from the baseline results
   spend --purpose P                      purpose spend in the current budget period
+  triggers --purpose P --asset A [A ...] [--split tune|held]
+                                         per-case trigger fire counts for a purpose
 """
 
 from __future__ import annotations
