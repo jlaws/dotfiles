@@ -30,6 +30,8 @@ The agent KB (`.agents/` skills and references shared by Codex and Gemini, plus 
 - **Claude Code docs, "Hooks"** - https://code.claude.com/docs/en/hooks - skill- and agent-scoped hook lifetime, trust rules, and `onFailure` in `references/workflow/hook-patterns.md`.
 - **Claude Code docs, "Manage Claude's memory"** - https://code.claude.com/docs/en/memory - the MEMORY.md load limit in skill-audit's memory check.
 - **OpenAI Codex docs, "Build skills"** - https://learn.chatgpt.com/docs/build-skills - `agents/openai.yaml` implicit-invocation control on the user-only `.agents` command skills.
+- **Call Me A Jerk: Persuading AI to Comply with Objectionable Requests (Meincke et al.)** - https://gail.wharton.upenn.edu/research-and-insights/persuading-llms-initial-study/ - the persuasion principles in the `.agents` `writing-skills`.
+- **The Complete Guide to Building Skills for Claude (Anthropic)** - https://claude.com/resources/guides/the-complete-guide-to-building-skills-for-claude - skill categories and the quick checklist in the `.agents` `writing-skills`.
 
 ### Review, verification & debugging
 
@@ -76,6 +78,7 @@ The agent KB (`.agents/` skills and references shared by Codex and Gemini, plus 
 - **How do AI detectors work (JustDone)** - https://justdone.com/blog/ai/how-do-ai-detectors-work - perplexity and burstiness signals in the How Detectors Score Text table; product and accuracy claims not taken.
 - **Academic Research Skills (Imbad0202)** - https://github.com/Imbad0202/academic-research-skills - claim strength, number provenance, and AI-use disclosure in `j-paper` and `references/documentation/ai-writing-tells.md`; claim-to-passage and retraction checks in `references/research/literature-review.md`; linchpin and read-scope checks in `j-paper-analysis`.
 - **research-agent-skills (KalarisLabs)** - https://github.com/KalarisLabs/research-agent-skills - identifier-match verification, missing-record versus failed-lookup, and propose-not-apply rules in `references/research/literature-review.md` and `j-paper`; placeholder over fabrication and filler verb phrases in `references/documentation/ai-writing-tells.md`; read-current-guidelines rule in `references/research/latex-paper-writing.md`.
+- **How to Read a Paper (S. Keshav)** - http://ccr.sigcomm.org/online/files/p83-keshavA.pdf - the three-pass reading method in `references/research/paper-analysis-methodology.md` and `j-paper-analysis`.
 
 ### MCP & integrations
 
@@ -84,12 +87,15 @@ The agent KB (`.agents/` skills and references shared by Codex and Gemini, plus 
 
 ### Style & domain guidance
 
-- **Google Style Guides** - https://google.github.io/styleguide/ - `Source:` citations throughout `references/languages/*` (Python, Go, Swift API Design, and others).
+- **Google Style Guides** - https://google.github.io/styleguide/ - the conventions in `references/languages/*` (Python, Go, Shell, JS and TS, Swift).
 - **Keep a Changelog** - https://keepachangelog.com/ - changelog format used in `references/documentation/changelog-patterns.md`.
 - **Hemingway writing style (Cole Schafer)** - https://www.coleschafer.com/blog/ernest-hemingway-writing-style - prose-style guidance ("Writing style (Hemingway)" blocks) in the harness configs and `references/documentation/technical-writing-for-devtools.md`.
 - **SimpleEnglish (AminBlg)** - https://github.com/AminBlg/SimpleEnglish - step length, condition-before-action, instruction-before-risk, and one-term-per-concept rules in `references/documentation/technical-writing-for-devtools.md`; delete-or-name-the-property for fact-free words in `references/documentation/ai-writing-tells.md`.
 - **impeccable (Paul Bakaus)** - https://github.com/pbakaus/impeccable - surface modes, structural AI tells, and browser-owned surfaces in `references/frontend/premium-design-aesthetics.md`; reduced motion in `references/frontend/web-animation-patterns.md`; triage order in `references/frontend/design-audit.md`; the 24px target floor in `references/frontend/responsive-web-design.md`.
 - **diagram-design (Cathryn Lavery)** - https://github.com/cathrynlavery/diagram-design - diagram budget and SVG accessibility in `html-report-authoring`.
+- **Optimal Probabilistic Cache Stampede Prevention (Vattani et al.)** - https://www.vldb.org/pvldb/vol8/p886-vattani.pdf - the XFetch early-recompute rule in `references/architecture/caching-strategies.md`.
+- **Rust Style Guide** - https://doc.rust-lang.org/style-guide/ - conventions in `references/languages/rust-project-patterns.md`.
+- **Swift API Design Guidelines** - https://www.swift.org/documentation/api-design-guidelines/ - naming conventions in `references/languages/swift-patterns.md`.
 
 ## Vendored third-party files
 
