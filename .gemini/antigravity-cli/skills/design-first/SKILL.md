@@ -67,7 +67,7 @@ Every feature goes through this process. A utility function, a config change, a 
   unless the user asks.
 - **Self-review before handing off**: scan the written design for placeholders, internal contradictions, and scope creep (features beyond what was agreed). Fix or flag anything you find.
 - Skip file output only if user explicitly says no
-- Design docs are not user docs; when the feature ships, keep README/API/usage docs current too (see `documentation-validation`)
+- Design docs are not user docs: when the feature ships, keep README/API/usage docs current too (see `documentation-validation`)
 
 ### Phase 6: Transition to Implementation
 
@@ -97,10 +97,10 @@ Scale the process to the task's complexity:
 
 | Task Size | Questions | Approaches | Design Document |
 |-----------|-----------|------------|-----------------|
-| Tiny (utility function, config) | 1-2 quick questions | 1-2 sentences each | Skip: inline approval is fine |
-| Small (single component, endpoint) | 2-3 questions | 2-3 brief approaches | Optional: user's choice |
-| Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes: save to the harness plan file |
-| Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes: save to the harness plan file before proceeding |
+| Tiny (utility function, config) | 1-2 quick questions | 1-2 sentences each | Skip (inline approval is fine) |
+| Small (single component, endpoint) | 2-3 questions | 2-3 brief approaches | Optional (user's choice) |
+| Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes (save to the harness plan file) |
+| Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes (save to the harness plan file before proceeding) |
 
 The process is the same regardless of size; the depth scales, not the steps. Even tiny tasks get clarifying questions.
 

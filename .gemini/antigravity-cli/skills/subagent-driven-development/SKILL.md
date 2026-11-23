@@ -38,7 +38,7 @@ For each task in order:
 1. **Extract the task brief.** Write the single task's requirements (behavioral check, files, steps, acceptance) to a scratch file, e.g. `scratchpad/briefs/task-NN.md`. Do NOT paste the whole plan into the dispatch prompt.
 2. **Dispatch the implementer subagent** with: the brief file path, the model for this task (see Model Selection), explicit constraints (what NOT to touch), and the deliverable (code + passing tests, left uncommitted in the working tree). Answer clarifying questions if the implementer asks.
 3. **Implementer self-reviews.** It follows TDD (failing test -> implement -> pass) and reports the files it touched. It does not commit: the phase commits once, when its last task passes (`writing-plans`, PR Boundaries).
-4. **Generate the review package.** `git diff <phase-base>` scoped to the task's files; capture to a scratch file rather than pasting a large diff into the reviewer prompt.
+4. **Generate the review package.** `git diff <phase-base>` scoped to the task's files: capture to a scratch file rather than pasting a large diff into the reviewer prompt.
 5. **Dispatch the task reviewer.** It MUST return **both** verdicts, **spec compliance first, then code quality**:
    - **Spec compliance**: does the diff satisfy the task brief's behavioral check and acceptance? Flag any acceptance item that **cannot be confirmed from the diff alone** for the orchestrator to resolve: never assume it holds. Treat any **unrequested addition** (extra code, deps, files beyond the brief) as a finding: scope creep is a failure, not a bonus.
    - **Code quality**: smells, edge cases, error handling, naming, test quality.
@@ -62,7 +62,7 @@ Everything you paste into a dispatch prompt stays resident in your context. Hand
 - **Review package** -> `git diff <base>..<head>` captured to a scratch file; pass the path.
 - **Findings** -> reviewer writes findings to a file; fix subagent reads it.
 
-No helper scripts required: `git diff` + a scratch file is the whole mechanism.
+No helper scripts required; `git diff` + a scratch file is the whole mechanism.
 
 `scratchpad/` is gitignored working space and must never be committed. If the repo does not ignore it yet, add it to `.gitignore` before writing the first brief.
 

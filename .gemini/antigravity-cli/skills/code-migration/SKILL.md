@@ -83,9 +83,9 @@ Pick ONE strategy. Do not combine them.
 
 | Strategy | When to Use | Trade-off |
 |----------|-------------|-----------|
-| **Strangler Fig** | Large codebase, can run old+new side by side | Slower but lowest risk: migrate piece by piece behind a facade |
+| **Strangler Fig** | Large codebase, can run old+new side by side | Slower but lowest risk (migrate piece by piece behind a facade) |
 | **Branch by Abstraction** | Shared codebase, can't run two versions | Introduce abstraction layer, swap implementations underneath |
-| **Big Bang** | Small codebase (<20 files) or forced by breaking changes | Fast but high risk: everything migrates at once |
+| **Big Bang** | Small codebase (<20 files) or forced by breaking changes | Fast but high risk (everything migrates at once) |
 | **Parallel Run** | Data pipelines, APIs where correctness is critical | Run both, compare outputs, cut over when equivalent |
 
 ### Strangler Fig Implementation Pattern

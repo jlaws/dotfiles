@@ -81,7 +81,7 @@ When resuming from a handoff:
 
 ## Rules
 
-- Write the handoff BEFORE context is lost; don't wait until the last message
+- Write the handoff BEFORE context is lost: don't wait until the last message
 - Include exact file paths (not relative descriptions)
 - Include exact test commands (not "run the tests")
 - List decisions with rationale; the "why" is harder to reconstruct than the "what"

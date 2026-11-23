@@ -110,7 +110,7 @@ When upgrading changes many models/types (e.g., Pydantic v1→v2 with 120 models
 Document ALL overrides with comments explaining why they exist.
 
 ### Peer Dependency Conflicts
-- `--legacy-peer-deps` is a bandaid, not a fix; understand why it's needed
+- `--legacy-peer-deps` is a bandaid, not a fix: understand why it's needed
 - If a peer dep has no compatible version: check if maintainer has a beta/rc, or fork temporarily
 
 ### Workspace/Monorepo Upgrades

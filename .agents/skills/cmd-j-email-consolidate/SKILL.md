@@ -96,13 +96,13 @@ After the cleanup pass, the file must contain zero `<!-- END SECTION:...` string
 - **People & Events must use these `###` subsections in this order** (omit a subsection only if it has zero entries):
   - `### Podcasts & long-form interviews`
   - `### Funding, IPOs, talent`
-  - `### Conferences & workshops` (post-drop-rule filtering; only keep non-sponsor events with named speakers or technical content)
+  - `### Conferences & workshops` (post-drop-rule filtering: only keep non-sponsor events with named speakers or technical content)
   - `### Cultural moments`: keep AI/robotics cultural appearances and demos (humanoid monk initiations, AI character symphony performances, Met Gala robot cameos, viral robot demos). These belong in the digest as personality and PR-side signal even when no model/product is announced. Still drop pure non-AI cultural content.
 - **What to always drop** (no judgment needed):
   - Newsletter sponsor placements: anything tagged `(sponsor)`, `(sponsored)`, `(promoted)`, or recognizable sponsor units (Framer, Spinach AI, Granola, Welo Data, CData, Cursor (sponsor), Cal.com, PlayerZero, Unwrap, Archera, Fivetran, Viktor, Sauna AI, Plaid).
   - Newsletter housekeeping: "Superhuman Top N tools/prompts/course", "TLDR is hiring", course/seminar/luma-event promo, "request a demo" CTAs.
   - Indie product-roundup entries from "AI tools weekly" / "Top tools of the week" emails: short product names with no funding/release/research context (Vids.new, AIApply, Brik, Spellar, Hume, Gamma, Blaze, Filect, Hoogly, ContentPilots, Voqusa, TrafficClaw, Saydi, UpSynth, Adject, Demi, Streva, Clarus, Planana, APImage, Nudge, Kanwas, Bitgrain, GetThis, Open Vibe, Abstraction, etc.).
-  - Off-topic content from podcasts/articles outside AI/ML (genetics, anthropology, hardware reviews, supersonic travel; keep only if a specific AI angle is named). Exception: AI/robotics cultural appearances (humanoid robots at public events, AI characters in performances, viral robot demos with no specific model release) are NOT off-topic: route them to `People & Events → Cultural moments`.
+  - Off-topic content from podcasts/articles outside AI/ML (genetics, anthropology, hardware reviews, supersonic travel: keep only if a specific AI angle is named). Exception: AI/robotics cultural appearances (humanoid robots at public events, AI characters in performances, viral robot demos with no specific model release) are NOT off-topic: route them to `People & Events → Cultural moments`.
   - Background reference links cited as "see also / further reading" inside a larger summarized post (Wikipedia, GeeksForGeeks, textbook lecture notes, Towards Data Science explainers). Keep these only if they ARE the primary subject of a source file, not background reading for one.
 - **What to always keep** (no judgment needed; these are the digest's whole point):
   - Named model/product/framework releases (GPT-X.Y, Gemini Z, Claude N, new open-source model, new CLI tool, new agent framework).

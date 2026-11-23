@@ -7,7 +7,7 @@ description: "Use when completed branch work needs integration."
 
 **Core principle:** Verify tests → Validate docs → Open the PR.
 
-Completed work ends in a pull request. That is the default and it does not need to be asked for: a
+Completed work ends in a pull request. That is the default and it does not need to be asked for; a
 finished branch sitting unpushed is work the reviewer cannot see. Merging locally, parking the branch,
 or discarding it are things the user asks for by name; see Other Outcomes below.
 

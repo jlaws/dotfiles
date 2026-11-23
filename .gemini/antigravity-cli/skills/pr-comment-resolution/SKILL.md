@@ -26,7 +26,7 @@ gh repo view --json owner,name --jq '.owner.login + "/" + .name'
 
 ## Step 2: Gather Full Context
 
-Collect all PR data. GitHub stores comments in 3 separate APIs; fetch ALL of them.
+Collect all PR data. GitHub stores comments in 3 separate APIs: fetch ALL of them.
 
 ```bash
 # PR metadata + diff
@@ -54,12 +54,12 @@ Cross-reference `workflow:code-review-patterns` severity labels when classifying
 
 ```
 For each comment/review:
-  - blocking - Must fix before merge
-  - question - Needs a response (may or may not need code change)
+  - blocking   - Must fix before merge
+  - question   - Needs a response (may or may not need code change)
   - suggestion - Alternative approach worth considering
-  - nit - Minor style/preference, non-blocking
-  - resolved - Already addressed or outdated
-  - unclear - Cannot determine intent; needs clarification
+  - nit        - Minor style/preference, non-blocking
+  - resolved   - Already addressed or outdated
+  - unclear    - Cannot determine intent; needs clarification
 ```
 
 ### Detect Language Context
@@ -79,10 +79,10 @@ Inspect file extensions of changed files and cross-reference matching `languages
 
 ```
 ORDERED FIX PLAN:
-1. [blocking] - Description (file:line) - from: @reviewer
-2. [blocking] - ...
+1. [blocking]   - Description (file:line) - from: @reviewer
+2. [blocking]   - ...
 3. [suggestion] - ...
-4. [nit] - ...
+4. [nit]        - ...
 
 UNCLEAR (need clarification before implementing):
 - Comment #id: "..." - What is unclear

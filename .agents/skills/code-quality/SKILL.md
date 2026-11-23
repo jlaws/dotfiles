@@ -27,7 +27,7 @@ description: "Use when assessing code smells, health, or style."
 | Hardcoded config | Externalized config |
 
 - Distinguish explicitly when delivering: "This works but needs X before production"
-- Propose scope cuts explicitly; never implement them silently
+- Propose scope cuts explicitly: never implement them silently
 
 ## Code Smells Checklist
 
