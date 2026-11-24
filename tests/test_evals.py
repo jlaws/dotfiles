@@ -2218,6 +2218,17 @@ class EntryPointTests(OrchestrateTests):
                     kmain.main([*self.RUN_ARGS, "--cap-usd", value])
                 run.assert_not_called()
 
+    def test_bad_cap_values_say_what_is_accepted(self):
+        for value in ("5o", "$5", "nan", "0"):
+            with self.subTest(value=value), mock.patch.object(kmain.runner, "run", return_value=0) as run:
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err), self.assertRaises(SystemExit):
+                    kmain.main([*self.RUN_ARGS, "--cap-usd", value])
+                run.assert_not_called()
+                self.assertIn(
+                    f"expected a positive number of USD such as 25 or 12.50, not {value}", err.getvalue()
+                )
+
     def test_run_without_cap_passes_no_limit(self):
         with mock.patch.object(kmain.runner, "run", return_value=0) as run:
             self.assertEqual(kmain.main(self.RUN_ARGS), 0)

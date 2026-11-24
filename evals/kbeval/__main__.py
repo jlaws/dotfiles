@@ -30,9 +30,13 @@ def _positive(value: str) -> int:
 
 
 def _usd(value: str) -> float:
-    number = float(value)
+    message = f"expected a positive number of USD such as 25 or 12.50, not {value}"
+    try:
+        number = float(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(message) from None
     if not math.isfinite(number) or number <= 0:
-        raise argparse.ArgumentTypeError(f"must be a positive amount, not {value}")
+        raise argparse.ArgumentTypeError(message)
     return number
 
 
