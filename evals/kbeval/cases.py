@@ -283,6 +283,7 @@ def lint(cases: List[Case], repo: Path) -> List[str]:
     problems: List[str] = []
     for case in cases:
         problems.extend(f"{case.name}: {p}" for p in _lint_case(case, known, repo))
+    problems.extend(_lint_agent_references(cases, repo))
     extended: Dict[str, int] = {}
     for case in cases:
         if case.asset and "extended" in case.tags:
@@ -290,6 +291,31 @@ def lint(cases: List[Case], repo: Path) -> List[str]:
     for asset, count in sorted(extended.items()):
         if count > 1:
             problems.append(f"{asset}: {count} cases tagged extended; at most one")
+    return problems
+
+
+def _lint_agent_references(cases: List[Case], repo: Path) -> List[str]:
+    """Flag each agent that indexes a reference directory no effect case reads."""
+    problems: List[str] = []
+    for agent in sorted((repo / ".claude" / "agents").glob("*.md")):
+        categories = sorted(set(re.findall(r"references/([\w-]+)/", agent.read_text(encoding="utf-8"))))
+        if not categories:
+            continue
+        probes = {c: f".kb-references/{c}/x.md" for c in categories}
+        read = set()
+        for case in cases:
+            if case.asset != agent.stem or case.kind != "effect":
+                continue
+            for grader in case.graders:
+                if unquote(grader.fields.get("type", "")) != "tool_used" or unquote(grader.fields.get("tool", "")) != "Read":
+                    continue
+                try:
+                    rx = re.compile(unquote(grader.fields.get("input_match", "")))
+                except re.error:
+                    continue
+                read.update(c for c, probe in probes.items() if rx.search(probe))
+        if not read:
+            problems.append(f"{agent.stem}: no effect case reads references/{categories[0]}/")
     return problems
 
 
@@ -307,7 +333,7 @@ def _lint_case(case: Case, known: Dict[str, str], repo: Path) -> List[str]:
     elif (case.suite == "triggers") != (case.kind in TRIGGER_KINDS):
         problems.append(f"kind {case.kind} does not belong in {case.suite}")
 
-    problems.extend(_lint_prompt(case, known))
+    problems.extend(_lint_prompt(case, known, repo))
     problems.extend(_lint_graders(case, known))
     problems.extend(_lint_files(case))
     problems.extend(_lint_grounding(case, repo))
@@ -316,8 +342,29 @@ def _lint_case(case: Case, known: Dict[str, str], repo: Path) -> List[str]:
     return problems
 
 
-def _lint_prompt(case: Case, known: Dict[str, str]) -> List[str]:
-    problems: List[str] = []
+DESCRIPTION_ENDINGS = {
+    "trigger-should": r"should",
+    "trigger-near": r"near: [\w-]+",
+    "trigger-noauto": r"noauto",
+}
+HARD_ENDING = r'hard because [^"\\]+'
+
+
+def _lint_description(case: Case, repo: Path) -> List[str]:
+    raw = case.fields.get("description", "")
+    if malformed_scalar(raw):
+        return ["`description` is a malformed quoted YAML scalar"]
+    ending = DESCRIPTION_ENDINGS.get(case.kind or "", HARD_ENDING) if case.suite == "triggers" else HARD_ENDING
+    match = re.match(rf'^[^";\\]+; (\S+); ({ending})$', unquote(raw))
+    if match is None:
+        return ["description must be <text>; <asset path>; <ending>"]
+    if not (repo / match.group(1)).is_file():
+        return ["description names a path that does not exist"]
+    return []
+
+
+def _lint_prompt(case: Case, known: Dict[str, str], repo: Path) -> List[str]:
+    problems: List[str] = _lint_description(case, repo)
     for key in sorted(set(case.fields) - PROMPT_KEYS):
         problems.append(f"prompt.md frontmatter key {key!r} is not allowed")
     turns_cap, timeout_cap, tools = SUITE_LIMITS[case.suite]

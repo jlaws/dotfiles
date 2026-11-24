@@ -86,6 +86,18 @@ def make_repo(root: Path) -> Path:
     return root
 
 
+def case_description(root: Path, suite: str, name: str) -> str:
+    """A valid `description` for a case in the temp repo, with the ending its kind needs."""
+    asset = name.split("--")[0]
+    paths = [".claude/skills/%s/SKILL.md" % asset, ".claude/commands/%s.md" % asset, ".claude/agents/%s.md" % asset]
+    path = next((p for p in paths if (root / p).is_file()), ".claude/commands/j-demo.md")
+    if suite == "triggers":
+        ending = "near: none" if "trigger-near" in name else "noauto" if "trigger-noauto" in name else "should"
+    else:
+        ending = "hard because a capable model without the asset would miss it"
+    return f"the demo rule, as a clause; {path}; {ending}"
+
+
 def write_case(
     root: Path,
     suite: str,
@@ -98,6 +110,8 @@ def write_case(
 ) -> Path:
     folder = root / "evals" / "cases" / suite / name
     (folder / "graders").mkdir(parents=True)
+    if not re.search(r"^description:", frontmatter, re.MULTILINE):
+        frontmatter = f'description: "{case_description(root, suite, name)}"\n{frontmatter}'
     (folder / "prompt.md").write_text(f"---\n{frontmatter}---\n\n{body}\n")
     for grader, text in graders.items():
         (folder / "graders" / f"{grader}.md").write_text(text)
@@ -624,6 +638,79 @@ class LintTests(TempRepoCase):
         graders = self.repo / "evals/cases/effects/j-demo--effect-cache/graders"
         (graders / "result.md").rename(graders / "result.md.md")
         self.assert_problem(r"j-demo--effect-cache: .*double \.md")
+
+    DESCRIPTION = "description: "
+
+    def set_description(self, rel: str, line: str | None) -> None:
+        """Replace (or with None, drop) the description line of a case's prompt.md."""
+        path = self.repo / "evals" / "cases" / rel / "prompt.md"
+        lines = [ln for ln in path.read_text().splitlines(keepends=True) if not ln.startswith(self.DESCRIPTION)]
+        if line is not None:
+            lines.insert(1, line + "\n")
+        path.write_text("".join(lines))
+
+    def test_case_without_description_is_a_problem(self):
+        self.set_description("effects/j-demo--effect-cache", None)
+        self.assert_problem(r"j-demo--effect-cache: description must be <text>; <asset path>; <ending>")
+
+    def test_empty_quoted_description_is_a_problem(self):
+        self.set_description("effects/j-demo--effect-cache", 'description: ""')
+        self.assert_problem(r"j-demo--effect-cache: description must be")
+
+    def test_description_with_a_backslash_or_quote_is_a_problem(self):
+        base = "a rule; .claude/commands/j-demo.md; hard because it is easy to miss"
+        for text in (base.replace("rule", "ru\\\\le"), base.replace("rule", "ru'le").replace("'", "\\\"")):
+            with self.subTest(text=text):
+                self.set_description("effects/j-demo--effect-cache", f'description: "{text}"')
+                self.assert_problem(r"j-demo--effect-cache: (description must be|.*malformed)")
+
+    def test_description_path_must_exist(self):
+        self.set_description(
+            "effects/j-demo--effect-cache",
+            'description: "a rule; .claude/commands/missing.md; hard because it is easy to miss"',
+        )
+        self.assert_problem(r"j-demo--effect-cache: description names a path that does not exist")
+
+    def test_trigger_description_needs_a_trigger_ending(self):
+        name = "triggers/demo-skill--trigger-should-rate"
+        self.set_description(name, 'description: "a rule; .claude/skills/demo-skill/SKILL.md; hard because x"')
+        self.assert_problem(r"demo-skill--trigger-should-rate: description must be")
+        self.set_description(name, 'description: "a rule; .claude/skills/demo-skill/SKILL.md; near: none"')
+        self.assert_problem(r"demo-skill--trigger-should-rate: description must be")
+        self.set_description(name, 'description: "a rule; .claude/skills/demo-skill/SKILL.md; should"')
+        self.assertFalse(any("demo-skill--trigger-should-rate" in p for p in self.problems()))
+
+    def add_indexing_agent(self, categories: str = "cat") -> None:
+        agent = self.repo / ".claude/agents/indexer.md"
+        agent.write_text(
+            "---\nname: indexer\ndescription: Use when indexing.\nmodel: sonnet\ntools: Read\n---\n\n"
+            + "".join(f"Read references/{c}/ for guidance.\n" for c in categories.split(","))
+        )
+
+    def add_reading_case(self, input_match: str) -> None:
+        write_case(
+            self.repo, "effects", "indexer--effect-reads", EFFECT_FM,
+            "Use the kb:indexer agent to review the cache design and save it to ./design.md.",
+            {
+                "result": LLM_RESULT,
+                "dispatched": agent_dispatched("indexer"),
+                "read": f"---\ntype: tool_used\ntool: Read\ninput_match: '{input_match}'\n---\n",
+            },
+        )
+
+    def test_agent_with_a_reference_index_needs_a_reading_case(self):
+        self.add_indexing_agent()
+        self.assert_problem(r"^indexer: no effect case reads references/cat/")
+        self.add_reading_case(r"\.kb-references/cat/")
+        self.assertFalse(any(p.startswith("indexer:") for p in self.problems()), self.problems())
+
+    def test_agent_without_a_reference_index_is_exempt(self):
+        self.assertFalse(any(p.startswith("demo-agent:") for p in self.problems()))
+
+    def test_alternation_input_match_counts_for_each_category_it_matches(self):
+        self.add_indexing_agent("data")
+        self.add_reading_case("(?:architecture|data)/")
+        self.assertFalse(any(p.startswith("indexer:") for p in self.problems()), self.problems())
 
     def test_lint_tags_name_suite_and_kind(self):
         self.edit("effects/j-demo--effect-cache/prompt.md", "tags: [effects, effect]", "tags: [effect]")
