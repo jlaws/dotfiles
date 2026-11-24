@@ -544,6 +544,32 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
 - Five effect cases change pass state from Sonnet to Opus (four to pass, one to fail). With three
   runs and a 2/3 pass line, flips this few are within run-to-run noise.
 
+### Baseline 2026-12
+
+**Settings.** 160 trigger, 217 effect, and 4 workflow cases (84 should-fire triggers, 76 near-miss
+and noauto); three kb runs per case, and for effects and workflows three vanilla runs on both
+models (`VANILLA_RUNS=3`); no tags excluded; judge Fable 5.2. Run started 2026-11-24 on Claude Code
+2.1.331. The raw results of the 2026-11-16 baseline were moved to `results/baseline-2026-11-16`
+first, so every run in this baseline is new.
+
+**Not comparable in the mean.** Suite means here are not comparable with 2026-11-16 where cases
+changed. Since then the suites grew from 290 to 381 cases (36 tuning and held-out trigger cases, one
+`j-paper` effect case, and the case audit's 54 `extended` effect cases), the audit changed 46
+existing cases beyond their `description` line (45 effect, 1 workflow), and kb agent prompts now
+carry the reference-path line (Prompts). Drift on the cases the audit left alone is reported separately below. The 2026-11-16
+tables above stay as that baseline's record; the README as it stood before this baseline is at
+commit `2b21ea4` (`git show 2b21ea4:evals/README.md`).
+
+**Estimate.** Per-case prices are the 2026-11-16 spend divided by its case counts (Sonnet $0.20 a
+trigger case, $1.33 an effect case, $1.01 a workflow case; Opus $0.39, $2.23, $1.83): about $325
+Sonnet and $554 Opus, $878 in all, inside the 2,000 USD authorized for this baseline. Purpose
+`baseline` had spent $661.44 before the run, so every paid command passes `CAP=2661.44`.
+
+**Results.** To fill.
+
+| Model | Suite | Cases | kb | Vanilla | Delta | Spend |
+|---|---|---|---|---|---|---|
+
 ## Asset determination
 
 Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63, 3 kb runs per
