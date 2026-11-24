@@ -2,8 +2,8 @@
 
 Reads `<results>/<staging>/<model>/<suite>/` through `results.load_cases` (newest result per case
 wins), and scores each case on its result graders only (`regex`, `file_exists`,
-`llm`). Process graders (`tool_used`, `tool_order`) are indicators, reported as `firedRate` and
-left out of delta. Trigger cases have only a process grader, so it is their score.
+`llm`). Process graders (`tool_used`, `tool_order`) are left out of delta: the asset's own load
+grader gives `loadRate`, the others give `behaviorRate`. Trigger cases have only a process grader, so it is their score.
 """
 
 from __future__ import annotations
@@ -15,8 +15,8 @@ from pathlib import Path
 from typing import List, Optional, Set, Tuple
 
 from evals.kbeval.cases import CASE_NAME
-from evals.kbeval.results import load_cases
-from evals.kbeval.runner import API_ERROR
+from evals.kbeval.results import load_cases, own_load_grader
+from evals.kbeval.runner import API_ERROR, TIMEOUT, TURN_CAP
 
 SCHEMA = 1
 RESULT_TYPES = frozenset({"regex", "file_exists", "llm"})
@@ -55,6 +55,27 @@ def _arm_score(case: Optional[dict], result: bool) -> Tuple[Optional[float], int
     runs = _graded(case)
     scores = [s for s in (_score(case, run, result) for run in runs) if s is not None]
     return _mean(scores), len(runs)
+
+
+def _loaded(case: dict, run: dict, name: str) -> bool:
+    """Return whether the load grader shows the asset loaded in a run; a `max: 0` grader passes on no load."""
+    found = next((g for g in run.get("graders") or [] if g["name"] == name), None)
+    if found is None:
+        return False
+    config = next((g.get("config") or {} for g in case.get("graders", []) if g["name"] == name), {})
+    return bool(found.get("passed")) != (config.get("max") == 0)
+
+
+def _behavior_rate(case: dict, load: Optional[str]) -> Optional[float]:
+    """Return the pass rate of the process graders other than the load grader, or None."""
+    types = {g["name"]: g.get("type") for g in case.get("graders", [])}
+    results = [
+        bool(g.get("passed"))
+        for run in _graded(case)
+        for g in run["graders"]
+        if types.get(g["name"]) not in RESULT_TYPES and g["name"] != load
+    ]
+    return sum(results) / len(results) if results else None
 
 
 def _bootstrap(values: List[float]) -> dict:
@@ -100,20 +121,37 @@ def summarize(results: Path, model: str, suite: str, settings: dict, live: Optio
         kb, van = kb_cases.get(name), van_cases.get(name)
         kb_score, kb_runs = _arm_score(kb, result=not trigger)
         van_score, van_runs = _arm_score(van, result=not trigger)
-        fired, _ = _arm_score(kb, result=False)
+        load = own_load_grader(kb, _identity(name)[0]) if kb else None
+        behavior = _behavior_rate(kb, load) if kb else None
+        capped = [
+            (is_kb, r)
+            for is_kb, c in ((True, kb), (False, van))
+            if c
+            for r in _runs(c)
+            if TURN_CAP.search(str(r.get("error"))) or TIMEOUT.search(str(r.get("error")))
+        ]
+        load_rate, censored = None, 0
+        if kb and load:
+            kb_graded = _graded(kb)
+            if kb_graded:
+                load_rate = sum(_loaded(kb, r, load) for r in kb_graded) / len(kb_graded)
+            censored = sum(1 for is_kb, r in capped if is_kb and not _loaded(kb, r, load))
         errors = sorted({str(r["error"]) for c in (kb, van) if c for r in _runs(c) if r.get("error")})
         error_runs = sum(1 for c in (kb, van) if c for r in _runs(c) if r.get("error"))
         asset, kind = _identity(name)
         rows.append(
             {
                 "asset": asset,
+                "behaviorRate": None if behavior is None else round(behavior, 4),
+                "cappedRuns": len(capped),
+                "censoredRuns": censored,
                 "delta": None if kb_score is None or van_score is None else round(kb_score - van_score, 4),
                 "errorRuns": error_runs,
                 "errors": errors,
-                "firedRate": None if fired is None else round(fired, 4),
                 "kbRuns": kb_runs,
                 "kbScore": None if kb_score is None else round(kb_score, 4),
                 "kind": kind,
+                "loadRate": None if load_rate is None else round(load_rate, 4),
                 "name": name,
                 "passed": kb_score is not None and kb_score >= PASS_AT - 1e-9,
                 "vanillaRuns": van_runs,

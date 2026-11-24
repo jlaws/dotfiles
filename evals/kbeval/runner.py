@@ -38,6 +38,8 @@ API_ERROR = re.compile(
     r"(?i)\bapi error\b|rate.?limit|overloaded|usage.?limit|\bstatus(?: code)?:? ?(?:429|5\d\d)\b"
     r"|\b(?:429|529)\b|econnreset|etimedout|connection (?:reset|refused)"
 )
+TURN_CAP = re.compile(r"Reached maximum number of turns")
+TIMEOUT = re.compile(r"timed out after")
 LOAD_ERROR = re.compile(r"(?i)no eval cases found|invalid case|failed to load|not a trusted plugin")
 WRITE_TOOLS = ["Bash", "Write", "Edit"]
 

@@ -1114,6 +1114,7 @@ from evals.kbeval import compare as kcompare  # noqa: E402
 from evals.kbeval import summary as ksummary  # noqa: E402
 
 FIXTURE = REPO / "tests" / "fixtures" / "kbeval" / "aggregate-result.json"
+TWO_PROCESS = REPO / "tests" / "fixtures" / "kbeval" / "aggregate-result-two-process.json"
 OPUS = "claude-opus-5-5"
 SETTINGS = {"kbRuns": 3, "vanillaRuns": 3, "vanillaModels": [OPUS], "excludeTags": []}
 
@@ -1192,6 +1193,71 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual((row["kind"], row["kbScore"], row["vanillaScore"]), ("trigger-should", 1.0, None))
         self.assertEqual(ksummary.check(summary), [])
 
+    def two_process(self, loaded: list, delegated: list, errors: list | None = None, max_zero: bool = False) -> dict:
+        """Return the two-process fixture with one run per entry, each grader passing as given."""
+        doc = with_runs(json.loads(TWO_PROCESS.read_text()), [True] * len(loaded), errors)
+        case = doc["cases"][0]
+        if max_zero:
+            next(g for g in case["graders"] if g["name"] == "skill-loaded")["config"]["max"] = 0
+        for run, load, deleg in zip(case["arms"]["with"], loaded, delegated):
+            for grader in run["graders"]:
+                if grader["name"] == "skill-loaded":
+                    grader["passed"] = load
+                if grader["name"] == "delegated":
+                    grader["passed"] = deleg
+        return doc
+
+    def row(self, doc: dict) -> dict:
+        self.put("kb", "j-arch", doc)
+        (row,) = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"]
+        return row
+
+    def test_load_rate_counts_only_the_own_load_grader(self):
+        row = self.row(self.two_process([True] * 3, [False] * 3))
+        self.assertEqual((row["loadRate"], row["behaviorRate"]), (1.0, 0.0))
+
+    def test_behavior_rate_survives_a_missing_load_grader(self):
+        row = self.row(with_runs(real_doc(), [True, True, True]))
+        self.assertEqual((row["loadRate"], row["behaviorRate"]), (None, 1.0))
+
+    def test_near_case_load_rate_inverts_a_max_zero_grader(self):
+        row = self.row(self.two_process([True] * 3, [True] * 3, max_zero=True))
+        self.assertEqual(row["loadRate"], 0.0)
+
+    def test_rows_carry_no_fired_rate(self):
+        row = self.row(self.two_process([True] * 3, [True] * 3))
+        self.assertNotIn("firedRate", row)
+
+    def test_capped_run_that_loaded_is_capped_not_censored(self):
+        capped = [None, None, "exit 1: Reached maximum number of turns (6)"]
+        base = self.row(self.two_process([True] * 3, [True] * 3))
+        row = self.row(self.two_process([True] * 3, [True] * 3, capped))
+        self.assertEqual((row["cappedRuns"], row["censoredRuns"]), (1, 0))
+        self.assertEqual(row["kbScore"], base["kbScore"])
+
+    def test_capped_run_that_never_loaded_is_censored(self):
+        capped = [None, None, "timed out after 120s"]
+        row = self.row(self.two_process([True, True, False], [True] * 3, capped))
+        self.assertEqual((row["cappedRuns"], row["censoredRuns"]), (1, 1))
+
+    def test_capped_vanilla_run_is_capped_and_never_censored(self):
+        self.put("vanilla", "j-arch", with_runs(real_doc(), [True] * 3, [None, None, "timed out after 120s"]))
+        row = self.row(self.two_process([True] * 3, [True] * 3))
+        self.assertEqual((row["cappedRuns"], row["censoredRuns"]), (1, 0))
+
+    def test_capped_near_run_is_censored_when_its_max_zero_grader_passed(self):
+        capped = [None, None, "timed out after 120s"]
+        row = self.row(self.two_process([True] * 3, [True] * 3, capped, max_zero=True))
+        self.assertEqual(row["censoredRuns"], 1)
+        row = self.row(self.two_process([True, True, False], [True] * 3, capped, max_zero=True))
+        self.assertEqual(row["censoredRuns"], 0)
+
+    def test_capped_run_with_no_graders_is_censored_and_outside_the_load_rate(self):
+        doc = self.two_process([True] * 3, [True] * 3, [None, None, "timed out after 120s"])
+        doc["cases"][0]["arms"]["with"][2]["graders"] = []
+        row = self.row(doc)
+        self.assertEqual((row["cappedRuns"], row["censoredRuns"], row["loadRate"]), (1, 1, 1.0))
+
     def test_error_runs_are_counted_per_case(self):
         errors = [None, "exit 1: Reached maximum number of turns (6)", "timed out after 120s"]
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], errors))
@@ -1224,12 +1290,12 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(doc["runs"], SETTINGS)
         (case,) = doc["cases"]
         self.assertEqual((case["asset"], case["kind"]), ("j-arch", "effect"))
-        # Result graders only: the llm `design` grader. The tool_used `delegated` grader is the
-        # process indicator, reported as firedRate.
+        # Result graders only: the llm `design` grader. The tool_used `delegated` grader is a
+        # process grader, reported through behaviorRate.
         self.assertAlmostEqual(case["kbScore"], 2 / 3, places=3)
         self.assertAlmostEqual(case["vanillaScore"], 1 / 3, places=3)
         self.assertAlmostEqual(case["delta"], 1 / 3, places=3)
-        self.assertEqual(case["firedRate"], 1.0)
+        self.assertEqual((case["loadRate"], case["behaviorRate"]), (None, 1.0))
         self.assertEqual((case["kbRuns"], case["vanillaRuns"]), (3, 3))
         self.assertEqual(case["errors"], [])
         for arm in ("kb", "vanilla", "delta"):
