@@ -94,7 +94,13 @@ def adopt(
         path = det.RESULTS / purpose
         if not path.is_dir():
             print(f"MISSING purpose {purpose} ({path})", file=sys.stderr)
-    loaded = {asset: (_rows(before, [asset]), _rows(after, [asset])) for asset in assets}
+    loaded = {}
+    unreadable: Dict[str, Exception] = {}
+    for asset in assets:
+        try:
+            loaded[asset] = (_rows(before, [asset]), _rows(after, [asset]))
+        except (KeyError, TypeError) as error:
+            unreadable[asset] = error
     others = _others(assets, after)
     near_rows, near_dups = _rows(after, others)
     dups = [line for (_, old_dups), (_, new_dups) in loaded.values() for line in old_dups + new_dups]
@@ -104,6 +110,11 @@ def adopt(
         return 1
     blocked = False
     for asset in assets:
+        if asset in unreadable:
+            print(f"BLOCKED unreadable results for {asset}: {unreadable[asset]!r}", file=sys.stderr)
+            print(f"ADOPT {asset} blocked")
+            blocked = True
+            continue
         (old, _), (new, _) = loaded[asset]
         statuses = []
 
@@ -142,28 +153,11 @@ def adopt(
         else:
             emit("near-fires", "FAIL" if nf else "PASS", f"near {nf}/{nn} fired")
         if all(s == "PASS" for s in statuses):
-            found = {m: det.load(effects, m, asset) for m in det.models(asset)}
-            data = {m: cases for m, cases in found.items() if cases is not None}
-            missing = [m for m in found if m not in data]
-            if missing:
-                emit("effects", "BLOCKED", f"no {effects} results for {' '.join(missing)}")
-            else:
-                base = {m: det.load(effects_base, m, asset) for m in data}
-                unbased = [m for m, cases in base.items() if cases is None]
-                if unbased:
-                    emit("effects", "BLOCKED", f"no {effects_base} results for {' '.join(unbased)}")
-                else:
-                    pairs = len(paired_scores(base, data, det.SKIP))
-                    if not pairs:
-                        emit("effects", "BLOCKED", f"no effect case compared against {effects_base}")
-                    else:
-                        bad = regressed(base, data, det.SKIP)
-                        detail = (
-                            f"regressed vs {effects_base}: {' '.join(bad)}"
-                            if bad
-                            else f"no regression vs {effects_base}"
-                        )
-                        emit("effects", "FAIL" if bad else "PASS", f"{detail} ({pairs} pairs)")
+            try:
+                emit("effects", *_effects(asset, effects, effects_base))
+            except (KeyError, TypeError) as error:
+                print(f"BLOCKED unreadable results for {asset}: {error!r}", file=sys.stderr)
+                statuses.append("BLOCKED")
         else:
             emit("effects", "SKIPPED", "a trigger criterion did not pass")
         if "BLOCKED" in statuses:
@@ -175,6 +169,25 @@ def adopt(
     _neighbours(others, near_rows, neighbour_base)
     print(f"NEIGHBOURS {len(others)} assets checked", file=sys.stderr)
     return 1 if blocked else 0
+
+
+def _effects(asset: str, effects: str, effects_base: str) -> Tuple[str, str]:
+    """Return the effects criterion's (status, detail); KeyError or TypeError means a malformed result."""
+    found = {m: det.load(effects, m, asset) for m in det.models(asset)}
+    data = {m: cases for m, cases in found.items() if cases is not None}
+    missing = [m for m in found if m not in data]
+    if missing:
+        return "BLOCKED", f"no {effects} results for {' '.join(missing)}"
+    base = {m: det.load(effects_base, m, asset) for m in data}
+    unbased = [m for m, cases in base.items() if cases is None]
+    if unbased:
+        return "BLOCKED", f"no {effects_base} results for {' '.join(unbased)}"
+    pairs = len(paired_scores(base, data, det.SKIP))
+    if not pairs:
+        return "BLOCKED", f"no effect case compared against {effects_base}"
+    bad = regressed(base, data, det.SKIP)
+    detail = f"regressed vs {effects_base}: {' '.join(bad)}" if bad else f"no regression vs {effects_base}"
+    return ("FAIL" if bad else "PASS"), f"{detail} ({pairs} pairs)"
 
 
 def _others(assets: List[str], after: List[str]) -> List[str]:

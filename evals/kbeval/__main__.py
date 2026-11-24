@@ -13,6 +13,7 @@ from evals.kbeval import affected as kaffected
 from evals.kbeval import cases as kcases
 from evals.kbeval import compare as kcompare
 from evals.kbeval import headroom as kheadroom
+from evals.kbeval import ledger as kledger
 from evals.kbeval import orchestrate, runner
 from evals.kbeval import stage as kstage
 from evals.kbeval import summary as ksummary
@@ -124,9 +125,9 @@ def _compare(args: argparse.Namespace) -> int:
 
 def _headroom(args: argparse.Namespace) -> int:
     live: dict = {}
-    for case in kcases.discover(REPO / "evals" / "cases"):
-        live.setdefault(case.suite, set()).add(case.name)
     try:
+        for case in kcases.discover(REPO / "evals" / "cases"):
+            live.setdefault(case.suite, set()).add(case.name)
         lines = kheadroom.report(REPO / args.baselines, live)
     except (OSError, ValueError) as error:
         print(f"headroom: {error}", file=sys.stderr)
@@ -138,7 +139,8 @@ def _headroom(args: argparse.Namespace) -> int:
 
 def _git(args: List[str]) -> str:
     result = subprocess.run(
-        ["git", *args], cwd=REPO, capture_output=True, text=True, stdin=subprocess.DEVNULL, check=False
+        ["git", *args], cwd=REPO, capture_output=True, encoding="utf-8", errors="surrogateescape",
+        stdin=subprocess.DEVNULL, check=False,
     )
     if result.returncode != 0:
         raise OSError(f"git {' '.join(args)}: {result.stderr.strip()}")
@@ -164,23 +166,23 @@ def _affected(args: argparse.Namespace) -> int:
         diff = _git(["diff", "--name-status", "--no-renames", "-z", base])
         status = _git(["status", "--porcelain", "-z", "--untracked-files=all"])
         changes = _parse_changes(diff, status)
-    except OSError as error:
+        plan = kaffected.affected(REPO, changes)
+        for note in plan.notes:
+            print(note, file=sys.stderr)
+        if plan.everything:
+            path = next(p for _, p in changes if p in kaffected.EVERYTHING)
+            print(f"ALL <- {path}; a smoke cannot cover it", file=sys.stderr)
+            return 2
+        if not plan.names:
+            print("nothing to run", file=sys.stderr)
+        kb, vanilla, cost, unpriced = kaffected.estimate(REPO, plan.names)
+        for line in unpriced:
+            print(line, file=sys.stderr)
+        purpose = f"smoke-{orchestrate._branch().replace('/', '-')}"
+        left = orchestrate._capped(purpose, float(runner.load_budget(REPO)["smokeCapUsd"]))
+    except (OSError, ValueError, KeyError, kledger.LedgerError) as error:
         print(f"affected: {error}", file=sys.stderr)
         return 1
-    plan = kaffected.affected(REPO, changes)
-    for note in plan.notes:
-        print(note, file=sys.stderr)
-    if plan.everything:
-        path = next(p for _, p in changes if p in kaffected.EVERYTHING)
-        print(f"ALL <- {path}; a smoke cannot cover it", file=sys.stderr)
-        return 2
-    if not plan.names:
-        print("nothing to run", file=sys.stderr)
-    kb, vanilla, cost, unpriced = kaffected.estimate(REPO, plan.names)
-    for line in unpriced:
-        print(line, file=sys.stderr)
-    purpose = f"smoke-{orchestrate._branch().replace('/', '-')}"
-    left = orchestrate._capped(purpose, float(runner.load_budget(REPO)["smokeCapUsd"]))
     print(
         f"ESTIMATE {kb} kb runs + {vanilla} vanilla runs, about ${cost:.2f}; "
         f"smoke cap left ${left:.2f} (purpose {purpose})",

@@ -2163,6 +2163,28 @@ class EntryPointTests(OrchestrateTests):
         self.assertEqual(lines[:-1], ["UNPRICED j-new: no case"])
         self.assertTrue(lines[-1].startswith("ESTIMATE 0 kb runs"), err)
 
+    def test_affected_exits_one_on_a_malformed_budget(self):
+        (self.repo / "evals" / "budget.json").write_text("{")
+        code, out, err = self.run_affected(diff="M\0.claude/skills/demo-skill/SKILL.md\0")
+        self.assertEqual((code, out), (1, ""))
+        self.assertTrue(err.splitlines()[-1].startswith("affected: "), err)
+
+    def test_affected_exits_one_on_an_unreadable_ledger(self):
+        def bad_ledger(purpose, cap):
+            raise kmain.kledger.LedgerError("ledger.jsonl:1: unreadable ledger line")
+
+        def fake_git(args, **kwargs):
+            out = {"merge-base": "abc\n", "diff": "", "status": "", "rev-parse": "feat/x\n"}[args[1]]
+            return subprocess.CompletedProcess(args, 0, out, "")
+
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.subprocess, "run", fake_git):
+            with mock.patch.object(kmain.orchestrate, "_capped", bad_ledger):
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                    code = kmain.main(["affected"])
+        self.assertEqual((code, out.getvalue()), (1, ""))
+        self.assertIn("affected: ledger.jsonl:1: unreadable ledger line\n", err.getvalue())
+
     def test_affected_exits_one_with_nothing_on_stdout_when_git_fails(self):
         code, out, err = self.run_affected(fail=True)
         self.assertEqual(code, 1)
@@ -2776,6 +2798,20 @@ class HillclimbAdoptTests(unittest.TestCase):
                 khill.main(argv)
             self.assertEqual(raised.exception.code, 2, bad)
             self.assertIn("--before", err.getvalue(), bad)
+
+    def test_malformed_effects_results_block_without_a_traceback(self):
+        self._asset(held=(0, 4), effects=False)
+        for model in (OPUS, kdet.SONNET):
+            self._effects("baseline", model, [True] * 3)
+            self._put("e", model, "effects", "a", [{
+                "name": "a--effect-x",
+                "graders": [{"name": "design", "type": "llm"}],
+                "arms": {"with": [{"graders": [{"passed": True}]}]},
+            }])
+        code, out = self._adopt()
+        self.assertEqual(code, 1)
+        self.assertIn("ADOPT a blocked\n", out)
+        self.assertIn("BLOCKED unreadable results for a: ", self.err)
 
     def test_neighbour_should_with_differing_graded_counts_is_reviewed(self):
         self._asset(held=(0, 4))
