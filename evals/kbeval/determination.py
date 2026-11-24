@@ -24,12 +24,23 @@ from typing import Dict, List, Optional, Tuple
 from evals.kbeval import cases as kcases
 from evals.kbeval import ledger, runner
 from evals.kbeval.orchestrate import state_root
-from evals.kbeval.results import evidence, grader, load_cases, loaded, own_load_grader, passed, runs
+from evals.kbeval.results import (
+    EPS,
+    Cases,
+    evidence,
+    grader,
+    load_cases,
+    loaded,
+    own_load_grader,
+    paired_scores,
+    passed,
+    regressed,
+    runs,
+)
 
 REPO = Path(__file__).resolve().parents[2]
 RESULTS = state_root() / "results"
 OPUS, SONNET = "claude-opus-5-5", "claude-sonnet-5-5"
-RESULT_TYPES = frozenset({"regex", "file_exists", "llm"})
 CONSULT = ("j-arch", "j-cloud", "j-devops", "j-docs", "j-frontend", "j-lang", "j-data")
 SKIP = {
     "j-data--effect-orders-schema": {"no-serial"},
@@ -38,9 +49,6 @@ SKIP = {
     "architecture-specialist--effect-retry-policy-adr": {"not-retried", "design"},
 }
 NO_SERIAL_PREFIX = r"^(?:(?!--)[^\n])*?"
-EPS = 1e-9
-
-Cases = Dict[str, dict]
 
 
 def models(asset: str) -> Tuple[str, ...]:
@@ -164,47 +172,16 @@ class Checker:
         )
 
     def no_regression(self, asset: str, data: Dict[str, Cases]) -> None:
-        """Fail a case whose kb score drops 1/3 on both models or 2/3 on one."""
+        """Fail a case whose kb score drops 1/3 on both models or 2/3 on one (`results.regressed`)."""
         base = {m: load("baseline", m, asset) for m in data}
-        drops: Dict[str, Dict[str, float]] = {}
-        lines = []
-        for model, cases in data.items():
-            for name, case in cases.items():
-                old = (base.get(model) or {}).get(name)
-                if old is None:
-                    continue
-                kept = self.result_graders(case) & self.result_graders(old) - SKIP.get(name, set())
-                if not kept:
-                    continue
-                b, a = self.score(old, kept), self.score(case, kept)
-                if a is None or b is None:
-                    continue
-                drops.setdefault(name, {})[model] = b - a
-                lines.append(f"{name}@{model.split('-')[1]}={b:.2f}->{a:.2f}")
-        bad = []
-        for name, by in drops.items():
-            if any(d >= 2 / 3 - EPS for d in by.values()) or (
-                len(by) >= 2 and all(d >= 1 / 3 - EPS for d in by.values())
-            ):
-                bad.append(name)
+        lines = [
+            f"{name}@{model.split('-')[1]}={b:.2f}->{a:.2f}"
+            for name, model, b, a in paired_scores(base, data, SKIP)
+        ]
+        bad = regressed(base, data, SKIP)
         status = "FAIL" if bad else "PASS"
         detail = " ".join(lines) + (f" regressed: {' '.join(bad)}" if bad else "")
         self.emit("no-regression", asset, status, detail)
-
-    @staticmethod
-    def result_graders(case: dict) -> set:
-        """Return the names of a case's result graders."""
-        return {g["name"] for g in case.get("graders", []) if g.get("type") in RESULT_TYPES}
-
-    @staticmethod
-    def score(case: dict, names: set) -> Optional[float]:
-        """Return the mean over runs of the share of `names` graders that passed."""
-        scores = []
-        for run in runs(case):
-            got = [g for g in run["graders"] if g["name"] in names]
-            if got:
-                scores.append(sum(bool(g.get("passed")) for g in got) / len(got))
-        return sum(scores) / len(scores) if scores else None
 
     def library_use(self, asset: str, data: Dict[str, Cases]) -> None:
         """Report runs that delegated and runs that read references inline."""

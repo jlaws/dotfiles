@@ -15,6 +15,10 @@ from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Set, Tuple
 
 SIDECAR = ".meta.json"
+RESULT_TYPES = frozenset({"regex", "file_exists", "llm"})
+EPS = 1e-9
+
+Cases = Dict[str, dict]
 
 
 class Loaded(NamedTuple):
@@ -126,6 +130,58 @@ def evidence(run: dict, name: str) -> Optional[str]:
     """Return the file an llm grader stored for a run, or None."""
     found = grader(run, name)
     return found.get("evidence") if found else None
+
+
+def result_graders(case: dict) -> set:
+    """Return the names of a case's result graders."""
+    return {g["name"] for g in case.get("graders", []) if g.get("type") in RESULT_TYPES}
+
+
+def score(case: dict, names: set) -> Optional[float]:
+    """Return the mean over runs of the share of `names` graders that passed."""
+    scores = []
+    for run in runs(case):
+        got = [g for g in run["graders"] if g["name"] in names]
+        if got:
+            scores.append(sum(bool(g.get("passed")) for g in got) / len(got))
+    return sum(scores) / len(scores) if scores else None
+
+
+def paired_scores(
+    before: Dict[str, Optional[Cases]], after: Dict[str, Cases], skip: Dict[str, set]
+) -> List[Tuple[str, str, float, float]]:
+    """Return (case, model, before score, after score) on the result graders both sides share."""
+    pairs = []
+    for model, cases in after.items():
+        for name, case in cases.items():
+            old = (before.get(model) or {}).get(name)
+            if old is None:
+                continue
+            kept = result_graders(case) & result_graders(old) - skip.get(name, set())
+            if not kept:
+                continue
+            b, a = score(old, kept), score(case, kept)
+            if a is not None and b is not None:
+                pairs.append((name, model, b, a))
+    return pairs
+
+
+def regressed(
+    before: Dict[str, Optional[Cases]], after: Dict[str, Cases], skip: Dict[str, set]
+) -> List[str]:
+    """Return the cases whose kb score drops 2/3 on one model, or 1/3 on every model present.
+
+    The 1/3 rule needs at least two models: with one model present, only a 2/3 drop regresses.
+    """
+    drops: Dict[str, Dict[str, float]] = {}
+    for name, model, b, a in paired_scores(before, after, skip):
+        drops.setdefault(name, {})[model] = b - a
+    return [
+        name
+        for name, by in drops.items()
+        if any(d >= 2 / 3 - EPS for d in by.values())
+        or (len(by) >= 2 and all(d >= 1 / 3 - EPS for d in by.values()))
+    ]
 
 
 def own_load_grader(case: dict, asset: str) -> Optional[str]:

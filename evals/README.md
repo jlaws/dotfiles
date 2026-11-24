@@ -23,7 +23,7 @@ make eval-spend                      # free: snapshot ledger totals into evals/s
 python3 -m evals.kbeval summarize    # free: check every result, then write evals/baselines/ (nothing if a check fails)
 make eval-headroom                   # free: classify effect and workflow cases from evals/baselines/; ends "<n> cases: <s> saturated, <d> dead, <k> kb-below-vanilla, <x> discriminating, <u> unmeasured"
 make eval-affected                   # free: assets a diff touches and the projected smoke cost; prints the ASSETS list
-python3 -m evals.kbeval.hillclimb adopt --asset A... --before P... --after P... --effects P   # free: ends one "ADOPT <asset> <verdict>" line per asset
+python3 -m evals.kbeval.hillclimb adopt --asset A... --before P... --after P... --effects P   # free: prints one "ADOPT <asset> <verdict>" line per asset, then any neighbour lines
 ```
 
 `python3 -m evals.kbeval run --suite ... --staging ... --plugin ...` runs one suite for one staging

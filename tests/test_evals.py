@@ -1676,6 +1676,71 @@ class ResultsLoaderTests(unittest.TestCase):
         ]}
         self.assertEqual(kresults.own_load_grader(exact, "create-pr"), "skill")
 
+    @staticmethod
+    def scored(passes):
+        return {CASE: {"graders": [{"name": "design", "type": "llm"}], "arms": {"with": [
+            {"graders": [{"name": "design", "passed": ok}]} for ok in passes
+        ]}}}
+
+    def test_drop_of_two_thirds_on_one_model_regresses(self):
+        before = {OPUS: self.scored([True] * 3), kdet.SONNET: self.scored([True] * 3)}
+        after = {OPUS: self.scored([True, False, False]), kdet.SONNET: self.scored([True] * 3)}
+        self.assertEqual(kresults.regressed(before, after, {}), [CASE])
+
+    def test_drop_of_one_third_on_both_models_regresses(self):
+        before = {OPUS: self.scored([True] * 3), kdet.SONNET: self.scored([True] * 3)}
+        after = {m: self.scored([True, True, False]) for m in before}
+        self.assertEqual(kresults.regressed(before, after, {}), [CASE])
+
+    def test_drop_of_one_third_on_one_model_does_not(self):
+        before = {OPUS: self.scored([True] * 3), kdet.SONNET: self.scored([True] * 3)}
+        after = {OPUS: self.scored([True, True, False]), kdet.SONNET: self.scored([True] * 3)}
+        self.assertEqual(kresults.regressed(before, after, {}), [])
+
+    def test_one_third_rule_needs_two_models(self):
+        before = {OPUS: self.scored([True] * 3)}
+        self.assertEqual(kresults.regressed(before, {OPUS: self.scored([True, True, False])}, {}), [])
+        self.assertEqual(kresults.regressed(before, {OPUS: self.scored([True, False, False])}, {}), [CASE])
+
+    def test_skipped_grader_does_not_regress(self):
+        before = {OPUS: self.scored([True] * 3), kdet.SONNET: self.scored([True] * 3)}
+        after = {OPUS: self.scored([True, False, False]), kdet.SONNET: self.scored([True] * 3)}
+        self.assertEqual(kresults.regressed(before, after, {}), [CASE])
+        self.assertEqual(kresults.regressed(before, after, {CASE: {"design"}}), [])
+
+    def test_no_regression_line_is_unchanged(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+
+        def put(purpose, model, passes):
+            root = tmp / purpose / "kb" / model / "effects"
+            root.mkdir(parents=True, exist_ok=True)
+            (root / "j-arch.json").write_text(
+                json.dumps({"partial": False, "cases": [{"name": CASE, **self.scored(passes)[CASE]}]}),
+                encoding="utf-8",
+            )
+            (root / "j-arch.key").write_text("k", encoding="utf-8")
+
+        for model in (OPUS, kdet.SONNET):
+            put("baseline", model, [True] * 3)
+        expected = {
+            "regressing": (
+                {OPUS: [True, False, False], kdet.SONNET: [True] * 3},
+                f"CHECK no-regression j-arch FAIL {CASE}@opus=1.00->0.33 {CASE}@sonnet=1.00->1.00"
+                f" regressed: {CASE}\n",
+            ),
+            "clean": (
+                {OPUS: [True] * 3, kdet.SONNET: [True, True, False]},
+                f"CHECK no-regression j-arch PASS {CASE}@opus=1.00->1.00 {CASE}@sonnet=1.00->0.67\n",
+            ),
+        }
+        for label, (passes, line) in expected.items():
+            with self.subTest(label), mock.patch.object(kdet, "RESULTS", tmp):
+                data = {m: self.scored(p) for m, p in passes.items()}
+                with contextlib.redirect_stdout(io.StringIO()) as out:
+                    kdet.Checker("p").no_regression("j-arch", data)
+                self.assertEqual(out.getvalue(), line)
+
 
 def summary_doc(cases: dict, model: str = OPUS) -> dict:
     return {
@@ -2203,6 +2268,223 @@ class TriggerReportTests(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()) as err:
             self.assertEqual(kdet.triggers("missing", ["a"], None), 1)
         self.assertIn("no trigger results", err.getvalue())
+
+
+from evals.kbeval import hillclimb as khill  # noqa: E402
+
+
+class HillclimbAdoptTests(unittest.TestCase):
+    """`hillclimb adopt` computes the held-out adoption criteria from stored results."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        patcher = mock.patch.object(kdet, "RESULTS", self.tmp)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _put(self, purpose, model, suite, stem, cases):
+        root = self.tmp / purpose / "kb" / model / suite
+        root.mkdir(parents=True, exist_ok=True)
+        (root / f"{stem}.json").write_text(json.dumps({"partial": False, "cases": cases}), encoding="utf-8")
+        (root / f"{stem}.key").write_text("k", encoding="utf-8")
+
+    def _trigger(self, purpose, model, name, fired, graded):
+        """Store a trigger case with `fired` of `graded` runs loading the skill."""
+        near = "--trigger-should-" not in name
+        self._put(purpose, model, "triggers", name, [{
+            "name": name,
+            "graders": [{"name": "skill", "type": "tool_used", "config": {
+                "tool": "Skill", "input_match": f'"skill"\\s*:\\s*"(?:kb:)?{name.split("--")[0]}"',
+                **({"max": 0} if near else {})}}],
+            "arms": {"with": [
+                {"graders": [{"name": "skill", "passed": (i < fired) != near}]} for i in range(graded)
+            ]},
+        }])
+
+    def _effects(self, purpose, model, passes, asset="a"):
+        self._put(purpose, model, "effects", asset, [{
+            "name": f"{asset}--effect-x",
+            "graders": [{"name": "design", "type": "llm"}],
+            "arms": {"with": [{"graders": [{"name": "design", "passed": ok}]} for ok in passes]},
+        }])
+
+    def _asset(
+        self, held=(0, 4), existing=(3, 3), near=0, held_graded=(6, 6), effects=True, held_before=(6, 6)
+    ):
+        """Store asset `a` before and after: fired counts across both models, split evenly."""
+        for model, part in ((OPUS, 0), (kdet.SONNET, 1)):
+            for purpose, fired in (("hb", held[0]), ("hf", held[1])):
+                share = fired // 2 + (fired % 2 if part == 0 else 0)
+                graded = held_graded[part] if purpose == "hf" else held_before[part]
+                self._trigger(purpose, model, "a--trigger-should-held-h", share, graded)
+            for purpose, fired in (("b", existing[0]), ("f", existing[1])):
+                share = fired // 2 + (fired % 2 if part == 0 else 0)
+                self._trigger(purpose, model, "a--trigger-should-x", share, 3)
+            self._trigger("b", model, "a--trigger-near-y", 0, 3)
+            self._trigger("f", model, "a--trigger-near-y", near if part == 0 else 0, 3)
+            self._trigger("f", model, "a--trigger-near-held-z", 0, 3)
+            if effects:
+                self._effects("baseline", model, [True] * 3)
+                self._effects("e", model, [True] * 3)
+
+    def _adopt(self, before=("b", "hb"), after=("f", "hf")):
+        with contextlib.redirect_stdout(io.StringIO()) as out, contextlib.redirect_stderr(io.StringIO()) as err:
+            code = khill.adopt(["a"], list(before), list(after), "e")
+        self.err = err.getvalue()
+        return code, out.getvalue()
+
+    def test_held_gain_of_four_adopts(self):
+        self._asset(held=(0, 4))
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn("CRITERION a held-gain PASS", out)
+        self.assertIn("CRITERION a effects PASS", out)
+        self.assertTrue(out.endswith("ADOPT a adopt\n"), out)
+
+    def test_held_gain_of_three_restores(self):
+        self._asset(held=(1, 4))
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn("CRITERION a held-gain FAIL", out)
+        self.assertIn("ADOPT a restore\n", out)
+
+    def test_near_fire_restores_despite_a_large_gain(self):
+        self._asset(held=(0, 12), near=1)
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn("CRITERION a held-gain PASS", out)
+        self.assertIn("CRITERION a near-fires FAIL", out)
+        self.assertIn("ADOPT a restore\n", out)
+
+    def test_existing_should_drop_restores(self):
+        self._asset(held=(0, 6), existing=(3, 2))
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn("CRITERION a existing-should FAIL", out)
+        self.assertIn("ADOPT a restore\n", out)
+
+    def test_short_graded_runs_block(self):
+        self._asset(held=(0, 6), held_graded=(6, 5))
+        code, out = self._adopt()
+        self.assertEqual(code, 1)
+        self.assertIn("CRITERION a held-gain BLOCKED", out)
+        self.assertIn("ADOPT a blocked\n", out)
+
+    def test_effects_are_skipped_once_a_trigger_criterion_fails(self):
+        self._asset(held=(1, 4), effects=False)
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn("CRITERION a effects SKIPPED", out)
+        self.assertIn("ADOPT a restore\n", out)
+
+    def test_missing_effects_results_block_an_otherwise_passing_asset(self):
+        self._asset(held=(0, 4), effects=False)
+        code, out = self._adopt()
+        self.assertEqual(code, 1)
+        self.assertIn("CRITERION a effects BLOCKED", out)
+        self.assertIn("ADOPT a blocked\n", out)
+
+    def test_effects_regression_restores(self):
+        self._asset(held=(0, 4))
+        self._effects("e", OPUS, [True, False, False])
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn("CRITERION a effects FAIL", out)
+        self.assertIn("a--effect-x", out)
+        self.assertIn("ADOPT a restore\n", out)
+
+    def test_neighbour_drop_prints_review_and_changes_no_verdict(self):
+        self._asset(held=(0, 4))
+        self._trigger("baseline", kdet.SONNET, "n--trigger-should-x", 2, 3)
+        self._trigger("f", kdet.SONNET, "n--trigger-should-x", 0, 3)
+        self._trigger("baseline", kdet.SONNET, "n--trigger-should-w", 2, 3)
+        self._trigger("f", kdet.SONNET, "n--trigger-should-w", 1, 3)
+        self._trigger("f", kdet.SONNET, "n--trigger-near-y", 1, 3)
+        self._trigger("baseline", OPUS, "n--trigger-should-z", 3, 3)
+        self._trigger("f", OPUS, "n--trigger-should-z", 0, 3)
+        self._trigger("f", OPUS, "n--trigger-near-v", 3, 3)
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn("ADOPT a adopt\n", out)
+        lines = out.splitlines()
+        neighbour = lines[lines.index("ADOPT a adopt") + 1:]
+        self.assertEqual([" ".join(line.split()[:3]) for line in neighbour], [
+            "CRITERION neighbours n--trigger-near-y",
+            "REVIEW n--trigger-should-x should",
+        ])
+        self.assertTrue(neighbour[0].startswith("CRITERION neighbours n--trigger-near-y FAIL "))
+
+    def test_missing_effects_baseline_blocks(self):
+        self._asset(held=(0, 4), effects=False)
+        for model in (OPUS, kdet.SONNET):
+            self._effects("e", model, [True] * 3)
+        code, out = self._adopt()
+        self.assertEqual(code, 1)
+        self.assertIn(f"CRITERION a effects BLOCKED no baseline results for {OPUS} {kdet.SONNET}\n", out)
+        self.assertIn("ADOPT a blocked\n", out)
+
+    def test_effects_missing_on_one_model_block(self):
+        self._asset(held=(0, 4), effects=False)
+        for model in (OPUS, kdet.SONNET):
+            self._effects("baseline", model, [True] * 3)
+        self._effects("e", OPUS, [True] * 3)
+        code, out = self._adopt()
+        self.assertEqual(code, 1)
+        self.assertIn(f"CRITERION a effects BLOCKED no e results for {kdet.SONNET}\n", out)
+        self.assertIn("ADOPT a blocked\n", out)
+
+    def test_purpose_listed_twice_in_after_is_refused(self):
+        self._asset(held=(0, 4))
+        code, out = self._adopt(after=("f", "hf", "hf"))
+        self.assertEqual(code, 1)
+        self.assertIn(f"BLOCKED duplicate a--trigger-should-held-h {OPUS} in hf, hf\n", self.err)
+        self.assertNotIn("ADOPT", out)
+
+    def test_purpose_listed_twice_in_before_is_refused(self):
+        self._asset(held=(0, 4))
+        code, out = self._adopt(before=("b", "hb", "b"))
+        self.assertEqual(code, 1)
+        self.assertIn(f"BLOCKED duplicate a--trigger-should-x {kdet.SONNET} in b, b\n", self.err)
+        self.assertNotIn("ADOPT", out)
+
+    def test_neighbour_case_in_two_after_purposes_is_refused(self):
+        self._asset(held=(0, 4))
+        for purpose in ("f", "f2"):
+            self._trigger(purpose, kdet.SONNET, "n--trigger-near-y", 0, 3)
+        code, out = self._adopt(after=("f", "hf", "f2"))
+        self.assertEqual(code, 1)
+        self.assertIn(f"BLOCKED duplicate n--trigger-near-y {kdet.SONNET} in f, f2\n", self.err)
+        self.assertEqual(out, "")
+
+    def test_two_held_out_should_cases_block(self):
+        self._asset(held=(0, 4))
+        for model in (OPUS, kdet.SONNET):
+            self._trigger("hb", model, "a--trigger-should-held-h", 0, 3)
+            self._trigger("hb", model, "a--trigger-should-held-k", 0, 3)
+            self._trigger("hf", model, "a--trigger-should-held-h", 2, 3)
+            self._trigger("hf", model, "a--trigger-should-held-k", 0, 3)
+        code, out = self._adopt()
+        self.assertEqual(code, 1)
+        self.assertIn("CRITERION a held-gain BLOCKED", out)
+        self.assertIn("2 held-out should cases before", out)
+        self.assertIn("ADOPT a blocked\n", out)
+
+    def test_short_graded_runs_before_block(self):
+        self._asset(held=(0, 6), held_before=(6, 5))
+        code, out = self._adopt()
+        self.assertEqual(code, 1)
+        self.assertIn("CRITERION a held-gain BLOCKED", out)
+        self.assertIn("11 graded before", out)
+        self.assertIn("ADOPT a blocked\n", out)
+
+    def test_held_out_near_fire_alone_restores(self):
+        self._asset(held=(0, 4))
+        self._trigger("f", OPUS, "a--trigger-near-held-z", 1, 3)
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn("CRITERION a near-fires FAIL", out)
+        self.assertIn("ADOPT a restore\n", out)
 
 
 if __name__ == "__main__":
