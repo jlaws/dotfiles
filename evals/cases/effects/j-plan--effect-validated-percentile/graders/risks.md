@@ -1,6 +1,6 @@
 ---
 type: regex
 target: { source: file, path: plans/plan.md }
-pattern: '^\|\s*Risks?\s*\|'
+pattern: '^\|([^|\n]*\|)*[ \t]*Risks?[ \t]*\|'
 flags: mi
 ---
