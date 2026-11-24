@@ -70,4 +70,4 @@ eval-headroom:
 	python3 -m evals.kbeval headroom
 
 eval-affected:
-	python3 -m evals.kbeval affected
+	@python3 -m evals.kbeval affected
