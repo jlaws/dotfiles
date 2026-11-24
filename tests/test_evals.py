@@ -2975,6 +2975,32 @@ class AffectedTests(TempRepoCase):
         _, _, _, unpriced = kaffected.estimate(self.repo, ["demo-skill", "demo-ghost"])
         self.assertEqual(unpriced, ["UNPRICED demo-ghost: no case"])
 
+    def test_same_stem_references_in_two_categories_where_one_is_cited(self):
+        self.put(".claude/references/other/ref.md", "# Other ref\n\nUncited.\n")
+        self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n")
+        plan = self.plan(("M", ".claude/references/cat/ref.md"))
+        self.assertEqual(plan.names, ["demo-skill"])
+        self.assertEqual(
+            plan.notes,
+            ["AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:6"],
+        )
+
+    def test_affected_reads_each_kb_file_once(self):
+        self.put(".claude/references/cat/mid.md", "# Mid\n\nBuilds on ref.\n")
+        self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nSee mid.\n")
+        reads = []
+        real = Path.read_text
+
+        def counting(path, *args, **kwargs):
+            if ".claude" in path.parts:
+                reads.append(path)
+            return real(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "read_text", counting):
+            self.plan(("M", ".claude/references/cat/ref.md"), ("M", ".claude/skills/demo-skill/SKILL.md"))
+        self.assertTrue(reads)
+        self.assertEqual(len(reads), len(set(reads)), sorted(map(str, reads)))
+
     def test_deleted_reference_still_names_its_citers(self):
         self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n")
         plan = self.plan(("D", ".claude/references/cat/ref.md"))

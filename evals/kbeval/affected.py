@@ -11,10 +11,10 @@ from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
 from evals.kbeval import cases as kcases
+from evals.kbeval.orchestrate import VANILLA_SAMPLE
 
 SMOKE_USD = {"triggers": 0.07, "effects": 0.29, "workflows": 1.00}
 VANILLA_EFFECT_USD = 0.19
-VANILLA_SAMPLE = 5
 EVERYTHING = (".claude/CLAUDE.md", "evals/harness.json", "evals/kbeval/stage.py")
 UNMEASURED = (".agents/", ".codex/", ".gemini/", ".claude/settings.json", ".claude/hooks/")
 KB_TREES = (".claude/skills/", ".claude/commands/", ".claude/agents/", ".claude/references/")
@@ -45,32 +45,36 @@ def _asset_files(repo: Path) -> Dict[str, Path]:
     return files
 
 
-def _body(path: Path) -> str:
-    return kcases.split_frontmatter(path.read_text(encoding="utf-8"))[1]
+def _body(text: str) -> str:
+    return kcases.split_frontmatter(text)[1]
 
 
-def _preloaded_skills(path: Path) -> List[str]:
-    value = kcases.split_frontmatter(path.read_text(encoding="utf-8"))[0].get("skills", "")
+def _preloaded_skills(text: str) -> List[str]:
+    value = kcases.split_frontmatter(text)[0].get("skills", "")
     if value.startswith("["):
         return kcases.parse_list(value)
     return [line.strip()[1:].strip() for line in value.splitlines() if line.strip().startswith("-")]
 
 
-def _referencing(repo: Path, stem: str, changed: str, files: Dict[str, Path]) -> Tuple[List[str], List[str]]:
-    """Return assets citing `stem` directly or through references that cite it, with their notes."""
-    references = sorted((repo / ".claude" / "references").rglob("*.md"))
-    texts = {p: p.read_text(encoding="utf-8") for p in references}
-    seen, queue = {stem}, [stem]
+def _referencing(
+    repo: Path, changed: str, files: Dict[str, Path], texts: Dict[str, str], references: Dict[str, str]
+) -> Tuple[List[str], List[str]]:
+    """Return assets citing the `changed` reference directly or through references that cite it, with notes.
+
+    `texts` maps asset names to their text and `references` maps repo-relative reference paths to
+    theirs. A reference is cited by its stem; the traversal is keyed by path.
+    """
+    seen, queue = {changed}, [changed]
     names: List[str] = []
     notes: List[str] = []
     while queue:
-        current = queue.pop(0)
-        for path, text in texts.items():
-            if path.stem not in seen and _word(text, current):
-                seen.add(path.stem)
-                queue.append(path.stem)
+        current = Path(queue.pop(0)).stem
+        for rel, text in references.items():
+            if rel not in seen and _word(text, current):
+                seen.add(rel)
+                queue.append(rel)
         for name, path in files.items():
-            line = _word(path.read_text(encoding="utf-8"), current)
+            line = _word(texts[name], current)
             if line and name not in names:
                 names.append(name)
                 notes.append(f"AFFECTED {name} <- {changed} via {path.relative_to(repo)}:{line}")
@@ -80,6 +84,11 @@ def _referencing(repo: Path, stem: str, changed: str, files: Dict[str, Path]) ->
 def affected(repo: Path, changes: List[Tuple[str, str]]) -> Plan:
     """Map `(status, path)` changes to the asset and case names whose evals they touch."""
     files = _asset_files(repo)
+    texts = {name: path.read_text(encoding="utf-8") for name, path in files.items()}
+    references = {
+        str(p.relative_to(repo)): p.read_text(encoding="utf-8")
+        for p in sorted((repo / ".claude" / "references").rglob("*.md"))
+    }
     found = kcases.discover(repo / "evals" / "cases")
     commands = {n: p for n, p in files.items() if p.parent.name == "commands"}
     names: set = set()
@@ -107,8 +116,8 @@ def affected(repo: Path, changes: List[Tuple[str, str]]) -> Plan:
                 note(f"DELETED {skill}: add an AGENT_REMOVALS entry")
             elif skill in files:
                 got.add(skill)
-                got.update(n for n, p in files.items() if skill in _preloaded_skills(p))
-                got.update(n for n, p in commands.items() if f"`{skill}`" in _body(p))
+                got.update(n for n in files if skill in _preloaded_skills(texts[n]))
+                got.update(n for n in commands if f"`{skill}`" in _body(texts[n]))
         elif parts[:2] == [".claude", "commands"] and len(parts) == 3 and path.endswith(".md"):
             command = Path(path).stem
             if status == "D":
@@ -127,9 +136,9 @@ def affected(repo: Path, changes: List[Tuple[str, str]]) -> Plan:
                 note(f"DELETED {agent}: add an AGENT_REMOVALS entry")
             elif agent in files:
                 got.add(agent)
-                got.update(n for n, p in commands.items() if f"`{agent}`" in _body(p))
+                got.update(n for n in commands if f"`{agent}`" in _body(texts[n]))
         elif parts[:2] == [".claude", "references"] and path.endswith(".md"):
-            cited, reasons = _referencing(repo, Path(path).stem, path, files)
+            cited, reasons = _referencing(repo, path, files, texts, references)
             got.update(cited)
             for reason in reasons:
                 note(reason)
