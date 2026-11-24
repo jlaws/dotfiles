@@ -28,11 +28,19 @@ python3 -m evals.kbeval.hillclimb adopt --asset A... --before P... --after P... 
 
 `python3 -m evals.kbeval run --suite ... --staging ... --plugin ...` runs one suite for one staging
 and model; the make targets call the plans built on it. Add `--keep-temp` to keep each run's trace.
-`run --cap-usd <usd>` and `make eval-baseline CAP=<usd>` cap a purpose: no new batch starts once the
-purpose's total spend in the ledger reaches the amount, and `baseline` exits 2 with
-`baseline: purpose cap reached`. The cap stops new runs; runs already in flight finish, so spend can
-pass it by up to the cost of `-j` runs. It holds for one process per purpose at a time: two runs
-started together on one purpose each get the full remainder.
+`run --cap-usd <usd>` and `make eval-baseline CAP=<usd>` cap a purpose, which is the label passed
+as `--purpose` (`baseline` for the baseline). Both print
+`<purpose>: purpose cap $<cap>, spent $<spent>, left $<left>` on stderr before the first step and
+`<purpose>: spent $<spent> of cap $<cap>` after each one. Once the purpose's spend in the ledger
+reaches the cap, no further step starts and the command exits 2 with
+`<purpose>: purpose cap reached (cap $<cap>, spent $<spent>); no step started. Raise the cap to continue.`
+That holds for a rerun too: a finished step is not skipped past a spent cap. Limits of the cap:
+- It stops new runs. Runs already in flight finish, so spend can pass it by up to the cost of `-j`
+  runs; the line after the step then says by how much.
+- `baseline` reads the ledger again before each step; `run` reads it once at the start and then
+  counts its own spend, so two runs started together on one purpose each get the full remainder.
+- It is keyed on the purpose label: the same work under a new label starts with the full cap, and
+  only the period ceiling still binds.
 `python3 -m evals.kbeval.determination triggers --purpose <label> --asset <names> [--split tune|held]`
 prints `TRIGGER <case> <kind> <model> <fired>/<runs>` for every trigger case run under that purpose,
 where `<fired>` counts runs in which the skill was called, for every kind. `tune` keeps every case whose slug does not start `held-`, unprefixed ones included;
@@ -113,8 +121,8 @@ under test without first changing the judge. The family is read from a full mode
 guard cannot read its family.
 
 `J ?= 8` sets `-j` (concurrent runs). `eval-baseline` also takes `VANILLA_RUNS` (default 3),
-`VANILLA_MODELS` (default both models), and `EXCLUDE_TAGS` (default empty); the kb staging always
-runs three times per case.
+`VANILLA_MODELS` (default both models), `EXCLUDE_TAGS` (default empty), and `CAP` (a purpose cap in
+USD, default none); the kb staging always runs three times per case.
 
 ## Budget
 
@@ -165,8 +173,8 @@ evals/
 
 - `kind` is one of `trigger-should`, `trigger-near`, `trigger-noauto`, `effect`.
 - The directory name is the case name, so names are unique by construction.
-- Tags: `[<suite>, <kind>]`, plus `heavy` for multi-agent commands, `extended` on an asset's
-  third effect case, and `fanout` on the cases written for the fan-out experiment.
+- Tags: `[<suite>, <kind>]`, plus `heavy` for multi-agent commands and `extended` on an asset's
+  third effect case.
 - A case holds `prompt.md`, `graders/*.md`, and optionally `case.yaml` (`context` keys only) and
   `fixture.sh`.
 
@@ -720,33 +728,52 @@ place of it.
 
 ### Result: stopped at the one-run check (2026-11-24)
 
-The harness does not exercise `j-plan`'s fan-out, so the experiment took its stop branch. No
-experiment run was made, the eight lens-mapped cases were not written, and `j-plan` is unchanged.
+The experiment took its stop branch. No experiment run was made, the eight lens-mapped cases were
+not written, and `j-plan` is unchanged.
 
-One run per guard case per arm, `claude-opus-5-5`, Claude Code 2.1.331:
+The one-run check is one run on each of the two guard cases in each arm: four runs, on
+`claude-opus-5-5` and Claude Code 2.1.331. Arm A is `.claude/commands/j-plan.md` at commit
+`677be3b`; arm C is that file with Step 2 replaced by the text below.
 
-| Arm | Case | Lens dispatches | Turns | Seconds | Cost net of judge |
-|---|---|---|---|---|---|
-| A | `j-plan--effect-small-feature` | 0 | 5 | 43 | $0.22 |
-| A | `j-plan--effect-validated-percentile` | 0 | 8 | 94 | $0.42 |
-| C | `j-plan--effect-small-feature` | 0 | 5 | 38 | $0.21 |
-| C | `j-plan--effect-validated-percentile` | 1 | 9 | 236 | $1.22 |
+| Arm | Case | Counted by `lens-dispatches` | Agent calls in the trace | Turns | Seconds | Cost net of judge |
+|---|---|---|---|---|---|---|
+| A | `j-plan--effect-small-feature` | 0 | none | 5 | 43 | $0.22 |
+| A | `j-plan--effect-validated-percentile` | 0 | none | 8 | 94 | $0.42 |
+| C | `j-plan--effect-small-feature` | 0 | none | 5 | 38 | $0.21 |
+| C | `j-plan--effect-validated-percentile` | 1 | `code-reviewer`, `scope-reviewer` | 9 | 236 | $1.22 |
 
-The gate needed 6 or more lens dispatches on both cases under arm A and at most 1 under arm C. Arm A
-showed 0 on both. Its kept traces hold no agent dispatch of any kind, Step 1's recon included: the
-tool calls were Bash and Write, plus one Skill call on the second case, although the dispatch tool
-and every `kb:` agent were available to the run. Arm C's one dispatch is inside its allowance (the
-Step 4 red team). Both arms passed the `plan` result grader on both cases.
+The gate needed 6 or more lens dispatches on both cases under arm A. Arm A dispatched no agent in
+either run, Step 1's recon included: its tool calls were Bash and Write, plus one Skill call
+(`writing-plans`) on the second case. The dispatch tool and every `kb:` agent were available to
+the run. All four runs passed the `plan` result grader.
 
-What this does and does not show: in a non-interactive run on these two specs, Opus writes the plan
-directly and skips the command's dispatch steps, so this harness cannot compare dispatched lenses
-with inline lenses. It says nothing about which is better, and nothing about an interactive session.
-The cost clause of the rule was not tested either: no arm A trace holds a subagent, so whether a
-run's cost includes subagent spend stays unconfirmed here.
+How the counts were taken. The `lens-dispatches` grader counts Agent calls whose agent is on its
+list, and the gate's numbers were read from its explanation and checked by hand against the traces.
+The grader cannot tell a Step 2 lens from the Step 4 red team, because `scope-reviewer` is both: arm
+C's second run made two Agent calls, both the red team, and the grader counted the one whose agent
+is on its list. That did not affect the stop, since arm A showed none.
+
+What was observed, and no more: arm A dispatched nothing in 2 of 2 runs, and arm C made its two
+red-team calls in 1 of 2 runs. Each cell is one run. This does not say that Opus prefers to plan
+without dispatching, and it does not say which arm plans better. One cause was not tested and is at
+least as likely as model preference: the guard cases contradict the command. `j-plan`'s Step 0
+calls `EnterPlanMode` and says never to write a plan into the repository; the cases ask for the
+plan at `./plans/plan.md`, and plan mode is not available to a harness run. A run that cannot take
+Step 0 as written may drop the steps that follow it. The harness as it stands therefore cannot
+compare dispatched lenses with inline lenses, and nothing here applies to an interactive session.
+
+Not incurred, and not tested:
+- No case carries the `fanout` tag, and the recurring cost in the design does not apply.
+- The cost clause of the rule was not tested: no arm A trace holds a subagent, so whether a run's
+  cost includes subagent spend stays unconfirmed here.
 
 Spend: $0.81 under `fanout-check-a` and $1.58 under `fanout-check-c`, $2.39 of the 100 USD budget.
-The `lens-dispatches` process grader stays on the two guard cases as an indicator; it is not part
-of the score.
+The ceiling stays at 4000 USD for the 2026-12 baseline.
+
+The `lens-dispatches` grader stays on the two guard cases as an indicator. It is a process grader:
+it stays out of `kbScore`, which uses result graders only, and it enters `behaviorRate` and the raw
+run's pass flag. Adding it changed both cases' content, so their stored results predate it and the
+two cases rerun at the next baseline.
 
 ### Arm C text
 
