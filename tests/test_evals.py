@@ -2089,6 +2089,78 @@ class EntryPointTests(OrchestrateTests):
         with mock.patch.object(kmain, "REPO", self.repo), contextlib.redirect_stderr(err):
             self.assertEqual(kmain.main(["headroom"]), 1)
 
+    def test_affected_exits_two_on_everything(self):
+        def fake_git(args, **kwargs):
+            out = {"merge-base": "abc\n", "diff": "M\0.claude/CLAUDE.md\0", "status": ""}[args[1]]
+            return subprocess.CompletedProcess(args, 0, out, "")
+
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.subprocess, "run", fake_git):
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                code = kmain.main(["affected"])
+        self.assertEqual(code, 2)
+        self.assertIn("ALL <- .claude/CLAUDE.md; a smoke cannot cover it", err.getvalue())
+
+    def run_affected(self, diff="", status="", fail=False):
+        def fake_git(args, **kwargs):
+            if fail:
+                return subprocess.CompletedProcess(args, 128, "", "fatal: no merge base")
+            out = {"merge-base": "abc\n", "diff": diff, "status": status, "rev-parse": "feat/x\n"}[args[1]]
+            return subprocess.CompletedProcess(args, 0, out, "")
+
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.subprocess, "run", fake_git):
+            with mock.patch.object(kmain.orchestrate, "_capped", lambda purpose, cap: cap):
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                    code = kmain.main(["affected"])
+        return code, out.getvalue(), err.getvalue()
+
+    def test_affected_with_no_changes_prints_nothing_to_run(self):
+        code, out, err = self.run_affected()
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "nothing to run\n")
+        self.assertTrue(
+            err.rstrip("\n").splitlines()[-1].startswith(
+                "ESTIMATE 0 kb runs + 0 vanilla runs, about $0.00; smoke cap left $"
+            ),
+            err,
+        )
+
+    def test_affected_prints_sorted_names_and_notes_before_the_estimate(self):
+        diff = "M\0.claude/skills/demo-skill/SKILL.md\0M\0evals/kbeval/results.py\0M\0.codex/AGENTS.md\0"
+        code, out, err = self.run_affected(diff=diff)
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "demo-skill\n")
+        lines = err.splitlines()
+        estimate = [i for i, line in enumerate(lines) if line.startswith("ESTIMATE ")]
+        self.assertEqual(estimate, [len(lines) - 1])
+        self.assertEqual(
+            lines[:-1],
+            ["HARNESS evals/kbeval/results.py: covered by make test", "UNMEASURED .codex/AGENTS.md"],
+        )
+
+    def test_affected_exits_one_with_nothing_on_stdout_when_git_fails(self):
+        code, out, err = self.run_affected(fail=True)
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertTrue(err.startswith("affected: git "), err)
+
+    def test_parse_changes_returns_unquoted_paths_with_their_status(self):
+        diff = "M\0docs/a b.md\0D\0.claude/agents/old.md\0"
+        status = " M tracked.md\0?? caf\u00e9/\u00e9.md\0A  staged.md\0?? dir/new file.md\0"
+        self.assertEqual(
+            kmain._parse_changes(diff, status),
+            [
+                ("M", "docs/a b.md"),
+                ("D", ".claude/agents/old.md"),
+                ("A", "caf\u00e9/\u00e9.md"),
+                ("A", "dir/new file.md"),
+            ],
+        )
+
+    def test_parse_changes_skips_the_source_path_of_a_staged_rename(self):
+        self.assertEqual(kmain._parse_changes("", "R  new.md\0old.md\0?? x.md\0"), [("A", "x.md")])
+
     def test_summarize_writes_nothing_when_a_check_fails(self):
         from evals.kbeval import __main__ as kmain
 
@@ -2617,6 +2689,155 @@ class HillclimbAdoptTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("CRITERION a near-fires FAIL", out)
         self.assertIn("ADOPT a restore\n", out)
+
+
+from evals.kbeval import affected as kaffected  # noqa: E402
+
+
+class AffectedTests(TempRepoCase):
+    def put(self, rel: str, text: str) -> None:
+        path = self.repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+
+    def plan(self, *changes):
+        return kaffected.affected(self.repo, list(changes))
+
+    def test_skill_edit_maps_to_skill_preloading_agents_and_naming_commands(self):
+        self.put(
+            ".claude/agents/loader.md",
+            "---\nname: loader\nskills:\n  - other\n  - demo-skill\n---\n\nBody.\n",
+        )
+        self.put(".claude/agents/bystander.md", "---\nname: bystander\nskills:\n  - other\n---\n\nBody.\n")
+        self.put(".claude/commands/j-names.md", "---\nname: j-names\n---\n\nUse `demo-skill` first.\n")
+        self.put(".claude/commands/j-bare.md", "---\nname: j-bare\n---\n\nUse demo-skill first.\n")
+        plan = self.plan(("M", ".claude/skills/demo-skill/scripts/run.py"))
+        self.assertEqual(plan.names, ["demo-skill", "j-names", "loader"])
+        self.assertFalse(plan.everything)
+
+    def test_command_edit_maps_to_command_and_its_workflow_cases(self):
+        plan = self.plan(("M", ".claude/commands/j-demo.md"))
+        self.assertEqual(plan.names, ["j-demo", "wf--demo-chain"])
+
+    def test_agent_edit_maps_to_agent_and_naming_commands(self):
+        self.put(".claude/commands/j-names.md", "---\nname: j-names\n---\n\nDispatch `demo-agent`.\n")
+        plan = self.plan(("M", ".claude/agents/demo-agent.md"))
+        self.assertEqual(plan.names, ["demo-agent", "j-names"])
+
+    def test_reference_maps_to_citing_assets_with_reason(self):
+        self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n")
+        self.put(".claude/references/cat/mid.md", "# Mid\n\nBuilds on ref for details.\n")
+        self.put(".claude/commands/j-deep.md", "---\nname: j-deep\n---\n\nRead mid first.\n")
+        self.put(".claude/commands/j-prefix.md", "---\nname: j-prefix\n---\n\nRead reference or ref-x.\n")
+        plan = self.plan(("M", ".claude/references/cat/ref.md"))
+        self.assertEqual(plan.names, ["demo-skill", "j-deep"])
+        self.assertIn(
+            "AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:6",
+            plan.notes,
+        )
+        self.assertIn(
+            "AFFECTED j-deep <- .claude/references/cat/ref.md via .claude/commands/j-deep.md:5",
+            plan.notes,
+        )
+
+    def test_case_edit_maps_to_exact_case_name(self):
+        plan = self.plan(("M", "evals/cases/effects/j-demo--effect-cache/graders/result.md"))
+        self.assertEqual(plan.names, ["j-demo--effect-cache"])
+
+    def test_fixture_edit_maps_to_cases_that_copy_it(self):
+        self.put("evals/fixtures/py-calc-red/x.py", "x = 1\n")
+        plan = self.plan(("M", "evals/fixtures/py-calc/calc/ops.py"))
+        self.assertEqual(plan.names, ["j-demo--effect-cache"])
+
+    def test_claude_md_edit_is_everything(self):
+        for path in (".claude/CLAUDE.md", "evals/harness.json", "evals/kbeval/stage.py"):
+            plan = self.plan(("M", path))
+            self.assertTrue(plan.everything, path)
+            self.assertEqual(plan.names, [], path)
+
+    def test_deleted_asset_is_noted_never_named(self):
+        plan = self.plan(("D", ".claude/skills/gone/SKILL.md"), ("D", ".claude/agents/old.md"))
+        self.assertEqual(plan.names, [])
+        self.assertIn("DELETED gone: add an AGENT_REMOVALS entry", plan.notes)
+        self.assertIn("DELETED old: add an AGENT_REMOVALS entry", plan.notes)
+
+    def test_other_trees_are_unmeasured(self):
+        paths = (".agents/skills/x/SKILL.md", ".codex/AGENTS.md", ".gemini/GEMINI.md",
+                 ".claude/settings.json", ".claude/hooks/h.sh")  # fmt: skip
+        plan = self.plan(*(("M", p) for p in paths))
+        self.assertEqual(plan.names, [])
+        self.assertEqual(plan.notes, [f"UNMEASURED {p}" for p in paths])
+
+    def test_harness_edit_is_noted(self):
+        plan = self.plan(("M", "evals/kbeval/results.py"))
+        self.assertEqual(plan.names, [])
+        self.assertEqual(plan.notes, ["HARNESS evals/kbeval/results.py: covered by make test"])
+        self.assertFalse(plan.everything)
+
+    def test_unrelated_path_maps_to_nothing(self):
+        plan = self.plan(("M", "tests/test_evals.py"), ("M", "README.md"))
+        self.assertEqual(plan, kaffected.Plan([], [], False))
+
+    def test_names_are_sorted_and_unique(self):
+        plan = self.plan(
+            ("M", ".claude/commands/j-demo.md"),
+            ("M", ".claude/skills/demo-skill/SKILL.md"),
+            ("A", ".claude/commands/j-demo.md"),
+        )
+        self.assertEqual(plan.names, ["demo-skill", "j-demo", "wf--demo-chain"])
+
+    def test_estimate_prices_each_suite_from_smoke_usd(self):
+        names = ["demo-skill--trigger-should-rate", "j-demo--effect-cache", "demo-agent--effect-review", "wf--demo-chain"]
+        kb, vanilla, cost = kaffected.estimate(self.repo, names)
+        self.assertEqual((kb, vanilla), (4, 0))
+        self.assertAlmostEqual(cost, 0.07 + 0.29 + 0.29 + 1.00)
+
+    def test_estimate_adds_vanilla_runs_for_asset_names(self):
+        kb, vanilla, cost = kaffected.estimate(self.repo, ["demo-agent"])
+        self.assertEqual((kb, vanilla), (1, 1))
+        self.assertAlmostEqual(cost, 0.29 + 0.19)
+
+    def test_estimate_samples_at_most_five_vanilla_effect_cases(self):
+        for number in range(6):
+            write_case(
+                self.repo, "effects", f"demo-agent--effect-more{number}", EFFECT_FM, "Do it.", {"result": LLM_RESULT}
+            )
+        kb, vanilla, cost = kaffected.estimate(self.repo, ["demo-agent"])
+        self.assertEqual((kb, vanilla), (7, 5))
+        self.assertAlmostEqual(cost, 7 * 0.29 + 5 * 0.19)
+
+    def test_estimate_counts_a_case_named_by_asset_and_by_name_once(self):
+        kb, vanilla, cost = kaffected.estimate(self.repo, ["demo-agent", "demo-agent--effect-review"])
+        self.assertEqual((kb, vanilla), (1, 1))
+        self.assertAlmostEqual(cost, 0.29 + 0.19)
+
+    def test_deleted_command_is_noted_never_named(self):
+        plan = self.plan(("D", ".claude/commands/j-demo.md"))
+        self.assertEqual(plan.names, [])
+        self.assertEqual(plan.notes, ["DELETED j-demo: add an AGENT_REMOVALS entry"])
+
+    def test_case_edit_uses_the_suite_from_the_path(self):
+        # The case exists under effects only; the same name under another suite maps to nothing.
+        plan = self.plan(("M", "evals/cases/triggers/j-demo--effect-cache/graders/result.md"))
+        self.assertEqual(plan.names, [])
+
+    def test_inline_skills_list_in_agent_frontmatter_is_read(self):
+        self.put(".claude/agents/inline.md", "---\nname: inline\nskills: [other, demo-skill]\n---\n\nBody.\n")
+        plan = self.plan(("M", ".claude/skills/demo-skill/SKILL.md"))
+        self.assertEqual(plan.names, ["demo-skill", "inline"])
+
+    def test_deeper_harness_paths_map_to_nothing(self):
+        plan = self.plan(("M", "evals/kbeval/sub/x.py"))
+        self.assertEqual(plan, kaffected.Plan([], [], False))
+
+    def test_deleted_reference_still_names_its_citers(self):
+        self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n")
+        plan = self.plan(("D", ".claude/references/cat/ref.md"))
+        self.assertEqual(plan.names, ["demo-skill"])
+        self.assertEqual(
+            plan.notes,
+            ["AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:6"],
+        )
 
 
 if __name__ == "__main__":
