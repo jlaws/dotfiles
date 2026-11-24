@@ -1457,6 +1457,18 @@ class SummaryTests(unittest.TestCase):
         doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS, live={CASE})
         self.assertEqual(doc["costUsd"], 2.0)
 
+    def test_notes_report_skipped_files_and_dropped_cases(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True] * 3))
+        self.put("kb", "j-arch--gone", self.renamed("j-arch--effect-gone"))
+        self.put("kb", "j-arch--late", self.renamed("j-arch--effect-late"), keyed=False)
+        notes: list = []
+        ksummary.summarize(self.results, OPUS, "effects", SETTINGS, live={CASE}, notes=notes)
+        late = self.results / "kb" / OPUS / "effects" / "j-arch--late.json"
+        self.assertEqual(notes, [
+            f"kb/{OPUS}/effects: skipped {late} (no .key)",
+            f"kb/{OPUS}/effects: dropped 1 results for cases no longer under evals/cases: j-arch--effect-gone",
+        ])
+
     def test_determination_load_sees_exact_case_files(self):
         old = with_runs(real_doc(), [False] * 3)
         old["startedAt"] = "2026-11-15T10:00:00.000Z"
@@ -1557,6 +1569,24 @@ class ResultsLoaderTests(unittest.TestCase):
         self.put("j-arch", real_doc())
         self.assertEqual(kresults.load_cases(self.root, live={"other--effect-y"}).cases, {})
         self.assertEqual(list(kresults.load_cases(self.root, live={CASE}).cases), [CASE])
+
+    def test_dropped_lists_case_names_outside_live(self):
+        doc = real_doc()
+        for name in ("j-arch--effect-b", "j-arch--effect-a"):
+            extra = copy.deepcopy(doc["cases"][0])
+            extra["name"] = name
+            doc["cases"].append(extra)
+        self.put("j-arch", doc)
+        self.put("j-arch--effect-a", self.renamed_doc("j-arch--effect-a"))
+        loaded = kresults.load_cases(self.root, live={CASE})
+        self.assertEqual(loaded.dropped, ["j-arch--effect-a", "j-arch--effect-b"])
+        self.assertEqual(kresults.load_cases(self.root).dropped, [])
+
+    @staticmethod
+    def renamed_doc(name):
+        doc = real_doc()
+        doc["cases"][0]["name"] = name
+        return doc
 
     def test_digests_come_only_from_documents_that_supply_a_winning_case(self):
         self.put("j-arch", real_doc(), "2026-11-15T10:00:00.000Z", digest="old")
@@ -1827,7 +1857,7 @@ class EntryPointTests(OrchestrateTests):
 
         seen = []
 
-        def fake(results, model, suite, settings, live=None):
+        def fake(results, model, suite, settings, live=None, notes=None):
             seen.append(live)
             return {"suite": suite, "model": model, "cases": [], "runs": settings}
 
@@ -1838,6 +1868,25 @@ class EntryPointTests(OrchestrateTests):
         self.assertTrue(live)
         self.assertTrue(seen)
         self.assertTrue(all(item == live for item in seen))
+
+    def test_summarize_prints_notes_without_changing_the_exit_code(self):
+        def summarize_with(note):
+            def fake(results, model, suite, settings, live=None, notes=None):
+                if note and notes is not None:
+                    notes.append(f"kb/{model}/{suite}: {note}")
+                row = {"name": "j-arch--effect-x", "kbRuns": 3, "vanillaRuns": 3, "errors": []}
+                return {"suite": suite, "model": model, "cases": [row], "runs": settings}
+
+            err = io.StringIO()
+            with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.ksummary, "summarize", fake):
+                with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+                    code = kmain.main(["summarize", "--model", OPUS])
+            return code, err.getvalue()
+
+        quiet_code, _ = summarize_with(None)
+        code, err = summarize_with("skipped x.json (no .key)")
+        self.assertEqual((quiet_code, code), (0, 0))
+        self.assertIn(f"kb/{OPUS}/effects: skipped x.json (no .key)", err)
 
     def test_spend_exits_one_over_the_ceiling(self):
         from evals.kbeval import __main__ as kmain

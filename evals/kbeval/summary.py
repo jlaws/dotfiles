@@ -97,14 +97,28 @@ def _identity(name: str) -> Tuple[str, str]:
     return name, "workflow"
 
 
-def summarize(results: Path, model: str, suite: str, settings: dict, live: Optional[Set[str]] = None) -> dict:
+def summarize(
+    results: Path, model: str, suite: str, settings: dict, live: Optional[Set[str]] = None,
+    notes: Optional[List[str]] = None,
+) -> dict:
     """Return the summary document for one model and suite.
 
     `settings` records the run configuration (`kbRuns`, `vanillaRuns`, `vanillaModels`,
     `excludeTags`); `check` holds the summary to it. `live` drops results for cases outside it.
+    `notes`, when given, receives one line per skipped file and one per staging with dropped cases.
     """
-    kb_cases, kb_docs, kb_digests, _ = load_cases(results / "kb" / model / suite, live=live)
-    van_cases, van_docs, van_digests, _ = load_cases(results / "vanilla" / model / suite, live=live)
+    loaded = {staging: load_cases(results / staging / model / suite, live=live) for staging in ("kb", "vanilla")}
+    if notes is not None:
+        for staging, found in loaded.items():
+            where = f"{staging}/{model}/{suite}"
+            notes.extend(f"{where}: skipped {entry}" for entry in found.skipped)
+            if found.dropped:
+                notes.append(
+                    f"{where}: dropped {len(found.dropped)} results for cases no longer under "
+                    f"evals/cases: {', '.join(found.dropped)}"
+                )
+    kb_cases, kb_docs, kb_digests = loaded["kb"].cases, loaded["kb"].docs, loaded["kb"].digests
+    van_cases, van_docs, van_digests = loaded["vanilla"].cases, loaded["vanilla"].docs, loaded["vanilla"].digests
     for digests in (kb_digests, van_digests):
         if len(digests) > 1:
             raise ValueError(f"results mix KB digests: {', '.join(sorted(digests))}")

@@ -18,12 +18,13 @@ SIDECAR = ".meta.json"
 
 
 class Loaded(NamedTuple):
-    """Winning cases, the documents that supply them, their KB digests, and skipped files."""
+    """Winning cases, their documents and KB digests, skipped files, and live-dropped case names."""
 
     cases: Dict[str, dict]
     docs: List[dict]
     digests: Set[str]
     skipped: List[str]
+    dropped: List[str]
 
 
 def _tier(stem: str) -> int:
@@ -38,10 +39,10 @@ def load_cases(root: Path, asset: Optional[str] = None, live: Optional[Set[str]]
 
     A file counts only with its `.key` sibling (the runner writes one beside a result it accepted)
     and `partial` false; others go to `skipped`. With `asset` set, only that asset's files are read
-    and only its cases kept. `live` drops case names outside it.
+    and only its cases kept. `live` drops case names outside it; their names go to `dropped`.
     """
     if not root.is_dir():
-        return Loaded({}, [], set(), [])
+        return Loaded({}, [], set(), [], [])
     if asset is None:
         paths = list(root.glob("*.json"))
     else:
@@ -65,19 +66,21 @@ def load_cases(root: Path, asset: Optional[str] = None, live: Optional[Set[str]]
         found.append(((doc.get("startedAt") or "", _tier(path.stem), path.stem), path, doc))
     found.sort(key=lambda item: item[0])
     winners: Dict[str, Tuple[dict, Path]] = {}
+    dropped: Set[str] = set()
     for _, path, doc in found:
         for case in doc.get("cases", []):
             name = case["name"]
             if asset is not None and not name.startswith(asset + "--"):
                 continue
             if live is not None and name not in live:
+                dropped.add(name)
                 continue
             winners[name] = (case, path)
     sources = {path for _, path in winners.values()}
     digests = {_digest(path) for path in sources}
     cases = {name: case for name, (case, _) in winners.items()}
     docs = [doc for _, path, doc in found if path in sources]
-    return Loaded(cases, docs, digests, sorted(skipped))
+    return Loaded(cases, docs, digests, sorted(skipped), sorted(dropped))
 
 
 def _digest(path: Path) -> str:

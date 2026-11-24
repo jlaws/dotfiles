@@ -82,16 +82,19 @@ def _summarize(args: argparse.Namespace) -> int:
     results = orchestrate.state_root() / "results" / "baseline"
     live = {c.name for c in kcases.discover(REPO / "evals" / "cases")}
     problems: List[str] = []
+    notes: List[str] = []
     docs = []
     for model in args.model or list(orchestrate.MODELS):
         for suite in kcases.SUITES:
             try:
-                doc = ksummary.summarize(results, model, suite, settings, live=live)
+                doc = ksummary.summarize(results, model, suite, settings, live=live, notes=notes)
             except ValueError as error:
                 problems.append(f"{model}/{suite}: {error}")
                 continue
             problems += ksummary.check(doc)
             docs.append(doc)
+    for note in notes:
+        print(note, file=sys.stderr)
     if problems:
         for problem in problems:
             print(problem, file=sys.stderr)
