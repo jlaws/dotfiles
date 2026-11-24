@@ -266,7 +266,9 @@ are committed to a public repo.
 cases whose `kbScore` dropped by at least 1/3, and pass/fail flips. Cases in only one file are
 listed as "not run here", since a partial rerun covers a subset.
 
-26 of 2250 llm-grader records in the stored baseline are split judge votes (1.2%).
+A split judge vote is an llm-grader record whose three judge votes disagree. In the raw results
+behind the 2026-11-16 baseline (both models, both arms, the effects and workflows suites;
+machine-local, not committed), 26 of 2250 llm-grader records are split votes (1.2%).
 
 ## Pilot measurements
 
