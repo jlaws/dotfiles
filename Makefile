@@ -67,7 +67,7 @@ eval-compare:
 	python3 -m evals.kbeval compare $(OLD) $(NEW)
 
 eval-headroom:
-	python3 -m evals.kbeval headroom
+	@python3 -m evals.kbeval headroom
 
 eval-affected:
 	@python3 -m evals.kbeval affected
