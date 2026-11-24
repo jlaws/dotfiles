@@ -21,6 +21,9 @@ make eval-baseline MODEL=claude-opus-5-5   # paid: the full baseline for one mod
 make eval-compare OLD=<summary.json> NEW=<summary.json>   # free: regressions between two summaries
 make eval-spend                      # free: snapshot ledger totals into evals/spend.json; exits 1 over the ceiling
 python3 -m evals.kbeval summarize    # free: check every result, then write evals/baselines/ (nothing if a check fails)
+make eval-headroom                   # free: classify effect and workflow cases from evals/baselines/; ends "<n> cases: <s> saturated, <d> dead, <k> kb-below-vanilla, <x> discriminating, <u> unmeasured"
+make eval-affected                   # free: assets a diff touches and the projected smoke cost; prints the ASSETS list
+python3 -m evals.kbeval.hillclimb adopt --asset A... --before P... --after P... --effects P   # free: ends one "ADOPT <asset> <verdict>" line per asset
 ```
 
 `python3 -m evals.kbeval run --suite ... --staging ... --plugin ...` runs one suite for one staging
@@ -29,6 +32,21 @@ and model; the make targets call the plans built on it. Add `--keep-temp` to kee
 prints `TRIGGER <case> <kind> <model> <fired>/<runs>` for every trigger case run under that purpose,
 where `<fired>` counts runs in which the skill was called, for every kind. `tune` keeps every case whose slug does not start `held-`, unprefixed ones included;
 the command exits 1 when nothing matches, and reports skipped partial or key-less batches on stderr.
+
+`make eval-headroom` reads the committed baselines and lists every effect and workflow case that
+cannot show a change: `saturated` (kb and vanilla both 1.0 on every model), `dead` (both below the
+pass line on every model), `kb-below-vanilla`, or `unmeasured`. It also prints
+`ASSET <asset> no discriminating case` and `MISSING <case>` for a live case absent from every
+baseline.
+
+`make eval-affected` maps the current diff to the assets whose cases it touches and prints them as
+an `ASSETS` list, with a cost projection and the paths no eval covers on stderr. It is a "did it
+break" planner: a one-run smoke reports `needs rerun`, never `regressed`. It never starts a paid run.
+
+`python3 -m evals.kbeval.hillclimb adopt` computes the trigger-tuning adoption criteria from stored
+results and prints `CRITERION <asset> <name> PASS|FAIL|BLOCKED|SKIPPED <counts>` lines, then
+`ADOPT <asset> adopt|restore|blocked`. Neighbour lines are printed for the owner and change no
+verdict. It exits 1 when any asset is `blocked`.
 
 A run whose model is in the judge's family is refused, so a model of that family cannot be put
 under test without first changing the judge. The family is read from a full model id
@@ -173,6 +191,20 @@ path through `target`/`focus: { source: file, path: <path> }`.
 **Limits.** `runs` 1-50, `max_turns` at most 200, `timeout_seconds` at most 3600. Only `EVAL_*` env
 keys. No WebFetch or WebSearch. No `sk-ant-` strings. No network, secrets, or private project names:
 the repo is public, and every input comes from the prompt or a fixture.
+
+**Headroom policy.** A saturated case is hardened or kept as a regression guard, never deleted
+below the coverage floor. A dead case gets its grader read first. Near-miss and noauto trigger
+cases at 1.0 are guards.
+
+**Hard cases.**
+- Write the case from a rule the asset states and a reason plain Claude would miss it, before any
+  run, and keep it whatever it scores.
+- State the criterion class in the prompt and put the specific fact in the fixture.
+- Seed a sanctioned distractor the grader must not flag.
+- Grade a consequence one hop from the obvious edit.
+
+**Defects become cases.** A defect found in a KB asset becomes an eval case that fails before the
+fix.
 
 ## Offline limits
 
@@ -396,8 +428,8 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
   cases) and +0.090 (Sonnet, 59); where it is 0, delta is +0.000 (26 cases) and -0.019 (36), which
   is noise. The 67 cases with no load grader (`loadRate` null) average +0.036 and +0.044. The kb arm
   is the whole plugin, not only the named asset.
-- Effects headroom is thin: 130 of 162 cases have delta 0 on both models, and about 120 score 1.0 in
-  both arms. The gain rests on about 25 cases. Grouping each asset's cases in the bootstrap leaves
+- Effects headroom is thin: 122 of 162 cases have delta 0 on both models (130 on each model), and
+  111 score 1.0 in both arms on both models (120 on Opus, 118 on Sonnet). The gain rests on about 25 cases. Grouping each asset's cases in the bootstrap leaves
   the delta CI above zero: [+0.02, +0.09] Opus, [+0.02, +0.08] Sonnet.
 - Workflows show no headroom: plain Claude also completes all four, and n=4 gives no usable CI.
 - Capped runs: 26 Opus and 20 Sonnet trigger runs hit the 6-turn cap or the 120 s timeout
@@ -423,8 +455,8 @@ stores the graded file in `evidence`, so a failure can be read, not only counted
 references and delegation.
 
 **Deletion.** No asset meets the skill-audit bar, "both unreferenced and unmentioned": every asset
-is referenced. 130 of 162 effect cases have delta 0 on both models and about 120 score 1.0 in both
-arms (see Reading the numbers): those cases have no headroom, which says nothing about the asset.
+is referenced. 122 of 162 effect cases have delta 0 on both models and 111 score 1.0 in both arms
+on both models (see Reading the numbers): those cases have no headroom, which says nothing about the asset.
 Every negative asset delta is a one- or two-run flip at 3 runs per arm.
 
 **Fixes.**
