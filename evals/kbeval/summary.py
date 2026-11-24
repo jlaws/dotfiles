@@ -136,7 +136,7 @@ def summarize(
             for is_kb, c in ((True, kb), (False, van))
             if c
             for r in _runs(c)
-            if TURN_CAP.search(str(r.get("error"))) or TIMEOUT.search(str(r.get("error")))
+            if (error := r.get("error")) and (TURN_CAP.search(error) or TIMEOUT.search(error))
         ]
         load_rate, censored = None, 0
         if kb and load:
