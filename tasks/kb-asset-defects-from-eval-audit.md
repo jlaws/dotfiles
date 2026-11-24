@@ -34,6 +34,13 @@ here, so the fix can come with an eval case that fails before it.
 - `references/languages/python-packaging-and-distribution.md` shows `"pydantic>=2.0,<3.0"` with
   the comment "Cap only at known-breaking major versions", a cap on an unreleased major, against
   its own gotcha "only cap at known-breaking versions". Minor.
+- `references/languages/js-ts-patterns.md` shows a library `exports` map with `"import"` before
+  `"types"`. TypeScript reads conditions in order, so `"types"` has to come first or the type
+  entry is never reached. Both reference trees carry the example.
+- `references/product/scope-review-methodology.md` defines EXPAND as "What's the 10x version?"
+  for greenfield work; `.claude/agents/scope-reviewer.md` defines it as "the proposed scope is
+  missing capabilities required for the stated goal". The agent reads the reference, so the two
+  definitions meet in one run.
 
 ## Scope
 1. Fix each asset with an eval case that fails before the fix.

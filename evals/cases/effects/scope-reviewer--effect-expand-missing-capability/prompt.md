@@ -3,6 +3,7 @@ tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
 allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]
+description: "recommend expanding when the proposed scope cannot meet the stated goal, name the missing capability by its user-facing outcome, and push back on the exclusion that causes the gap; .claude/agents/scope-reviewer.md; hard because the scope looks complete for a cancel button, and the provider exclusion is stated as settled"
 ---
 
 Use the kb:scope-reviewer agent to review this scope before design starts, and save the review to ./scope-review.md (the agent cannot write files, so the session saves its output). Start the file with the recommended mode (EXPAND, SELECTIVE EXPAND, HOLD, or REDUCE) and a one-line rationale. If you recommend adding anything, name the specific capability and the user-facing outcome it protects; if you recommend leaving the scope alone, say why.

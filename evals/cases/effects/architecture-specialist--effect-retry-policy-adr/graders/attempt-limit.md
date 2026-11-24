@@ -1,6 +1,8 @@
 ---
-type: regex
-target: { source: file, path: retry-design.md }
-pattern: '(?:attempts?|retries|tries)[^\n]{0,30}?\b\d{1,2}\b|\b\d{1,2}\b[^\n]{0,15}?(?:attempts|retries|tries)\b'
-flags: i
+type: llm
+focus: { source: file, path: retry-design.md }
 ---
+
+All claims are required.
+PASS if retry-design.md states a maximum number of attempts or retries as a number.
+FAIL if retry-design.md leaves retries unbounded, or the only bound it gives is a time or a deadline.

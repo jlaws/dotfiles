@@ -1,6 +1,8 @@
 ---
-type: regex
-target: { source: file, path: retry-design.md }
-pattern: '\b(?:full|equal|decorrelated)[ -]jitter\b|\bjitter\b[^\n]{0,80}\b(?:random|uniform|rand)|\b(?:random|uniform|rand)[^\n]{0,80}\bjitter\b'
-flags: i
+type: llm
+focus: { source: file, path: retry-design.md }
 ---
+
+All claims are required.
+PASS if retry-design.md applies jitter to the backoff delay and says how it is applied, such as a random range or a named jitter method (for example full, equal, or decorrelated jitter).
+FAIL if retry-design.md uses no jitter, or mentions jitter without saying how it is applied.
