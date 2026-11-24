@@ -293,6 +293,7 @@ What an offline run can show, per asset where it differs from a real session:
 | j-rebase | The prompt supplies the PR branch |
 | j-pr-fix | Comments arrive inline in the prompt |
 | j-next | The prompt states that the previous PR merged |
+| j-plan | No plan mode; the prompt names a git-ignored plan file to use in its place |
 | j-paper, j-explain | Local sources only |
 | j-email-analysis | No downloads |
 | github-issue-resolution | The issue text arrives inline in the prompt; no `gh` |
@@ -653,9 +654,10 @@ staged on a clean tree. Counts are passing runs over graded runs.
 | writing-plans | 56fe485 | 6, Opus only | id-collision `risks-section`, runs that loaded the skill | 0/2 | 5/5 | PASS |
 | research-analyst | 617b357 | 6 | claim-confidence `claims` | 4/6 (Opus 2/3, Sonnet 2/3) | 11/12 (Opus 6/6, Sonnet 5/6) | PASS |
 
-`self-contained` catches `src`/`href` loads, `@import`, and `url()`; it misses `srcset`,
-`<object data>`, SVG `<image href>`, and script-issued requests, so 12/12 is a lower bar than the
-skill's zero-network-requests rule (`tasks/kbeval-case-defects.md`).
+At that rerun `self-contained` caught `src`/`href` loads, `@import`, and `url()` and missed
+`srcset`, `<object data>`, SVG `<image href>`, and script-issued requests, so 12/12 was a lower bar
+than the skill's zero-network-requests rule. The case audit widened the grader to those constructs
+(Case audit, `j-explain` row); the widened grader has not been run.
 
 `no-regression` passed for every rerun asset. Per-case kb scores that moved (baseline -> post-fix):
 architecture-specialist catalog-cache-traps Opus 1.00 -> 0.67 (one model, under the 2/3 line);
@@ -789,6 +791,40 @@ void the held-out comparison the next baseline makes.
 | writing-plans | 7 | all pass | effect-spec-to-plan saturated | none |
 | writing-skills | 4 | effect-evidence-skill: hidden-criterion, fixed; effect-fix-broken-skill: hidden-criterion, fixed | effect-evidence-skill saturated | none |
 | held-out triggers | 24 | checked by A2, A4, and A6: all pass; each got its `description` line and nothing else | not applicable | none |
+| j-arch | 4 | effect-cache-layer: hidden-criterion, fixed; effect-feed-pagination: ambiguous, fixed | effect-cache-layer saturated; effect-feed-pagination saturated | j-arch--effect-fulfillment-saga |
+| j-cloud | 4 | effect-gpu-idle: ambiguous (the regex turned on how the condition was worded), fixed | effect-dev-cost-cuts saturated; effect-gpu-idle saturated | j-cloud--effect-large-upload-path |
+| j-data | 4 | all pass | effect-not-null-uuid-column saturated | j-data--effect-late-events-incremental |
+| j-devops | 4 | all pass | effect-ci-deploy-workflow saturated; effect-python-dockerfile saturated | j-devops--effect-latency-api-resources |
+| j-docs | 4 | all pass | effect-openapi-orders saturated; effect-readme-and-changelog saturated | j-docs--effect-upgrade-warning-order |
+| j-frontend | 4 | all pass | effect-next15-product-page saturated; effect-svelte5-cart saturated | j-frontend--effect-keyboard-tabs |
+| j-lang | 4 | all pass | effect-rust-config-reader saturated; effect-uv-project-notes saturated | j-lang--effect-library-version-caps |
+| j-observe | 4 | effect-checkout-tracking-plan: hidden-criterion, fixed; effect-fix-metrics-and-alerts: ambiguous, fixed | effect-checkout-tracking-plan saturated; effect-fix-metrics-and-alerts saturated | j-observe--effect-trace-sampling |
+| j-system-design | 4 | all pass | effect-auth-from-docs saturated; effect-document-existing-orders saturated | j-system-design--effect-tenant-isolation |
+| j-brainstorm | 4 | all pass | effect-conventions-digest saturated; effect-scoped-history saturated | j-brainstorm--effect-unfiltered-principles |
+| j-plan | 4 | effect-small-feature: ambiguous (the command forbids a plan in the repo and needs plan mode; the case asked for ./plans/plan.md), fixed; effect-validated-percentile: ambiguous (the same, and a regex that turned on the table's column order), fixed | effect-small-feature saturated; effect-validated-percentile saturated | j-plan--effect-adr-in-place |
+| j-execute-plan | 4 | all pass | effect-phase-one-only saturated; effect-two-phase-ledger saturated | j-execute-plan--effect-phase-acceptance |
+| j-next | 4 | effect-dirty-tree: hidden-criterion, fixed; effect-second-part: ambiguous (a run that follows the command could fail one commit claim, and a permission was written as a PASS), regraded | discriminating | none |
+| j-diff-review | 4 | all pass | effect-injection-and-dispositions saturated | none |
+| j-create-pr | 4 | all pass | effect-secret-and-pr-body saturated | none |
+| j-rebase | 4 | all pass | effect-integrate-conflict saturated; effect-semantic-drift saturated | j-rebase--effect-silent-unit-drift |
+| j-debug | 4 | all pass | effect-wrong-expectation saturated | none |
+| j-doc-sync | 4 | all pass | effect-removed-wrapper-adr-delete saturated | none |
+| wf | 4 | execute-plan-to-review: generic (no result grader read the review), fixed | debug-failing-test saturated; doc-sync-after-change saturated; execute-plan-to-review saturated; tdd-fix-seeded-bug saturated | none |
+| j-audit | 4 | effect-login-module: hidden-criterion, fixed | effect-webhook-threat-model saturated | none |
+| j-config-audit | 4 | all pass | effect-permissions-only saturated | none |
+| j-defrag | 3 | effect-shared-helpers-keep-behavior: ambiguous, fixed | effect-no-test-command-report-only saturated; effect-shared-helpers-keep-behavior saturated | j-defrag--effect-moved-module-docs |
+| j-email-analysis | 4 | all pass | effect-bare-urls-and-pdf-status saturated; effect-seen-links-and-tracking saturated | j-email-analysis--effect-seen-links-file |
+| j-email-consolidate | 4 | effect-downloaded-papers-and-merge: ambiguous, fixed; effect-people-events-and-drops: hidden-criterion, fixed | effect-downloaded-papers-and-merge saturated | none |
+| j-explain | 4 | effect-calc-package-explainer and effect-docs-drift-report: generic (`self-contained` passed pages that load from the network and failed some that do not), widened test-first | discriminating | none |
+| j-init | 4 | all pass | effect-python-package saturated; effect-stale-config saturated | j-init--effect-gitignore-shared-settings |
+| j-new | 4 | all pass | effect-agent-draft saturated; effect-skill-draft saturated | j-new--effect-register-command-counterparts |
+| j-paper | 5 | effect-rebuttal-triage: ambiguous, fixed | effect-bib-hygiene-report saturated; effect-fill-related-work saturated; effect-rebuttal-triage unmeasured | none (exempt) |
+| j-paper-analysis | 4 | all pass | effect-flawed-routekv saturated | none |
+| j-pr-fix | 3 | all pass | effect-float-test-and-declined-rewrite saturated; effect-stale-claim-and-question saturated | j-pr-fix--effect-out-of-scope-suggestion |
+| j-retro | 4 | all pass | effect-since-tag-unmerged-branch saturated | none |
+| j-review-claudemd | 3 | effect-conflict-redundant-specific: hidden-criterion, fixed | effect-conflict-redundant-specific saturated; effect-violated-missing-stale saturated | j-review-claudemd--effect-volatile-status-line |
+| j-skill-audit | 4 | all pass (the full-axes-weakest suspect was not confirmed) | discriminating | none |
+| j-tdd | 3 | all pass | effect-median-readme saturated; effect-remove-todo-unique-ids saturated | j-tdd--effect-docs-in-commit |
 
 ## Fan-out experiment
 
@@ -869,6 +905,8 @@ calls `EnterPlanMode` and says never to write a plan into the repository; the ca
 plan at `./plans/plan.md`, and plan mode is not available to a harness run. A run that cannot take
 Step 0 as written may drop the steps that follow it. The harness as it stands therefore cannot
 compare dispatched lenses with inline lenses, and nothing here applies to an interactive session.
+The case audit has since changed both cases to name a git-ignored plan file in place of plan mode
+(Case audit, `j-plan` row); no run has measured dispatches on the changed cases.
 
 Not incurred, and not tested:
 - No case carries the `fanout` tag, and the recurring cost in the design does not apply.
