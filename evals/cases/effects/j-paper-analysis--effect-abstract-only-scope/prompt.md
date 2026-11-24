@@ -1,4 +1,5 @@
 ---
+description: "with only an abstract, write not assessed for methods critique rather than inferring weaknesses, and set confidence to match the read scope; .claude/commands/j-paper-analysis.md; hard because a reviewer template invites a full weaknesses list, and generic ones such as missing seeds or unfair baselines are easy to assert unseen"
 tags: [effects, effect, heavy]
 max_turns: 40
 timeout_seconds: 900

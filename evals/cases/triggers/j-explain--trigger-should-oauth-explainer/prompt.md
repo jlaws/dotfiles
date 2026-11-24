@@ -1,4 +1,5 @@
 ---
+description: "a user wants a shareable single-file HTML explainer with a diagram and no external dependencies; .claude/commands/j-explain.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

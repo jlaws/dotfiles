@@ -1,4 +1,5 @@
 ---
+description: "with no test command, warn and fall back to report-only, presenting the ranked clusters without fixing; .claude/commands/j-defrag.md; hard because the duplicated helper is a trivial, safe-looking extract that a model tends to fix anyway"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

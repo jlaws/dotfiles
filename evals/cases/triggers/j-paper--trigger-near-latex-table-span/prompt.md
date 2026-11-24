@@ -1,4 +1,5 @@
 ---
+description: "a quick LaTeX syntax question with no paper task; .claude/commands/j-paper.md; near: latex-paper-writing"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

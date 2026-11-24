@@ -1,4 +1,5 @@
 ---
+description: "a typo fix in an existing skill, which is edited directly; .claude/commands/j-new.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

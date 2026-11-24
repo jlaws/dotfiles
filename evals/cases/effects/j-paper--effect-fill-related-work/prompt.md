@@ -1,4 +1,5 @@
 ---
+description: "edit a section in place, preserving existing citations and other sections, never fabricating claims about cited works, and revising prose for AI-writing tells; .claude/commands/j-paper.md; hard because a related-work paragraph habitually adds remembered results for well-known papers and stock academic phrasing"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

@@ -1,4 +1,5 @@
 ---
+description: "a quick one-paragraph security question about where to store a session token; .claude/commands/j-audit.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

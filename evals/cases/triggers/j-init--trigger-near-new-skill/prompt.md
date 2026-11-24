@@ -1,4 +1,5 @@
 ---
+description: "a user wants a new knowledge-base skill authored, not a repository scaffolded; .claude/commands/j-init.md; near: j-new"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

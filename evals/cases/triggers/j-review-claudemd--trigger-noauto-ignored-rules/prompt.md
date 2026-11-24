@@ -1,4 +1,5 @@
 ---
+description: "a user wants recent sessions reviewed for ignored, stale, and missing CLAUDE.md rules; .claude/commands/j-review-claudemd.md; noauto"
 tags: [triggers, trigger-noauto]
 max_turns: 6
 timeout_seconds: 120

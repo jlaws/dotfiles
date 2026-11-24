@@ -686,11 +686,21 @@ class RealTreeTests(unittest.TestCase):
                 '<img src="//cdn.x/i.png">',
                 "<style>@import url(https://x/f.css);</style>",
                 '<div style="background:url(https://x/b.png)">',
+                '<img alt="x" srcset="https://x/i.png 1x, https://x/i2.png 2x">',
+                '<object data="https://x/d.svg" type="image/svg+xml"></object>',
+                '<svg><image href="https://x/i.png" width="9" height="9"/></svg>',
+                '<svg><image xlink:href="//x/i.png"/></svg>',
+                "<script>fetch('https://x/api').then(r => r.json());</script>",
+                "<script>const r = new XMLHttpRequest(); r.open('GET', '/x');</script>",
+                '<meta http-equiv="refresh" content="0; url=https://x/">',
             ],
             passing=[
                 '<style>b{color:red}</style><svg></svg><a href="#s1">x</a>',
                 "<script>document.title = 'x';</script>",
                 '<div style="background:url(data:image/png;base64,AAAA)">',
+                '<link rel="icon" href="data:image/svg+xml,%3Csvg%3E%3C/svg%3E">',
+                "<style>/* no @import here: every rule is inline */ b{color:red}</style>",
+                "<!-- inline only, no @import or CDN -->",
             ],
         )
 

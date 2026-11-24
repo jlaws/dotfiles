@@ -1,4 +1,5 @@
 ---
+description: "a repo with code and tests but no agent config files or project settings needs setting up for all three tools; .claude/commands/j-init.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

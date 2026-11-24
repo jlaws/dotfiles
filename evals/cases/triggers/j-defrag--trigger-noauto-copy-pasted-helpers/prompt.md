@@ -1,4 +1,5 @@
 ---
+description: "a user asks for a repo-wide fragmentation scan consolidated in verified batches; .claude/commands/j-defrag.md; noauto"
 tags: [triggers, trigger-noauto]
 max_turns: 6
 timeout_seconds: 120

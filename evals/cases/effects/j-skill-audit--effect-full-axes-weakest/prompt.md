@@ -1,4 +1,5 @@
 ---
+description: "a no-argument audit leads with the script counts and findings, rates the five judgment axes, names the weakest, and closes with one next change, never running adoption or memory; .claude/commands/j-skill-audit.md; hard because a full audit invites every check the skill offers, including transcript adoption and memory, and axis ratings drift into generic praise"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

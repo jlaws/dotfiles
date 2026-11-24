@@ -1,4 +1,5 @@
 ---
+description: "a user asks to work through PR review comments, fix, reply, and push; .claude/commands/j-pr-fix.md; noauto"
 tags: [triggers, trigger-noauto]
 max_turns: 6
 timeout_seconds: 120

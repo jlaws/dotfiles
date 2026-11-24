@@ -1,4 +1,5 @@
 ---
+description: "one self-contained HTML file with inline CSS, JS, and SVG, a spatial diagram of the structure, and a table of contents with jump links; .claude/commands/j-explain.md; hard because the default HTML habit pulls in a CDN font, script, or image, and the docstring-versus-code mismatch on empty input is easy to restate as fact"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

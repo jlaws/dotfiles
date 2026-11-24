@@ -1,4 +1,5 @@
 ---
+description: "for a since-tag window, report merges, reverts, long-lived unmerged branches, and top-churn files from git, with churn worded as potential instability; .claude/commands/j-retro.md; hard because the unmerged branch is invisible in a main-only log, and its commits would inflate the file counts if read from all branches"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

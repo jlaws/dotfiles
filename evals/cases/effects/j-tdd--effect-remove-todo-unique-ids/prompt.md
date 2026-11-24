@@ -1,4 +1,5 @@
 ---
+description: "cover happy path, error cases, and edge cases in tests written before the code, and watch them fail before implementing; .claude/commands/j-tdd.md; hard because the id collision after a removal lives in addTodo, which the request does not ask to change, so only an edge-case test exposes it"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

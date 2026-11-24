@@ -1,4 +1,5 @@
 ---
+description: "a conference reviewer wants a three-pass reading, critical evaluation, and scored recommendation; .claude/commands/j-paper-analysis.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

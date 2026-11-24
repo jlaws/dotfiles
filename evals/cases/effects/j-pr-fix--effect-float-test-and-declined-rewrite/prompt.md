@@ -1,4 +1,5 @@
 ---
+description: "fix comments in one commit per logical group, list a declined comment under Deferred Items with its reason, and quote observed verification; .claude/commands/j-pr-fix.md; hard because the numpy rewrite arrives as a reviewer suggestion, which a model tends to adopt or fold into the other fixes"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

@@ -1,4 +1,5 @@
 ---
+description: "a user wants a git-history retrospective with metrics, shipped work, reverts, and churn for a time window; .claude/commands/j-retro.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

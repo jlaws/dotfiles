@@ -1,4 +1,5 @@
 ---
+description: "check number provenance, whether the ablation removes the claimed mechanism, and baseline fairness, then calibrate the score without inflation; .claude/commands/j-paper-analysis.md; hard because the paper is confident and clean, and the identical 2.00x speedups, zero error bars, and warmup-only ablation look like strong results unless checked"
 tags: [effects, effect, heavy]
 max_turns: 40
 timeout_seconds: 900

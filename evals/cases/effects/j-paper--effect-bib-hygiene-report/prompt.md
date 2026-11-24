@@ -1,4 +1,5 @@
 ---
+description: "detect bibliography duplicates by normalized title, flag entries missing year or venue, and propose merges without deleting entries; .claude/commands/j-paper.md; hard because the duplicate pair has different keys and title casing, so a key-based check misses it"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

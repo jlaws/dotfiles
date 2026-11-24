@@ -1,4 +1,5 @@
 ---
+description: "a user wants a reply drafted to a personal, non-research email; .claude/commands/j-email-analysis.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

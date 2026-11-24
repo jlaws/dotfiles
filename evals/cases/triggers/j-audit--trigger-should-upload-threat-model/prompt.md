@@ -1,4 +1,5 @@
 ---
+description: "a user wants a STRIDE threat model with risk scores and a SOC 2 mapping before launching an endpoint; .claude/commands/j-audit.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

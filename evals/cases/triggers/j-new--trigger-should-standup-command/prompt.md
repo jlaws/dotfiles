@@ -1,4 +1,5 @@
 ---
+description: "a user wants a new slash command scaffolded for the repo; .claude/commands/j-new.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

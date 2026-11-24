@@ -1,4 +1,5 @@
 ---
+description: "run the full config-security scan across secrets, permissions, and injection checks, flag inlined secrets but not env-var references, and redact values; .claude/commands/j-config-audit.md; hard because the reviewer agent's Write and Edit grant sits in agent frontmatter, outside the settings files a model checks for permissions"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

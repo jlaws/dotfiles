@@ -1,4 +1,5 @@
 ---
+description: "every URL in the report is a markdown link, prose names of items carry inline links, a table row holds one link, and a failed download reads failed with a reason; .claude/commands/j-email-analysis.md; hard because tables and stats invite bare URLs and a doubled link in the description cell, and offline runs tempt a downloaded status"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

@@ -1,4 +1,5 @@
 ---
+description: "a scope argument limits the audit to that asset type, leading with counts and giving each finding its rule id and fix; .claude/commands/j-skill-audit.md; hard because the tree also has a missing CLAUDE.md, missing settings, and a weak command, which a thorough model reports anyway"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
