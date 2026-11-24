@@ -1,4 +1,5 @@
 ---
+description: "a user wants each plan task given to its own fresh agent with a separate reviewer before the next; .claude/skills/subagent-driven-development/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

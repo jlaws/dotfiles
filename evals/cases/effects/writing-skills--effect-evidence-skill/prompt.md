@@ -1,4 +1,5 @@
 ---
+description: "every quantitative claim in a skill is marked unmeasured or left out, the skill says when the practice loses, and the description states only triggers; .claude/skills/writing-skills/SKILL.md; hard because a model restates the lead's 40 percent figure as fact or invents a threshold"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

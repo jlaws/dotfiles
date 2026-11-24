@@ -1,4 +1,5 @@
 ---
+description: "each task goes to a fresh agent through a brief file, a separate reviewer returns spec compliance then code quality with severity labels, and the phase commits once; .claude/skills/subagent-driven-development/SKILL.md; hard because a model tends to commit per task or fold the review into the implementer"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

@@ -1,4 +1,5 @@
 ---
+description: "a plan follows the phase skeleton: a behavioral purpose, branch off origin/main then docs, test-first phases, a validation gate, and sized PR boundaries; .claude/skills/writing-plans/SKILL.md; hard because a model writes a task list with full code bodies and no gate or PR sizing"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

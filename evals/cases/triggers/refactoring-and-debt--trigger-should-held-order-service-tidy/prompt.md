@@ -1,4 +1,5 @@
 ---
+description: "a user wants a bloated, tested service and a deeply nested method tidied without changing behavior; .claude/skills/refactoring-and-debt/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

@@ -1,4 +1,5 @@
 ---
+description: "a user wants an ordered implementation plan with files and checks before a multi-component migration; .claude/skills/writing-plans/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

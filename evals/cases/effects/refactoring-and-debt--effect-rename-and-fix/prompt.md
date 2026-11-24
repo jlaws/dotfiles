@@ -1,4 +1,5 @@
 ---
+description: "keep a refactoring and a behavior change in separate commits; .claude/skills/refactoring-and-debt/SKILL.md; hard because a task that asks for both at once invites one commit that renames and fixes together"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

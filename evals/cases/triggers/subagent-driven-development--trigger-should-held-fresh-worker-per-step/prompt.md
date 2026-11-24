@@ -1,4 +1,5 @@
 ---
+description: "a user wants a fresh worker per plan step with each step reviewed before the next begins; .claude/skills/subagent-driven-development/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

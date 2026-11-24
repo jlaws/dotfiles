@@ -1,4 +1,5 @@
 ---
+description: "open the review with the audit script's counts, rate the five judgment axes, and name one weakest axis and one next change; .claude/skills/skill-audit/SKILL.md; hard because without the audit script a model hand-derives or invents the opening counts"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

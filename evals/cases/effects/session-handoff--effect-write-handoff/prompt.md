@@ -1,4 +1,5 @@
 ---
+description: "a handoff records rejected approaches with reasons, each file with its status, and exact test commands, in under 100 lines; .claude/skills/session-handoff/SKILL.md; hard because a narrative summary tends to drop why alternatives were rejected and the per-file status"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

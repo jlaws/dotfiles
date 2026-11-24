@@ -1,4 +1,5 @@
 ---
+description: "a user about to run out of context wants the state written up so a fresh session can resume; .claude/skills/session-handoff/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

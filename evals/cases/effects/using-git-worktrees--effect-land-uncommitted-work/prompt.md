@@ -1,4 +1,5 @@
 ---
+description: "commit a worktree's uncommitted changes before integrating with a merge, and leave the worktree in place; .claude/skills/using-git-worktrees/SKILL.md; hard because the helper's rename is only staged, so merging the branch as it stands lands nothing"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

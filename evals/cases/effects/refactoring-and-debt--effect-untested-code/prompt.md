@@ -1,4 +1,5 @@
 ---
+description: "before a structural change to code with no test coverage, write tests that pin its current behavior; .claude/skills/refactoring-and-debt/SKILL.md; hard because the module already has a test file, so a model can assume complete() is covered and refactor first"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

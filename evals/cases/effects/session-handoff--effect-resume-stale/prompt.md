@@ -1,4 +1,5 @@
 ---
+description: "on resume, check the handoff's Files Modified claims against the files and rerun its tests before trusting it; .claude/skills/session-handoff/SKILL.md; hard because the handoff says done and all green, and a model tends to start from Next Steps"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

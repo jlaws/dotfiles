@@ -1,4 +1,5 @@
 ---
+description: "a user wants independent reviews split across parallel reviewers, the caller side of a dispatch; .claude/skills/subagent-report-contract/SKILL.md; near: dispatching-parallel-agents"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

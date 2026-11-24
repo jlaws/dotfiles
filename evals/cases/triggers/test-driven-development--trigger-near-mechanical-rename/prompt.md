@@ -1,4 +1,5 @@
 ---
+description: "a user wants a pure rename that existing tests already cover, which needs no new test; .claude/skills/test-driven-development/SKILL.md; near: refactoring-and-debt"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

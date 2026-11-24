@@ -1,4 +1,5 @@
 ---
+description: "a user hands over a three-task plan and wants each task done by a separate agent and checked by another; .claude/skills/subagent-driven-development/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120
