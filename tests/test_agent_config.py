@@ -2164,13 +2164,19 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     grader = (case / "graders" / "read-refs.md").read_text(encoding="utf-8")
                     self.assertIn("tool: Read", grader)
                     prompt = (case / "prompt.md").read_text(encoding="utf-8")
-                    grounded = re.search(r'^description: "[^"]*; \.claude/references/([\w-]+)/', prompt, re.M)
-                    if grounded:
-                        self.assertIn(grounded.group(1), dirs)
-                        self.assertIn(f"/{grounded.group(1)}/", grader)
+                    described = re.search(r"^description:.*$", prompt, re.M)
+                    line = described.group(0) if described else ""
+                    if ".claude/references/" not in line:
+                        for directory in dirs:
+                            self.assertIn(directory, grader, "read-refs omits an agent directory")
                         continue
-                    for directory in dirs:
-                        self.assertIn(directory, grader)
+                    grounded = re.search(r"; \.claude/references/([\w-]+)/[\w.-]+; ", line)
+                    self.assertIsNotNone(grounded, f"unreadable reference path in: {line}")
+                    own = grounded.group(1)
+                    self.assertIn(own, dirs, "the named reference is outside the agents' directories")
+                    self.assertIn(f"/{own}/", grader, "read-refs omits the named reference's directory")
+                    for other in dirs - {own}:
+                        self.assertNotIn(other, grader, "a grounded case grades one directory alone")
 
 
 if __name__ == "__main__":
