@@ -199,6 +199,18 @@ class StageTests(TempRepoCase):
             self.assertTrue((plugin / f"evals-{suite}" / case / "prompt.md").is_file(), case)
         self.assertTrue((plugin.parent / ".kbeval-stage").is_file())
 
+    def test_kb_staging_copies_claude_md_and_harness_into_kb(self):
+        plugin = self.stage()
+        self.assertEqual(
+            (plugin / "_kb" / "CLAUDE.md").read_text(), (self.repo / ".claude" / "CLAUDE.md").read_text()
+        )
+        self.assertEqual(
+            (plugin / "_kb" / "harness.json").read_text(), (self.repo / "evals" / "harness.json").read_text()
+        )
+        vanilla = self.stage("vanilla")
+        self.assertFalse((vanilla / "_kb" / "CLAUDE.md").exists())
+        self.assertFalse((vanilla / "_kb" / "harness.json").exists())
+
     def test_restage_over_marked_out_replaces_it(self):
         plugin = self.stage()
         (plugin / "stale.txt").write_text("old")
@@ -836,6 +848,24 @@ class RunnerBatchTests(RunnerCase):
              "--allow-tools", "Bash", "Write", "Edit"],
         )
 
+    def test_kb_digest_changes_when_claude_md_changes(self):
+        cli = FakeCli(lambda args: (result_doc({}), 0, ""))
+        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
+                   "budget": self.budget, "p95": 5.0}
+        before = krunner._Batches("effects", "kb", MODEL, 3, "test", 8, cli, options).kb_digest
+        claude_md = self.repo / ".claude" / "CLAUDE.md"
+        claude_md.write_text(claude_md.read_text() + "\nNew rule.\n")
+        options["plugin"] = self.stage()
+        after = krunner._Batches("effects", "kb", MODEL, 3, "test", 8, cli, options).kb_digest
+        self.assertNotEqual(before, after)
+
+    def test_runner_writes_the_kb_digest_sidecar(self):
+        cli = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
+        self.run_suite(cli)
+        out = self.state / "test" / "kb" / MODEL / "effects" / "j-demo"
+        digest = krunner._tree_digest(self.plugin, skip_prefix="evals-")
+        self.assertEqual(json.loads(out.with_suffix(".meta.json").read_text()), {"kbDigest": digest})
+
     def test_keep_temp_traces_are_scanned_for_key(self):
         trace = self.tmp / "kept" / "out" / "trace.jsonl"
 
@@ -953,6 +983,33 @@ class RunnerResumeTests(RunnerCase):
         again = FakeCli(responder)
         self.run_suite(again)
         self.assertEqual(again.calls, [])
+
+    def test_skipped_complete_batch_gets_a_sidecar(self):
+        cli = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
+        self.run_suite(cli)
+        sidecar = (self.state / "test" / "kb" / MODEL / "effects" / "j-demo").with_suffix(".meta.json")
+        expected = sidecar.read_text()
+        sidecar.unlink()
+        again = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
+        self.run_suite(again)
+        self.assertEqual(again.calls, [])
+        self.assertEqual(sidecar.read_text(), expected)
+
+    def test_rerun_discards_the_stale_sidecar_before_the_cli_runs(self):
+        cli = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
+        self.run_suite(cli)
+        sidecar = (self.state / "test" / "kb" / MODEL / "effects" / "j-demo").with_suffix(".meta.json")
+        self.assertTrue(sidecar.exists())
+        prompt = self.plugin / "evals-effects" / "j-demo--effect-cache" / "prompt.md"
+        prompt.write_text(prompt.read_text() + "\nMore.\n")
+        seen = []
+
+        def rerun(args):
+            seen.append(sidecar.exists())
+            return result_doc({"j-demo--effect-cache": [None]}), 0, ""
+
+        self.run_suite(FakeCli(rerun))
+        self.assertEqual(seen, [False])
 
     def test_changed_case_reruns_the_batch(self):
         cli = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
@@ -1090,10 +1147,15 @@ class SummaryTests(unittest.TestCase):
         self.addCleanup(tmp.cleanup)
         self.results = Path(tmp.name)
 
-    def put(self, staging: str, label: str, doc: dict, suite: str = "effects", keyed: bool = True) -> None:
+    def put(
+        self, staging: str, label: str, doc: dict, suite: str = "effects", keyed: bool = True,
+        digest: str | None = None,
+    ) -> None:
         path = self.results / staging / OPUS / suite / f"{label}.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(doc))
+        if digest is not None:
+            path.with_suffix(".meta.json").write_text(json.dumps({"kbDigest": digest}))
         key = path.with_suffix(".key")
         if keyed:
             key.write_text("k\n")
@@ -1215,6 +1277,44 @@ class SummaryTests(unittest.TestCase):
         self.put("vanilla", "j-arch", with_runs(other, [True, True, True]))
         with self.assertRaises(ValueError):
             ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+
+    @staticmethod
+    def renamed(name: str) -> dict:
+        doc = with_runs(real_doc(), [True] * 3)
+        doc["cases"][0]["name"] = name
+        return doc
+
+    def test_mixed_kb_digests_are_refused(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True] * 3), digest="aaa")
+        self.put("kb", "j-arch--other", self.renamed("j-arch--effect-other"), digest="bbb")
+        with self.assertRaisesRegex(ValueError, "results mix KB digests: aaa, bbb"):
+            ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+
+    def test_kb_and_vanilla_may_carry_different_digests(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True] * 3), digest="aaa")
+        self.put("vanilla", "j-arch", with_runs(real_doc(), [True] * 3), digest="bbb")
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        self.assertEqual(doc["kbDigest"], {"kb": "aaa", "vanilla": "bbb"})
+
+    def test_legacy_results_summarize_as_one_unrecorded_digest(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True] * 3))
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        self.assertEqual(doc["kbDigest"], {"kb": "unrecorded", "vanilla": None})
+
+    def test_legacy_mixed_with_recorded_is_refused(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True] * 3))
+        self.put("kb", "j-arch--other", self.renamed("j-arch--effect-other"), digest="aaa")
+        with self.assertRaisesRegex(ValueError, "results mix KB digests"):
+            ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+
+    def test_results_for_deleted_cases_are_dropped(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True] * 3), digest="aaa")
+        live = {"j-arch--effect-cache-layer"}
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS, live=live)
+        self.assertEqual([c["name"] for c in doc["cases"]], ["j-arch--effect-cache-layer"])
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS, live={"other--effect-x"})
+        self.assertEqual(doc["cases"], [])
+        self.assertEqual(doc["kbDigest"], {"kb": None, "vanilla": None})
 
     def test_exact_case_rerun_newer_than_its_batch_wins_in_summarize(self):
         old = with_runs(real_doc(), [False] * 3)
@@ -1568,6 +1668,23 @@ class EntryPointTests(OrchestrateTests):
         self.assertEqual(code, 1)
         self.assertIn("no summary written", err.getvalue())
         self.assertFalse((self.repo / "evals" / "baselines").exists())
+
+    def test_summarize_passes_the_live_case_set(self):
+        from evals.kbeval import __main__ as kmain
+
+        seen = []
+
+        def fake(results, model, suite, settings, live=None):
+            seen.append(live)
+            return {"suite": suite, "model": model, "cases": [], "runs": settings}
+
+        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.ksummary, "summarize", fake):
+            with contextlib.redirect_stderr(io.StringIO()):
+                kmain.main(["summarize", "--model", OPUS])
+        live = {c.name for c in kmain.kcases.discover(self.repo / "evals" / "cases")}
+        self.assertTrue(live)
+        self.assertTrue(seen)
+        self.assertTrue(all(item == live for item in seen))
 
     def test_spend_exits_one_over_the_ceiling(self):
         from evals.kbeval import __main__ as kmain

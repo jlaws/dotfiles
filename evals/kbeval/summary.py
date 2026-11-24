@@ -12,7 +12,7 @@ import json
 import random
 import re
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Set, Tuple
 
 from evals.kbeval.cases import CASE_NAME
 from evals.kbeval.results import load_cases
@@ -76,14 +76,17 @@ def _identity(name: str) -> Tuple[str, str]:
     return name, "workflow"
 
 
-def summarize(results: Path, model: str, suite: str, settings: dict) -> dict:
+def summarize(results: Path, model: str, suite: str, settings: dict, live: Optional[Set[str]] = None) -> dict:
     """Return the summary document for one model and suite.
 
     `settings` records the run configuration (`kbRuns`, `vanillaRuns`, `vanillaModels`,
-    `excludeTags`); `check` holds the summary to it.
+    `excludeTags`); `check` holds the summary to it. `live` drops results for cases outside it.
     """
-    kb_cases, kb_docs, _, _ = load_cases(results / "kb" / model / suite)
-    van_cases, van_docs, _, _ = load_cases(results / "vanilla" / model / suite)
+    kb_cases, kb_docs, kb_digests, _ = load_cases(results / "kb" / model / suite, live=live)
+    van_cases, van_docs, van_digests, _ = load_cases(results / "vanilla" / model / suite, live=live)
+    for digests in (kb_digests, van_digests):
+        if len(digests) > 1:
+            raise ValueError(f"results mix KB digests: {', '.join(sorted(digests))}")
     docs = kb_docs + van_docs
     versions = sorted({d.get("claudeVersion") for d in docs if d.get("claudeVersion")})
     if len(versions) > 1:
@@ -125,6 +128,10 @@ def summarize(results: Path, model: str, suite: str, settings: dict) -> dict:
         "judgeModel": judges[0] if judges else None,
         "claudeVersion": versions[0] if versions else None,
         "date": dates[-1] if dates else None,
+        "kbDigest": {
+            "kb": next(iter(kb_digests), None),
+            "vanilla": next(iter(van_digests), None),
+        },
         "runs": settings,
         "costUsd": round(sum(float(d.get("costUsd") or 0.0) for d in docs), 4),
         "aggregates": {

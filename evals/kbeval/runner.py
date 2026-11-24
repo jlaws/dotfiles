@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Protocol, Tuple
 
 from evals.kbeval import ledger
+from evals.kbeval.results import SIDECAR
 
 REPO = Path(__file__).resolve().parents[2]
 JUDGE_MODEL = "claude-fable-5-2"
@@ -165,8 +166,12 @@ def _scan_for_key(paths: List[Path]) -> Optional[Path]:
     return None
 
 
+def _write_sidecar(json_path: Path, kb_digest: str) -> None:
+    json_path.with_suffix(SIDECAR).write_text(json.dumps({"kbDigest": kb_digest}) + "\n", encoding="utf-8")
+
+
 def _discard(json_path: Path) -> None:
-    for path in (json_path, json_path.with_suffix(".key")):
+    for path in (json_path, json_path.with_suffix(".key"), json_path.with_suffix(SIDECAR)):
         if path.exists():
             path.unlink()
 
@@ -248,6 +253,7 @@ class _Batches:
         doc = _complete(json_path, key)
         if doc is not None and not (rerun and _api_error_cases(doc)):
             _say(f"{label}: complete, skipped")
+            _write_sidecar(json_path, self.kb_digest)
             return 0, doc
         cap, bound = self.cap(len(case_dirs))
         if cap < MIN_CAP_USD:
@@ -334,6 +340,7 @@ class _Batches:
         if api_errors:
             _err(f"{label}: API errors in {', '.join(api_errors)}; rerunning those cases")
         json_path.with_suffix(".key").write_text(key + "\n", encoding="utf-8")
+        _write_sidecar(json_path, self.kb_digest)
         return 0, doc
 
 

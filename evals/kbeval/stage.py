@@ -76,6 +76,8 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
                 text = command.read_text(encoding="utf-8")
                 command.write_text(re.sub(r"(?m)^disable-model-invocation:.*\n", "", text), encoding="utf-8")
         shutil.copytree(claude / "references", refs, ignore=IGNORE)
+        shutil.copy2(claude / "CLAUDE.md", plugin / "_kb" / "CLAUDE.md")
+        shutil.copy2(repo / "evals" / "harness.json", plugin / "_kb" / "harness.json")
     fixtures = plugin / "_kb" / "fixtures"
     if (repo / "evals" / "fixtures").is_dir():
         shutil.copytree(repo / "evals" / "fixtures", fixtures, ignore=IGNORE)
