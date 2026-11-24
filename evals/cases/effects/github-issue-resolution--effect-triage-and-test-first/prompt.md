@@ -3,6 +3,7 @@ tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
 allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]
+description: "classify the issue against the P0 to P3 criteria, write the failing test first, and link commits and the PR to the issue; .claude/skills/github-issue-resolution/SKILL.md; hard because a silent no-op that misleads users invites an inflated P0, and a model fixes the code before showing the test fail"
 ---
 
 Resolve the GitHub issue below in this repo. There is no network, so open the pull request by running `gh pr create` anyway; it will fail, and that is fine.

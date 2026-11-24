@@ -15,4 +15,5 @@ git commit -q -m "Rename README to rst"
 git checkout -q main
 git commit -q --allow-empty -m "Bump"
 git push -q origin main
+git reset -q --hard HEAD~1
 git checkout -q feat/readme-rst

@@ -3,9 +3,10 @@ tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
 allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]
+description: "after each batch, report pasted raw terminal output labelled by task and a final full-suite run, never a paraphrase; .claude/skills/executing-plans/SKILL.md; hard because a capable model tends to summarize passing runs in prose and skip the closing full-suite rerun"
 ---
 
-Carry out the plan below. After the last task, run the full suite once more. Then save ./report.md containing the raw terminal output of every verification run, pasted as code blocks and labelled by task (do not paraphrase results), the result of each phase's acceptance check, and a Decision Log of any judgment calls. Commit once per phase.
+Carry out the plan below. After the last task, run the full suite once more. Then save ./report.md containing the raw terminal output of every verification run, pasted as code blocks and labelled by task (do not paraphrase results), the result of each phase's acceptance check, and a Decision Log of any judgment calls, and end the report with the raw output of that final full-suite run. Commit once per phase.
 
 PLAN
 Phase 1: Unknown ids
