@@ -2171,7 +2171,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                             self.assertIn(directory, grader, "read-refs omits an agent directory")
                         continue
                     grounded = re.search(r"; \.claude/references/([\w-]+)/[\w.-]+; ", line)
-                    self.assertIsNotNone(grounded, f"unreadable reference path in: {line}")
+                    if grounded is None:
+                        self.fail(f"unreadable reference path in: {line}")
                     own = grounded.group(1)
                     self.assertIn(own, dirs, "the named reference is outside the agents' directories")
                     self.assertIn(f"/{own}/", grader, "read-refs omits the named reference's directory")
