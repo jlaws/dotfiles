@@ -254,6 +254,20 @@ class StageTests(TempRepoCase):
         second = {p.relative_to(plugin): p.read_bytes() for p in plugin.rglob("*") if p.is_file()}
         self.assertEqual(first, second)
 
+    def test_agent_case_prompt_carries_the_reference_path_note(self):
+        note = (
+            "Tell the agent: KB references cited as `.claude/references/<p>` or `references/<p>` "
+            "are at ./.kb-references/<p>; they are not project files."
+        )
+        plugin = self.stage()
+        effects = plugin / "evals-effects"
+        self.assertIn(note, body_of(effects / "demo-agent--effect-review" / "prompt.md"))
+        self.assertNotIn("Tell the agent:", body_of(effects / "j-demo--effect-cache" / "prompt.md"))
+        vanilla = self.stage("vanilla") / "evals-effects"
+        self.assertNotIn(
+            "Tell the agent:", body_of(vanilla / "demo-agent--effect-review" / "prompt.md")
+        )
+
     def test_seed_runs_in_minimal_env(self):
         plugin = self.stage()
         case = plugin / "evals-effects" / "j-demo--effect-cache"

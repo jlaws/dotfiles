@@ -196,6 +196,13 @@ and `refsMode` (`workspace`, or `add_dirs`).
 - For a case whose `fixture.sh` runs `git init`, the builder adds one line before that, in both
   stagings: "In this sandbox `/usr/bin/git` fails; run git as `<git>`." `<git>` is the first `git`
   on the staging machine's `PATH` outside `/usr/bin`; with none, the line is left out.
+- For an agent effect prompt in the kb staging, the builder adds one line: "Tell the agent: KB
+  references cited as `.claude/references/<p>` or `references/<p>` are at `<where>`<p>; they are
+  not project files." A dispatched agent does not see the session's system prompt, which is where
+  every other run learns that path. Measured on 2026-11-24 with
+  architecture-specialist--effect-notification-fallbacks on Sonnet (purpose `audit-probe`, 1.65
+  USD): without the line the agent read a reference in 0 of 3 runs and reported the file missing;
+  with it, 3 of 3. Agent kb runs in the 2026-11-16 baseline ran without the line.
 
 **Grading contract.** The prompt states every graded criterion and every graded artifact path, such
 as "save the plan to ./plans/plan.md". A `regex` or `llm` result grader that reads a file names one
