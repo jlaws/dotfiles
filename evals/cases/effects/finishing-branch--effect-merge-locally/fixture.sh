@@ -7,7 +7,7 @@ git add -A
 git commit -q -m "Initial commit"
 git init -q --bare .remote.git
 git remote add origin ./.remote.git
-git push -q origin main
+git push -q -u origin main
 printf "%s\n" .remote.git >> .git/info/exclude
 git checkout -q -b feat/readme-rst
 git mv README.md README.rst
