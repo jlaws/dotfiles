@@ -19,6 +19,11 @@ cases on the original list were fixed by the eval case audit (`evals/README.md`,
   j-skill-audit--effect-full-axes-weakest.
 - Two fixed cases need the next baseline to confirm the fix: verification-before-completion
   mocked-green and using-git-worktrees isolated-from-origin both failed in both arms.
+- code-review-patterns--effect-receiving-comments now grades only `replies.md` (stop and ask before
+  implementing any comment). A run that edits `calc/ops.py` and still writes that nothing is
+  implemented passes: lint's grounding rule bars a grader that passes on the unchanged seeded file.
+  The builder's "do not ask questions" line also pulls against the rule; the next baseline shows
+  whether either arm writes the question.
 
 ## Scope
 1. Rewrite each listed prompt or grader so the prompt states what the grader checks.

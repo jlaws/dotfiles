@@ -52,8 +52,9 @@ that some no-change description passes adds up, so each adoption is a single-ski
 family-wise guarantee. A skill whose held-out base is 9 of 12 or higher cannot gain 4 and is
 restored by rule. Each measured skill carries three more trigger cases, which adds about 21 USD to a
 full two-model baseline. The should-fire mean is not comparable with baselines taken before the new
-cases existed. A case audit does not edit `held-` cases; it files findings on them. The first
-full baseline after an adoption reports each adopted description's held-out should-fire count.
+cases existed. A case audit does not edit `held-` cases; it files findings on them. The written
+report of the first full baseline after an adoption states each adopted description's held-out
+should-fire count, read from that baseline's trigger rows; no command prints it as one figure.
 
 ## Ruled Out
 | Idea | Why ruled out | When |

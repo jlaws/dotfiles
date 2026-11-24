@@ -278,8 +278,10 @@ Near-miss and noauto trigger cases at 1.0 are guards.
 **Defects become cases.** A defect found in a KB asset becomes an eval case that fails before the
 fix.
 
-**Every case states its rule.** Every case carries a `description` naming the asset rule it tests
-(lint enforces this once the audit completes; see Case audit).
+**Every case states its rule.** An audited case carries a `description` naming the asset rule it
+tests. The audit runs in three groups (skills, then commands, then agents and references), and its
+results table lists the assets done so far; lint enforces the line once the last group is done (see
+Case audit).
 
 ## Offline limits
 
@@ -326,7 +328,10 @@ Absolute scores differ from a real session in these ways; comparisons within the
 - The seed adds `__pycache__/` to `.git/info/exclude`, so running Python leaves `git status` clean.
 - The sandbox refuses writes under `.git/worktrees` and to `.git/config` ("Operation not
   permitted"), so no run can create a git worktree. `git worktree add -b` creates the branch before
-  it fails, which is what using-git-worktrees--effect-isolated-from-origin grades.
+  it fails, which is what using-git-worktrees--effect-isolated-from-origin grades. Evidence: while
+  that case read `git worktree list` alone, its `worktree-made` grader failed in all 12 of its
+  stored 2026-11-16 baseline runs (both stagings, both models), and 5 of those runs record the
+  error text.
 - The child session inherits `ANTHROPIC_API_KEY`, so a run granted Bash could print it. The
   sandbox blocks network, and the key scan covers results, logs, and kept traces; traces of runs
   without `--keep-temp` are deleted by the CLI unscanned.
@@ -715,7 +720,7 @@ score never decides a rewrite: A5 can send a case back through A2 to A4, and not
 
 **The `description` line** is a double-quoted, single-line value with no `"` or `\` inside it:
 - effect and workflow cases: `"<the rule, as a clause>; <asset path>; hard because <why a capable model without the asset would plausibly miss it>"`
-- trigger cases: `"<the situation>; <asset path>; should"`, `"...; near: <neighbouring asset or none>"`, or `"...; noauto"`
+- trigger cases: `"<the situation>; <asset path>; should"`, `"...; near: <neighbour or none>"`, or `"...; noauto"`. The neighbour is the one-word name of whatever should take the request instead: a KB skill, command, or agent, a KB reference file's stem, or a built-in skill
 
 `<asset path>` is the asset's file, for example `.claude/skills/design-first/SKILL.md`, with no line
 number, so it does not go stale.
@@ -739,7 +744,8 @@ house convention.
 
 **Hardening.** Each asset that `make eval-headroom` lists as `ASSET <asset> no discriminating case`
 gains one new effect case tagged `extended`, written by the hard-case rules above. `j-paper` is
-exempt: its `extended` case has not been measured yet.
+exempt: its `extended` case has not been measured yet. An asset gains its case when its group is
+audited, so until the last group is done the list still names assets of the groups not yet reached.
 
 **Limits.** No KB asset and no file under `evals/fixtures/` is edited; either would change every
 case's content. Case slugs keep their `tune-` and `held-` prefixes. Every new llm grader has two to
@@ -755,7 +761,7 @@ void the held-out comparison the next baseline makes.
 | code-agent-meta-patterns | 7 | effect-memory-agent: ambiguous, fixed | discriminating | none |
 | code-migration | 7 | effect-flask-py27-plan: hidden-criterion, fixed | effect-flask-py27-plan saturated; effect-py-to-js-port saturated | code-migration--effect-plugin-port-order |
 | code-quality | 4 | effect-marker-audit: broken-fixture, fixed | effect-marker-audit dead; effect-simplified-marker saturated | code-quality--effect-unvarying-config |
-| code-review-patterns | 7 | effect-receiving-comments: ambiguous, fixed | effect-invoice-diff saturated; effect-receiving-comments saturated | code-review-patterns--effect-exposed-latent-bug |
+| code-review-patterns | 7 | effect-receiving-comments: generic (it graded the clear comment as fixed while another was unclear, against the skill's stop rule), regraded | effect-invoice-diff saturated; effect-receiving-comments saturated | code-review-patterns--effect-exposed-latent-bug |
 | config-security-audit | 4 | all pass | discriminating | none |
 | debugging-methodology | 7 | effect-unreproducible-502: hidden-criterion, fixed | effect-unreproducible-502 dead | none |
 | dependency-upgrade | 7 | effect-multi-major-plan: hidden-criterion, fixed | effect-eresolve-conflict saturated; effect-multi-major-plan dead | dependency-upgrade--effect-retire-override |

@@ -1,5 +1,5 @@
 ---
-description: "do not run parallel agents that edit the same files in one tree; run them one after another or in isolated copies; .claude/skills/dispatching-parallel-agents/SKILL.md; hard because the user asks for speed and offers helpers for two changes that both touch ops.py and its tests"
+description: "do not run parallel agents that edit the same files in one tree, run them one after another or in isolated copies; .claude/skills/dispatching-parallel-agents/SKILL.md; hard because the user asks for speed and offers helpers for two changes that both touch ops.py and its tests"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
