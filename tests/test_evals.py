@@ -1709,6 +1709,52 @@ class ResultsLoaderTests(unittest.TestCase):
         self.assertEqual(kresults.regressed(before, after, {}), [CASE])
         self.assertEqual(kresults.regressed(before, after, {CASE: {"design"}}), [])
 
+    def test_case_after_but_not_before_is_skipped(self):
+        after = {OPUS: self.scored([False] * 3)}
+        befores: list[dict[str, dict | None]] = [{OPUS: {}}, {}, {OPUS: None}]
+        for before in befores:
+            self.assertEqual(kresults.paired_scores(before, after, {}), [])
+            self.assertEqual(kresults.regressed(before, after, {}), [])
+
+    @staticmethod
+    def three_graders(passes):
+        """Return a case whose runs pass the first n of three result graders, n per run."""
+        names = ("g1", "g2", "g3")
+        return {CASE: {"graders": [{"name": n, "type": "llm"} for n in names], "arms": {"with": [
+            {"graders": [{"name": n, "passed": i < count} for i, n in enumerate(names)]} for count in passes
+        ]}}}
+
+    def test_exact_third_drops_from_three_run_means_regress(self):
+        # (1+1+2/3)/3 - (0+0+1/3)/3 and (0+2/3+1)/3 - (0+0+2/3)/3 fall a hair short of 2/3 and 1/3 in floats.
+        steady = self.three_graders([3, 3, 3])
+        before = {OPUS: self.three_graders([1, 3, 3]), kdet.SONNET: steady}
+        after = {OPUS: self.three_graders([0, 0, 1]), kdet.SONNET: steady}
+        self.assertEqual(kresults.regressed(before, after, {}), [CASE])
+        before = {m: self.three_graders([0, 2, 3]) for m in (OPUS, kdet.SONNET)}
+        after = {m: self.three_graders([0, 0, 2]) for m in (OPUS, kdet.SONNET)}
+        self.assertEqual(kresults.regressed(before, after, {}), [CASE])
+
+    def test_no_regression_applies_the_real_skip_table(self):
+        name = "j-data--effect-orders-schema"
+        self.assertIn("no-serial", kdet.SKIP[name])
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+
+        def case(serial):
+            return {"name": name, "graders": [{"name": "design", "type": "llm"}, {"name": "no-serial", "type": "regex"}],
+                    "arms": {"with": [{"graders": [{"name": "design", "passed": True},
+                                                   {"name": "no-serial", "passed": serial}]}] * 3}}  # fmt: skip
+
+        for model in (OPUS, kdet.SONNET):
+            root = tmp / "baseline" / "kb" / model / "effects"
+            root.mkdir(parents=True)
+            (root / "j-data.json").write_text(json.dumps({"partial": False, "cases": [case(True)]}), encoding="utf-8")
+            (root / "j-data.key").write_text("k", encoding="utf-8")
+        data = {m: {name: case(False)} for m in (OPUS, kdet.SONNET)}
+        with mock.patch.object(kdet, "RESULTS", tmp), contextlib.redirect_stdout(io.StringIO()) as out:
+            kdet.Checker("p").no_regression("j-data", data)
+        self.assertTrue(out.getvalue().startswith("CHECK no-regression j-data PASS "), out.getvalue())
+
     def test_no_regression_line_is_unchanged(self):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
@@ -1861,6 +1907,14 @@ class HeadroomTests(unittest.TestCase):
         self.assertNotIn("ASSET b no discriminating case", lines)
         self.assertIn(f"HEADROOM saturated a--effect-x {OPUS}=1.00/1.00", lines)
         self.assertIn("4 cases: 3 saturated, 0 dead, 0 kb-below-vanilla, 1 discriminating, 0 unmeasured", lines)
+
+    def test_discriminating_case_sorted_before_a_saturated_one_keeps_the_asset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self.write_baselines(
+                Path(tmp), {OPUS: {"effects": {"a--effect-a": (1.0, True, 0.0), "a--effect-b": (1.0, True, 1.0)}}}
+            )
+            lines = kheadroom.report(root, {})
+        self.assertNotIn("ASSET a no discriminating case", lines)
 
     def test_baselines_with_no_model_directory_are_refused(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -2088,6 +2142,60 @@ class EntryPointTests(OrchestrateTests):
         err = io.StringIO()
         with mock.patch.object(kmain, "REPO", self.repo), contextlib.redirect_stderr(err):
             self.assertEqual(kmain.main(["headroom"]), 1)
+
+    def test_headroom_lists_live_cases_missing_from_the_baselines(self):
+        root = self.repo / "evals" / "baselines"
+        for suite in kheadroom.SUITES:
+            path = root / OPUS / f"{suite}.json"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(summary_doc({"demo-skill--effect-limiter": (1.0, True, 1.0)})))
+        out = io.StringIO()
+        with mock.patch.object(kmain, "REPO", self.repo), contextlib.redirect_stdout(out):
+            self.assertEqual(kmain.main(["headroom"]), 0)
+        lines = out.getvalue().splitlines()
+        self.assertIn("MISSING demo-agent--effect-review", lines)
+        self.assertIn("MISSING wf--demo-chain", lines)
+        self.assertNotIn("MISSING demo-skill--effect-limiter", lines)
+
+    def test_headroom_invalid_json_exits_one_naming_the_path(self):
+        path = self.repo / "evals" / "baselines" / OPUS / "effects.json"
+        path.parent.mkdir(parents=True)
+        path.write_text("{")
+        err = io.StringIO()
+        with mock.patch.object(kmain, "REPO", self.repo), contextlib.redirect_stderr(err):
+            self.assertEqual(kmain.main(["headroom"]), 1)
+        self.assertTrue(err.getvalue().startswith(f"headroom: {path}: "), err.getvalue())
+
+    def test_real_git_changes_are_parsed(self):
+        git = shutil.which("git")
+        if git is None:
+            self.fail("git is not installed")
+        work = self.tmp / "gitwork"
+        work.mkdir()
+
+        def run(*args):
+            subprocess.run(
+                [git, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", *args],
+                cwd=work, check=True, capture_output=True, stdin=subprocess.DEVNULL,
+            )
+
+        run("init", "-q", "-b", "main")
+        (work / "a b.txt").write_text("one\n")
+        (work / "old.txt").write_text("keep\n")
+        run("add", "-A")
+        run("commit", "-q", "-m", "base")
+        (work / "a b.txt").write_text("two\n")
+        (work / "newdir").mkdir()
+        (work / "newdir" / "n.txt").write_text("new\n")
+        run("mv", "old.txt", "new.txt")
+        with mock.patch.object(kmain, "REPO", work):
+            base = kmain._git(["merge-base", "--end-of-options", "HEAD", "HEAD"]).strip()
+            diff = kmain._git(["diff", "--name-status", "--no-renames", "-z", base])
+            status = kmain._git(["status", "--porcelain", "-z", "--untracked-files=all"])
+        self.assertEqual(
+            kmain._parse_changes(diff, status),
+            [("M", "a b.txt"), ("A", "new.txt"), ("D", "old.txt"), ("A", "newdir/n.txt")],
+        )
 
     def test_affected_exits_two_on_everything(self):
         def fake_git(args, **kwargs):
@@ -2813,6 +2921,36 @@ class HillclimbAdoptTests(unittest.TestCase):
         self.assertIn("ADOPT a blocked\n", out)
         self.assertIn("BLOCKED unreadable results for a: ", self.err)
 
+    def test_main_end_to_end_swapping_before_and_after_changes_the_verdict(self):
+        self._asset(held=(0, 4))
+
+        def main(before, after):
+            argv = ["adopt", "--asset", "a", "--before", *before, "--after", *after, "--effects", "e"]
+            with contextlib.redirect_stdout(io.StringIO()) as out, contextlib.redirect_stderr(io.StringIO()):
+                code = khill.main(argv)
+            return code, out.getvalue().splitlines()[-1]
+
+        self.assertEqual(main(["b", "hb"], ["f", "hf"]), (0, "ADOPT a adopt"))
+        self.assertEqual(main(["f", "hf"], ["b", "hb"]), (0, "ADOPT a restore"))
+
+    def test_own_near_fire_prints_no_neighbour_line(self):
+        self._asset(held=(0, 4))
+        self._trigger("f", kdet.SONNET, "a--trigger-near-y", 1, 3)
+        _, out = self._adopt()
+        self.assertIn("CRITERION a near-fires FAIL", out)
+        self.assertNotIn("CRITERION neighbours", out)
+
+    def test_neighbour_near_case_with_no_fire_prints_nothing(self):
+        self._asset(held=(0, 4))
+        self._trigger("f", kdet.SONNET, "n--trigger-near-y", 0, 3)
+        _, out = self._adopt()
+        self.assertTrue(out.endswith("ADOPT a adopt\n"), out)
+        self.assertIn("NEIGHBOURS 1 assets checked", self.err)
+
+    def test_heldx_slug_is_not_held_out(self):
+        self.assertEqual(khill._split("a--trigger-should-heldx-y"), "")
+        self.assertEqual(khill._split("a--trigger-should-held-y"), "held")
+
     def test_neighbour_should_with_differing_graded_counts_is_reviewed(self):
         self._asset(held=(0, 4))
         self._trigger("baseline", kdet.SONNET, "n--trigger-should-x", 3, 3)
@@ -3000,6 +3138,39 @@ class AffectedTests(TempRepoCase):
             self.plan(("M", ".claude/references/cat/ref.md"), ("M", ".claude/skills/demo-skill/SKILL.md"))
         self.assertTrue(reads)
         self.assertEqual(len(reads), len(set(reads)), sorted(map(str, reads)))
+
+    def test_hyphen_prefixed_name_is_not_a_whole_word(self):
+        self.assertIsNone(kaffected._word("Use x-demo-skill here.", "demo-skill"))
+        self.assertEqual(kaffected._word("Use demo-skill here.", "demo-skill"), 1)
+
+    def test_deleted_non_skill_md_file_names_the_skill(self):
+        plan = self.plan(("D", ".claude/skills/demo-skill/scripts/run.py"))
+        self.assertEqual(plan, kaffected.Plan(["demo-skill"], [], False))
+
+    def test_command_prefixing_another_does_not_take_its_workflow_case(self):
+        self.put(".claude/commands/j-dem.md", "---\nname: j-dem\n---\n\nDemo.\n")
+        self.assertEqual(self.plan(("M", ".claude/commands/j-dem.md")).names, ["j-dem"])
+
+    def test_fixture_name_inside_another_does_not_match(self):
+        for fixture in ("calc", "py-calc-red"):
+            self.put(f"evals/fixtures/{fixture}/x.py", "x = 1\n")
+            self.assertEqual(self.plan(("M", f"evals/fixtures/{fixture}/x.py")).names, [], fixture)
+
+    def test_estimate_adds_no_vanilla_run_for_a_workflow_case(self):
+        kb, vanilla, cost, _ = kaffected.estimate(self.repo, ["wf--demo-chain"])
+        self.assertEqual((kb, vanilla), (1, 0))
+        self.assertAlmostEqual(cost, 1.00)
+
+    def test_asset_reached_through_two_references_is_named_once(self):
+        self.put(".claude/references/cat/one.md", "# One\n\nSee ref.\n")
+        self.put(".claude/references/cat/two.md", "# Two\n\nSee ref.\n")
+        self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nRead one.\nRead two.\n")
+        plan = self.plan(("M", ".claude/references/cat/ref.md"))
+        self.assertEqual(plan.names, ["demo-skill"])
+        self.assertEqual(
+            plan.notes,
+            ["AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:5"],
+        )
 
     def test_deleted_reference_still_names_its_citers(self):
         self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n")
