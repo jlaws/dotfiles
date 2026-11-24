@@ -278,6 +278,9 @@ Near-miss and noauto trigger cases at 1.0 are guards.
 **Defects become cases.** A defect found in a KB asset becomes an eval case that fails before the
 fix.
 
+**Every case states its rule.** Every case carries a `description` naming the asset rule it tests
+(lint enforces this once the audit completes; see Case audit).
+
 ## Offline limits
 
 What an offline run can show, per asset where it differs from a real session:
@@ -681,6 +684,70 @@ the shipped text differs from it only by naming `devops-engineer` in the opening
 
 Purpose spend: $89.71 of the $100 cap (estimate $84.60, plus $7.24 for the 6faff20 rerun). Period
 total after the reruns, at that time: $868.54 of $2,500 (`evals/spend.json`). `evals/baselines/` is unchanged.
+
+## Case audit
+
+Every case is checked once against the rubric below, one asset at a time. A case that passes gets
+a `description` line and nothing else, so its results stay comparable. Rows are appended to the
+results table as each asset is done.
+
+**Inputs per asset:** the asset file; its case directories; its lines in `make eval-headroom`; and,
+for a `dead` or `kb-below-vanilla` case, the stored evidence of its failing llm grader under the
+machine-local results for purpose `baseline`.
+
+**Order of work per asset.** First apply A1 to A4 and A6 to every case and write the verdicts into
+the asset's row, without opening headroom output or stored evidence. Only then open them for A5. A
+score never decides a rewrite: A5 can send a case back through A2 to A4, and nothing else.
+
+**Checks per case.**
+
+| ID | Check | Finding when it fails |
+|---|---|---|
+| A1 Purpose | The case tests one rule the asset states. Record it in the `description` line of `prompt.md` frontmatter | `no-rule` |
+| A2 Stated criteria | Every grader claim and regex is something the prompt asks for. The criterion class is in the prompt; the specific fact may sit in the fixture | `hidden-criterion` |
+| A3 Fidelity | At least one result grader fails when the A1 rule is not followed and passes for any output that follows it. A grader that general competence alone satisfies does not count | `generic` |
+| A4 Validity | The task has one reading, two readers would give the same verdict, the fixture holds what the prompt says, and no claim turns on formatting | `ambiguous` or `broken-fixture` |
+| A5 Headroom | Report the `make eval-headroom` class. For `dead`, read the stored evidence and re-apply A2 to A4. For `kb-below-vanilla`, re-apply A3 and A4 | (report only) |
+| A6 Triggers | A should-fire prompt is a user in the situation the asset's `description` names, never naming the asset. A near prompt is a request a neighbouring asset or no asset should take | `unrealistic` or `not-near` |
+
+**The `description` line** is a double-quoted, single-line value with no `"` or `\` inside it:
+- effect and workflow cases: `"<the rule, as a clause>; <asset path>; hard because <why a capable model without the asset would plausibly miss it>"`
+- trigger cases: `"<the situation>; <asset path>; should"`, `"...; near: <neighbouring asset or none>"`, or `"...; noauto"`
+
+`<asset path>` is the asset's file, for example `.claude/skills/design-first/SKILL.md`, with no line
+number, so it does not go stale.
+
+**References and A2.** A claim whose answer comes from a reference passes A2 when the prompt asks
+for that decision by topic ("choose the pagination style for a feed that reorders, and say why");
+the reference supplies the answer, as a fixture supplies a fact. Such a claim is never deleted as a
+house convention.
+
+**Action per finding.**
+
+| Finding | Action |
+|---|---|
+| none | add the `description` line; change nothing else |
+| `hidden-criterion` | add the clause to the prompt; if the criterion is a house convention a user would not ask for, delete the claim instead, unless that would leave an llm grader with fewer than two claims, in which case add the clause |
+| `generic` | rewrite the grader claims around the A1 rule, keeping the fixture where it still serves |
+| `no-rule` | replace the case with one written from an asset rule; keep the slug only when the scenario is kept |
+| `ambiguous`, `broken-fixture` | fix the prompt or the case's own `fixture.sh` |
+| `unrealistic`, `not-near` | rewrite the trigger prompt |
+| the case is sound and the asset is at fault | change no case; add a line to `tasks/kb-asset-defects-from-eval-audit.md` |
+
+**Hardening.** Each asset that `make eval-headroom` lists as `ASSET <asset> no discriminating case`
+gains one new effect case tagged `extended`, written by the hard-case rules above. `j-paper` is
+exempt: its `extended` case has not been measured yet.
+
+**Limits.** No KB asset and no file under `evals/fixtures/` is edited; either would change every
+case's content. Case slugs keep their `tune-` and `held-` prefixes. Every new llm grader has two to
+five claims with both `PASS if` and `FAIL if`. A `held-` case gets its `description` line and
+nothing else; a finding on one goes to `tasks/kbeval-case-defects.md`, because rewriting it would
+void the held-out comparison the next baseline makes.
+
+**Results.**
+
+| Asset | Cases audited | A1-A4 and A6 verdicts | Headroom class | New case |
+|---|---|---|---|---|
 
 ## Fan-out experiment
 
