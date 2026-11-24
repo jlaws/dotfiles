@@ -382,6 +382,47 @@ class StageTests(TempRepoCase):
         self.assertIn(str(case / "_refs"), json.loads(line[len("append_system_prompt: "):]))
         self.assertNotIn(".kb-references", (case / "seed.sh").read_text())
 
+    def test_agent_note_uses_the_refs_path_in_add_dirs_mode(self):
+        self.set_harness(refsMode="add_dirs")
+        plugin = self.stage()
+        case = plugin / "evals-effects" / "demo-agent--effect-review"
+        note = kstage.AGENT_PREFIX + kstage.REFS_NOTE.format(where=f"{case / '_refs'}/")
+        body = body_of(case / "prompt.md")
+        self.assertIn(note, body)
+        self.assertNotIn(".kb-references", body)
+
+    def test_prompt_notes_are_written_to_kb_in_both_stagings(self):
+        expected = [
+            kstage.NON_INTERACTIVE,
+            kstage.GIT_NOTE,
+            kstage.AGENT_NOTE,
+            kstage.REFS_NOTE,
+            "Tell the agent: " + kstage.REFS_NOTE,
+        ]
+        for staging in ("kb", "vanilla"):
+            notes = self.stage(staging) / "_kb" / "prompt-notes.txt"
+            self.assertTrue(notes.is_file(), staging)
+            self.assertEqual(notes.read_text().splitlines(), expected, staging)
+
+    def test_kb_digest_changes_when_a_prompt_note_changes(self):
+        before_plugin = kstage.stage(self.repo, self.tmp / "out-before", "kb")
+        with mock.patch.object(kstage, "NON_INTERACTIVE", "Run without asking."):
+            after_plugin = kstage.stage(self.repo, self.tmp / "out-after", "kb")
+
+        def outside_cases(plugin: Path) -> dict:
+            return {
+                p.relative_to(plugin): p.read_bytes() for p in plugin.rglob("*")
+                if p.is_file() and not p.relative_to(plugin).parts[0].startswith("evals-")
+            }
+
+        before, after = outside_cases(before_plugin), outside_cases(after_plugin)
+        changed = sorted(str(rel) for rel in before if before[rel] != after.get(rel))
+        self.assertEqual(changed, ["_kb/prompt-notes.txt"])
+        self.assertNotEqual(
+            krunner._tree_digest(before_plugin, skip_prefix="evals-"),
+            krunner._tree_digest(after_plugin, skip_prefix="evals-"),
+        )
+
     def test_stage_exclude_tags(self):
         folder = write_case(
             self.repo, "effects", "demo-skill--effect-second-mode",
@@ -657,12 +698,99 @@ class LintTests(TempRepoCase):
         self.set_description("effects/j-demo--effect-cache", 'description: ""')
         self.assert_problem(r"j-demo--effect-cache: description must be")
 
-    def test_description_with_a_backslash_or_quote_is_a_problem(self):
-        base = "a rule; .claude/commands/j-demo.md; hard because it is easy to miss"
-        for text in (base.replace("rule", "ru\\\\le"), base.replace("rule", "ru'le").replace("'", "\\\"")):
+    BASE = "a rule; .claude/commands/j-demo.md; hard because it is easy to miss"
+
+    def test_description_with_an_invalid_escape_is_malformed(self):
+        text = self.BASE.replace("rule", "ru\\le")
+        self.set_description("effects/j-demo--effect-cache", f'description: "{text}"')
+        self.assert_problem(r"j-demo--effect-cache: `description` is a malformed quoted YAML scalar")
+
+    def test_description_with_an_escaped_quote_or_backslash_is_a_problem(self):
+        for text in (self.BASE.replace("rule", 'ru\\"le'), self.BASE.replace("rule", "ru\\\\le")):
             with self.subTest(text=text):
                 self.set_description("effects/j-demo--effect-cache", f'description: "{text}"')
-                self.assert_problem(r"j-demo--effect-cache: (description must be|.*malformed)")
+                self.assert_problem(r"j-demo--effect-cache: description must be <text>; <asset path>; <ending>")
+
+    def assert_description_problem(self, line: str, pattern: str, rel: str = "effects/j-demo--effect-cache") -> None:
+        self.set_description(rel, line)
+        problems = [p for p in self.problems() if p.startswith(rel.split("/")[1] + ":")]
+        self.assertTrue(any(re.search(pattern, p) for p in problems), f"no {pattern!r} in {problems}")
+
+    def test_unquoted_description_is_a_problem(self):
+        self.assert_description_problem(
+            "description: x; .claude/agents/demo-agent.md; hard because y", r"description must be"
+        )
+
+    def test_single_quoted_description_is_a_problem(self):
+        self.assert_description_problem(
+            "description: 'x; .claude/agents/demo-agent.md; hard because y'", r"description must be"
+        )
+
+    def test_description_with_an_absolute_path_is_a_problem(self):
+        self.assert_description_problem('description: "x; /etc/hosts; hard because y"', r"description must be")
+
+    def test_description_with_a_parent_segment_is_a_problem(self):
+        (self.tmp / "dotfiles").mkdir()
+        (self.tmp / "dotfiles" / "README.md").write_text("# outside\n")
+        self.assert_description_problem('description: "x; ../dotfiles/README.md; hard because y"', r"description must be")
+        self.assert_description_problem(
+            'description: "x; .claude/../.claude/agents/demo-agent.md; hard because y"', r"description must be"
+        )
+
+    def test_description_path_outside_claude_is_a_problem(self):
+        (self.repo / "evals" / "README.md").write_text("# evals\n")
+        self.assert_description_problem('description: "x; evals/README.md; hard because y"', r"description must be")
+
+    def test_description_path_that_is_a_directory_is_a_problem(self):
+        self.assert_description_problem(
+            'description: "x; .claude/agents; hard because y"', r"description names a path that does not exist"
+        )
+
+    def test_description_path_with_a_semicolon_is_a_problem(self):
+        (self.repo / ".claude/references/cat/a;b.md").write_text("# odd\n")
+        self.assert_description_problem(
+            'description: "x; .claude/references/cat/a;b.md; hard because y"', r"description must be"
+        )
+
+    def test_description_with_a_trailing_newline_is_a_problem(self):
+        self.assert_description_problem(
+            'description: "x; .claude/agents/demo-agent.md; hard because y\n  "', r"description must be"
+        )
+        self.assert_description_problem(
+            'description: "x; .claude/skills/demo-skill/SKILL.md; should\n  "',
+            r"description must be",
+            "triggers/demo-skill--trigger-should-rate",
+        )
+
+    def test_description_problem_names_the_expected_ending_and_the_path(self):
+        self.assert_description_problem(
+            'description: "x; .claude/skills/demo-skill/SKILL.md; hard because y"',
+            r"description must be <text>; <asset path>; <ending>.*should",
+            "triggers/demo-skill--trigger-should-rate",
+        )
+        self.assert_description_problem(
+            'description: "x; .claude/commands/missing.md; hard because y"',
+            r"description names a path that does not exist.*\.claude/commands/missing\.md",
+        )
+
+    def test_trigger_near_description_needs_a_near_ending(self):
+        rel = "triggers/demo-skill--trigger-near-typo"
+        self.assert_description_problem('description: "x; .claude/skills/demo-skill/SKILL.md; should"', r"description must be", rel)
+        self.assert_description_problem('description: "x; .claude/skills/demo-skill/SKILL.md; near:"', r"description must be", rel)
+        self.set_description(rel, 'description: "x; .claude/skills/demo-skill/SKILL.md; near: j-demo"')
+        self.assertFalse(any(p.startswith("demo-skill--trigger-near-typo:") for p in self.problems()))
+
+    def test_trigger_noauto_description_needs_noauto(self):
+        rel = "triggers/j-quiet--trigger-noauto-ask"
+        self.assert_description_problem('description: "x; .claude/commands/j-quiet.md; should"', r"description must be", rel)
+        self.set_description(rel, 'description: "x; .claude/commands/j-quiet.md; noauto"')
+        self.assertFalse(any(p.startswith("j-quiet--trigger-noauto-ask:") for p in self.problems()))
+
+    def test_workflow_description_needs_hard_because(self):
+        rel = "workflows/wf--demo-chain"
+        self.assert_description_problem('description: "x; .claude/commands/j-demo.md; should"', r"description must be", rel)
+        self.set_description(rel, 'description: "x; .claude/commands/j-demo.md; hard because y"')
+        self.assertFalse(any(p.startswith("wf--demo-chain:") for p in self.problems()))
 
     def test_description_path_must_exist(self):
         self.set_description(
@@ -711,6 +839,83 @@ class LintTests(TempRepoCase):
         self.add_indexing_agent("data")
         self.add_reading_case("(?:architecture|data)/")
         self.assertFalse(any(p.startswith("indexer:") for p in self.problems()), self.problems())
+
+    def add_agent_case(self, suite: str, name: str, grader: str, prompt: str | None = None) -> None:
+        frontmatter = {"triggers": TRIGGER_FM.format(kind="trigger-should"), "effects": EFFECT_FM}.get(suite, WORKFLOW_FM)
+        body = prompt or "Use the kb:indexer agent to review the cache design and save it to ./design.md."
+        graders = {"read": grader} if suite == "triggers" else {"result": LLM_RESULT, "read": grader}
+        write_case(self.repo, suite, name, frontmatter, body, graders)
+
+    def indexer_problems(self) -> list:
+        return [p for p in self.problems() if p.startswith("indexer:")]
+
+    def assert_not_a_reading_case(self, suite: str, name: str, grader: str) -> None:
+        self.add_indexing_agent()
+        self.add_agent_case(suite, name, grader)
+        self.assertEqual(len(self.indexer_problems()), 1, self.problems())
+
+    READ = "---\ntype: tool_used\ntool: Read\n{extra}---\n"
+
+    def test_read_grader_without_input_match_is_not_a_reading_case(self):
+        self.assert_not_a_reading_case("effects", "indexer--effect-reads", self.READ.format(extra=""))
+
+    def test_read_grader_with_an_empty_input_match_is_not_a_reading_case(self):
+        self.assert_not_a_reading_case("effects", "indexer--effect-reads", self.READ.format(extra="input_match: ''\n"))
+
+    def test_read_grader_with_max_0_is_not_a_reading_case(self):
+        extra = "input_match: '\\.kb-references/cat/'\nmin: 0\nmax: 0\n"
+        self.assert_not_a_reading_case("effects", "indexer--effect-reads", self.READ.format(extra=extra))
+
+    def test_read_grader_on_another_category_is_not_a_reading_case(self):
+        extra = "input_match: '\\.kb-references/other/'\n"
+        self.assert_not_a_reading_case("effects", "indexer--effect-reads", self.READ.format(extra=extra))
+
+    def test_non_read_grader_is_not_a_reading_case(self):
+        grep = "---\ntype: tool_used\ntool: Grep\ninput_match: '\\.kb-references/cat/'\n---\n"
+        self.assert_not_a_reading_case("effects", "indexer--effect-greps", grep)
+
+    def test_regex_grader_is_not_a_reading_case(self):
+        regex = "---\ntype: regex\ntarget: { source: file, path: design.md }\npattern: '\\.kb-references/cat/'\n---\n"
+        self.assert_not_a_reading_case("effects", "indexer--effect-regex", regex)
+
+    def test_trigger_case_of_the_agent_is_not_a_reading_case(self):
+        extra = "input_match: '\\.kb-references/cat/'\n"
+        self.assert_not_a_reading_case("triggers", "indexer--trigger-should-reads", self.READ.format(extra=extra))
+
+    def test_workflow_case_is_not_a_reading_case(self):
+        extra = "input_match: '\\.kb-references/cat/'\n"
+        self.assert_not_a_reading_case("workflows", "wf--indexer-reads", self.READ.format(extra=extra))
+
+    def test_another_agents_effect_case_is_not_a_reading_case(self):
+        extra = "input_match: '\\.kb-references/cat/'\n"
+        self.add_indexing_agent()
+        self.add_agent_case(
+            "effects", "demo-agent--effect-reads", self.READ.format(extra=extra),
+            "Use the kb:demo-agent agent to review the cache design and save it to ./design.md.",
+        )
+        self.assertEqual(len(self.indexer_problems()), 1, self.problems())
+
+    def test_input_match_that_python_cannot_compile_is_reported_when_nothing_reads(self):
+        self.add_indexing_agent()
+        self.add_reading_case(r"\.kb-references/(?<c>cat)/")
+        self.assert_problem(
+            r"^indexer: no effect case reads references/cat/; skipped indexer--effect-reads grader read: "
+            r"input_match does not compile in Python"
+        )
+
+    def test_missing_reference_problem_names_every_category(self):
+        self.add_indexing_agent("cat,data")
+        self.assert_problem(r"^indexer: no effect case reads references/cat/ or references/data/$")
+
+    def test_one_category_is_enough_for_an_agent_that_names_several(self):
+        self.add_indexing_agent("cat,data")
+        self.add_reading_case(r"\.kb-references/data/")
+        self.assertEqual(self.indexer_problems(), [])
+
+    def test_missing_agents_directory_passes_the_reference_check(self):
+        shutil.rmtree(self.repo / ".claude" / "agents")
+        found = kcases.discover(self.repo / "evals" / "cases")
+        self.assertEqual(kcases._lint_agent_references(found, self.repo), [])
 
     def test_lint_tags_name_suite_and_kind(self):
         self.edit("effects/j-demo--effect-cache/prompt.md", "tags: [effects, effect]", "tags: [effect]")

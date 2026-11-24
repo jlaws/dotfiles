@@ -295,27 +295,39 @@ def lint(cases: List[Case], repo: Path) -> List[str]:
 
 
 def _lint_agent_references(cases: List[Case], repo: Path) -> List[str]:
-    """Flag each agent that indexes a reference directory no effect case reads."""
+    """Flag each agent whose indexed reference directories no effect case reads.
+
+    A reading case is one of the agent's effect cases with a `tool_used` grader on `Read` whose
+    `input_match` is non-empty, has no maximum of 0, and matches a path in one of the directories.
+    One directory is enough for an agent that names several. An `input_match` Python cannot compile
+    is skipped (the harness reads it as a JavaScript regex) and named in the agent's problem line.
+    """
     problems: List[str] = []
     for agent in sorted((repo / ".claude" / "agents").glob("*.md")):
         categories = sorted(set(re.findall(r"references/([\w-]+)/", agent.read_text(encoding="utf-8"))))
         if not categories:
             continue
-        probes = {c: f".kb-references/{c}/x.md" for c in categories}
-        read = set()
+        probes = [f".kb-references/{c}/x.md" for c in categories]
+        reads = False
+        skipped: List[str] = []
         for case in cases:
             if case.asset != agent.stem or case.kind != "effect":
                 continue
             for grader in case.graders:
                 if unquote(grader.fields.get("type", "")) != "tool_used" or unquote(grader.fields.get("tool", "")) != "Read":
                     continue
-                try:
-                    rx = re.compile(unquote(grader.fields.get("input_match", "")))
-                except re.error:
+                pattern = unquote(grader.fields.get("input_match", ""))
+                if not pattern or parse_int(grader.fields.get("max")) == 0:
                     continue
-                read.update(c for c, probe in probes.items() if rx.search(probe))
-        if not read:
-            problems.append(f"{agent.stem}: no effect case reads references/{categories[0]}/")
+                try:
+                    rx = re.compile(pattern)
+                except re.error:
+                    skipped.append(f"skipped {case.name} grader {grader.name}: input_match does not compile in Python")
+                    continue
+                reads = reads or any(rx.search(probe) for probe in probes)
+        if not reads:
+            named = " or ".join(f"references/{c}/" for c in categories)
+            problems.append("; ".join([f"{agent.stem}: no effect case reads {named}", *skipped]))
     return problems
 
 
@@ -347,19 +359,34 @@ DESCRIPTION_ENDINGS = {
     "trigger-near": r"near: [\w-]+",
     "trigger-noauto": r"noauto",
 }
-HARD_ENDING = r'hard because [^"\\]+'
+HARD_ENDING = r'hard because [^"\\\n]+'
+ENDING_HINTS = {
+    "trigger-should": "should",
+    "trigger-near": "near: <name>",
+    "trigger-noauto": "noauto",
+}
+HARD_HINT = "hard because <reason>"
+DESCRIPTION_FORMAT = "description must be <text>; <asset path>; <ending>"
 
 
 def _lint_description(case: Case, repo: Path) -> List[str]:
+    """Check `description` is `"<text>; <.claude/ file>; <ending for the kind>"` on one line."""
     raw = case.fields.get("description", "")
     if malformed_scalar(raw):
         return ["`description` is a malformed quoted YAML scalar"]
-    ending = DESCRIPTION_ENDINGS.get(case.kind or "", HARD_ENDING) if case.suite == "triggers" else HARD_ENDING
-    match = re.match(rf'^[^";\\]+; (\S+); ({ending})$', unquote(raw))
+    ending = DESCRIPTION_ENDINGS.get(case.kind or "", HARD_ENDING)
+    hint = ENDING_HINTS.get(case.kind or "", HARD_HINT)
+    expected = f"{DESCRIPTION_FORMAT} (double-quoted, path under .claude/, ending `{hint}`)"
+    quoted = len(raw) >= 2 and raw[0] == raw[-1] == '"'
+    match = re.fullmatch(rf'[^";\\\n]+; ([^\s;]+); (?:{ending})', unquote(raw)) if quoted else None
     if match is None:
-        return ["description must be <text>; <asset path>; <ending>"]
-    if not (repo / match.group(1)).is_file():
-        return ["description names a path that does not exist"]
+        return [expected]
+    path = match.group(1)
+    if not path.startswith(".claude/") or ".." in path.split("/"):
+        return [f"{expected}; got path {path}"]
+    target = (repo / path).resolve()
+    if not (target.is_file() and target.is_relative_to(repo.resolve())):
+        return [f"description names a path that does not exist: {path}"]
     return []
 
 

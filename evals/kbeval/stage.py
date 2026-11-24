@@ -4,8 +4,9 @@
 to every case's system prompt, and seeds references into each run's workspace. `vanilla` is an
 empty plugin, which is plain Claude. See `docs/adr/workflow/kb-evals-run-on-a-staged-plugin.md`.
 
-kb staging also copies `.claude/CLAUDE.md` and `evals/harness.json` into `_kb/` so the runner's KB
-digest covers them; no run reads those two copies.
+kb staging also copies `.claude/CLAUDE.md` and `evals/harness.json` into `_kb/`, and both stagings
+write the prompt-note templates to `_kb/prompt-notes.txt`, so the runner's KB digest covers them; no
+run reads those files.
 """
 
 from __future__ import annotations
@@ -30,6 +31,7 @@ REFS_NOTE = (
     "KB references cited as `.claude/references/<p>` or `references/<p>` are at {where}<p>; they "
     "are not project files."
 )
+AGENT_PREFIX = "Tell the agent: "
 GIT_SHIM_DIR = "/usr/bin"  # macOS's git shim calls xcrun, which the run's sandbox blocks
 GIT_NOTE = "In this sandbox `/usr/bin/git` fails; run git as `{git}`."
 GIT_FIXTURE = re.compile(r"\bgit init\b")
@@ -86,6 +88,8 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
         shutil.copytree(repo / "evals" / "fixtures", fixtures, ignore=IGNORE)
     else:
         fixtures.mkdir(parents=True)
+    notes = (NON_INTERACTIVE, GIT_NOTE, AGENT_NOTE, REFS_NOTE, AGENT_PREFIX + REFS_NOTE)
+    (plugin / "_kb" / "prompt-notes.txt").write_text("".join(n + "\n" for n in notes), encoding="utf-8")
 
     claude_md = (claude / "CLAUDE.md").read_text(encoding="utf-8") if staging == "kb" else ""
     suites = ("triggers", "effects", "workflows") if staging == "kb" else ("effects", "workflows")
@@ -119,7 +123,7 @@ def working_git(path: Optional[str] = None) -> Optional[str]:
     return None
 
 
-def _transform_body(case: Case, staging: str, command_form: str, where: str = "") -> str:
+def _transform_body(case: Case, staging: str, command_form: str, where: str) -> str:
     body = case.body
     if not (case.suite == "workflows" or case.kind == "effect"):
         return body
@@ -130,8 +134,8 @@ def _transform_body(case: Case, staging: str, command_form: str, where: str = ""
     elif command_form == "skill":
         body = COMMAND_DIRECTIVE.sub(r"Use the kb:\1 command to: ", body, count=1)
     # A dispatched agent does not see the session's system prompt, so the note goes in the task.
-    if staging == "kb" and where and AGENT_DIRECTIVE.search(case.body):
-        body += "\n\nTell the agent: " + REFS_NOTE.format(where=where)
+    if staging == "kb" and AGENT_DIRECTIVE.search(case.body):
+        body += "\n\n" + AGENT_PREFIX + REFS_NOTE.format(where=where)
     # The CLI builds the run's PATH itself, so git cases name a working git in both arms' prompts.
     git = working_git() if GIT_FIXTURE.search(case.fixture or "") else None
     if git:
@@ -140,7 +144,7 @@ def _transform_body(case: Case, staging: str, command_form: str, where: str = ""
 
 
 def _write_prompt(
-    case: Case, dest: Path, staging: str, command_form: str, system, where: str = ""
+    case: Case, dest: Path, staging: str, command_form: str, system, where: str
 ) -> None:
     text = (case.path / "prompt.md").read_text(encoding="utf-8")
     match = FRONTMATTER.match(text)
