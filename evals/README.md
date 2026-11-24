@@ -566,7 +566,38 @@ Sonnet and $554 Opus, $878 in all, inside the 2,000 USD authorized for this base
 `baseline` had spent $661.44 before the run, so every paid command passes `CAP=2661.44`.
 
 **Spend.** Sonnet half, first pass: $325.44 (the purpose went from $661.44 to $986.88), against
-the $325 estimate; 2026-11-24, Claude Code 2.1.331.
+the $325 estimate; 2026-11-24, Claude Code 2.1.331. Two repair rounds added $10.16, so the Sonnet
+half cost $335.60.
+
+**Cases that failed in both arms (Sonnet).** After the first pass, 14 effect cases scored below
+2/3 in both arms. Each was judged from its stored run outputs by checks A2 to A4. Three had a case
+fault and were fixed in their own directories, then rerun (two rounds, the limit):
+
+| Case | Fault | Fix | Sonnet after (kb, vanilla) |
+|---|---|---|---|
+| code-agent-meta-patterns--effect-trim-claudemd | A4: the grader requires each command's healthy output line, and the input never gave one for `make dev` | the input states the line | 1.00, 0.67 |
+| j-data--effect-late-events-incremental | A4: "3 days back" had two readings (three daily partitions, or a 3-day interval) | the claim accepts both and still fails a one-day or two-partition re-read | 0.67, 0.00 |
+| j-cloud--effect-large-upload-path | A3: the claim required a 1-hour expiry on every part URL, which the reference does not state; runs that re-sign part URLs on demand failed it | the claim asks that no URL can expire while an upload still needs it | 1.00, 1.00 |
+
+The other eleven are dead and valid on Sonnet: the case is sound and both arms failed it. They stay
+as they are.
+
+| Case | What the runs did |
+|---|---|
+| business-analyst--effect-tracking-reset | every failing plan starts with 20 to 30 events against the reference's 10 to 15; one kb run read the rule and overrode it |
+| code-quality--effect-marker-audit | the skill loaded in 0 of 3 kb runs, and every run in both arms called the login shortcut sanctioned (`tasks/kb-asset-defects-from-eval-audit.md`) |
+| code-review-patterns--effect-receiving-comments | all 6 runs asked about the unclear comment but implemented a clear one first, including the kb run that loaded the skill |
+| dependency-upgrade--effect-multi-major-plan | all 6 plans upgrade jest before express and mongoose; the skill loaded in all 3 kb runs |
+| j-devops--effect-latency-api-resources | failing runs set the memory limit equal to the request; no kb run read the reference |
+| j-system-design--effect-tenant-isolation | failing runs gave each HIPAA tenant a database on a shared cluster; one kb run read the infra-per-tenant rule and rejected it |
+| language-testing-patterns--effect-coverage-gate-config | every setting right but the threshold (kb 90 three times; vanilla 55, 90, 60); the skill loaded in 0 of 3 kb runs |
+| skill-audit--effect-judgment-pass | one kb run named two next changes, one counted by hand; vanilla has no checker to run |
+| skill-lookup-discipline--effect-feature-order | the skill loaded in 0 of 3 kb runs and every kb list put test-driven-development first |
+| test-writer--effect-speed-regression-test | runs took 15 to 21 samples and compared minimums or allowed 25%; the agent never read the reference |
+| using-git-worktrees--effect-land-uncommitted-work | 4 of 6 runs stopped after 3 turns with no file written; Opus passed this case 6 of 6 on 2026-11-16 |
+
+Which claim failed is inferred from the graded file each result stores; results do not keep the
+judge's reasons.
 
 **Results.** To fill.
 

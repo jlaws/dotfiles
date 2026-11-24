@@ -17,7 +17,7 @@ Always write clean, readable code and use meaningful variable names. Remember to
 ## Commands
 - Run tests: pytest
 - Lint: ruff check .
-- Start dev server: make dev
+- Start dev server: make dev (ready when it prints `Uvicorn running on http://127.0.0.1:8000`)
 
 ## Architecture
 Invoices are immutable once finalized; corrections are new credit-note rows, never edits (an audit requirement). The `ledger/` package is the only code allowed to write to the `entries` table.

@@ -11,7 +11,9 @@ here, so the fix can come with an eval case that fails before it.
   `git commit` commits them too. It should say to commit only `.gitignore`, or to use
   `.git/info/exclude`. Seen in using-git-worktrees--effect-isolated-from-origin.
 - `code-quality` loaded in none of the stored kb runs of code-quality--effect-marker-audit (a
-  review task its description should catch). The case is sound; the description's reach is the
+  review task its description should catch), on 2026-11-16 and again in the 2026-12 Sonnet
+  baseline (0 of 3). Every kb run then called the login shortcut sanctioned, which the skill's
+  "Never a security control" line forbids. The case is sound; the description's reach is the
   question.
 - `dependency-upgrade` states an upgrade order (SKILL.md:12). In the stored kb runs of
   dependency-upgrade--effect-multi-major-plan the skill loaded and the plan still put jest before
