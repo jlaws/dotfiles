@@ -1,4 +1,5 @@
 ---
+description: "a user who just edited and renamed several knowledge-base assets wants the whole tree checked for conformance; .claude/commands/j-skill-audit.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

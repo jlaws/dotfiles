@@ -2148,7 +2148,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertEqual(got, agent_reference_names(agent))
 
     def test_consult_cases_measure_reference_reads(self):
-        """Each consult case carries a read-refs grader on its agents' reference directories."""
+        """Each consult case carries a read-refs grader on its agents' reference directories.
+
+        A reference-grounded case (its description names one reference file) is graded on that
+        file's directory alone, so a read elsewhere does not count as reaching it.
+        """
         cases_root = REPO / "evals" / "cases" / "effects"
         for command, agents in CONSULT_AGENTS.items():
             dirs = {name.split("/")[0] for a in agents for name in agent_reference_names(a)}
@@ -2159,8 +2163,21 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 with self.subTest(case=case.name):
                     grader = (case / "graders" / "read-refs.md").read_text(encoding="utf-8")
                     self.assertIn("tool: Read", grader)
-                    for directory in dirs:
-                        self.assertIn(directory, grader)
+                    prompt = (case / "prompt.md").read_text(encoding="utf-8")
+                    described = re.search(r"^description:.*$", prompt, re.M)
+                    line = described.group(0) if described else ""
+                    if ".claude/references/" not in line:
+                        for directory in dirs:
+                            self.assertIn(directory, grader, "read-refs omits an agent directory")
+                        continue
+                    grounded = re.search(r"; \.claude/references/([\w-]+)/[\w.-]+; ", line)
+                    if grounded is None:
+                        self.fail(f"unreadable reference path in: {line}")
+                    own = grounded.group(1)
+                    self.assertIn(own, dirs, "the named reference is outside the agents' directories")
+                    self.assertIn(f"/{own}/", grader, "read-refs omits the named reference's directory")
+                    for other in dirs - {own}:
+                        self.assertNotIn(other, grader, "a grounded case grades one directory alone")
 
 
 if __name__ == "__main__":

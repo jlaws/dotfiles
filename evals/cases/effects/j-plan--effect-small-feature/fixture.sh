@@ -9,3 +9,4 @@ git init -q --bare .remote.git
 git remote add origin ./.remote.git
 git push -q origin main
 printf "%s\n" .remote.git >> .git/info/exclude
+printf "%s\n" plans/ >> .git/info/exclude

@@ -1,4 +1,5 @@
 ---
+description: "a user wants markdown project docs, a README with install and usage, not an HTML explainer; .claude/commands/j-explain.md; near: j-docs"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

@@ -1,4 +1,5 @@
 ---
+description: "a user pastes an AI research newsletter and wants its links extracted, categorized, and summarized; .claude/commands/j-email-analysis.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

@@ -3,6 +3,7 @@ tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120
 allowed_tools: [Skill, Read, Glob, Grep]
+description: "a user reports a test that started failing after a merge and asks for the cause; .claude/commands/j-debug.md; should"
 ---
 
 Our test_checkout_total started failing after yesterday's merge:

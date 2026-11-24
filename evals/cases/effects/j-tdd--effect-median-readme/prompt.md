@@ -1,4 +1,5 @@
 ---
+description: "write tests first, confirm they fail for the missing behavior and not an import error, implement, verify the full suite, update docs, and commit; .claude/commands/j-tdd.md; hard because a test file importing a function that does not exist yet fails with ImportError, which a model takes as the red run"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

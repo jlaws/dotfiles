@@ -1,4 +1,5 @@
 ---
+description: "a user wants a folder of per-newsletter reports merged into one weekly digest; .claude/commands/j-email-consolidate.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

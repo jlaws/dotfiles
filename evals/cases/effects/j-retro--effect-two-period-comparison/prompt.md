@@ -1,4 +1,5 @@
 ---
+description: "compare the window with the previous period of the same length using numbers taken from git, single-person, with churn as potential instability; .claude/commands/j-retro.md; hard because an unmerged branch has commits dated inside the window and a merge commit carries no numstat, so estimated or all-branch counts come out wrong"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

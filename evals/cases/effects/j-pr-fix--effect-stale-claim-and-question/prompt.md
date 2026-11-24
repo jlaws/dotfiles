@@ -1,4 +1,5 @@
 ---
+description: "replies state what was observed, a claim the code contradicts gets no code change, a question gets an answer, and a fix reply cites its commit; .claude/commands/j-pr-fix.md; hard because a blocking comment says a passing test fails, and a model tends to reply fixed rather than report the passing run"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

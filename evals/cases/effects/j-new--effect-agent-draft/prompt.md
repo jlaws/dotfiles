@@ -1,4 +1,5 @@
 ---
+description: "an agent draft gets least-privilege tools, a floating model alias or inherit, no memory key, a what-and-when description, and a short role-statement body; .claude/commands/j-new.md; hard because agent drafts habitually grant Write and Bash, pin a dated model ID, and inline the whole methodology"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

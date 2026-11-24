@@ -1,4 +1,5 @@
 ---
+description: "a skill draft takes a valid non-reserved name, a triggering-conditions-only description, no model key, and no rationalization tables or all-caps rules; .claude/commands/j-new.md; hard because the requested name contains the reserved word claude, and skill descriptions habitually summarize the workflow"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

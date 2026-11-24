@@ -1,4 +1,5 @@
 ---
+description: "a user wants a NeurIPS submission-readiness check of a LaTeX draft; .claude/commands/j-paper.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

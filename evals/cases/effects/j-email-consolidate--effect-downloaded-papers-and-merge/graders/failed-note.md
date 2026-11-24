@@ -1,5 +1,6 @@
 ---
 type: regex
-pattern: 'needs manual download:\s*(?:failed:\s*)?403'
+pattern: '^(?=[^\n]*needs manual download)[^\n]*\b403\b'
+flags: mi
 target: { source: file, path: digest.md }
 ---

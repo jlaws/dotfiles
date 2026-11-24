@@ -1,4 +1,5 @@
 ---
+description: "skip links in the embedded seen-links header, drop unsubscribe and view-in-browser links, and keep click-tracking redirectors verbatim; .claude/commands/j-email-analysis.md; hard because the redirector looks like tracking a model would strip, while the seen links look like ordinary content to keep"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

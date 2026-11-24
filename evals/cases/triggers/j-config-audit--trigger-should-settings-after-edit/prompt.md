@@ -1,4 +1,5 @@
 ---
+description: "a user who just loosened agent settings wants them checked for leaked keys, broad permissions, and injection risks; .claude/commands/j-config-audit.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

@@ -1,4 +1,5 @@
 ---
+description: "for partial config, strip restated global guidance, narrow over-broad allow entries read as untrusted input, and record what changed and why; .claude/commands/j-init.md; hard because the existing wildcard grants and working-style lines look like choices to preserve out of deference"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

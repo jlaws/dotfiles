@@ -1,4 +1,5 @@
 ---
+description: "a user wants one newsletter email processed into its own report, not reports merged; .claude/commands/j-email-consolidate.md; near: j-email-analysis"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

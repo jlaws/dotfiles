@@ -1,4 +1,5 @@
 ---
+description: "write repo-specific CLAUDE.md, AGENTS.md, and GEMINI.md, an exact-invocation allow list, and no Codex or Gemini project settings, each omission noted with its reason; .claude/commands/j-init.md; hard because a scaffold habitually fills agent files with generic assistant advice, grants a python3 wildcard, and writes every tool's config file"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

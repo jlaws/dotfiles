@@ -1,4 +1,5 @@
 ---
+description: "threat-model the design per STRIDE with an impact x likelihood score per threat and a compliance mapping of the mitigations; .claude/commands/j-audit.md; hard because the body is HMAC-signed, so the design reads as authenticated and the replay of a validly signed event is easy to miss"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

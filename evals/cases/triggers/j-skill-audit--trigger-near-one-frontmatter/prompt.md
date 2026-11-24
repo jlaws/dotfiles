@@ -1,4 +1,5 @@
 ---
+description: "a quick check of one pasted frontmatter block, answered by inspecting it directly; .claude/commands/j-skill-audit.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

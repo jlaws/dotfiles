@@ -1,4 +1,5 @@
 ---
+description: "sort session issues into enforcement gaps for existing rules, missing durable patterns, and stale rules, without codifying one-off preferences; .claude/commands/j-review-claudemd.md; hard because the violated unittest rule tempts a new rule instead of an enforcement gap, and the user's one-off rename reads like a preference to record"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

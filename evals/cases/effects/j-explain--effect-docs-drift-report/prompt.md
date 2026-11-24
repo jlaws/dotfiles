@@ -1,4 +1,5 @@
 ---
+description: "a findings-first information report, every statement labeled data or inference, self-contained, with an export button; .claude/commands/j-explain.md; hard because a report habitually opens with background on the tool, and the evidence-or-inference split is easy to blur when the rejection is read from code"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
