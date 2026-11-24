@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import ClassVar
 
 from evals.kbeval import cases as kcases
 from evals.kbeval import headroom as kheadroom
@@ -1160,6 +1161,32 @@ class OrchestrateTests(RunnerCase):
         self.assertTrue(vanilla)
         self.assertEqual({c[c.index("--runs") + 1] for c in vanilla}, {"1"})
 
+    def test_baseline_cap_is_the_purpose_remainder_at_each_step(self):
+        def spend(*args, **kwargs):
+            kledger.append({"period": self.budget["period"], "purpose": "baseline", "costUsd": 1.0})
+            return 0
+
+        kledger.append({"period": self.budget["period"], "purpose": "other", "costUsd": 7.0})
+        with mock.patch.object(korch.runner, "run", side_effect=spend) as run:
+            self.assertEqual(korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=50.0), 0)
+        self.assertEqual([c.kwargs["cap_limit"] for c in run.call_args_list], [50.0, 49.0, 48.0])
+
+    def test_baseline_stops_with_two_when_the_cap_is_spent(self):
+        kledger.append({"period": self.budget["period"], "purpose": "baseline", "costUsd": 5.0})
+        cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=0.1), 0, ""))
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            status = korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0, cli=cli)
+        self.assertEqual(status, 2)
+        self.assertEqual(cli.calls, [])
+        self.assertIn("baseline: purpose cap reached", out.getvalue())
+
+    def test_baseline_without_cap_passes_no_limit(self):
+        with mock.patch.object(korch.runner, "run", return_value=0) as run:
+            korch.baseline("claude-sonnet-5-5", vanilla_models=[])
+        self.assertTrue(run.called)
+        self.assertTrue(all(c.kwargs.get("cap_limit") is None for c in run.call_args_list))
+
 
 # --- summary and compare ------------------------------------------------------------------------
 
@@ -2118,6 +2145,30 @@ class OrchestratePlanTests(OrchestrateTests):
 
 
 class EntryPointTests(OrchestrateTests):
+    RUN_ARGS: ClassVar[list] = [
+        "run", "--suite", "effects", "--staging", "kb", "--plugin", "/p", "--model", "claude-opus-5-5",
+        "--purpose", "fanout-x",
+    ]
+
+    def test_run_cap_is_the_purpose_remainder(self):
+        kledger.append({"period": self.budget["period"], "purpose": "fanout-x", "costUsd": 2.0})
+        kledger.append({"period": self.budget["period"], "purpose": "other", "costUsd": 1.0})
+        with mock.patch.object(kmain.runner, "run", return_value=0) as run:
+            self.assertEqual(kmain.main([*self.RUN_ARGS, "--cap-usd", "5"]), 0)
+        self.assertEqual(run.call_args.kwargs["cap_limit"], 3.0)
+
+    def test_run_cap_must_be_a_positive_finite_amount(self):
+        for value in ("nan", "inf", "0", "-3"):
+            with self.subTest(value=value), mock.patch.object(kmain.runner, "run", return_value=0) as run:
+                with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                    kmain.main([*self.RUN_ARGS, "--cap-usd", value])
+                run.assert_not_called()
+
+    def test_run_without_cap_passes_no_limit(self):
+        with mock.patch.object(kmain.runner, "run", return_value=0) as run:
+            self.assertEqual(kmain.main(self.RUN_ARGS), 0)
+        self.assertIsNone(run.call_args.kwargs.get("cap_limit"))
+
     def test_headroom_prints_the_tail_and_exits_zero(self):
         from evals.kbeval import __main__ as kmain
 

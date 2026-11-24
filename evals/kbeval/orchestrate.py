@@ -38,8 +38,14 @@ def _capped(purpose: str, cap_usd: float) -> float:
     return cap_usd - ledger.spent(budget["period"], purpose=purpose)
 
 
-def _sequence(steps: Iterable[tuple], cli: Optional[runner.Cli]) -> int:
+def _sequence(steps: Iterable[tuple], cli: Optional[runner.Cli], cap_usd: Optional[float] = None) -> int:
     for suite, staging, model, runs, purpose, assets, jobs, options in steps:
+        if cap_usd is not None:
+            left = _capped(purpose, cap_usd)
+            if left <= 0:
+                print(f"{purpose}: purpose cap reached")
+                return 2
+            options = {**options, "cap_limit": left}
         status = runner.run(suite, staging, model, runs, purpose, assets, jobs, cli, **options)
         if status != 0:
             return status
@@ -109,6 +115,7 @@ def baseline(
     exclude_tags: frozenset = frozenset(),
     jobs: int = 8,
     cli: Optional[runner.Cli] = None,
+    cap_usd: Optional[float] = None,
 ) -> int:
     """Run the full baseline for one model: kb at three runs per case, vanilla as configured."""
     kb = _stage("kb", exclude_tags)
@@ -125,7 +132,7 @@ def baseline(
             ("effects", "vanilla", model, vanilla_runs, "baseline", assets, jobs, {"plugin": vanilla, "state": state}),
             ("workflows", "vanilla", model, vanilla_runs, "baseline", [], jobs, {"plugin": vanilla, "state": state}),
         ]  # fmt: skip
-    return _sequence(steps, cli)
+    return _sequence(steps, cli, cap_usd)
 
 
 def spend(out: Optional[Path] = None) -> float:

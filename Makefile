@@ -56,6 +56,7 @@ eval-baseline:
 	$(if $(MODEL),,$(error MODEL is required))
 	KBEVAL_ALLOW_PAID=1 python3 -m evals.kbeval baseline --model $(MODEL) --jobs $(J) \
 		--vanilla-runs $(VANILLA_RUNS) --vanilla-models $(VANILLA_MODELS) \
+		$(if $(CAP),--cap-usd $(CAP)) \
 		$(foreach tag,$(EXCLUDE_TAGS),--exclude-tag $(tag))
 
 eval-spend:

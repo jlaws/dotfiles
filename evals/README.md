@@ -28,6 +28,11 @@ python3 -m evals.kbeval.hillclimb adopt --asset A... --before P... --after P... 
 
 `python3 -m evals.kbeval run --suite ... --staging ... --plugin ...` runs one suite for one staging
 and model; the make targets call the plans built on it. Add `--keep-temp` to keep each run's trace.
+`run --cap-usd <usd>` and `make eval-baseline CAP=<usd>` cap a purpose: no new batch starts once the
+purpose's total spend in the ledger reaches the amount, and `baseline` exits 2 with
+`baseline: purpose cap reached`. The cap stops new runs; runs already in flight finish, so spend can
+pass it by up to the cost of `-j` runs. It holds for one process per purpose at a time: two runs
+started together on one purpose each get the full remainder.
 `python3 -m evals.kbeval.determination triggers --purpose <label> --asset <names> [--split tune|held]`
 prints `TRIGGER <case> <kind> <model> <fired>/<runs>` for every trigger case run under that purpose,
 where `<fired>` counts runs in which the skill was called, for every kind. `tune` keeps every case whose slug does not start `held-`, unprefixed ones included;
