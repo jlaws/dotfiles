@@ -324,6 +324,9 @@ Absolute scores differ from a real session in these ways; comparisons within the
   rule), which biases against kb. The builder's git line (Prompts) names a working git in both
   arms.
 - The seed adds `__pycache__/` to `.git/info/exclude`, so running Python leaves `git status` clean.
+- The sandbox refuses writes under `.git/worktrees` and to `.git/config` ("Operation not
+  permitted"), so no run can create a git worktree. `git worktree add -b` creates the branch before
+  it fails, which is what using-git-worktrees--effect-isolated-from-origin grades.
 - The child session inherits `ANTHROPIC_API_KEY`, so a run granted Bash could print it. The
   sandbox blocks network, and the key scan covers results, logs, and kept traces; traces of runs
   without `--keep-temp` are deleted by the CLI unscanned.
@@ -748,6 +751,38 @@ void the held-out comparison the next baseline makes.
 
 | Asset | Cases audited | A1-A4 and A6 verdicts | Headroom class | New case |
 |---|---|---|---|---|
+| analysis-output-patterns | 4 | effect-ab-readout: hidden-criterion, fixed; effect-latency-migration: hidden-criterion, fixed | effect-ab-readout saturated; effect-latency-migration saturated | analysis-output-patterns--effect-launch-readiness-markers |
+| code-agent-meta-patterns | 7 | effect-memory-agent: ambiguous, fixed | discriminating | none |
+| code-migration | 7 | effect-flask-py27-plan: hidden-criterion, fixed | effect-flask-py27-plan saturated; effect-py-to-js-port saturated | code-migration--effect-plugin-port-order |
+| code-quality | 4 | effect-marker-audit: broken-fixture, fixed | effect-marker-audit dead; effect-simplified-marker saturated | code-quality--effect-unvarying-config |
+| code-review-patterns | 7 | effect-receiving-comments: ambiguous, fixed | effect-invoice-diff saturated; effect-receiving-comments saturated | code-review-patterns--effect-exposed-latent-bug |
+| config-security-audit | 4 | all pass | discriminating | none |
+| debugging-methodology | 7 | effect-unreproducible-502: hidden-criterion, fixed | effect-unreproducible-502 dead | none |
+| dependency-upgrade | 7 | effect-multi-major-plan: hidden-criterion, fixed | effect-eresolve-conflict saturated; effect-multi-major-plan dead | dependency-upgrade--effect-retire-override |
+| design-first | 7 | effect-todo-delete-design: hidden-criterion, fixed | effect-percentile-design saturated | none |
+| dispatching-parallel-agents | 4 | all pass | effect-overlapping-edits saturated; effect-three-lenses saturated | dispatching-parallel-agents--effect-uncommitted-review |
+| documentation-validation | 7 | all pass | effect-add-limit-flag saturated; effect-rename-input-flag saturated | documentation-validation--effect-default-output-change |
+| executing-plans | 4 | effect-raw-evidence-report: ambiguous, fixed | effect-raw-evidence-report saturated | none |
+| finishing-branch | 7 | effect-merge-locally: generic, fixed; effect-stale-docs-gate: generic, fixed | effect-merge-locally saturated; effect-stale-docs-gate saturated | finishing-branch--effect-semantic-merge-break |
+| github-issue-resolution | 4 | all pass | effect-triage-and-test-first saturated; effect-wrong-symptom-issue saturated | github-issue-resolution--effect-bisect-regression |
+| html-report-authoring | 7 | effect-latency-readout: hidden-criterion, fixed | effect-latency-readout kb-below-vanilla | none |
+| language-testing-patterns | 4 | effect-js-complete-suite: hidden-criterion, fixed | effect-js-complete-suite saturated; effect-py-mocked-client saturated | language-testing-patterns--effect-coverage-gate-config |
+| output-completeness | 4 | all pass | effect-eight-endpoints saturated; effect-full-test-suite saturated | output-completeness--effect-alert-runbook |
+| post-ship-doc-sync | 4 | all pass | effect-flag-rename-sync saturated; effect-preview-only saturated | post-ship-doc-sync--effect-adr-contradicted |
+| pr-comment-resolution | 4 | effect-scope-guard-and-replies: broken-fixture and hidden-criterion, fixed | effect-unclear-comment saturated | none |
+| project-scaffolding | 4 | effect-new-python-cli: hidden-criterion, fixed | discriminating | none |
+| refactoring-and-debt | 7 | all pass | effect-rename-and-fix saturated; effect-untested-code saturated | refactoring-and-debt--effect-divergent-duplicates |
+| session-handoff | 4 | all pass | effect-resume-stale saturated | none |
+| skill-audit | 4 | all pass | discriminating | none |
+| skill-lookup-discipline | 4 | effect-bugfix-order: hidden-criterion, fixed; effect-feature-order: ambiguous, fixed | effect-feature-order dead | none |
+| subagent-driven-development | 7 | all pass | effect-dispatch-and-review saturated; effect-prescan-contradiction saturated | subagent-driven-development--effect-scope-creep-review |
+| subagent-report-contract | 4 | effect-clean-surface: ambiguous, fixed | effect-clean-surface saturated; effect-defect-report saturated | subagent-report-contract--effect-compact-but-complete |
+| test-driven-development | 4 | effect-empty-mean: generic, fixed | effect-empty-mean saturated; effect-proven-guard saturated | test-driven-development--effect-substring-assertion |
+| using-git-worktrees | 4 | effect-isolated-from-origin: hidden-criterion and broken-fixture, fixed | discriminating | none |
+| verification-before-completion | 4 | effect-mocked-green: hidden-criterion and ambiguous, fixed | effect-mocked-green dead; effect-delegated-claim saturated | verification-before-completion--effect-gitignored-usage |
+| writing-plans | 7 | all pass | effect-spec-to-plan saturated | none |
+| writing-skills | 4 | effect-evidence-skill: hidden-criterion, fixed; effect-fix-broken-skill: hidden-criterion, fixed | effect-evidence-skill saturated | none |
+| held-out triggers | 24 | checked by A2, A4, and A6: all pass; each got its `description` line and nothing else | not applicable | none |
 
 ## Fan-out experiment
 
