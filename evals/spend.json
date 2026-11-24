@@ -2,11 +2,13 @@
   "period": "initial-baseline-2026-11",
   "totals": {
     "byModel": {
-      "claude-opus-5-5": 608.7009,
+      "claude-opus-5-5": 611.0928,
       "claude-sonnet-5-5": 466.3751
     },
     "byPurpose": {
       "baseline": 661.4377,
+      "fanout-check-a": 0.8126,
+      "fanout-check-c": 1.5793,
       "fix-asset-defects": 89.7104,
       "kb-harvest-pr1": 33.7511,
       "pilot": 3.4145,
@@ -28,6 +30,6 @@
       "trigger-recall-r2": 12.2754,
       "trigger-recall-r3": 7.3696
     },
-    "totalUsd": 1075.076
+    "totalUsd": 1077.4679
   }
 }

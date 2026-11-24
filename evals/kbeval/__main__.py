@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -28,6 +29,17 @@ def _positive(value: str) -> int:
     return number
 
 
+def _usd(value: str) -> float:
+    message = f"expected a positive number of USD such as 25 or 12.50, not {value}"
+    try:
+        number = float(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(message) from None
+    if not math.isfinite(number) or number <= 0:
+        raise argparse.ArgumentTypeError(message)
+    return number
+
+
 def _stage(args: argparse.Namespace) -> int:
     try:
         plugin = kstage.stage(REPO, Path(args.out), args.staging, frozenset(args.exclude_tag))
@@ -48,10 +60,19 @@ def _lint(args: argparse.Namespace) -> int:
 
 
 def _run(args: argparse.Namespace) -> int:
-    return runner.run(
+    cap_limit = None
+    if args.cap_usd is not None:
+        orchestrate.announce_cap(args.purpose, args.cap_usd)
+        cap_limit = orchestrate.cap_left(args.purpose, args.cap_usd)
+        if cap_limit is None:
+            return 2
+    status = runner.run(
         args.suite, args.staging, args.model, args.runs, args.purpose, args.assets, args.jobs,
-        plugin=Path(args.plugin), keep_temp=args.keep_temp,
+        plugin=Path(args.plugin), keep_temp=args.keep_temp, cap_limit=cap_limit,
     )
+    if args.cap_usd is not None:
+        orchestrate.report_cap(args.purpose, args.cap_usd)
+    return status
 
 
 def _pilot(args: argparse.Namespace) -> int:
@@ -64,7 +85,8 @@ def _smoke(args: argparse.Namespace) -> int:
 
 def _baseline(args: argparse.Namespace) -> int:
     return orchestrate.baseline(
-        args.model, args.vanilla_runs, args.vanilla_models, frozenset(args.exclude_tag), args.jobs
+        args.model, args.vanilla_runs, args.vanilla_models, frozenset(args.exclude_tag), args.jobs,
+        cap_usd=args.cap_usd,
     )
 
 
@@ -215,6 +237,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     run.add_argument("--assets", nargs="*", default=[])
     run.add_argument("--jobs", type=_positive, default=8)
     run.add_argument("--keep-temp", action="store_true", help="keep each run's trace")
+    run.add_argument("--cap-usd", type=_usd, help="stop starting runs once the purpose's total spend reaches this; runs in flight can pass it")
     run.set_defaults(func=_run)
 
     pilot = sub.add_parser("pilot", help="run the pilot cases (paid)")
@@ -232,6 +255,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     baseline.add_argument("--vanilla-models", nargs="*", default=list(orchestrate.MODELS))
     baseline.add_argument("--exclude-tag", action="append", default=[])
     baseline.add_argument("--jobs", type=_positive, default=8)
+    baseline.add_argument("--cap-usd", type=_usd, help="stop starting runs once the purpose's total spend reaches this; runs in flight can pass it")
     baseline.set_defaults(func=_baseline)
 
     summarize = sub.add_parser("summarize", help="write evals/baselines/<model>/<suite>.json")

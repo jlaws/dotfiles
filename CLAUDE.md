@@ -34,7 +34,7 @@ make eval-stage      # free: stage kb and vanilla plugins under $TMPDIR
 make eval-lint       # free: lint eval cases; ends "0 problems"
 make eval-pilot      # bills ANTHROPIC_API_KEY: pilot cases
 make eval-smoke ASSETS="..."      # bills ANTHROPIC_API_KEY: one-run smoke for named assets
-make eval-baseline MODEL=...      # bills ANTHROPIC_API_KEY: full baseline for one model
+make eval-baseline MODEL=...      # bills ANTHROPIC_API_KEY: full baseline for one model; CAP=<usd> stops new runs once purpose baseline has spent that
 make eval-compare OLD=... NEW=... # free: compare two baseline summaries
 make eval-spend      # free: snapshot the spend ledger into evals/spend.json; exits 1 over the ceiling
 make eval-headroom   # free: classify effect and workflow cases from evals/baselines/; each suite ends "<n> cases: <s> saturated, <d> dead, <k> kb-below-vanilla, <x> discriminating, <u> unmeasured"
