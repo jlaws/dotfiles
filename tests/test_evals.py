@@ -860,6 +860,28 @@ class RunnerGuardTests(RunnerCase):
         self.assertIn("export ANTHROPIC_API_KEY", err.getvalue())
         self.assertNotIn("judge's family", err.getvalue())
 
+    def test_runner_refuses_a_model_id_the_guard_cannot_parse(self):
+        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
+                   "budget": self.budget, "p95": 5.0}
+        for model in ("fable", "us.anthropic.claude-fable-5-2"):
+            with self.subTest(model=model):
+                cli = FakeCli(lambda args: (result_doc({}), 0, ""))
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    code = krunner.run("effects", "kb", model, 3, "test", ["j-demo"], 8, cli, **options)
+                self.assertNotEqual(code, 0)
+                self.assertEqual(cli.calls, [])
+                self.assertIn(f"model {model} is not a full model id", err.getvalue())
+
+    def test_missing_api_key_message_wins_over_the_model_id_guard(self):
+        cli = FakeCli(lambda args: (result_doc({}), 0, ""))
+        err = io.StringIO()
+        with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": ""}), contextlib.redirect_stderr(err):
+            code = krunner.run("effects", "kb", "fable", 3, "test", ["j-demo"], 8, cli, plugin=self.plugin)
+        self.assertNotEqual(code, 0)
+        self.assertIn("export ANTHROPIC_API_KEY", err.getvalue())
+        self.assertNotIn("not a full model id", err.getvalue())
+
     def test_judge_family_of_an_unprefixed_id_is_the_id(self):
         self.assertEqual(krunner.judge_family("claude-fable-5-3"), "fable")
         self.assertEqual(krunner.judge_family("gpt-5"), "gpt-5")

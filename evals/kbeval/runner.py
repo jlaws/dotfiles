@@ -391,6 +391,9 @@ def run(
     if not os.environ.get("ANTHROPIC_API_KEY"):
         _err("evals bill an API key; export ANTHROPIC_API_KEY")
         return 1
+    if not re.match(r"^claude-[a-z]+-", model):
+        _err(f"model {model} is not a full model id (claude-<family>-...); the judge-family guard cannot read it")
+        return 1
     if judge_family(model) == judge_family(JUDGE_MODEL):
         _err(f"model {model} is in the judge's family ({JUDGE_MODEL}); a run cannot grade itself")
         return 1
