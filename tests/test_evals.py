@@ -1225,6 +1225,21 @@ class OrchestrateTests(RunnerCase):
         self.assertTrue(run.called)
         self.assertTrue(all(c.kwargs.get("cap_limit") is None for c in run.call_args_list))
 
+    def test_baseline_stops_mid_sequence_when_a_step_uses_up_the_cap(self):
+        def spend(*args, **kwargs):
+            kledger.append({"period": self.budget["period"], "purpose": "baseline", "costUsd": 5.0})
+            return 0
+
+        err = io.StringIO()
+        with mock.patch.object(korch.runner, "run", side_effect=spend) as run, contextlib.redirect_stderr(err):
+            status = korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0)
+        self.assertEqual(status, 2)
+        self.assertEqual(run.call_count, 1)
+        self.assertIn(
+            "baseline: purpose cap reached (cap $5.00, spent $5.00); no step started. Raise the cap to continue.",
+            err.getvalue(),
+        )
+
 
 # --- summary and compare ------------------------------------------------------------------------
 
@@ -2228,6 +2243,20 @@ class EntryPointTests(OrchestrateTests):
                 self.assertIn(
                     f"expected a positive number of USD such as 25 or 12.50, not {value}", err.getvalue()
                 )
+
+    BASELINE_ARGS: ClassVar[list] = ["baseline", "--model", "claude-sonnet-5-5"]
+
+    def test_baseline_passes_the_cap_to_the_orchestrator(self):
+        with mock.patch.object(kmain.orchestrate, "baseline", return_value=0) as baseline:
+            self.assertEqual(kmain.main([*self.BASELINE_ARGS, "--cap-usd", "5"]), 0)
+        self.assertEqual(baseline.call_args.kwargs["cap_usd"], 5.0)
+
+    def test_baseline_rejects_a_bad_cap_before_running(self):
+        for value in ("0", "nan"):
+            with self.subTest(value=value), mock.patch.object(kmain.orchestrate, "baseline", return_value=0) as baseline:
+                with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                    kmain.main([*self.BASELINE_ARGS, "--cap-usd", value])
+                baseline.assert_not_called()
 
     def test_run_without_cap_passes_no_limit(self):
         with mock.patch.object(kmain.runner, "run", return_value=0) as run:
