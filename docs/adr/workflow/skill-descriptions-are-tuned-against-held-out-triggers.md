@@ -62,7 +62,7 @@ cases existed.
 | Change the shared `.agents` descriptions | Codex holds them to 64 characters | 2026-11-23 |
 | Add a `when_to_use` field | A second field for the job `description` already does | 2026-11-23 |
 | Tune commands | Commands are typed, not chosen from the listing | 2026-11-23 |
-| Mechanize the neighbour call | This record leaves it to the owner, so the tool prints the neighbour lines and does not decide | 2026-11-23 |
+| Mechanize the neighbour call | The call rests on a kept trace that shows which skill took the request, and counts alone cannot show that. The tool prints the neighbour lines and the owner decides | 2026-11-23 |
 
 ## Enforcement
 - Owner: `evals/README.md` (case-authoring rules, Asset determination)

@@ -37,8 +37,8 @@ make eval-smoke ASSETS="..."      # bills ANTHROPIC_API_KEY: one-run smoke for n
 make eval-baseline MODEL=...      # bills ANTHROPIC_API_KEY: full baseline for one model
 make eval-compare OLD=... NEW=... # free: compare two baseline summaries
 make eval-spend      # free: snapshot the spend ledger into evals/spend.json; exits 1 over the ceiling
-make eval-headroom   # free: classify effect and workflow cases from evals/baselines/; ends "<n> cases: <s> saturated, <d> dead, <k> kb-below-vanilla, <x> discriminating, <u> unmeasured"
-make eval-affected   # free: assets a diff touches and the projected smoke cost; prints the ASSETS list
+make eval-headroom   # free: classify effect and workflow cases from evals/baselines/; each suite ends "<n> cases: <s> saturated, <d> dead, <k> kb-below-vanilla, <x> discriminating, <u> unmeasured"
+make eval-affected   # free: assets a diff touches, as one line for ASSETS=, and the projected smoke cost on stderr
 python3 -m evals.kbeval.hillclimb adopt --asset A... --before P... --after P... --effects P   # free: prints one "ADOPT <asset> <verdict>" line per asset, then any neighbour lines
 python3 -m evals.kbeval summarize # free: check results and write evals/baselines/ (writes nothing if a check fails)
 ```
