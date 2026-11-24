@@ -278,10 +278,13 @@ Near-miss and noauto trigger cases at 1.0 are guards.
 **Defects become cases.** A defect found in a KB asset becomes an eval case that fails before the
 fix.
 
-**Every case states its rule.** An audited case carries a `description` naming the asset rule it
-tests. The audit runs in three groups (skills, then commands, then agents and references), and its
-results table lists the assets done so far; lint enforces the line once the last group is done (see
-Case audit).
+**Every case states its rule.** Every case carries a `description` naming the asset rule it tests,
+in the format Case audit gives for its kind; lint rejects a case without one, a malformed one, and
+one whose asset path does not exist.
+
+**Agents reach their references.** Each agent that indexes a reference directory has an effect case
+that carries a Read grader on that directory and a result claim that can only be met from a named
+reference file. Lint rejects an agent that indexes a directory and has no such reading case.
 
 ## Offline limits
 
@@ -748,12 +751,13 @@ house convention.
 
 **Hardening.** Each asset that `make eval-headroom` lists as `ASSET <asset> no discriminating case`
 gains one new effect case tagged `extended`, written by the hard-case rules above. `j-paper` is
-exempt: its `extended` case has not been measured yet. An asset gains its case when its group is
-audited, so until the last group is done the list still names assets of the groups not yet reached.
+exempt: its `extended` case has not been measured yet. The list is computed from the stored
+baseline, so it keeps naming these assets until a baseline measures the new cases.
 
-**Reference-grounded cases.** Each consult command gains one `extended` case whose answer comes
-from one reference file the command lists, whether or not the command is on the hardening list
-(`j-data` is not; for the others this is the hardening case). Its `description` names that
+**Reference-grounded cases.** Each consult command, and each agent that indexes a reference
+directory, gains one `extended` case whose answer comes from one reference file the asset lists,
+whether or not the asset is on the hardening list (where it is, this is the hardening case).
+`create-pr` indexes no reference and takes a plain hardening case. Its `description` names that
 reference file, its prompt asks for the decision by topic, and its `read-refs` grader names that
 file's directory alone. `read-refs` shows a read somewhere in the directory, not of the named
 file, so it measures reach; the result claim measures whether the reference's rule was applied.

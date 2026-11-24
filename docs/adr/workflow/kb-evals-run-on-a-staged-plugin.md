@@ -67,6 +67,8 @@ older results is refused until that staging is rerun or the older results are mo
 - Owner: `evals/`
 - Pinned by: `tests/test_evals.py`
 - Judge-family guard in `runner.run` and `summary.check`, pinned by `tests/test_evals.py`
+- Every case names the asset rule it tests, and every reference-indexing agent has a
+  reference-grounded case, both checked by `evals/kbeval/cases.py` lint
 
 ## Reversal Conditions
 - Claude Code adds a supported way to evaluate a user config directory.
