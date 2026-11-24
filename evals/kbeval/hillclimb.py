@@ -21,7 +21,7 @@ import sys
 from typing import Dict, List, Optional, Tuple
 
 from evals.kbeval import determination as det
-from evals.kbeval.results import load_cases, regressed
+from evals.kbeval.results import load_cases, paired_scores, regressed
 
 HELD_GAIN, HELD_RUNS = 4, 12
 
@@ -139,11 +139,17 @@ def adopt(
                 if unbased:
                     emit("effects", "BLOCKED", f"no {effects_base} results for {' '.join(unbased)}")
                 else:
-                    bad = regressed(base, data, det.SKIP)
-                    detail = (
-                        f"regressed vs {effects_base}: {' '.join(bad)}" if bad else f"no regression vs {effects_base}"
-                    )
-                    emit("effects", "FAIL" if bad else "PASS", detail)
+                    pairs = len(paired_scores(base, data, det.SKIP))
+                    if not pairs:
+                        emit("effects", "BLOCKED", f"no effect case compared against {effects_base}")
+                    else:
+                        bad = regressed(base, data, det.SKIP)
+                        detail = (
+                            f"regressed vs {effects_base}: {' '.join(bad)}"
+                            if bad
+                            else f"no regression vs {effects_base}"
+                        )
+                        emit("effects", "FAIL" if bad else "PASS", f"{detail} ({pairs} pairs)")
         else:
             emit("effects", "SKIPPED", "a trigger criterion did not pass")
         if "BLOCKED" in statuses:

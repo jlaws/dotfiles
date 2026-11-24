@@ -2707,6 +2707,26 @@ class HillclimbAdoptTests(unittest.TestCase):
         self.assertIn("CRITERION a existing-should BLOCKED existing 2/2 -> 3/6; graded 2 before, 6 after\n", out)
         self.assertIn("ADOPT a blocked\n", out)
 
+    def test_effects_with_no_shared_case_block(self):
+        self._asset(held=(0, 4), effects=False)
+        for model in (OPUS, kdet.SONNET):
+            self._put("baseline", model, "effects", "a", [{
+                "name": "a--effect-old",
+                "graders": [{"name": "design", "type": "llm"}],
+                "arms": {"with": [{"graders": [{"name": "design", "passed": True}]}]},
+            }])
+            self._effects("e", model, [True] * 3)
+        code, out = self._adopt()
+        self.assertEqual(code, 1)
+        self.assertIn("CRITERION a effects BLOCKED no effect case compared against baseline\n", out)
+        self.assertIn("ADOPT a blocked\n", out)
+
+    def test_effects_pass_names_the_pair_count(self):
+        self._asset(held=(0, 4))
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn("CRITERION a effects PASS no regression vs baseline (2 pairs)\n", out)
+
     def test_neighbour_should_with_differing_graded_counts_is_reviewed(self):
         self._asset(held=(0, 4))
         self._trigger("baseline", kdet.SONNET, "n--trigger-should-x", 3, 3)
