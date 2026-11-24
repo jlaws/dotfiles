@@ -30,6 +30,11 @@ prints `TRIGGER <case> <kind> <model> <fired>/<runs>` for every trigger case run
 where `<fired>` counts runs in which the skill was called, for every kind. `tune` keeps every case whose slug does not start `held-`, unprefixed ones included;
 the command exits 1 when nothing matches, and reports skipped partial or key-less batches on stderr.
 
+A run whose model is in the judge's family is refused, so a model of that family cannot be put
+under test without first changing the judge. The family is read from a full model id
+(`claude-<family>-...`); a run with an alias or a provider-prefixed id is refused too, because the
+guard cannot read its family.
+
 `J ?= 8` sets `-j` (concurrent runs). `eval-baseline` also takes `VANILLA_RUNS` (default 3),
 `VANILLA_MODELS` (default both models), and `EXCLUDE_TAGS` (default empty); the kb staging always
 runs three times per case.
@@ -251,11 +256,33 @@ Checked on `2.1.331 (Claude Code)`: every flag the runner passes exists in
 ## Summaries and compare
 
 `python3 -m evals.kbeval summarize [--check]` writes `evals/baselines/<model>/<suite>.json`: the run
-settings, Claude Code version, judge, date, cost, and one line per case with `kbScore`,
-`vanillaScore`, `delta`, `firedRate`, run counts, `errorRuns`, and the distinct error strings.
-Scores use result graders only; `firedRate` is the process-grader pass rate in kb (for a
-near-miss or noauto trigger, 1.0 means the skill did not fire). A case `passed` when `kbScore`, its mean run score,
-is at least 2/3. Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
+settings, Claude Code version, judge, date, cost, `kbDigest` per staging, and one line per case
+with `kbScore`, `vanillaScore`, `delta`, `loadRate`, `behaviorRate`, `cappedRuns`, `censoredRuns`,
+run counts, `errorRuns`, and the distinct error strings. Scores use result graders only. A case
+`passed` when `kbScore`, its mean run score, is at least 2/3.
+
+Row fields from process graders and run errors:
+- `loadRate`: the share of kb runs in which the asset's own Skill or Agent grader shows it loaded.
+- `behaviorRate`: the pass rate of the other process graders.
+- `cappedRuns`: runs that hit the turn cap or the timeout. Capped runs are still scored.
+- `censoredRuns`: capped kb runs in which the asset had not loaded.
+
+Which result is read:
+- For one case the newest result by `startedAt` wins. On a tie an exact-case file beats the asset
+  batch, and an `@` rerun beats both.
+- Each accepted result gets a `<label>.meta.json` sidecar holding `kbDigest`. The digest covers the
+  staged skills, commands, agents, references, fixtures, `.claude/CLAUDE.md`, and
+  `evals/harness.json`. `summarize` refuses results that mix KB digests within one staging; results
+  with no sidecar count as one digest, `unrecorded`. The check compares results with each other,
+  not with the KB staged now. The 2026-11-16 baselines predate sidecars, so their `kbDigest` reads
+  `unrecorded` and their KB version is not verified. A partial rerun over older results is refused:
+  rerun that staging or move the older results aside.
+- Results for a case that no longer exists under `evals/cases/` are skipped. `summarize` names them,
+  and any key-less or partial file it skipped, on stderr.
+- Version, judge, date, and cost come only from documents that supply a winning case.
+- A summary whose model is in the judge's family is refused.
+
+Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
 It reads only results the runner accepted (those with a `.key`), and it checks before writing: if
 any case is missing runs or still holds an API error, it writes nothing and exits 1 (`--check` is
 accepted and changes nothing). It also refuses to write text holding an `sk-ant-` key, a local
@@ -360,21 +387,24 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
 
 **Reading the numbers**
 - Triggers: near-miss and noauto cases sit at the ceiling, so the all-triggers mean overstates
-  recall. The should-fire rows are the trigger signal: descriptions miss about 28% (Opus) and 40%
-  (Sonnet) of requests they should catch.
-- Effects: the gain is small, and it comes from cases where the asset fired. Where the kb arm's
-  process grader fired at least once, delta is +0.075 (Opus, 124 cases) and +0.073 (Sonnet, 114);
-  where it never fired, about -0.01 (38 and 48 cases), which is noise. The kb arm is the whole
-  plugin, not only the named asset. `firedRate` averages every process
-  grader, behavioral ones included, so this split is not by whether the asset loaded; see
-  `tasks/kbeval-summarize-stale-results.md`.
+  recall. The should-fire rows are the trigger signal. Recall is 72.2% to 72.8% on Opus (130 of 180
+  runs loaded the skill; the lower bound counts the one censored run as a miss, the upper as a fire)
+  and 60.0% on Sonnet (108 of 180, no censored run), so descriptions miss about 28% and 40% of
+  requests they should catch.
+- Effects: the gain is small, and it comes from cases where the asset loaded. Of 162 cases, 95
+  carry a load grader for their own asset. Where `loadRate` is above 0, delta is +0.093 (Opus, 69
+  cases) and +0.090 (Sonnet, 59); where it is 0, delta is +0.000 (26 cases) and -0.019 (36), which
+  is noise. The 67 cases with no load grader (`loadRate` null) average +0.036 and +0.044. The kb arm
+  is the whole plugin, not only the named asset.
 - Effects headroom is thin: 130 of 162 cases have delta 0 on both models, and about 120 score 1.0 in
   both arms. The gain rests on about 25 cases. Grouping each asset's cases in the bootstrap leaves
   the delta CI above zero: [+0.02, +0.09] Opus, [+0.02, +0.08] Sonnet.
 - Workflows show no headroom: plain Claude also completes all four, and n=4 gives no usable CI.
-- Errors: 26 Opus and 20 Sonnet trigger runs hit the 6-turn cap or the 120 s timeout, and one Opus
-  effect run hit 900 s; each case's `errorRuns` counts them. Capped runs are still scored: a run
-  that fired the skill before the cap counts as fired.
+- Capped runs: 26 Opus and 20 Sonnet trigger runs hit the 6-turn cap or the 120 s timeout
+  (should-fire 24 and 18, near-miss 2 and 2), and one Opus effect run hit 900 s; each case's
+  `cappedRuns` counts them. Capped runs are still scored: a run that loaded the skill before the
+  cap counts as fired. Censored runs, capped before the skill loaded, are 3 on Opus (one
+  should-fire, two near-miss) and 2 on Sonnet (both near-miss); `censoredRuns` counts them.
 - Five effect cases change pass state from Sonnet to Opus (four to pass, one to fail). With three
   runs and a 2/3 pass line, flips this few are within run-to-run noise.
 
@@ -384,7 +414,7 @@ Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63
 case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`, `triggers`)
 reads the raw per-run results under `~/.local/state/dotfiles-kbeval/results/<purpose>/kb/`
 (machine-local, so it reruns only where those results exist), keeping only batches
-with a `.key` and `partial` false, as `summary._load` does. Its checks are `html-lead`,
+with a `.key` and `partial` false, as `results.load_cases` does. Its checks are `html-lead`,
 `writing-plans-risks`, `research-claim-c`, `j-explain-self-contained`, `arch-design`,
 `no-regression`, and `library-use`; `figures` produced the counts below. Each llm-grader record
 stores the graded file in `evidence`, so a failure can be read, not only counted.
@@ -477,8 +507,7 @@ Their cases gain a `read-refs` process grader (`tool_used` on `Read` of `<dir>` 
 - architecture-specialist `not-retried` rejected correct non-retry rows (Sonnet runs 0 and 1); its
   claim moves into the `design` llm grader.
 - Case defects and harness gaps that need more than a grader fix:
-  [kbeval-case-defects](../tasks/kbeval-case-defects.md),
-  [kbeval-summarize-stale-results](../tasks/kbeval-summarize-stale-results.md).
+  [kbeval-case-defects](../tasks/kbeval-case-defects.md).
 
 ### Post-fix rerun
 

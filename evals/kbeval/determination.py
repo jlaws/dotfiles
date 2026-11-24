@@ -16,8 +16,6 @@ Usage: python3 -m evals.kbeval.determination <subcommand>
 from __future__ import annotations
 
 import argparse
-import glob
-import json
 import re
 import sys
 from pathlib import Path
@@ -26,6 +24,7 @@ from typing import Dict, List, Optional, Tuple
 from evals.kbeval import cases as kcases
 from evals.kbeval import ledger, runner
 from evals.kbeval.orchestrate import state_root
+from evals.kbeval.results import evidence, grader, load_cases, loaded, own_load_grader, passed, runs
 
 REPO = Path(__file__).resolve().parents[2]
 RESULTS = state_root() / "results"
@@ -50,45 +49,9 @@ def models(asset: str) -> Tuple[str, ...]:
 
 
 def load(purpose: str, model: str, asset: str, suite: str = "effects") -> Optional[Cases]:
-    """Return {case: entry} for one asset batch, reruns applied; None when no complete result exists."""
-    root = RESULTS / purpose / "kb" / model / suite
-    paths = [root / f"{asset}.json", *sorted(root.glob(f"{asset}@*.json"))]
-    found = False
-    out: Cases = {}
-    for path in paths:
-        if not (path.is_file() and path.with_suffix(".key").is_file()):
-            continue
-        doc = json.loads(path.read_text(encoding="utf-8"))
-        if doc.get("partial"):
-            continue
-        found = True
-        for case in doc.get("cases", []):
-            out[case["name"]] = case
-    return out if found else None
-
-
-def runs(case: Optional[dict]) -> List[dict]:
-    """Return a case's kb-arm runs that carry grader results."""
-    if not case:
-        return []
-    return [run for run in (case.get("arms") or {}).get("with") or [] if run.get("graders")]
-
-
-def grader(run: dict, name: str) -> Optional[dict]:
-    """Return one grader result from a run, or None."""
-    return next((g for g in run["graders"] if g["name"] == name), None)
-
-
-def passed(run: dict, name: str) -> bool:
-    """Return whether the named grader passed in a run."""
-    found = grader(run, name)
-    return bool(found and found.get("passed"))
-
-
-def evidence(run: dict, name: str) -> Optional[str]:
-    """Return the file an llm grader stored for a run, or None."""
-    found = grader(run, name)
-    return found.get("evidence") if found else None
+    """Return {case: entry} for one asset, newest result per case; None when no complete result exists."""
+    found = load_cases(RESULTS / purpose / "kb" / model / suite, asset=asset)
+    return found.cases if found.docs else None
 
 
 def find_case(cases: Cases, suffix: str) -> Optional[dict]:
@@ -290,17 +253,6 @@ def skill_assets() -> List[str]:
     return skills + commands
 
 
-def own_skill_grader(case: dict, asset: str) -> Optional[str]:
-    """Return the case's Skill grader that matches the asset itself, or None."""
-    for g in case.get("graders", []):
-        cfg = g.get("config") or {}
-        if cfg.get("tool") == "Skill" and re.search(
-            rf"\b{re.escape(asset)}\"", cfg.get("input_match", "")
-        ):
-            return g["name"]
-    return None
-
-
 def rescore(data: Cases, case_suffix: str, regex_name: str, prefix: str, not_contains: bool) -> str:
     """Re-score a fixed regex grader on files stored by an llm grader in the same case."""
     case = find_case(data, case_suffix)
@@ -342,7 +294,7 @@ def figures() -> int:
                 for name, case in (load("baseline", model, asset, suite) or {}).items():
                     if marker not in name:
                         continue
-                    g = own_skill_grader(case, asset)
+                    g = own_load_grader(case, asset)
                     if g is None:
                         continue
                     for run in runs(case):
@@ -401,58 +353,38 @@ def _trigger_kind(name: str) -> Tuple[str, str]:
     return "", ""
 
 
-def _trigger_batches(root: Path, asset: str) -> List[Path]:
-    """Return an asset's complete result files under `root`, oldest first.
-
-    A file counts only with its `.key` sibling and `partial` false; others are reported on stderr.
-    Ordering by modification time lets a newer batch (full-asset or exact-case) replace an older one.
-    """
-    found = [root / f"{asset}.json", *root.glob(f"{glob.escape(asset)}@*.json"),
-             *root.glob(f"{glob.escape(asset)}--*.json")]
-    complete = []
-    for path in found:
-        if not path.is_file():
-            continue
-        if not path.with_suffix(".key").is_file():
-            print(f"SKIPPED {path} (no .key)", file=sys.stderr)
-            continue
-        if json.loads(path.read_text(encoding="utf-8")).get("partial"):
-            print(f"SKIPPED {path} (partial)", file=sys.stderr)
-            continue
-        complete.append(path)
-    return sorted(complete, key=lambda path: (path.stat().st_mtime, path.name))
-
-
 def trigger_rows(purpose: str, assets: List[str], split: Optional[str] = None) -> List[TriggerRow]:
     """Return (case, kind, model, fired runs, graded runs) for each trigger case under a purpose.
 
     Reads `<asset>.json`, `<asset>@*.json`, and exact-case `<asset>--*.json` files under
-    `results/<purpose>/kb/<model>/triggers/`; the newest batch wins for a case. A run counts as
-    graded only when its `fired` grader is present. For trigger-near and trigger-noauto cases a
-    passing `fired` grader means the skill was not called, so fired = graded runs minus passes.
-    `split` "held" keeps cases whose slug starts "held-"; "tune" keeps every other case, unprefixed
-    ones included.
+    `results/<purpose>/kb/<model>/triggers/` through `results.load_cases` (newest `startedAt` wins
+    for a case); skipped files are reported on stderr. A run counts as graded only when the case's
+    own load grader (`results.own_load_grader`) is present in it; fired counts graded runs that
+    `results.loaded` says loaded the skill (a `max: 0` grader, as on trigger-near and
+    trigger-noauto cases, passes when the skill was not called). A case with no own load grader
+    is reported on stderr as `NO LOAD GRADER <case>` and keeps 0 graded runs. `split` "held"
+    keeps cases whose slug starts "held-"; "tune" keeps every other case, unprefixed ones included.
     """
     rows: List[TriggerRow] = []
     base = RESULTS / purpose / "kb"
     model_dirs = sorted(d for d in base.iterdir() if d.is_dir()) if base.is_dir() else []
     for model_dir in model_dirs:
-        root = model_dir / "triggers"
         for asset in assets:
-            seen: Cases = {}
-            for path in _trigger_batches(root, asset):
-                doc = json.loads(path.read_text(encoding="utf-8"))
-                for case in doc.get("cases", []):
-                    if case.get("name", "").startswith(asset + "--"):
-                        seen[case["name"]] = case
-            for name, case in seen.items():
+            found = load_cases(model_dir / "triggers", asset=asset)
+            for skipped in found.skipped:
+                print(f"SKIPPED {skipped}", file=sys.stderr)
+            for name, case in found.cases.items():
                 kind, slug = _trigger_kind(name)
                 held = slug.startswith("held-")
                 if not kind or (split == "held" and not held) or (split == "tune" and held):
                     continue
-                graded = [run for run in runs(case) if grader(run, "fired")]
-                hits = sum(passed(run, "fired") for run in graded)
-                fired = hits if kind == "trigger-should" else len(graded) - hits
+                load_grader = own_load_grader(case, asset)
+                if load_grader is None:
+                    print(f"NO LOAD GRADER {name}", file=sys.stderr)
+                    rows.append((name, kind, model_dir.name, 0, 0))
+                    continue
+                graded = [r for r in runs(case) if grader(r, load_grader)]
+                fired = sum(loaded(case, r, load_grader) for r in graded)
                 rows.append((name, kind, model_dir.name, fired, len(graded)))
     return sorted(rows, key=lambda row: (row[0], row[2]))
 

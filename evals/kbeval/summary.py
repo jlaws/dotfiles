@@ -1,9 +1,9 @@
 """Compact per-suite baseline summaries from raw result documents.
 
-Reads `<results>/<staging>/<model>/<suite>/<batch>.json` (and `<batch>@<case>.json` reruns, which
-replace that case), and scores each case on its result graders only (`regex`, `file_exists`,
-`llm`). Process graders (`tool_used`, `tool_order`) are indicators, reported as `firedRate` and
-left out of delta. Trigger cases have only a process grader, so it is their score.
+Reads `<results>/<staging>/<model>/<suite>/` through `results.load_cases` (newest result per case
+wins), and scores each case on its result graders only (`regex`, `file_exists`,
+`llm`). Process graders (`tool_used`, `tool_order`) are left out of delta: the asset's own load
+grader gives `loadRate`, the others give `behaviorRate`. Trigger cases have only a process grader, so it is their score.
 """
 
 from __future__ import annotations
@@ -12,37 +12,18 @@ import json
 import random
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Set, Tuple
 
 from evals.kbeval.cases import CASE_NAME
-from evals.kbeval.runner import API_ERROR
+from evals.kbeval.results import load_cases, loaded, own_load_grader
+from evals.kbeval.runner import API_ERROR, JUDGE_MODEL, TIMEOUT, TURN_CAP, judge_family
 
 SCHEMA = 1
 RESULT_TYPES = frozenset({"regex", "file_exists", "llm"})
 BOOTSTRAP_SAMPLES = 2000
 PASS_AT = 2 / 3  # a case passes when its mean run score is at least 2/3
 # Summaries are committed to a public repo: refuse keys, local paths, and API request IDs.
-LEAK = re.compile(r"sk-ant-|/Users/|/home/|/var/folders/|\b(?:req|msg)_[0-9A-Za-z]{6,}")
-
-
-def _load(results: Path, staging: str, model: str, suite: str) -> Tuple[Dict[str, dict], List[dict]]:
-    """Return {case name: case entry} with reruns applied, and every document read."""
-    root = results / staging / model / suite
-    cases: Dict[str, dict] = {}
-    docs: List[dict] = []
-    if not root.is_dir():
-        return cases, docs
-    # Only completed batches count: the runner writes a .key beside a result it accepted, so
-    # partial, quarantined, or abandoned results are left out.
-    paths = sorted(p for p in root.glob("*.json") if p.with_suffix(".key").is_file())
-    for path in [p for p in paths if "@" not in p.stem] + [p for p in paths if "@" in p.stem]:
-        doc = json.loads(path.read_text(encoding="utf-8"))
-        if doc.get("partial"):
-            continue
-        docs.append(doc)
-        for case in doc.get("cases", []):
-            cases[case["name"]] = case
-    return cases, docs
+LEAK = re.compile(r"sk-ant-|/Users/|/home/|/var/folders/|/tmp/|/private/|\b(?:req|msg)_[0-9A-Za-z]{6,}")
 
 
 def _runs(case: dict) -> List[dict]:
@@ -76,6 +57,18 @@ def _arm_score(case: Optional[dict], result: bool) -> Tuple[Optional[float], int
     return _mean(scores), len(runs)
 
 
+def _behavior_rate(case: dict, load: Optional[str]) -> Optional[float]:
+    """Return the pass rate of the process graders other than the load grader, or None."""
+    types = {g["name"]: g.get("type") for g in case.get("graders", [])}
+    results = [
+        bool(g.get("passed"))
+        for run in _graded(case)
+        for g in run["graders"]
+        if types.get(g["name"]) not in RESULT_TYPES and g["name"] != load
+    ]
+    return sum(results) / len(results) if results else None
+
+
 def _bootstrap(values: List[float]) -> dict:
     if not values:
         return {"mean": None, "ci95": [None, None]}
@@ -95,14 +88,34 @@ def _identity(name: str) -> Tuple[str, str]:
     return name, "workflow"
 
 
-def summarize(results: Path, model: str, suite: str, settings: dict) -> dict:
+def summarize(
+    results: Path, model: str, suite: str, settings: dict, live: Optional[Set[str]] = None,
+    notes: Optional[List[str]] = None,
+) -> dict:
     """Return the summary document for one model and suite.
 
     `settings` records the run configuration (`kbRuns`, `vanillaRuns`, `vanillaModels`,
-    `excludeTags`); `check` holds the summary to it.
+    `excludeTags`); `check` holds the summary to it. `live` drops results for cases outside it.
+    `notes`, when given, receives one line per skipped file and one per staging with dropped cases.
     """
-    kb_cases, kb_docs = _load(results, "kb", model, suite)
-    van_cases, van_docs = _load(results, "vanilla", model, suite)
+    by_staging = {staging: load_cases(results / staging / model / suite, live=live) for staging in ("kb", "vanilla")}
+    if notes is not None:
+        for staging, found in by_staging.items():
+            where = f"{staging}/{model}/{suite}"
+            notes.extend(f"{where}: skipped {entry}" for entry in found.skipped)
+            if found.dropped:
+                notes.append(
+                    f"{where}: dropped results for {len(found.dropped)} cases no longer under "
+                    f"evals/cases: {', '.join(found.dropped)}"
+                )
+    kb_cases, kb_docs, kb_digests, *_ = by_staging["kb"]
+    van_cases, van_docs, van_digests, *_ = by_staging["vanilla"]
+    for digests in (kb_digests, van_digests):
+        if len(digests) > 1:
+            raise ValueError(
+                f"results mix KB digests: {', '.join(sorted(digests))}; "
+                "rerun that staging or move the older results aside"
+            )
     docs = kb_docs + van_docs
     versions = sorted({d.get("claudeVersion") for d in docs if d.get("claudeVersion")})
     if len(versions) > 1:
@@ -116,20 +129,37 @@ def summarize(results: Path, model: str, suite: str, settings: dict) -> dict:
         kb, van = kb_cases.get(name), van_cases.get(name)
         kb_score, kb_runs = _arm_score(kb, result=not trigger)
         van_score, van_runs = _arm_score(van, result=not trigger)
-        fired, _ = _arm_score(kb, result=False)
+        load = own_load_grader(kb, _identity(name)[0]) if kb else None
+        behavior = _behavior_rate(kb, load) if kb else None
+        capped = [
+            (is_kb, r)
+            for is_kb, c in ((True, kb), (False, van))
+            if c
+            for r in _runs(c)
+            if (error := r.get("error")) and (TURN_CAP.search(error) or TIMEOUT.search(error))
+        ]
+        load_rate, censored = None, 0
+        if kb and load:
+            kb_graded = _graded(kb)
+            if kb_graded:
+                load_rate = sum(loaded(kb, r, load) for r in kb_graded) / len(kb_graded)
+            censored = sum(1 for is_kb, r in capped if is_kb and not loaded(kb, r, load))
         errors = sorted({str(r["error"]) for c in (kb, van) if c for r in _runs(c) if r.get("error")})
         error_runs = sum(1 for c in (kb, van) if c for r in _runs(c) if r.get("error"))
         asset, kind = _identity(name)
         rows.append(
             {
                 "asset": asset,
+                "behaviorRate": None if behavior is None else round(behavior, 4),
+                "cappedRuns": len(capped),
+                "censoredRuns": censored,
                 "delta": None if kb_score is None or van_score is None else round(kb_score - van_score, 4),
                 "errorRuns": error_runs,
                 "errors": errors,
-                "firedRate": None if fired is None else round(fired, 4),
                 "kbRuns": kb_runs,
                 "kbScore": None if kb_score is None else round(kb_score, 4),
                 "kind": kind,
+                "loadRate": None if load_rate is None else round(load_rate, 4),
                 "name": name,
                 "passed": kb_score is not None and kb_score >= PASS_AT - 1e-9,
                 "vanillaRuns": van_runs,
@@ -144,6 +174,10 @@ def summarize(results: Path, model: str, suite: str, settings: dict) -> dict:
         "judgeModel": judges[0] if judges else None,
         "claudeVersion": versions[0] if versions else None,
         "date": dates[-1] if dates else None,
+        "kbDigest": {
+            "kb": next(iter(kb_digests), None),
+            "vanilla": next(iter(van_digests), None),
+        },
         "runs": settings,
         "costUsd": round(sum(float(d.get("costUsd") or 0.0) for d in docs), 4),
         "aggregates": {
@@ -162,6 +196,9 @@ def check(doc: dict) -> List[str]:
     problems = []
     if not doc.get("cases"):
         problems.append(f"{doc['model']}/{doc['suite']}: no cases")
+    # A summary with no recorded judge (triggers) is held to the runner's judge, as `runner.run` is.
+    if judge_family(doc["model"]) == judge_family(doc.get("judgeModel") or JUDGE_MODEL):
+        problems.append(f"{doc['model']}/{doc['suite']}: judged by its own family")
     for case in doc.get("cases", []):
         name = case["name"]
         if case["kbRuns"] != settings.get("kbRuns"):

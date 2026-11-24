@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Protocol, Tuple
 
 from evals.kbeval import ledger
+from evals.kbeval.results import SIDECAR
 
 REPO = Path(__file__).resolve().parents[2]
 JUDGE_MODEL = "claude-fable-5-2"
@@ -37,6 +38,8 @@ API_ERROR = re.compile(
     r"(?i)\bapi error\b|rate.?limit|overloaded|usage.?limit|\bstatus(?: code)?:? ?(?:429|5\d\d)\b"
     r"|\b(?:429|529)\b|econnreset|etimedout|connection (?:reset|refused)"
 )
+TURN_CAP = re.compile(r"Reached maximum number of turns")
+TIMEOUT = re.compile(r"timed out after")
 LOAD_ERROR = re.compile(r"(?i)no eval cases found|invalid case|failed to load|not a trusted plugin")
 WRITE_TOOLS = ["Bash", "Write", "Edit"]
 
@@ -80,6 +83,12 @@ class ClaudeCli:
 def load_budget(repo: Optional[Path] = None) -> dict:
     """Return the committed budget document."""
     return json.loads(((repo or REPO) / "evals" / "budget.json").read_text(encoding="utf-8"))
+
+
+def judge_family(model: str) -> str:
+    """Return the family of a Claude model id (`claude-<family>-...`), else the id itself."""
+    match = re.match(r"^claude-([a-z]+)-", model)
+    return match.group(1) if match else model
 
 
 def _err(message: str) -> None:
@@ -165,8 +174,12 @@ def _scan_for_key(paths: List[Path]) -> Optional[Path]:
     return None
 
 
+def _write_sidecar(json_path: Path, kb_digest: str) -> None:
+    json_path.with_suffix(SIDECAR).write_text(json.dumps({"kbDigest": kb_digest}) + "\n", encoding="utf-8")
+
+
 def _discard(json_path: Path) -> None:
-    for path in (json_path, json_path.with_suffix(".key")):
+    for path in (json_path, json_path.with_suffix(".key"), json_path.with_suffix(SIDECAR)):
         if path.exists():
             path.unlink()
 
@@ -193,7 +206,8 @@ class _Batches:
         self.invocation_spent = 0.0
         self.version = cli.version()
         self.eval_dir = f"evals-{suite}"
-        # Everything staged outside the eval dirs: skills, commands, agents, references, fixtures.
+        # Everything staged outside the eval dirs: skills, commands, agents, references, fixtures,
+        # CLAUDE.md, and harness.json.
         self.kb_digest = _tree_digest(self.plugin, skip_prefix="evals-")
 
     @property
@@ -248,6 +262,7 @@ class _Batches:
         doc = _complete(json_path, key)
         if doc is not None and not (rerun and _api_error_cases(doc)):
             _say(f"{label}: complete, skipped")
+            _write_sidecar(json_path, self.kb_digest)
             return 0, doc
         cap, bound = self.cap(len(case_dirs))
         if cap < MIN_CAP_USD:
@@ -334,6 +349,7 @@ class _Batches:
         if api_errors:
             _err(f"{label}: API errors in {', '.join(api_errors)}; rerunning those cases")
         json_path.with_suffix(".key").write_text(key + "\n", encoding="utf-8")
+        _write_sidecar(json_path, self.kb_digest)
         return 0, doc
 
 
@@ -375,6 +391,12 @@ def run(
     """
     if not os.environ.get("ANTHROPIC_API_KEY"):
         _err("evals bill an API key; export ANTHROPIC_API_KEY")
+        return 1
+    if not re.match(r"^claude-[a-z]+-", model):
+        _err(f"model {model} is not a full model id (claude-<family>-...); the judge-family guard cannot read it")
+        return 1
+    if judge_family(model) == judge_family(JUDGE_MODEL):
+        _err(f"model {model} is in the judge's family ({JUDGE_MODEL}); a run cannot grade itself")
         return 1
     if jobs < 1 or runs < 1:
         _err(f"jobs and runs must be at least 1 (got jobs={jobs}, runs={runs})")

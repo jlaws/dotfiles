@@ -4,14 +4,15 @@
   "costUsd": 4.0297,
   "date": "2026-11-16",
   "judgeModel": "claude-fable-5-2",
+  "kbDigest": {"kb": "unrecorded", "vanilla": "unrecorded"},
   "model": "claude-sonnet-5-5",
   "runs": {"excludeTags": [], "kbRuns": 3, "vanillaModels": ["claude-opus-5-5", "claude-sonnet-5-5"], "vanillaRuns": 3},
   "schema": 1,
   "suite": "workflows",
   "cases": [
-    {"asset": "wf--debug-failing-test", "delta": 0.0, "errorRuns": 0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--debug-failing-test", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
-    {"asset": "wf--doc-sync-after-change", "delta": 0.0, "errorRuns": 0, "errors": [], "firedRate": 0.3333, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--doc-sync-after-change", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
-    {"asset": "wf--execute-plan-to-review", "delta": 0.0, "errorRuns": 0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--execute-plan-to-review", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
-    {"asset": "wf--tdd-fix-seeded-bug", "delta": 0.0, "errorRuns": 0, "errors": [], "firedRate": 1.0, "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "name": "wf--tdd-fix-seeded-bug", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0}
+    {"asset": "wf--debug-failing-test", "behaviorRate": 1.0, "cappedRuns": 0, "censoredRuns": 0, "delta": 0.0, "errorRuns": 0, "errors": [], "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "loadRate": null, "name": "wf--debug-failing-test", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
+    {"asset": "wf--doc-sync-after-change", "behaviorRate": 0.3333, "cappedRuns": 0, "censoredRuns": 0, "delta": 0.0, "errorRuns": 0, "errors": [], "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "loadRate": null, "name": "wf--doc-sync-after-change", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
+    {"asset": "wf--execute-plan-to-review", "behaviorRate": 1.0, "cappedRuns": 0, "censoredRuns": 0, "delta": 0.0, "errorRuns": 0, "errors": [], "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "loadRate": null, "name": "wf--execute-plan-to-review", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0},
+    {"asset": "wf--tdd-fix-seeded-bug", "behaviorRate": 1.0, "cappedRuns": 0, "censoredRuns": 0, "delta": 0.0, "errorRuns": 0, "errors": [], "kbRuns": 3, "kbScore": 1.0, "kind": "workflow", "loadRate": null, "name": "wf--tdd-fix-seeded-bug", "passed": true, "vanillaRuns": 3, "vanillaScore": 1.0}
   ]
 }

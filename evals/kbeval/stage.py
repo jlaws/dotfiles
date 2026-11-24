@@ -3,6 +3,9 @@
 `kb` carries the skills, commands, and agents, appends `.claude/CLAUDE.md` plus two harness notes
 to every case's system prompt, and seeds references into each run's workspace. `vanilla` is an
 empty plugin, which is plain Claude. See `docs/adr/workflow/kb-evals-run-on-a-staged-plugin.md`.
+
+kb staging also copies `.claude/CLAUDE.md` and `evals/harness.json` into `_kb/` so the runner's KB
+digest covers them; no run reads those two copies.
 """
 
 from __future__ import annotations
@@ -76,6 +79,8 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
                 text = command.read_text(encoding="utf-8")
                 command.write_text(re.sub(r"(?m)^disable-model-invocation:.*\n", "", text), encoding="utf-8")
         shutil.copytree(claude / "references", refs, ignore=IGNORE)
+        shutil.copy2(claude / "CLAUDE.md", plugin / "_kb" / "CLAUDE.md")
+        shutil.copy2(repo / "evals" / "harness.json", plugin / "_kb" / "harness.json")
     fixtures = plugin / "_kb" / "fixtures"
     if (repo / "evals" / "fixtures").is_dir():
         shutil.copytree(repo / "evals" / "fixtures", fixtures, ignore=IGNORE)

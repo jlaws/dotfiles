@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-11-15
-updated: 2026-11-15
+updated: 2026-11-24
 ---
 # KB evals run on a staged plugin
 
@@ -47,7 +47,11 @@ CLI keeps graders, judge votes, isolation, and cost ceilings in one maintained t
 - No network and no `gh`.
 - Git cases name a working git in the prompt, because the sandbox's `/usr/bin/git` shim fails.
 
-Every asset needs cases, and each run costs money.
+Every asset needs cases, and each run costs money. Capped runs are scored and censored runs are
+counted apart. A model in the judge's family cannot be evaluated without first changing the judge.
+A summary's KB digest check compares results with each other, not with the staged KB: results
+recorded before the digest sidecar read `unrecorded` and are unverified, and a partial rerun over
+older results is refused until that staging is rerun or the older results are moved aside.
 
 ## Ruled Out
 | Idea | Why ruled out | When |
@@ -57,10 +61,12 @@ Every asset needs cases, and each run costs money.
 | Converting the KB into a plugin | Breaks the `~` mirror that every harness reads | 2026-11-15 |
 | Evaluating in the real `~/.claude` | Personal settings, memory, and hooks would confound every score | 2026-11-15 |
 | Cross-judging with each model under test | Confounds the cross-model comparison | 2026-11-15 |
+| Drop capped runs from the score | 41 of 46 capped trigger runs had already fired, so dropping them lowers should-fire recall by 3.6 points on Opus and 4.4 on Sonnet | 2026-11-23 |
 
 ## Enforcement
 - Owner: `evals/`
 - Pinned by: `tests/test_evals.py`
+- Judge-family guard in `runner.run` and `summary.check`, pinned by `tests/test_evals.py`
 
 ## Reversal Conditions
 - Claude Code adds a supported way to evaluate a user config directory.
