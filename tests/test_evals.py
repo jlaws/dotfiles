@@ -2132,19 +2132,21 @@ class EntryPointTests(OrchestrateTests):
     def test_affected_with_no_changes_prints_nothing_to_run(self):
         code, out, err = self.run_affected()
         self.assertEqual(code, 0)
-        self.assertEqual(out, "nothing to run\n")
+        self.assertEqual(out, "")
+        lines = err.splitlines()
+        self.assertEqual(lines[:-1], ["nothing to run"])
         self.assertTrue(
-            err.rstrip("\n").splitlines()[-1].startswith(
-                "ESTIMATE 0 kb runs + 0 vanilla runs, about $0.00; smoke cap left $"
-            ),
-            err,
+            lines[-1].startswith("ESTIMATE 0 kb runs + 0 vanilla runs, about $0.00; smoke cap left $"), err
         )
 
-    def test_affected_prints_sorted_names_and_notes_before_the_estimate(self):
-        diff = "M\0.claude/skills/demo-skill/SKILL.md\0M\0evals/kbeval/results.py\0M\0.codex/AGENTS.md\0"
+    def test_affected_prints_sorted_names_on_one_line_and_notes_before_the_estimate(self):
+        diff = (
+            "M\0.claude/skills/demo-skill/SKILL.md\0M\0evals/kbeval/results.py\0M\0.codex/AGENTS.md\0"
+            "M\0.claude/commands/j-demo.md\0"
+        )
         code, out, err = self.run_affected(diff=diff)
         self.assertEqual(code, 0)
-        self.assertEqual(out, "demo-skill\n")
+        self.assertEqual(out, "demo-skill j-demo wf--demo-chain\n")
         lines = err.splitlines()
         estimate = [i for i, line in enumerate(lines) if line.startswith("ESTIMATE ")]
         self.assertEqual(estimate, [len(lines) - 1])

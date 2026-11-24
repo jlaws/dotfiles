@@ -174,6 +174,8 @@ def _affected(args: argparse.Namespace) -> int:
         path = next(p for _, p in changes if p in kaffected.EVERYTHING)
         print(f"ALL <- {path}; a smoke cannot cover it", file=sys.stderr)
         return 2
+    if not plan.names:
+        print("nothing to run", file=sys.stderr)
     kb, vanilla, cost = kaffected.estimate(REPO, plan.names)
     purpose = f"smoke-{orchestrate._branch().replace('/', '-')}"
     left = orchestrate._capped(purpose, float(runner.load_budget(REPO)["smokeCapUsd"]))
@@ -182,7 +184,8 @@ def _affected(args: argparse.Namespace) -> int:
         f"smoke cap left ${left:.2f} (purpose {purpose})",
         file=sys.stderr,
     )
-    print("\n".join(plan.names) if plan.names else "nothing to run")
+    if plan.names:
+        print(" ".join(sorted(set(plan.names))))
     return 0
 
 
