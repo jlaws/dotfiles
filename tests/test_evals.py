@@ -1320,6 +1320,7 @@ class SummaryTests(unittest.TestCase):
 
     def test_write_refuses_local_paths_and_request_ids(self):
         for leak in ("open /Users/someone/x", "/home/someone/x", "/var/folders/ab/T/x",
+                     "open /private/tmp/x", "open /tmp/x",
                      "Request ID: req_011abc", "Message ID: msg_011abc"):
             with self.subTest(leak=leak):
                 self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, leak, None]))

@@ -23,7 +23,7 @@ RESULT_TYPES = frozenset({"regex", "file_exists", "llm"})
 BOOTSTRAP_SAMPLES = 2000
 PASS_AT = 2 / 3  # a case passes when its mean run score is at least 2/3
 # Summaries are committed to a public repo: refuse keys, local paths, and API request IDs.
-LEAK = re.compile(r"sk-ant-|/Users/|/home/|/var/folders/|\b(?:req|msg)_[0-9A-Za-z]{6,}")
+LEAK = re.compile(r"sk-ant-|/Users/|/home/|/var/folders/|/tmp/|/private/|\b(?:req|msg)_[0-9A-Za-z]{6,}")
 
 
 def _runs(case: dict) -> List[dict]:
