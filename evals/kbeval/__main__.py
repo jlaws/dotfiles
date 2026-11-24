@@ -176,7 +176,9 @@ def _affected(args: argparse.Namespace) -> int:
         return 2
     if not plan.names:
         print("nothing to run", file=sys.stderr)
-    kb, vanilla, cost = kaffected.estimate(REPO, plan.names)
+    kb, vanilla, cost, unpriced = kaffected.estimate(REPO, plan.names)
+    for line in unpriced:
+        print(line, file=sys.stderr)
     purpose = f"smoke-{orchestrate._branch().replace('/', '-')}"
     left = orchestrate._capped(purpose, float(runner.load_budget(REPO)["smokeCapUsd"]))
     print(

@@ -2155,6 +2155,14 @@ class EntryPointTests(OrchestrateTests):
             ["HARNESS evals/kbeval/results.py: covered by make test", "UNMEASURED .codex/AGENTS.md"],
         )
 
+    def test_affected_prints_unpriced_names_before_the_estimate(self):
+        (self.repo / ".claude/commands/j-new.md").write_text("---\nname: j-new\n---\n\nNew.\n")
+        code, out, err = self.run_affected(diff="M\0.claude/commands/j-new.md\0")
+        self.assertEqual((code, out), (0, "j-new\n"))
+        lines = err.splitlines()
+        self.assertEqual(lines[:-1], ["UNPRICED j-new: no case"])
+        self.assertTrue(lines[-1].startswith("ESTIMATE 0 kb runs"), err)
+
     def test_affected_exits_one_with_nothing_on_stdout_when_git_fails(self):
         code, out, err = self.run_affected(fail=True)
         self.assertEqual(code, 1)
@@ -2877,12 +2885,12 @@ class AffectedTests(TempRepoCase):
 
     def test_estimate_prices_each_suite_from_smoke_usd(self):
         names = ["demo-skill--trigger-should-rate", "j-demo--effect-cache", "demo-agent--effect-review", "wf--demo-chain"]
-        kb, vanilla, cost = kaffected.estimate(self.repo, names)
+        kb, vanilla, cost, _ = kaffected.estimate(self.repo, names)
         self.assertEqual((kb, vanilla), (4, 0))
         self.assertAlmostEqual(cost, 0.07 + 0.29 + 0.29 + 1.00)
 
     def test_estimate_adds_vanilla_runs_for_asset_names(self):
-        kb, vanilla, cost = kaffected.estimate(self.repo, ["demo-agent"])
+        kb, vanilla, cost, _ = kaffected.estimate(self.repo, ["demo-agent"])
         self.assertEqual((kb, vanilla), (1, 1))
         self.assertAlmostEqual(cost, 0.29 + 0.19)
 
@@ -2891,12 +2899,12 @@ class AffectedTests(TempRepoCase):
             write_case(
                 self.repo, "effects", f"demo-agent--effect-more{number}", EFFECT_FM, "Do it.", {"result": LLM_RESULT}
             )
-        kb, vanilla, cost = kaffected.estimate(self.repo, ["demo-agent"])
+        kb, vanilla, cost, _ = kaffected.estimate(self.repo, ["demo-agent"])
         self.assertEqual((kb, vanilla), (7, 5))
         self.assertAlmostEqual(cost, 7 * 0.29 + 5 * 0.19)
 
     def test_estimate_counts_a_case_named_by_asset_and_by_name_once(self):
-        kb, vanilla, cost = kaffected.estimate(self.repo, ["demo-agent", "demo-agent--effect-review"])
+        kb, vanilla, cost, _ = kaffected.estimate(self.repo, ["demo-agent", "demo-agent--effect-review"])
         self.assertEqual((kb, vanilla), (1, 1))
         self.assertAlmostEqual(cost, 0.29 + 0.19)
 
@@ -2918,6 +2926,18 @@ class AffectedTests(TempRepoCase):
     def test_deeper_harness_paths_map_to_nothing(self):
         plan = self.plan(("M", "evals/kbeval/sub/x.py"))
         self.assertEqual(plan, kaffected.Plan([], [], False))
+
+    def test_edited_command_with_no_such_command_is_unmapped(self):
+        plan = self.plan(("M", ".claude/commands/j-ghost.md"))
+        self.assertEqual(plan, kaffected.Plan([], ["UNMAPPED .claude/commands/j-ghost.md: no eval case names it"], False))
+
+    def test_reference_nothing_cites_is_unmapped(self):
+        plan = self.plan(("M", ".claude/references/cat/ref.md"))
+        self.assertEqual(plan, kaffected.Plan([], ["UNMAPPED .claude/references/cat/ref.md: no eval case names it"], False))
+
+    def test_estimate_returns_names_with_no_case(self):
+        _, _, _, unpriced = kaffected.estimate(self.repo, ["demo-skill", "demo-ghost"])
+        self.assertEqual(unpriced, ["UNPRICED demo-ghost: no case"])
 
     def test_deleted_reference_still_names_its_citers(self):
         self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n")

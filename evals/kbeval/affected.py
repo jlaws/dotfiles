@@ -17,6 +17,7 @@ VANILLA_EFFECT_USD = 0.19
 VANILLA_SAMPLE = 5
 EVERYTHING = (".claude/CLAUDE.md", "evals/harness.json", "evals/kbeval/stage.py")
 UNMEASURED = (".agents/", ".codex/", ".gemini/", ".claude/settings.json", ".claude/hooks/")
+KB_TREES = (".claude/skills/", ".claude/commands/", ".claude/agents/", ".claude/references/")
 
 
 class Plan(NamedTuple):
@@ -91,6 +92,8 @@ def affected(repo: Path, changes: List[Tuple[str, str]]) -> Plan:
 
     for status, path in changes:
         parts = path.split("/")
+        got: set = set()
+        deleted = False
         if path in EVERYTHING:
             everything = True
         elif path.startswith(UNMEASURED):
@@ -100,46 +103,54 @@ def affected(repo: Path, changes: List[Tuple[str, str]]) -> Plan:
         elif parts[:2] == [".claude", "skills"] and len(parts) > 3:
             skill = parts[2]
             if status == "D" and parts[3:] == ["SKILL.md"]:
+                deleted = True
                 note(f"DELETED {skill}: add an AGENT_REMOVALS entry")
             elif skill in files:
-                names.add(skill)
-                names.update(n for n, p in files.items() if skill in _preloaded_skills(p))
-                names.update(n for n, p in commands.items() if f"`{skill}`" in _body(p))
+                got.add(skill)
+                got.update(n for n, p in files.items() if skill in _preloaded_skills(p))
+                got.update(n for n, p in commands.items() if f"`{skill}`" in _body(p))
         elif parts[:2] == [".claude", "commands"] and len(parts) == 3 and path.endswith(".md"):
             command = Path(path).stem
             if status == "D":
+                deleted = True
                 note(f"DELETED {command}: add an AGENT_REMOVALS entry")
             elif command in files:
-                names.add(command)
-                names.update(
+                got.add(command)
+                got.update(
                     c.name for c in found
                     if c.suite == "workflows" and c.name.startswith("wf--") and c.body.startswith(f"/kb:{command} ")
                 )  # fmt: skip
         elif parts[:2] == [".claude", "agents"] and len(parts) == 3 and path.endswith(".md"):
             agent = Path(path).stem
             if status == "D":
+                deleted = True
                 note(f"DELETED {agent}: add an AGENT_REMOVALS entry")
             elif agent in files:
-                names.add(agent)
-                names.update(n for n, p in commands.items() if f"`{agent}`" in _body(p))
+                got.add(agent)
+                got.update(n for n, p in commands.items() if f"`{agent}`" in _body(p))
         elif parts[:2] == [".claude", "references"] and path.endswith(".md"):
             cited, reasons = _referencing(repo, Path(path).stem, path, files)
-            names.update(cited)
+            got.update(cited)
             for reason in reasons:
                 note(reason)
         elif parts[:2] == ["evals", "cases"] and len(parts) > 4:
-            names.update(c.name for c in found if c.name == parts[3] and c.suite == parts[2])
+            got.update(c.name for c in found if c.name == parts[3] and c.suite == parts[2])
         elif parts[:2] == ["evals", "fixtures"] and len(parts) > 3:
-            names.update(c.name for c in found if c.fixture and _word(c.fixture, parts[2]))
+            got.update(c.name for c in found if c.fixture and _word(c.fixture, parts[2]))
+        if not got and not deleted and path.startswith(KB_TREES):
+            note(f"UNMAPPED {path}: no eval case names it")
+        names |= got
     return Plan(sorted(names), notes, everything)
 
 
-def estimate(repo: Path, names: List[str]) -> Tuple[int, int, float]:
-    """Return (kb runs, vanilla runs, dollars) for a one-run smoke of `names`."""
+def estimate(repo: Path, names: List[str]) -> Tuple[int, int, float, List[str]]:
+    """Return (kb runs, vanilla runs, dollars, `UNPRICED` notes) for a one-run smoke of `names`."""
     found = [c for c in kcases.discover(repo / "evals" / "cases") if c.name in names or c.asset in names]
     plain = [n for n in names if not n.startswith("wf--")]
     vanilla = sorted(
         c.name for c in found if c.suite == "effects" and any(c.name.startswith(f"{a}--") for a in plain)
     )[:VANILLA_SAMPLE]
     cost = sum(SMOKE_USD[c.suite] for c in found) + VANILLA_EFFECT_USD * len(vanilla)
-    return len(found), len(vanilla), cost
+    priced = {c.name for c in found} | {c.asset for c in found}
+    unpriced = [f"UNPRICED {n}: no case" for n in names if n not in priced]
+    return len(found), len(vanilla), cost, unpriced
