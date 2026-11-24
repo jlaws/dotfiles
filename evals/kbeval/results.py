@@ -55,7 +55,10 @@ def load_cases(root: Path, asset: Optional[str] = None, live: Optional[Set[str]]
         if not path.with_suffix(".key").is_file():
             skipped.append(f"{path} (no .key)")
             continue
-        doc = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except ValueError as error:
+            raise ValueError(f"{path}: unreadable result ({error})") from error
         if doc.get("partial"):
             skipped.append(f"{path} (partial)")
             continue
@@ -82,7 +85,11 @@ def _digest(path: Path) -> str:
     sidecar = path.with_suffix(SIDECAR)
     if not sidecar.is_file():
         return "unrecorded"
-    return json.loads(sidecar.read_text(encoding="utf-8")).get("kbDigest") or "unrecorded"
+    try:
+        meta = json.loads(sidecar.read_text(encoding="utf-8"))
+    except ValueError as error:
+        raise ValueError(f"{sidecar}: unreadable sidecar ({error})") from error
+    return meta.get("kbDigest") or "unrecorded"
 
 
 def runs(case: Optional[dict]) -> List[dict]:

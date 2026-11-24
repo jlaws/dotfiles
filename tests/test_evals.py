@@ -1571,6 +1571,20 @@ class ResultsLoaderTests(unittest.TestCase):
         loaded = kresults.load_cases(self.root)
         self.assertEqual([d["claudeVersion"] for d in loaded.docs], ["2.1.325"])
 
+    def test_corrupt_result_file_names_its_path(self):
+        self.put("j-arch", real_doc())
+        path = self.root / "j-arch.json"
+        path.write_text('{"cases": [', encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, f"{re.escape(str(path))}: unreadable result"):
+            kresults.load_cases(self.root)
+
+    def test_corrupt_sidecar_names_its_path(self):
+        self.put("j-arch", real_doc(), digest="aaa")
+        sidecar = self.root / "j-arch.meta.json"
+        sidecar.write_text('{"kbDig', encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, f"{re.escape(str(sidecar))}: unreadable sidecar"):
+            kresults.load_cases(self.root)
+
     def test_own_load_grader_matches_skill_and_agent_tools(self):
         case = {"graders": [
             {"name": "other", "config": {"tool": "Agent", "input_match": '"subagent_type"\\s*:\\s*"kb:code-reviewer"'}},
