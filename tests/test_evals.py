@@ -1439,6 +1439,12 @@ class SummaryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "results mix KB digests"):
             ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
 
+    def test_mixed_vanilla_digests_are_refused(self):
+        self.put("vanilla", "j-arch", with_runs(real_doc(), [True] * 3), digest="aaa")
+        self.put("vanilla", "j-arch--other", self.renamed("j-arch--effect-other"), digest="bbb")
+        with self.assertRaisesRegex(ValueError, "results mix KB digests"):
+            ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+
     def test_results_for_deleted_cases_are_dropped(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True] * 3), digest="aaa")
         live = {"j-arch--effect-cache-layer"}
@@ -1505,7 +1511,7 @@ class SummaryTests(unittest.TestCase):
             cases = kdet.load(purpose, OPUS, "j-arch") or {}
             self.assertIsNone(kdet.load(purpose, OPUS, "ghost"))
         self.assertEqual(list(cases), ["j-arch--effect-cache-layer"])
-        self.assertTrue(all(kdet.passed(r, "design") for r in kdet.runs(cases["j-arch--effect-cache-layer"])))
+        self.assertEqual([kdet.passed(r, "design") for r in kdet.runs(cases["j-arch--effect-cache-layer"])], [True] * 3)
 
 
 from evals.kbeval import results as kresults  # noqa: E402
@@ -1568,9 +1574,18 @@ class ResultsLoaderTests(unittest.TestCase):
         loaded = kresults.load_cases(self.root)
         self.assertEqual(self.design_passes(loaded), [True] * 3)
         self.assertEqual(len(loaded.docs), 1)
-        self.assertEqual(len(loaded.skipped), 2)
-        self.assertTrue(any(f"{CASE}.json" in s and "no .key" in s for s in loaded.skipped), loaded.skipped)
-        self.assertTrue(any(f"@{CASE}.json" in s and "partial" in s for s in loaded.skipped), loaded.skipped)
+        self.assertEqual(loaded.skipped, [
+            f"{self.root / CASE}.json (no .key)",
+            f"{self.root / f'j-arch@{CASE}'}.json (partial)",
+        ])
+
+    def test_sidecar_is_neither_skipped_nor_read_as_a_document(self):
+        self.put("j-arch", with_runs(real_doc(), [True] * 3), digest="aaa")
+        loaded = kresults.load_cases(self.root)
+        self.assertEqual(loaded.skipped, [])
+        self.assertEqual(len(loaded.docs), 1)
+        self.assertNotIn("kbDigest", loaded.docs[0])
+        self.assertEqual(loaded.digests, {"aaa"})
 
     def test_asset_filter_reads_only_that_asset(self):
         plan = copy.deepcopy(real_doc())
@@ -1887,8 +1902,6 @@ class EntryPointTests(OrchestrateTests):
         self.assertFalse((self.repo / "evals" / "baselines").exists())
 
     def test_summarize_passes_the_live_case_set(self):
-        from evals.kbeval import __main__ as kmain
-
         seen = []
 
         def fake(results, model, suite, settings, live=None, notes=None):
@@ -2170,6 +2183,20 @@ class TriggerReportTests(unittest.TestCase):
             rows = kdet.trigger_rows("p", ["a"])
         self.assertEqual(rows, [("a--trigger-should-x", "trigger-should", "m", 0, 0)])
         self.assertIn("NO LOAD GRADER a--trigger-should-x\n", err.getvalue())
+
+    def test_figures_counts_an_agent_tool_load_grader(self):
+        root = self.tmp / "baseline" / "kb" / OPUS / "triggers"
+        root.mkdir(parents=True)
+        doc = {"partial": False, "cases": [{"name": "security-reviewer--trigger-should-x", "graders": [
+            {"name": "dispatched", "type": "tool_used", "config": {
+                "tool": "Agent", "input_match": '"subagent_type"\\s*:\\s*"kb:security-reviewer"'}},
+        ], "arms": {"with": [{"graders": [{"name": "dispatched", "passed": False}]}] * 3}}]}
+        (root / "security-reviewer.json").write_text(json.dumps(doc), encoding="utf-8")
+        (root / "security-reviewer.key").write_text("k", encoding="utf-8")
+        with mock.patch.object(kdet, "skill_assets", lambda: ["security-reviewer"]):
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(kdet.figures(), 0)
+        self.assertIn("\n  security-reviewer: 0/3\n", out.getvalue())
 
     def test_triggers_exits_one_when_nothing_matched(self):
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()) as err:
