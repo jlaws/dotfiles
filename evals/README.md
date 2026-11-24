@@ -850,6 +850,23 @@ void the held-out comparison the next baseline makes.
 | j-review-claudemd | 3 | effect-conflict-redundant-specific: hidden-criterion, fixed | effect-conflict-redundant-specific saturated; effect-violated-missing-stale saturated | j-review-claudemd--effect-volatile-status-line |
 | j-skill-audit | 4 | all pass (the full-axes-weakest suspect was not confirmed) | discriminating | none |
 | j-tdd | 3 | all pass | effect-median-readme saturated; effect-remove-todo-unique-ids saturated | j-tdd--effect-docs-in-commit |
+| architecture-specialist | 2 | effect-retry-policy-adr: ambiguous (the jitter and attempt-limit regexes turned on wording), widened | effect-catalog-cache-traps saturated | architecture-specialist--effect-notification-fallbacks |
+| business-analyst | 2 | all pass | effect-saas-kpi-numbers saturated; effect-subscription-webhooks saturated | business-analyst--effect-tracking-reset |
+| cloud-architect | 2 | effect-bill-egress-review: ambiguous (a claim required a saving "near the $2,000 line", a figure neither the prompt nor the asset fixes), fixed | effect-sqs-lambda-burst saturated | cloud-architect--effect-steady-api-compute |
+| code-reviewer | 2 | all pass | effect-simplified-marker saturated; effect-weakened-quality-bar saturated | code-reviewer--effect-experiment-ratio-mismatch |
+| create-pr | 2 | all pass | effect-derive-branch-and-skip-debris saturated; effect-nothing-to-commit saturated | create-pr--effect-branch-commits-in-body (plain hardening; no reference) |
+| data-engineer | 2 | all pass | effect-airflow-daily-orders saturated; effect-slow-queries-and-pool saturated | data-engineer--effect-catalog-index-settings |
+| devops-engineer | 2 | all pass | effect-harden-deployment saturated; effect-release-workflow saturated | devops-engineer--effect-error-budget-freeze |
+| documentation-writer | 2 | effect-changelog-from-commits: hidden-criterion (the timeout default had to sit under Fixed; the agent's reference files it under Changed), fixed | effect-changelog-from-commits kb-below-vanilla; effect-readme-matches-code saturated | documentation-writer--effect-quickstart-trim |
+| frontend-engineer | 2 | all pass | effect-signup-form saturated | frontend-engineer--effect-reduced-motion-feedback |
+| language-specialist | 2 | all pass | effect-hatch-vcs-library saturated; effect-typer-config-cli saturated | language-specialist--effect-fastapi-service-layer |
+| ml-engineer | 2 | all pass | effect-kv-cache-sizing saturated; effect-ticket-classifier-leakage saturated | ml-engineer--effect-keep-or-revert |
+| product-manager | 2 | all pass | effect-bulk-invite-prd saturated; effect-now-next-later saturated | product-manager--effect-rollback-triggers |
+| research-analyst | 2 | all pass | effect-claim-confidence kb-below-vanilla (case sound: the failing kb runs never reached the reference) | research-analyst--effect-method-selection |
+| scope-reviewer | 2 | all pass | discriminating | scope-reviewer--effect-every-mode-weighed |
+| security-reviewer | 2 | all pass | effect-authz-and-non-findings saturated; effect-pipeline-states saturated | security-reviewer--effect-unverified-escape-helper |
+| test-writer | 2 | all pass | effect-mutation-proof-js saturated; effect-red-then-green saturated | test-writer--effect-speed-regression-test |
+| workflow-architect | 2 | all pass | discriminating | workflow-architect--effect-hidden-entry-points |
 
 ## Fan-out experiment
 
