@@ -10,6 +10,7 @@ from typing import List, Optional
 
 from evals.kbeval import cases as kcases
 from evals.kbeval import compare as kcompare
+from evals.kbeval import headroom as kheadroom
 from evals.kbeval import orchestrate, runner
 from evals.kbeval import stage as kstage
 from evals.kbeval import summary as ksummary
@@ -119,6 +120,20 @@ def _compare(args: argparse.Namespace) -> int:
     return 0
 
 
+def _headroom(args: argparse.Namespace) -> int:
+    live: dict = {}
+    for case in kcases.discover(REPO / "evals" / "cases"):
+        live.setdefault(case.suite, set()).add(case.name)
+    try:
+        lines = kheadroom.report(REPO / args.baselines, live)
+    except (OSError, ValueError) as error:
+        print(f"headroom: {error}", file=sys.stderr)
+        return 1
+    for line in lines:
+        print(line)
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """Parse arguments and run one harness command."""
     parser = argparse.ArgumentParser(prog="python3 -m evals.kbeval")
@@ -172,6 +187,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     compare.add_argument("old")
     compare.add_argument("new")
     compare.set_defaults(func=_compare)
+
+    headroom = sub.add_parser("headroom", help="list cases that cannot show a change")
+    headroom.add_argument("--baselines", default="evals/baselines")
+    headroom.set_defaults(func=_headroom)
 
     spend = sub.add_parser("spend", help="snapshot ledger totals into evals/spend.json")
     spend.set_defaults(func=_spend)

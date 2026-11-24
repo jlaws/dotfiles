@@ -17,6 +17,7 @@ import unittest
 from pathlib import Path
 
 from evals.kbeval import cases as kcases
+from evals.kbeval import headroom as kheadroom
 from evals.kbeval import stage as kstage
 
 REPO = Path(__file__).resolve().parents[1]
@@ -1751,8 +1752,11 @@ def summary_doc(cases: dict, model: str = OPUS) -> dict:
             "delta": {"mean": 0.3, "ci95": [0.1, 0.5]},
         },
         "cases": [
-            {"asset": name.split("--")[0], "kind": "effect", "name": name, "kbScore": kb, "passed": passed}
-            for name, (kb, passed) in sorted(cases.items())
+            {
+                "asset": name.split("--")[0], "kind": "effect", "name": name, "kbScore": values[0],
+                "passed": values[1], "vanillaScore": values[2] if len(values) > 2 else None,
+            }
+            for name, values in sorted(cases.items())
         ],
     }  # fmt: skip
 
@@ -1780,6 +1784,109 @@ class CompareTests(unittest.TestCase):
         old = summary_doc({"a--effect-x": (1.0, True)})
         new = summary_doc({"a--effect-x": (0.75, True)})
         self.assertNotRegex("\n".join(kcompare.compare(old, new)), r"a--effect-x.*->")
+
+
+def headroom_rows(*models: dict) -> dict:
+    """Return rows_by_model for `classify`: each model maps case -> (kb, vanilla)."""
+    names = ("m1", "m2", "m3")
+    return {
+        names[i]: {
+            case: {"name": case, "kbScore": kb, "vanillaScore": vanilla}
+            for case, (kb, vanilla) in cases.items()
+        }
+        for i, cases in enumerate(models)
+    }
+
+
+class HeadroomTests(unittest.TestCase):
+    def classify(self, *models: dict) -> dict:
+        return kheadroom.classify(headroom_rows(*models))
+
+    def test_saturated_needs_one_in_both_arms_on_every_model(self):
+        got = self.classify({"a--effect-x": (1.0, 1.0)}, {"a--effect-x": (1.0, 1.0)})
+        self.assertEqual(got, {"a--effect-x": "saturated"})
+        got = self.classify({"a--effect-x": (1.0, 1.0)}, {"a--effect-x": (1.0, 0.0)})
+        self.assertEqual(got, {"a--effect-x": "discriminating"})
+
+    def test_one_arm_below_one_is_discriminating(self):
+        self.assertEqual(self.classify({"a--effect-x": (1.0, 2 / 3)}), {"a--effect-x": "discriminating"})
+        self.assertEqual(self.classify({"a--effect-x": (2 / 3, 1.0)}), {"a--effect-x": "kb-below-vanilla"})
+
+    def test_dead_is_below_the_pass_line_everywhere(self):
+        got = self.classify({"a--effect-x": (0.0, 0.0)}, {"a--effect-x": (1 / 3, 0.0)})
+        self.assertEqual(got, {"a--effect-x": "dead"})
+        got = self.classify({"a--effect-x": (0.0, 0.0)}, {"a--effect-x": (2 / 3, 0.0)})
+        self.assertEqual(got, {"a--effect-x": "discriminating"})
+
+    def test_kb_below_vanilla_on_every_model(self):
+        got = self.classify({"a--effect-x": (0.5, 0.8)}, {"a--effect-x": (0.7, 1.0)})
+        self.assertEqual(got, {"a--effect-x": "kb-below-vanilla"})
+        got = self.classify({"a--effect-x": (0.5, 0.8)}, {"a--effect-x": (0.8, 0.8)})
+        self.assertEqual(got, {"a--effect-x": "discriminating"})
+
+    def test_none_score_is_unmeasured(self):
+        self.assertEqual(self.classify({"a--effect-x": (None, 1.0)}), {"a--effect-x": "unmeasured"})
+        self.assertEqual(self.classify({"a--effect-x": (1.0, None)}), {"a--effect-x": "unmeasured"})
+        got = self.classify({"a--effect-x": (1.0, 1.0)}, {})
+        self.assertEqual(got, {"a--effect-x": "unmeasured"})
+
+    def test_precedence_saturated_then_dead_then_kb_below_vanilla(self):
+        got = self.classify({"s--effect-x": (1.0, 1.0), "d--effect-x": (0.0, 0.0), "k--effect-x": (0.0, 0.5)})
+        self.assertEqual(got["s--effect-x"], "saturated")
+        self.assertEqual(got["d--effect-x"], "dead")
+        self.assertEqual(got["k--effect-x"], "dead")  # dead outranks kb-below-vanilla
+        got = self.classify({"u--effect-x": (None, None)})
+        self.assertEqual(got["u--effect-x"], "unmeasured")  # unmeasured outranks the rest
+
+    def write_baselines(self, root: Path, docs: dict) -> Path:
+        for model, cases in docs.items():
+            for suite in kheadroom.SUITES:
+                doc = summary_doc(cases.get(suite, {"z--effect-z": (0.5, True, 0.0)}), model)
+                path = root / model / f"{suite}.json"
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps(doc))
+        return root
+
+    def test_asset_with_only_saturated_cases_is_listed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self.write_baselines(
+                Path(tmp),
+                {OPUS: {"effects": {
+                    "a--effect-x": (1.0, True, 1.0), "a--effect-y": (1.0, True, 1.0),
+                    "b--effect-x": (1.0, True, 1.0), "b--effect-y": (1.0, True, 0.0),
+                }}},
+            )
+            lines = kheadroom.report(root, {})
+        self.assertIn("ASSET a no discriminating case", lines)
+        self.assertNotIn("ASSET b no discriminating case", lines)
+        self.assertIn(f"HEADROOM saturated a--effect-x {OPUS}=1.00/1.00", lines)
+        self.assertIn("4 cases: 3 saturated, 0 dead, 0 kb-below-vanilla, 1 discriminating, 0 unmeasured", lines)
+
+    def test_baselines_with_no_model_directory_are_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "no model directories"):
+                kheadroom.report(Path(tmp), {})
+
+    def test_workflow_cases_get_no_asset_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self.write_baselines(
+                Path(tmp),
+                {OPUS: {
+                    "effects": {"e--effect-x": (1.0, True, 0.0)},
+                    "workflows": {"wf--plan-to-review": (1.0, True, 1.0)},
+                }},
+            )
+            lines = kheadroom.report(root, {})
+        self.assertIn(f"HEADROOM saturated wf--plan-to-review {OPUS}=1.00/1.00", lines)
+        self.assertEqual([line for line in lines if line.startswith("ASSET ")], [])
+
+    def test_missing_live_case_is_listed_and_not_counted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self.write_baselines(Path(tmp), {OPUS: {"effects": {"a--effect-x": (1.0, True, 0.0)}}})
+            lines = kheadroom.report(root, {"effects": {"a--effect-x", "a--effect-gone"}})
+        self.assertIn("MISSING a--effect-gone", lines)
+        self.assertNotIn("MISSING a--effect-x", lines)
+        self.assertIn("1 cases: 0 saturated, 0 dead, 0 kb-below-vanilla, 1 discriminating, 0 unmeasured", lines)
 
 
 class RunnerSafetyTests(RunnerCase):
@@ -1957,6 +2064,31 @@ class OrchestratePlanTests(OrchestrateTests):
 
 
 class EntryPointTests(OrchestrateTests):
+    def test_headroom_prints_the_tail_and_exits_zero(self):
+        from evals.kbeval import __main__ as kmain
+
+        root = self.repo / "evals" / "baselines"
+        for suite in kheadroom.SUITES:
+            path = root / OPUS / f"{suite}.json"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(summary_doc({"demo-skill--effect-a": (1.0, True, 1.0)})))
+        out = io.StringIO()
+        with mock.patch.object(kmain, "REPO", self.repo), contextlib.redirect_stdout(out):
+            code = kmain.main(["headroom"])
+        self.assertEqual(code, 0)
+        lines = out.getvalue().splitlines()
+        self.assertIn("1 cases: 1 saturated, 0 dead, 0 kb-below-vanilla, 0 discriminating, 0 unmeasured", lines)
+
+    def test_headroom_exits_one_on_an_unreadable_baseline(self):
+        from evals.kbeval import __main__ as kmain
+
+        path = self.repo / "evals" / "baselines" / OPUS / "effects.json"
+        path.parent.mkdir(parents=True)
+        path.write_text("{")
+        err = io.StringIO()
+        with mock.patch.object(kmain, "REPO", self.repo), contextlib.redirect_stderr(err):
+            self.assertEqual(kmain.main(["headroom"]), 1)
+
     def test_summarize_writes_nothing_when_a_check_fails(self):
         from evals.kbeval import __main__ as kmain
 
