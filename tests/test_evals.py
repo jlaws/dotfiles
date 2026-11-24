@@ -1650,6 +1650,16 @@ class ResultsLoaderTests(unittest.TestCase):
         self.assertEqual(kresults.own_load_grader(case, "j-arch"), "skill")
         self.assertIsNone(kresults.own_load_grader(case, "j-plan"))
 
+    def test_own_load_grader_does_not_match_a_hyphen_suffix_asset(self):
+        prefixed = {"graders": [
+            {"name": "skill", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"(?:kb:)?j-create-pr"'}},
+        ]}
+        self.assertIsNone(kresults.own_load_grader(prefixed, "create-pr"))
+        exact = {"graders": [
+            {"name": "skill", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"kb:create-pr"'}},
+        ]}
+        self.assertEqual(kresults.own_load_grader(exact, "create-pr"), "skill")
+
 
 def summary_doc(cases: dict, model: str = OPUS) -> dict:
     return {

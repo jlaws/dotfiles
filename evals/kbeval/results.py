@@ -124,7 +124,7 @@ def own_load_grader(case: dict, asset: str) -> Optional[str]:
     for g in case.get("graders", []):
         cfg = g.get("config") or {}
         if cfg.get("tool") in ("Skill", "Agent") and re.search(
-            rf"\b{re.escape(asset)}\"", cfg.get("input_match", "")
+            rf"(?<![\w-]){re.escape(asset)}\"", cfg.get("input_match", "")
         ):
             return g["name"]
     return None
