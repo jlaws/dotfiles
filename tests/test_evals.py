@@ -2690,6 +2690,33 @@ class HillclimbAdoptTests(unittest.TestCase):
         self.assertIn("CRITERION a near-fires FAIL", out)
         self.assertIn("ADOPT a restore\n", out)
 
+    def test_after_without_existing_and_near_cases_blocks(self):
+        self._asset(held=(0, 4))
+        code, out = self._adopt(after=("hf",))
+        self.assertEqual(code, 1)
+        self.assertIn("CRITERION a existing-should BLOCKED existing 3/6 -> 0/0; 0 graded after\n", out)
+        self.assertIn("CRITERION a near-fires BLOCKED near 0/0 fired; 0 graded after\n", out)
+        self.assertIn("ADOPT a blocked\n", out)
+
+    def test_existing_graded_counts_that_differ_block(self):
+        self._asset(held=(0, 4))
+        for model in (OPUS, kdet.SONNET):
+            self._trigger("b", model, "a--trigger-should-x", 1, 1)
+        code, out = self._adopt()
+        self.assertEqual(code, 1)
+        self.assertIn("CRITERION a existing-should BLOCKED existing 2/2 -> 3/6; graded 2 before, 6 after\n", out)
+        self.assertIn("ADOPT a blocked\n", out)
+
+    def test_neighbour_should_with_differing_graded_counts_is_reviewed(self):
+        self._asset(held=(0, 4))
+        self._trigger("baseline", kdet.SONNET, "n--trigger-should-x", 3, 3)
+        self._trigger("f", kdet.SONNET, "n--trigger-should-x", 2, 2)
+        code, out = self._adopt()
+        self.assertEqual(code, 0)
+        self.assertIn(
+            f"REVIEW n--trigger-should-x should 3/3 -> 2/2 on {kdet.SONNET} vs baseline (graded counts differ)\n", out
+        )
+
 
 from evals.kbeval import affected as kaffected  # noqa: E402
 

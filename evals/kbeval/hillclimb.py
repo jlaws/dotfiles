@@ -117,9 +117,16 @@ def adopt(
         )
         eb, ebn = _count(old, "trigger-should", "")
         ea, ean = _count(new, "trigger-should", "")
-        emit("existing-should", "FAIL" if ea < eb else "PASS", f"existing {eb}/{ebn} -> {ea}/{ean}")
+        why = [f"0 graded {side}" for side, n in (("before", ebn), ("after", ean)) if not n]
+        if not why and ebn != ean:
+            why = [f"graded {ebn} before, {ean} after"]
+        status = "BLOCKED" if why else ("FAIL" if ea < eb else "PASS")
+        emit("existing-should", status, f"existing {eb}/{ebn} -> {ea}/{ean}" + "".join(f"; {w}" for w in why))
         nf, nn = _count(new, "trigger-near", None)
-        emit("near-fires", "FAIL" if nf else "PASS", f"near {nf}/{nn} fired")
+        if not nn:
+            emit("near-fires", "BLOCKED", f"near {nf}/{nn} fired; 0 graded after")
+        else:
+            emit("near-fires", "FAIL" if nf else "PASS", f"near {nf}/{nn} fired")
         if all(s == "PASS" for s in statuses):
             found = {m: det.load(effects, m, asset) for m in det.models(asset)}
             data = {m: cases for m, cases in found.items() if cases is not None}
@@ -168,11 +175,13 @@ def _neighbours(others: List[str], rows: List[det.TriggerRow], neighbour_base: s
             continue
         if kind == "trigger-near" and fired:
             print(f"CRITERION neighbours {name} FAIL near {fired}/{graded} fired on {model}")
-        elif kind == "trigger-should" and name in base and base[name][3] - fired >= 2:
-            print(
-                f"REVIEW {name} should {base[name][3]}/{base[name][4]} -> {fired}/{graded} "
-                f"on {model} vs {neighbour_base}"
-            )
+        elif kind == "trigger-should" and name in base:
+            old_fired, old_graded = base[name][3], base[name][4]
+            line = f"REVIEW {name} should {old_fired}/{old_graded} -> {fired}/{graded} on {model} vs {neighbour_base}"
+            if old_graded != graded:
+                print(f"{line} (graded counts differ)")
+            elif graded and old_fired - fired >= 2:
+                print(line)
 
 
 def main(argv: Optional[List[str]] = None) -> int:
