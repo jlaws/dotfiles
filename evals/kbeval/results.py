@@ -18,7 +18,7 @@ SIDECAR = ".meta.json"
 
 
 class Loaded(NamedTuple):
-    """Winning cases, every complete document read, their KB digests, and skipped files."""
+    """Winning cases, the documents that supply them, their KB digests, and skipped files."""
 
     cases: Dict[str, dict]
     docs: List[dict]
@@ -70,9 +70,11 @@ def load_cases(root: Path, asset: Optional[str] = None, live: Optional[Set[str]]
             if live is not None and name not in live:
                 continue
             winners[name] = (case, path)
-    digests = {_digest(path) for _, path in winners.values()}
+    sources = {path for _, path in winners.values()}
+    digests = {_digest(path) for path in sources}
     cases = {name: case for name, (case, _) in winners.items()}
-    return Loaded(cases, [doc for _, _, doc in found], digests, sorted(skipped))
+    docs = [doc for _, path, doc in found if path in sources]
+    return Loaded(cases, docs, digests, sorted(skipped))
 
 
 def _digest(path: Path) -> str:

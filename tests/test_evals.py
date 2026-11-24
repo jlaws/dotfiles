@@ -1434,6 +1434,29 @@ class SummaryTests(unittest.TestCase):
         (row,) = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"]
         self.assertEqual(row["kbScore"], 1.0)
 
+    def test_fully_shadowed_document_leaves_version_and_cost_alone(self):
+        old = with_runs(real_doc(), [False] * 3)
+        old["startedAt"] = "2026-11-15T10:00:00.000Z"
+        old["claudeVersion"] = "1.0.0"
+        old["costUsd"] = 50.0
+        new = with_runs(real_doc(), [True] * 3)
+        new["startedAt"] = "2026-11-16T10:00:00.000Z"
+        new["costUsd"] = 2.0
+        self.put("kb", "j-arch", old)
+        self.put("kb", "j-arch--effect-cache-layer", new)
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        self.assertEqual((doc["claudeVersion"], doc["costUsd"]), ("2.1.325", 2.0))
+
+    def test_document_outside_live_contributes_no_cost(self):
+        kept = with_runs(real_doc(), [True] * 3)
+        kept["costUsd"] = 2.0
+        gone = self.renamed("j-arch--effect-gone")
+        gone["costUsd"] = 50.0
+        self.put("kb", "j-arch", kept)
+        self.put("kb", "j-arch--gone", gone)
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS, live={CASE})
+        self.assertEqual(doc["costUsd"], 2.0)
+
     def test_determination_load_sees_exact_case_files(self):
         old = with_runs(real_doc(), [False] * 3)
         old["startedAt"] = "2026-11-15T10:00:00.000Z"
@@ -1539,6 +1562,14 @@ class ResultsLoaderTests(unittest.TestCase):
         self.put("j-arch", real_doc(), "2026-11-15T10:00:00.000Z", digest="old")
         self.put(CASE, real_doc(), "2026-11-16T10:00:00.000Z", digest="new")
         self.assertEqual(kresults.load_cases(self.root).digests, {"new"})
+
+    def test_fully_shadowed_document_is_not_in_docs(self):
+        old = real_doc()
+        old["claudeVersion"] = "1.0.0"
+        self.put("j-arch", old, "2026-11-15T10:00:00.000Z")
+        self.put(CASE, real_doc(), "2026-11-16T10:00:00.000Z")
+        loaded = kresults.load_cases(self.root)
+        self.assertEqual([d["claudeVersion"] for d in loaded.docs], ["2.1.325"])
 
     def test_own_load_grader_matches_skill_and_agent_tools(self):
         case = {"graders": [
