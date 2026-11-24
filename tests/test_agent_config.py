@@ -2148,7 +2148,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertEqual(got, agent_reference_names(agent))
 
     def test_consult_cases_measure_reference_reads(self):
-        """Each consult case carries a read-refs grader on its agents' reference directories."""
+        """Each consult case carries a read-refs grader on its agents' reference directories.
+
+        A reference-grounded case (its description names one reference file) is graded on that
+        file's directory alone, so a read elsewhere does not count as reaching it.
+        """
         cases_root = REPO / "evals" / "cases" / "effects"
         for command, agents in CONSULT_AGENTS.items():
             dirs = {name.split("/")[0] for a in agents for name in agent_reference_names(a)}
@@ -2159,6 +2163,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 with self.subTest(case=case.name):
                     grader = (case / "graders" / "read-refs.md").read_text(encoding="utf-8")
                     self.assertIn("tool: Read", grader)
+                    prompt = (case / "prompt.md").read_text(encoding="utf-8")
+                    grounded = re.search(r'^description: "[^"]*; \.claude/references/([\w-]+)/', prompt, re.M)
+                    if grounded:
+                        self.assertIn(grounded.group(1), dirs)
+                        self.assertIn(f"/{grounded.group(1)}/", grader)
+                        continue
                     for directory in dirs:
                         self.assertIn(directory, grader)
 
