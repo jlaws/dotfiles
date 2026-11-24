@@ -113,6 +113,15 @@ def passed(run: dict, name: str) -> bool:
     return bool(found and found.get("passed"))
 
 
+def loaded(case: dict, run: dict, name: str) -> bool:
+    """Return whether the load grader shows the asset loaded in a run; a `max: 0` grader passes on no load."""
+    found = grader(run, name) if run.get("graders") else None
+    if found is None:
+        return False
+    config = next((g.get("config") or {} for g in case.get("graders", []) if g["name"] == name), {})
+    return bool(found.get("passed")) != (config.get("max") == 0)
+
+
 def evidence(run: dict, name: str) -> Optional[str]:
     """Return the file an llm grader stored for a run, or None."""
     found = grader(run, name)

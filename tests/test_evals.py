@@ -2054,9 +2054,11 @@ class TriggerReportTests(unittest.TestCase):
     def _write(self, model, stem, cases, partial=False, key=True, started=None, grader_name="fired"):
         root = self.tmp / "p" / "kb" / model / "triggers"
         root.mkdir(parents=True, exist_ok=True)
+        # Like the real trigger cases, a near or noauto case's load grader carries `max: 0`.
         doc = {"partial": partial, "cases": [
             {"name": name, "graders": [{"name": grader_name, "type": "tool_used", "config": {
-                "tool": "Skill", "input_match": f'"skill"\\s*:\\s*"(?:kb:)?{name.split("--")[0]}"'}}],
+                "tool": "Skill", "input_match": f'"skill"\\s*:\\s*"(?:kb:)?{name.split("--")[0]}"',
+                **({} if "--trigger-should-" in name else {"max": 0})}}],
              "arms": {"with": [
                 {"graders": [{"name": grader_name, "passed": ok}]} for ok in outcomes
             ]}}
@@ -2144,7 +2146,8 @@ class TriggerReportTests(unittest.TestCase):
         root = self.tmp / "p" / "kb" / "m" / "triggers"
         root.mkdir(parents=True)
         doc = {"partial": False, "cases": [{"name": "a--trigger-near-x", "graders": [
-            {"name": "fired", "type": "tool_used", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"a"'}},
+            {"name": "fired", "type": "tool_used",
+             "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"a"', "max": 0}},
         ], "arms": {"with": [
             {"graders": [{"name": "fired", "passed": True}]},
             {"graders": [{"name": "other", "passed": False}]},
@@ -2154,6 +2157,19 @@ class TriggerReportTests(unittest.TestCase):
         self.assertEqual(
             kdet.trigger_rows("p", ["a"]), [("a--trigger-near-x", "trigger-near", "m", 0, 1)]
         )
+
+    def test_trigger_rows_reports_a_case_with_no_load_grader(self):
+        root = self.tmp / "p" / "kb" / "m" / "triggers"
+        root.mkdir(parents=True)
+        doc = {"partial": False, "cases": [{"name": "a--trigger-should-x", "graders": [
+            {"name": "fired", "type": "tool_used", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"b"'}},
+        ], "arms": {"with": [{"graders": [{"name": "fired", "passed": True}]}]}}]}
+        (root / "a.json").write_text(json.dumps(doc), encoding="utf-8")
+        (root / "a.key").write_text("k", encoding="utf-8")
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            rows = kdet.trigger_rows("p", ["a"])
+        self.assertEqual(rows, [("a--trigger-should-x", "trigger-should", "m", 0, 0)])
+        self.assertIn("NO LOAD GRADER a--trigger-should-x\n", err.getvalue())
 
     def test_triggers_exits_one_when_nothing_matched(self):
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()) as err:

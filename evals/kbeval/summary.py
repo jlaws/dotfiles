@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import List, Optional, Set, Tuple
 
 from evals.kbeval.cases import CASE_NAME
-from evals.kbeval.results import load_cases, own_load_grader
+from evals.kbeval.results import load_cases, loaded, own_load_grader
 from evals.kbeval.runner import API_ERROR, JUDGE_MODEL, TIMEOUT, TURN_CAP, judge_family
 
 SCHEMA = 1
@@ -55,15 +55,6 @@ def _arm_score(case: Optional[dict], result: bool) -> Tuple[Optional[float], int
     runs = _graded(case)
     scores = [s for s in (_score(case, run, result) for run in runs) if s is not None]
     return _mean(scores), len(runs)
-
-
-def _loaded(case: dict, run: dict, name: str) -> bool:
-    """Return whether the load grader shows the asset loaded in a run; a `max: 0` grader passes on no load."""
-    found = next((g for g in run.get("graders") or [] if g["name"] == name), None)
-    if found is None:
-        return False
-    config = next((g.get("config") or {} for g in case.get("graders", []) if g["name"] == name), {})
-    return bool(found.get("passed")) != (config.get("max") == 0)
 
 
 def _behavior_rate(case: dict, load: Optional[str]) -> Optional[float]:
@@ -107,9 +98,9 @@ def summarize(
     `excludeTags`); `check` holds the summary to it. `live` drops results for cases outside it.
     `notes`, when given, receives one line per skipped file and one per staging with dropped cases.
     """
-    loaded = {staging: load_cases(results / staging / model / suite, live=live) for staging in ("kb", "vanilla")}
+    by_staging = {staging: load_cases(results / staging / model / suite, live=live) for staging in ("kb", "vanilla")}
     if notes is not None:
-        for staging, found in loaded.items():
+        for staging, found in by_staging.items():
             where = f"{staging}/{model}/{suite}"
             notes.extend(f"{where}: skipped {entry}" for entry in found.skipped)
             if found.dropped:
@@ -117,8 +108,8 @@ def summarize(
                     f"{where}: dropped {len(found.dropped)} results for cases no longer under "
                     f"evals/cases: {', '.join(found.dropped)}"
                 )
-    kb_cases, kb_docs, kb_digests = loaded["kb"].cases, loaded["kb"].docs, loaded["kb"].digests
-    van_cases, van_docs, van_digests = loaded["vanilla"].cases, loaded["vanilla"].docs, loaded["vanilla"].digests
+    kb_cases, kb_docs, kb_digests, *_ = by_staging["kb"]
+    van_cases, van_docs, van_digests, *_ = by_staging["vanilla"]
     for digests in (kb_digests, van_digests):
         if len(digests) > 1:
             raise ValueError(
@@ -151,8 +142,8 @@ def summarize(
         if kb and load:
             kb_graded = _graded(kb)
             if kb_graded:
-                load_rate = sum(_loaded(kb, r, load) for r in kb_graded) / len(kb_graded)
-            censored = sum(1 for is_kb, r in capped if is_kb and not _loaded(kb, r, load))
+                load_rate = sum(loaded(kb, r, load) for r in kb_graded) / len(kb_graded)
+            censored = sum(1 for is_kb, r in capped if is_kb and not loaded(kb, r, load))
         errors = sorted({str(r["error"]) for c in (kb, van) if c for r in _runs(c) if r.get("error")})
         error_runs = sum(1 for c in (kb, van) if c for r in _runs(c) if r.get("error"))
         asset, kind = _identity(name)
