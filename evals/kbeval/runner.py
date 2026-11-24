@@ -85,6 +85,12 @@ def load_budget(repo: Optional[Path] = None) -> dict:
     return json.loads(((repo or REPO) / "evals" / "budget.json").read_text(encoding="utf-8"))
 
 
+def judge_family(model: str) -> str:
+    """Return the family of a Claude model id (`claude-<family>-...`), else the id itself."""
+    match = re.match(r"^claude-([a-z]+)-", model)
+    return match.group(1) if match else model
+
+
 def _err(message: str) -> None:
     print(message, file=sys.stderr)
 
@@ -384,6 +390,9 @@ def run(
     """
     if not os.environ.get("ANTHROPIC_API_KEY"):
         _err("evals bill an API key; export ANTHROPIC_API_KEY")
+        return 1
+    if judge_family(model) == judge_family(JUDGE_MODEL):
+        _err(f"model {model} is in the judge's family ({JUDGE_MODEL}); a run cannot grade itself")
         return 1
     if jobs < 1 or runs < 1:
         _err(f"jobs and runs must be at least 1 (got jobs={jobs}, runs={runs})")

@@ -832,6 +832,38 @@ class RunnerGuardTests(RunnerCase):
         self.assertIn("evals bill an API key; export ANTHROPIC_API_KEY", err)
         self.assertEqual(cli.calls, [])
 
+    def test_runner_refuses_a_model_in_the_judge_family(self):
+        cli = FakeCli(lambda args: (result_doc({}), 0, ""))
+        err = io.StringIO()
+        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
+                   "budget": self.budget, "p95": 5.0}
+        with contextlib.redirect_stderr(err):
+            code = krunner.run("effects", "kb", "claude-fable-5-3", 3, "test", ["j-demo"], 8, cli, **options)
+        self.assertNotEqual(code, 0)
+        self.assertIn("claude-fable-5-3", err.getvalue())
+        self.assertIn(krunner.JUDGE_MODEL, err.getvalue())
+        self.assertEqual(cli.calls, [])
+        self.assertEqual(self.entries(), [])
+
+    def test_runner_allows_other_families(self):
+        cli = FakeCli(lambda args: (result_doc({case_arg(args).rstrip("*-"): [None]}), 0, ""))
+        code, err = self.run_suite(cli)
+        self.assertEqual(code, 0, err)
+        self.assertTrue(cli.calls)
+
+    def test_missing_api_key_message_wins_over_the_judge_guard(self):
+        cli = FakeCli(lambda args: (result_doc({}), 0, ""))
+        err = io.StringIO()
+        with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": ""}), contextlib.redirect_stderr(err):
+            code = krunner.run("effects", "kb", "claude-fable-5-3", 3, "test", ["j-demo"], 8, cli, plugin=self.plugin)
+        self.assertNotEqual(code, 0)
+        self.assertIn("export ANTHROPIC_API_KEY", err.getvalue())
+        self.assertNotIn("judge's family", err.getvalue())
+
+    def test_judge_family_of_an_unprefixed_id_is_the_id(self):
+        self.assertEqual(krunner.judge_family("claude-fable-5-3"), "fable")
+        self.assertEqual(krunner.judge_family("gpt-5"), "gpt-5")
+
 
 class RunnerBatchTests(RunnerCase):
     def test_batch_args(self):
@@ -1330,6 +1362,16 @@ class SummaryTests(unittest.TestCase):
         self.assertTrue(any("API" in p for p in problems), problems)
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
         self.assertEqual(ksummary.check(ksummary.summarize(self.results, OPUS, "effects", SETTINGS)), [])
+
+    def test_check_rejects_a_self_judged_summary(self):
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
+        self.put("vanilla", "j-arch", with_runs(real_doc(), [True, True, True]))
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        self.assertEqual(ksummary.check(doc), [])
+        doc["model"] = "claude-fable-5-3"
+        self.assertIn("claude-fable-5-3/effects: judged by its own family", ksummary.check(doc))
+        doc["judgeModel"] = None
+        self.assertIn("claude-fable-5-3/effects: judged by its own family", ksummary.check(doc))
 
     def test_check_skips_vanilla_for_unlisted_models(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))

@@ -31,7 +31,8 @@ where `<fired>` counts runs in which the skill was called, for every kind. `tune
 the command exits 1 when nothing matches, and reports skipped partial or key-less batches on stderr.
 
 A run whose model is in the judge's family is refused, so a model of that family cannot be put
-under test without first changing the judge.
+under test without first changing the judge. The family is read from a full model id
+(`claude-<family>-...`); an alias or a provider-prefixed id is not recognized, so pass full ids.
 
 `J ?= 8` sets `-j` (concurrent runs). `eval-baseline` also takes `VANILLA_RUNS` (default 3),
 `VANILLA_MODELS` (default both models), and `EXCLUDE_TAGS` (default empty); the kb staging always

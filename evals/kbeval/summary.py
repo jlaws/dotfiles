@@ -16,7 +16,7 @@ from typing import List, Optional, Set, Tuple
 
 from evals.kbeval.cases import CASE_NAME
 from evals.kbeval.results import load_cases, own_load_grader
-from evals.kbeval.runner import API_ERROR, TIMEOUT, TURN_CAP
+from evals.kbeval.runner import API_ERROR, JUDGE_MODEL, TIMEOUT, TURN_CAP, judge_family
 
 SCHEMA = 1
 RESULT_TYPES = frozenset({"regex", "file_exists", "llm"})
@@ -188,6 +188,9 @@ def check(doc: dict) -> List[str]:
     problems = []
     if not doc.get("cases"):
         problems.append(f"{doc['model']}/{doc['suite']}: no cases")
+    # A summary with no recorded judge (triggers) is held to the runner's judge, as `runner.run` is.
+    if judge_family(doc["model"]) == judge_family(doc.get("judgeModel") or JUDGE_MODEL):
+        problems.append(f"{doc['model']}/{doc['suite']}: judged by its own family")
     for case in doc.get("cases", []):
         name = case["name"]
         if case["kbRuns"] != settings.get("kbRuns"):
