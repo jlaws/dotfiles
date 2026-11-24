@@ -403,7 +403,7 @@ Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63
 case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`, `triggers`)
 reads the raw per-run results under `~/.local/state/dotfiles-kbeval/results/<purpose>/kb/`
 (machine-local, so it reruns only where those results exist), keeping only batches
-with a `.key` and `partial` false, as `summary._load` does. Its checks are `html-lead`,
+with a `.key` and `partial` false, as `results.load_cases` does. Its checks are `html-lead`,
 `writing-plans-risks`, `research-claim-c`, `j-explain-self-contained`, `arch-design`,
 `no-regression`, and `library-use`; `figures` produced the counts below. Each llm-grader record
 stores the graded file in `evidence`, so a failure can be read, not only counted.

@@ -1,7 +1,7 @@
 """Compact per-suite baseline summaries from raw result documents.
 
-Reads `<results>/<staging>/<model>/<suite>/<batch>.json` (and `<batch>@<case>.json` reruns, which
-replace that case), and scores each case on its result graders only (`regex`, `file_exists`,
+Reads `<results>/<staging>/<model>/<suite>/` through `results.load_cases` (newest result per case
+wins), and scores each case on its result graders only (`regex`, `file_exists`,
 `llm`). Process graders (`tool_used`, `tool_order`) are indicators, reported as `firedRate` and
 left out of delta. Trigger cases have only a process grader, so it is their score.
 """
@@ -12,9 +12,10 @@ import json
 import random
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from evals.kbeval.cases import CASE_NAME
+from evals.kbeval.results import load_cases
 from evals.kbeval.runner import API_ERROR
 
 SCHEMA = 1
@@ -23,26 +24,6 @@ BOOTSTRAP_SAMPLES = 2000
 PASS_AT = 2 / 3  # a case passes when its mean run score is at least 2/3
 # Summaries are committed to a public repo: refuse keys, local paths, and API request IDs.
 LEAK = re.compile(r"sk-ant-|/Users/|/home/|/var/folders/|\b(?:req|msg)_[0-9A-Za-z]{6,}")
-
-
-def _load(results: Path, staging: str, model: str, suite: str) -> Tuple[Dict[str, dict], List[dict]]:
-    """Return {case name: case entry} with reruns applied, and every document read."""
-    root = results / staging / model / suite
-    cases: Dict[str, dict] = {}
-    docs: List[dict] = []
-    if not root.is_dir():
-        return cases, docs
-    # Only completed batches count: the runner writes a .key beside a result it accepted, so
-    # partial, quarantined, or abandoned results are left out.
-    paths = sorted(p for p in root.glob("*.json") if p.with_suffix(".key").is_file())
-    for path in [p for p in paths if "@" not in p.stem] + [p for p in paths if "@" in p.stem]:
-        doc = json.loads(path.read_text(encoding="utf-8"))
-        if doc.get("partial"):
-            continue
-        docs.append(doc)
-        for case in doc.get("cases", []):
-            cases[case["name"]] = case
-    return cases, docs
 
 
 def _runs(case: dict) -> List[dict]:
@@ -101,8 +82,8 @@ def summarize(results: Path, model: str, suite: str, settings: dict) -> dict:
     `settings` records the run configuration (`kbRuns`, `vanillaRuns`, `vanillaModels`,
     `excludeTags`); `check` holds the summary to it.
     """
-    kb_cases, kb_docs = _load(results, "kb", model, suite)
-    van_cases, van_docs = _load(results, "vanilla", model, suite)
+    kb_cases, kb_docs, _, _ = load_cases(results / "kb" / model / suite)
+    van_cases, van_docs, _, _ = load_cases(results / "vanilla" / model / suite)
     docs = kb_docs + van_docs
     versions = sorted({d.get("claudeVersion") for d in docs if d.get("claudeVersion")})
     if len(versions) > 1:

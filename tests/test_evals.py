@@ -1216,6 +1216,133 @@ class SummaryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
 
+    def test_exact_case_rerun_newer_than_its_batch_wins_in_summarize(self):
+        old = with_runs(real_doc(), [False] * 3)
+        old["startedAt"] = "2026-11-15T10:00:00.000Z"
+        new = with_runs(real_doc(), [True] * 3)
+        new["startedAt"] = "2026-11-16T10:00:00.000Z"
+        self.put("kb", "j-arch", old)
+        self.put("kb", "j-arch--effect-cache-layer", new)
+        (row,) = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"]
+        self.assertEqual(row["kbScore"], 1.0)
+
+    def test_determination_load_sees_exact_case_files(self):
+        old = with_runs(real_doc(), [False] * 3)
+        old["startedAt"] = "2026-11-15T10:00:00.000Z"
+        new = with_runs(real_doc(), [True] * 3)
+        new["startedAt"] = "2026-11-16T10:00:00.000Z"
+        self.put("kb", "j-arch", old)
+        self.put("kb", "j-arch--effect-cache-layer", new)
+        purpose = self.results.name
+        with mock.patch.object(kdet, "RESULTS", self.results.parent):
+            cases = kdet.load(purpose, OPUS, "j-arch") or {}
+            self.assertIsNone(kdet.load(purpose, OPUS, "ghost"))
+        self.assertEqual(list(cases), ["j-arch--effect-cache-layer"])
+        self.assertTrue(all(kdet.passed(r, "design") for r in kdet.runs(cases["j-arch--effect-cache-layer"])))
+
+
+from evals.kbeval import results as kresults  # noqa: E402
+
+CASE = "j-arch--effect-cache-layer"
+
+
+class ResultsLoaderTests(unittest.TestCase):
+    """`results.load_cases`: one precedence rule for every reader of raw results."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name) / "p" / "kb" / OPUS / "effects"
+        self.root.mkdir(parents=True)
+
+    def put(self, label, doc, started=None, keyed=True, digest=None):
+        if started is not None:
+            doc["startedAt"] = started
+        path = self.root / f"{label}.json"
+        path.write_text(json.dumps(doc))
+        if keyed:
+            path.with_suffix(".key").write_text("k\n")
+        if digest is not None:
+            (self.root / f"{label}.meta.json").write_text(json.dumps({"kbDigest": digest}))
+
+    def design_passes(self, loaded):
+        return [kresults.passed(r, "design") for r in kresults.runs(loaded.cases[CASE])]
+
+    def test_exact_case_rerun_wins_over_older_asset_batch(self):
+        self.put("j-arch", with_runs(real_doc(), [False] * 3), "2026-11-15T10:00:00.000Z")
+        self.put(CASE, with_runs(real_doc(), [True] * 3), "2026-11-16T10:00:00.000Z")
+        self.assertEqual(self.design_passes(kresults.load_cases(self.root)), [True] * 3)
+        self.assertEqual(self.design_passes(kresults.load_cases(self.root, asset="j-arch")), [True] * 3)
+
+    def test_newer_asset_batch_wins_over_older_exact_case_file(self):
+        self.put("j-arch", with_runs(real_doc(), [False] * 3), "2026-11-16T10:00:00.000Z")
+        self.put(CASE, with_runs(real_doc(), [True] * 3), "2026-11-15T10:00:00.000Z")
+        self.assertEqual(self.design_passes(kresults.load_cases(self.root)), [False] * 3)
+
+    def test_at_rerun_wins_on_a_startedat_tie(self):
+        same = "2026-11-15T10:00:00.000Z"
+        self.put("j-arch", with_runs(real_doc(), [False] * 3), same)
+        self.put(CASE, with_runs(real_doc(), [False] * 3), same)
+        self.put(f"j-arch@{CASE}", with_runs(real_doc(), [True] * 3), same)
+        self.assertEqual(self.design_passes(kresults.load_cases(self.root)), [True] * 3)
+
+    def test_exact_case_file_wins_over_asset_batch_on_a_startedat_tie(self):
+        same = "2026-11-15T10:00:00.000Z"
+        self.put("j-arch", with_runs(real_doc(), [False] * 3), same)
+        self.put(CASE, with_runs(real_doc(), [True] * 3), same)
+        self.assertEqual(self.design_passes(kresults.load_cases(self.root)), [True] * 3)
+
+    def test_keyless_and_partial_files_are_listed_as_skipped(self):
+        self.put("j-arch", with_runs(real_doc(), [True] * 3))
+        self.put(CASE, with_runs(real_doc(), [False] * 3), keyed=False)
+        partial = with_runs(real_doc(), [False] * 3)
+        partial["partial"] = True
+        self.put(f"j-arch@{CASE}", partial)
+        loaded = kresults.load_cases(self.root)
+        self.assertEqual(self.design_passes(loaded), [True] * 3)
+        self.assertEqual(len(loaded.docs), 1)
+        self.assertEqual(len(loaded.skipped), 2)
+        self.assertTrue(any(f"{CASE}.json" in s and "no .key" in s for s in loaded.skipped), loaded.skipped)
+        self.assertTrue(any(f"@{CASE}.json" in s and "partial" in s for s in loaded.skipped), loaded.skipped)
+
+    def test_asset_filter_reads_only_that_asset(self):
+        plan = copy.deepcopy(real_doc())
+        plan["cases"][0]["name"] = "j-plan--effect-x"
+        arch = real_doc()
+        stray = copy.deepcopy(arch["cases"][0])
+        stray["name"] = "other--effect-z"
+        arch["cases"].append(stray)
+        self.put("j-arch", arch)
+        self.put("j-plan", plan)
+        self.assertEqual(
+            set(kresults.load_cases(self.root).cases), {CASE, "j-plan--effect-x", "other--effect-z"}
+        )
+        loaded = kresults.load_cases(self.root, asset="j-arch")
+        self.assertEqual(list(loaded.cases), [CASE])
+        self.assertEqual(len(loaded.docs), 1)
+        self.assertEqual(kresults.load_cases(self.root, asset="ghost").docs, [])
+
+    def test_cases_outside_live_are_dropped(self):
+        self.put("j-arch", real_doc())
+        self.assertEqual(kresults.load_cases(self.root, live={"other--effect-y"}).cases, {})
+        self.assertEqual(list(kresults.load_cases(self.root, live={CASE}).cases), [CASE])
+
+    def test_digests_come_only_from_documents_that_supply_a_winning_case(self):
+        self.put("j-arch", real_doc(), "2026-11-15T10:00:00.000Z", digest="old")
+        self.put(CASE, real_doc(), "2026-11-16T10:00:00.000Z", digest="new")
+        self.assertEqual(kresults.load_cases(self.root).digests, {"new"})
+
+    def test_own_load_grader_matches_skill_and_agent_tools(self):
+        case = {"graders": [
+            {"name": "other", "config": {"tool": "Agent", "input_match": '"subagent_type"\\s*:\\s*"kb:code-reviewer"'}},
+            {"name": "dispatched", "config": {
+                "tool": "Agent", "input_match": '"subagent_type"\\s*:\\s*"kb:security-reviewer"'}},
+            {"name": "skill", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"(?:kb:)?j-arch"'}},
+        ]}
+        self.assertEqual(kresults.own_load_grader(case, "security-reviewer"), "dispatched")
+        self.assertEqual(kresults.own_load_grader(case, "j-arch"), "skill")
+        self.assertIsNone(kresults.own_load_grader(case, "j-plan"))
+
 
 def summary_doc(cases: dict, model: str = OPUS) -> dict:
     return {
@@ -1571,15 +1698,19 @@ class TriggerReportTests(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def _write(self, model, stem, cases, partial=False, key=True):
+    def _write(self, model, stem, cases, partial=False, key=True, started=None, grader_name="fired"):
         root = self.tmp / "p" / "kb" / model / "triggers"
         root.mkdir(parents=True, exist_ok=True)
         doc = {"partial": partial, "cases": [
-            {"name": name, "arms": {"with": [
-                {"graders": [{"name": "fired", "passed": ok}]} for ok in outcomes
+            {"name": name, "graders": [{"name": grader_name, "type": "tool_used", "config": {
+                "tool": "Skill", "input_match": f'"skill"\\s*:\\s*"(?:kb:)?{name.split("--")[0]}"'}}],
+             "arms": {"with": [
+                {"graders": [{"name": grader_name, "passed": ok}]} for ok in outcomes
             ]}}
             for name, outcomes in cases.items()
         ]}
+        if started is not None:
+            doc["startedAt"] = started
         (root / f"{stem}.json").write_text(json.dumps(doc), encoding="utf-8")
         if key:
             (root / f"{stem}.key").write_text("k", encoding="utf-8")
@@ -1631,13 +1762,18 @@ class TriggerReportTests(unittest.TestCase):
         self.assertIn("(partial)", err.getvalue())
         self.assertIn("(no .key)", err.getvalue())
 
-    def test_trigger_rows_newest_batch_wins(self):
-        self._write("m", "a--trigger-should-x", {"a--trigger-should-x": [False, False]})
-        self._write("m", "a@2", {"a--trigger-should-x": [True, True]})
-        old = self.tmp / "p" / "kb" / "m" / "triggers" / "a--trigger-should-x.json"
-        os.utime(old, (1, 1))
+    def test_trigger_rows_newest_startedat_wins(self):
+        self._write("m", "a--trigger-should-x", {"a--trigger-should-x": [False, False]},
+                    started="2026-11-16T10:00:00.000Z")
+        self._write("m", "a@2", {"a--trigger-should-x": [True, True]}, started="2026-11-15T10:00:00.000Z")
         self.assertEqual(
-            kdet.trigger_rows("p", ["a"]), [("a--trigger-should-x", "trigger-should", "m", 2, 2)]
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-should-x", "trigger-should", "m", 0, 2)]
+        )
+
+    def test_trigger_rows_use_the_case_own_skill_grader(self):
+        self._write("m", "a", {"a--trigger-should-x": [True, True, True]}, grader_name="skill")
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]), [("a--trigger-should-x", "trigger-should", "m", 3, 3)]
         )
 
     def test_trigger_rows_keeps_assets_apart_and_drops_non_trigger_cases(self):
@@ -1654,7 +1790,9 @@ class TriggerReportTests(unittest.TestCase):
     def test_trigger_rows_ignores_runs_without_the_fired_grader(self):
         root = self.tmp / "p" / "kb" / "m" / "triggers"
         root.mkdir(parents=True)
-        doc = {"partial": False, "cases": [{"name": "a--trigger-near-x", "arms": {"with": [
+        doc = {"partial": False, "cases": [{"name": "a--trigger-near-x", "graders": [
+            {"name": "fired", "type": "tool_used", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"a"'}},
+        ], "arms": {"with": [
             {"graders": [{"name": "fired", "passed": True}]},
             {"graders": [{"name": "other", "passed": False}]},
         ]}}]}
