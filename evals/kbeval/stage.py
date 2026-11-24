@@ -3,6 +3,9 @@
 `kb` carries the skills, commands, and agents, appends `.claude/CLAUDE.md` plus two harness notes
 to every case's system prompt, and seeds references into each run's workspace. `vanilla` is an
 empty plugin, which is plain Claude. See `docs/adr/workflow/kb-evals-run-on-a-staged-plugin.md`.
+
+kb staging also copies `.claude/CLAUDE.md` and `evals/harness.json` into `_kb/` so the runner's KB
+digest covers them; no run reads those two copies.
 """
 
 from __future__ import annotations

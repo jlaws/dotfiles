@@ -206,7 +206,8 @@ class _Batches:
         self.invocation_spent = 0.0
         self.version = cli.version()
         self.eval_dir = f"evals-{suite}"
-        # Everything staged outside the eval dirs: skills, commands, agents, references, fixtures.
+        # Everything staged outside the eval dirs: skills, commands, agents, references, fixtures,
+        # CLAUDE.md, and harness.json.
         self.kb_digest = _tree_digest(self.plugin, skip_prefix="evals-")
 
     @property
