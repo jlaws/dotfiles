@@ -30,6 +30,9 @@ prints `TRIGGER <case> <kind> <model> <fired>/<runs>` for every trigger case run
 where `<fired>` counts runs in which the skill was called, for every kind. `tune` keeps every case whose slug does not start `held-`, unprefixed ones included;
 the command exits 1 when nothing matches, and reports skipped partial or key-less batches on stderr.
 
+A run whose model is in the judge's family is refused, so a model of that family cannot be put
+under test without first changing the judge.
+
 `J ?= 8` sets `-j` (concurrent runs). `eval-baseline` also takes `VANILLA_RUNS` (default 3),
 `VANILLA_MODELS` (default both models), and `EXCLUDE_TAGS` (default empty); the kb staging always
 runs three times per case.
@@ -251,11 +254,27 @@ Checked on `2.1.331 (Claude Code)`: every flag the runner passes exists in
 ## Summaries and compare
 
 `python3 -m evals.kbeval summarize [--check]` writes `evals/baselines/<model>/<suite>.json`: the run
-settings, Claude Code version, judge, date, cost, and one line per case with `kbScore`,
-`vanillaScore`, `delta`, `firedRate`, run counts, `errorRuns`, and the distinct error strings.
-Scores use result graders only; `firedRate` is the process-grader pass rate in kb (for a
-near-miss or noauto trigger, 1.0 means the skill did not fire). A case `passed` when `kbScore`, its mean run score,
-is at least 2/3. Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
+settings, Claude Code version, judge, date, cost, `kbDigest` per staging, and one line per case
+with `kbScore`, `vanillaScore`, `delta`, `loadRate`, `behaviorRate`, `cappedRuns`, `censoredRuns`,
+run counts, `errorRuns`, and the distinct error strings. Scores use result graders only. A case
+`passed` when `kbScore`, its mean run score, is at least 2/3.
+
+Row fields from process graders and run errors:
+- `loadRate`: the share of kb runs in which the asset's own Skill or Agent grader shows it loaded.
+- `behaviorRate`: the pass rate of the other process graders.
+- `cappedRuns`: runs that hit the turn cap or the timeout. Capped runs are still scored.
+- `censoredRuns`: capped kb runs in which the asset had not loaded.
+
+Which result is read:
+- For one case the newest result by `startedAt` wins. On a tie an exact-case file beats the asset
+  batch, and an `@` rerun beats both.
+- Each accepted result gets a `<label>.meta.json` sidecar holding `kbDigest`. The digest covers the
+  staged skills, commands, agents, references, fixtures, `.claude/CLAUDE.md`, and
+  `evals/harness.json`. `summarize` refuses results that mix KB digests within one staging; results
+  with no sidecar count as one digest, `unrecorded`.
+- Results for a case that no longer exists under `evals/cases/` are skipped.
+- A summary whose model is in the judge's family is refused.
+ Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
 It reads only results the runner accepted (those with a `.key`), and it checks before writing: if
 any case is missing runs or still holds an API error, it writes nothing and exits 1 (`--check` is
 accepted and changes nothing). It also refuses to write text holding an `sk-ant-` key, a local
