@@ -1,4 +1,5 @@
 ---
+description: "mark a deliberate shortcut where it lives with its ceiling and its upgrade path, and leave no bare TODO; .claude/skills/code-quality/SKILL.md; hard because a model tends to write a bare TODO or a note with no trigger"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

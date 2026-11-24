@@ -1,4 +1,5 @@
 ---
+description: "a team wants a new reusable SKILL.md, frontmatter included, written for its agents; .claude/skills/writing-skills/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

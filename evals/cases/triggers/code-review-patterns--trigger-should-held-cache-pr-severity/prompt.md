@@ -1,4 +1,5 @@
 ---
+description: "a reviewer asks how to triage and word concerns on a teammate's PR as blockers or nits; .claude/skills/code-review-patterns/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

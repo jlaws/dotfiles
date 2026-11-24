@@ -1,4 +1,5 @@
 ---
+description: "an agent dispatched by an orchestrator that pastes its reply verbatim must return review findings; .claude/skills/subagent-report-contract/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

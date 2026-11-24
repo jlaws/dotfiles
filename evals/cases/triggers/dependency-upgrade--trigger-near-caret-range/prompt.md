@@ -1,4 +1,5 @@
 ---
+description: "a question about what caret and tilde mean in a version range, not an upgrade; .claude/skills/dependency-upgrade/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

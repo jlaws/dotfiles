@@ -1,4 +1,5 @@
 ---
+description: "four test files fail in unrelated modules and the user wants them investigated concurrently; .claude/skills/dispatching-parallel-agents/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

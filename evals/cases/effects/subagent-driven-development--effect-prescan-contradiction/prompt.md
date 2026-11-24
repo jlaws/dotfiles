@@ -1,4 +1,5 @@
 ---
+description: "pre-scan the whole plan for inconsistent signatures and decide them before dispatching any task; .claude/skills/subagent-driven-development/SKILL.md; hard because the argument-order clash spans two tasks and shows only when both are read together"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

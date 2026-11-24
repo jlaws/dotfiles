@@ -1,4 +1,5 @@
 ---
+description: "a user wants a changelog entry drafted, not a skill written; .claude/skills/writing-skills/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

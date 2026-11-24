@@ -1,4 +1,5 @@
 ---
+description: "for a bug, the debugging process skill comes before any code-changing skill, and an instruction saying what to do does not waive how; .claude/skills/skill-lookup-discipline/SKILL.md; hard because a one-line just-fix-it request invites skipping the skill check"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

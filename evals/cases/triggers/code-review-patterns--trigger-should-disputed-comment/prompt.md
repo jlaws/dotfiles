@@ -1,4 +1,5 @@
 ---
+description: "a user asks how to decide whether to push back on a reviewer's suggestion and how to word it; .claude/skills/code-review-patterns/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

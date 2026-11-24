@@ -1,4 +1,5 @@
 ---
+description: "prove a test added after the code works by breaking the code until that test fails, then restoring and rerunning; .claude/skills/test-driven-development/SKILL.md; hard because the tests pass first time and a model tends to predict the failure instead of observing it"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

@@ -1,4 +1,5 @@
 ---
+description: "a user wants a phased multi-service implementation plan with exact files and a check per step; .claude/skills/writing-plans/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

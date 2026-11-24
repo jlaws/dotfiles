@@ -1,4 +1,5 @@
 ---
+description: "a user wants a large do-everything module split up without changing what it does; .claude/skills/refactoring-and-debt/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

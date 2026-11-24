@@ -1,4 +1,5 @@
 ---
+description: "run the audit script and report its exit status, failures, and warnings as printed instead of re-deriving them; .claude/skills/skill-audit/SKILL.md; hard because a model without the script inspects files by hand and has no real exit status or warning set to report"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

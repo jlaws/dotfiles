@@ -1,4 +1,5 @@
 ---
+description: "a user asks what evidence supports a teammate's fixed-and-green claim and how to word a verdict when checks could not run; .claude/skills/verification-before-completion/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

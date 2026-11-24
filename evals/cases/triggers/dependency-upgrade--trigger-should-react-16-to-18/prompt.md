@@ -1,4 +1,5 @@
 ---
+description: "a team asks how to plan and sequence a React 16 to 18 upgrade with dependent plugins; .claude/skills/dependency-upgrade/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

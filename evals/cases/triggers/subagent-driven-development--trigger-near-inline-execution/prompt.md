@@ -1,4 +1,5 @@
 ---
+description: "a user wants a plan executed in this session with no delegation; .claude/skills/subagent-driven-development/SKILL.md; near: executing-plans"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

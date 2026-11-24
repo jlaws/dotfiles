@@ -1,4 +1,5 @@
 ---
+description: "a user wants a one-number effort estimate, not a plan; .claude/skills/writing-plans/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '^\s*(?:#+\s*)?(?:no\b[^\n]*\b(?:findings?|defects?|issues?|bugs?|problems?)\b|none\b)'
+pattern: '^\s*(?:#+\s*)?No findings\b'
 flags: i
 target: { source: file, path: report.md }
 ---

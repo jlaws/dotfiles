@@ -1,4 +1,5 @@
 ---
+description: "a user reports an off-by-one pagination bug to find and fix; .claude/skills/refactoring-and-debt/SKILL.md; near: debugging-methodology"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

@@ -1,4 +1,5 @@
 ---
+description: "an integration test fails one CI run in five and retries have not explained it; .claude/skills/debugging-methodology/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

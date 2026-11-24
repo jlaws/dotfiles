@@ -1,4 +1,5 @@
 ---
+description: "every named risk sits in a Risks table with the evidence or test that closes it, and every decision is made inside the plan; .claude/skills/writing-plans/SKILL.md; hard because the id collision lives in addTodo, outside the function being planned"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

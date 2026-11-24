@@ -1,4 +1,5 @@
 ---
+description: "a nightly job times out on some Mondays and the user has no theory; .claude/skills/debugging-methodology/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

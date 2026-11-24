@@ -1,4 +1,5 @@
 ---
+description: "check a delegated claim against the repo, label each finding's evidence kind, and do not accept green tests that never exercise the target; .claude/skills/verification-before-completion/SKILL.md; hard because the suite really passes, so a model may accept the teammate's claim"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

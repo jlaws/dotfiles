@@ -1,4 +1,5 @@
 ---
+description: "a dispatched report leads with a verdict line, cites path:line per finding including minor gaps, quotes error output byte-for-byte, and does not narrate the search; .claude/skills/subagent-report-contract/SKILL.md; hard because a model paraphrases the traceback and drops the minor test gap"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

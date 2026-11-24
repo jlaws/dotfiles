@@ -1,4 +1,5 @@
 ---
+description: "a request for a git pre-commit hook running ruff, a VCS hook rather than an agent hook; .claude/skills/code-agent-meta-patterns/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

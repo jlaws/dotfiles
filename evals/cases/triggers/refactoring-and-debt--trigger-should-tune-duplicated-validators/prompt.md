@@ -1,4 +1,5 @@
 ---
+description: "a user wants validation logic copy-pasted across many handlers consolidated without changing behavior; .claude/skills/refactoring-and-debt/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

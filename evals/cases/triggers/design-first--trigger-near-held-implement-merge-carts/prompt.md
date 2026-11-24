@@ -1,4 +1,5 @@
 ---
+description: "a request to implement a function exactly as an existing design doc specifies, so the design is already agreed; .claude/skills/design-first/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

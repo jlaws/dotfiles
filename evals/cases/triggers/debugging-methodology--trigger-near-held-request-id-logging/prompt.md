@@ -1,4 +1,5 @@
 ---
+description: "a request to add structured request-ID logging, a feature with no failure to investigate; .claude/skills/debugging-methodology/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

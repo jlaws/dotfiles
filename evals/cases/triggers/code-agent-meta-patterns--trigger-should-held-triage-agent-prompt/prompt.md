@@ -1,4 +1,5 @@
 ---
+description: "a user's PR-triage subagent skips its checklist and they ask how to restructure its instructions; .claude/skills/code-agent-meta-patterns/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

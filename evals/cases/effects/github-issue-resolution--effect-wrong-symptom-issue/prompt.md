@@ -3,6 +3,7 @@ tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
 allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]
+description: "reproduce the reported bug to find the root cause, correct the issue's wrong symptom, and deliver verification steps and a rollback plan; .claude/skills/github-issue-resolution/SKILL.md; hard because the issue reports NaN while the code raises ZeroDivisionError, and a model that trusts the report fixes the wrong symptom"
 ---
 
 Resolve the GitHub issue below in this repo. There is no network, so open the pull request by running `gh pr create` anyway; it will fail, and that is fine. The pull request title and body must link the issue number.

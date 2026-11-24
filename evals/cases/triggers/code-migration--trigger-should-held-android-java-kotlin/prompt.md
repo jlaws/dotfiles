@@ -1,4 +1,5 @@
 ---
+description: "a team asks how to sequence moving 120 Java activities to Kotlin and Compose while shipping monthly; .claude/skills/code-migration/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

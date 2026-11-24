@@ -1,4 +1,5 @@
 ---
+description: "a user wants to nail down per-project and per-channel mute behavior and its edge cases before touching code; .claude/skills/design-first/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

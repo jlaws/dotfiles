@@ -1,4 +1,5 @@
 ---
+description: "a user wants a step-by-step implementation plan for a multi-component change before anyone codes; .claude/skills/writing-plans/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

@@ -1,4 +1,5 @@
 ---
+description: "separate observed facts from inference, enumerate hypotheses with confirm and refute evidence, say when the cause is not established, and build a red-capable loop before any fix; .claude/skills/debugging-methodology/SKILL.md; hard because the log points so strongly at pool exhaustion that raising the pool size looks like the answer"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
@@ -17,4 +18,4 @@ We run a service called ledger-sync that is not in this checkout; only its logs 
 10:03:02.500 gateway  req=a9c POST /v1/sync upstream=ledger-sync-1 status=502 dur=30002ms
 ```
 
-Tell me the root cause and the fix. Save your diagnosis to ./diagnosis.md.
+Tell me the root cause and the fix. Save your diagnosis to ./diagnosis.md. In it, separate what the log shows from what you infer, list the candidate causes with the evidence that would confirm or refute each, say whether the root cause is established, and give the next step to take before applying any fix.

@@ -1,4 +1,5 @@
 ---
+description: "an unreadable scope path makes the result BLOCKED, named as a coverage limit, never an approval or a product defect; .claude/skills/config-security-audit/SKILL.md; hard because the readable part is clean, which invites a PASS"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

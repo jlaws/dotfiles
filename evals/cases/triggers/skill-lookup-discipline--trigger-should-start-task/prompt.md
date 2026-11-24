@@ -1,4 +1,5 @@
 ---
+description: "a user starting work asks which existing skills and conventions apply before digging in; .claude/skills/skill-lookup-discipline/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

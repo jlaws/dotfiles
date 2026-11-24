@@ -1,4 +1,5 @@
 ---
+description: "a request to fix a typo in an error message; .claude/skills/design-first/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

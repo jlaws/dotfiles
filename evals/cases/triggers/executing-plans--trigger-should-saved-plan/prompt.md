@@ -3,6 +3,7 @@ tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120
 allowed_tools: [Skill, Read, Glob, Grep]
+description: "a user hands over a written plan to work through task by task in this session with verification; .claude/skills/executing-plans/SKILL.md; should"
 ---
 
 Work through the plan below task by task in this session, running each task's verification before moving on.

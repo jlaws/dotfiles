@@ -1,4 +1,5 @@
 ---
+description: "a user wants lint and unused-import checks on an application package, not a knowledge-base audit; .claude/skills/skill-audit/SKILL.md; near: code-quality"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120
