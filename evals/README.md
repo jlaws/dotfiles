@@ -380,21 +380,24 @@ make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/b
 
 **Reading the numbers**
 - Triggers: near-miss and noauto cases sit at the ceiling, so the all-triggers mean overstates
-  recall. The should-fire rows are the trigger signal: descriptions miss about 28% (Opus) and 40%
-  (Sonnet) of requests they should catch.
-- Effects: the gain is small, and it comes from cases where the asset fired. Where the kb arm's
-  process grader fired at least once, delta is +0.075 (Opus, 124 cases) and +0.073 (Sonnet, 114);
-  where it never fired, about -0.01 (38 and 48 cases), which is noise. The kb arm is the whole
-  plugin, not only the named asset. `firedRate` averages every process
-  grader, behavioral ones included, so this split is not by whether the asset loaded; see
-  `tasks/kbeval-summarize-stale-results.md`.
+  recall. The should-fire rows are the trigger signal. Recall is 72.2% to 72.8% on Opus (130 of 180
+  runs loaded the skill; the lower bound counts the one censored run as a miss, the upper as a fire)
+  and 60.0% on Sonnet (108 of 180, no censored run), so descriptions miss about 28% and 40% of
+  requests they should catch.
+- Effects: the gain is small, and it comes from cases where the asset loaded. Of 162 cases, 95
+  carry a load grader for their own asset. Where `loadRate` is above 0, delta is +0.093 (Opus, 69
+  cases) and +0.090 (Sonnet, 59); where it is 0, delta is +0.000 (26 cases) and -0.019 (36), which
+  is noise. The 67 cases with no load grader (`loadRate` null) average +0.036 and +0.044. The kb arm
+  is the whole plugin, not only the named asset.
 - Effects headroom is thin: 130 of 162 cases have delta 0 on both models, and about 120 score 1.0 in
   both arms. The gain rests on about 25 cases. Grouping each asset's cases in the bootstrap leaves
   the delta CI above zero: [+0.02, +0.09] Opus, [+0.02, +0.08] Sonnet.
 - Workflows show no headroom: plain Claude also completes all four, and n=4 gives no usable CI.
-- Errors: 26 Opus and 20 Sonnet trigger runs hit the 6-turn cap or the 120 s timeout, and one Opus
-  effect run hit 900 s; each case's `errorRuns` counts them. Capped runs are still scored: a run
-  that fired the skill before the cap counts as fired.
+- Capped runs: 26 Opus and 20 Sonnet trigger runs hit the 6-turn cap or the 120 s timeout
+  (should-fire 24 and 18, near-miss 2 and 2), and one Opus effect run hit 900 s; each case's
+  `cappedRuns` counts them. Capped runs are still scored: a run that loaded the skill before the
+  cap counts as fired. Censored runs, capped before the skill loaded, are 3 on Opus (one
+  should-fire, two near-miss) and 2 on Sonnet (both near-miss); `censoredRuns` counts them.
 - Five effect cases change pass state from Sonnet to Opus (four to pass, one to fail). With three
   runs and a 2/3 pass line, flips this few are within run-to-run noise.
 
@@ -497,8 +500,7 @@ Their cases gain a `read-refs` process grader (`tool_used` on `Read` of `<dir>` 
 - architecture-specialist `not-retried` rejected correct non-retry rows (Sonnet runs 0 and 1); its
   claim moves into the `design` llm grader.
 - Case defects and harness gaps that need more than a grader fix:
-  [kbeval-case-defects](../tasks/kbeval-case-defects.md),
-  [kbeval-summarize-stale-results](../tasks/kbeval-summarize-stale-results.md).
+  [kbeval-case-defects](../tasks/kbeval-case-defects.md).
 
 ### Post-fix rerun
 
