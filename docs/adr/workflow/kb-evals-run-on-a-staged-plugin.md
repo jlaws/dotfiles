@@ -49,6 +49,9 @@ CLI keeps graders, judge votes, isolation, and cost ceilings in one maintained t
 
 Every asset needs cases, and each run costs money. Capped runs are scored and censored runs are
 counted apart. A model in the judge's family cannot be evaluated without first changing the judge.
+A summary's KB digest check compares results with each other, not with the staged KB: results
+recorded before the digest sidecar read `unrecorded` and are unverified, and a partial rerun over
+older results is refused until that staging is rerun or the older results are moved aside.
 
 ## Ruled Out
 | Idea | Why ruled out | When |

@@ -32,7 +32,8 @@ the command exits 1 when nothing matches, and reports skipped partial or key-les
 
 A run whose model is in the judge's family is refused, so a model of that family cannot be put
 under test without first changing the judge. The family is read from a full model id
-(`claude-<family>-...`); an alias or a provider-prefixed id is not recognized, so pass full ids.
+(`claude-<family>-...`); a run with an alias or a provider-prefixed id is refused too, because the
+guard cannot read its family.
 
 `J ?= 8` sets `-j` (concurrent runs). `eval-baseline` also takes `VANILLA_RUNS` (default 3),
 `VANILLA_MODELS` (default both models), and `EXCLUDE_TAGS` (default empty); the kb staging always
@@ -272,10 +273,16 @@ Which result is read:
 - Each accepted result gets a `<label>.meta.json` sidecar holding `kbDigest`. The digest covers the
   staged skills, commands, agents, references, fixtures, `.claude/CLAUDE.md`, and
   `evals/harness.json`. `summarize` refuses results that mix KB digests within one staging; results
-  with no sidecar count as one digest, `unrecorded`.
-- Results for a case that no longer exists under `evals/cases/` are skipped.
+  with no sidecar count as one digest, `unrecorded`. The check compares results with each other,
+  not with the KB staged now. The 2026-11-16 baselines predate sidecars, so their `kbDigest` reads
+  `unrecorded` and their KB version is not verified. A partial rerun over older results is refused:
+  rerun that staging or move the older results aside.
+- Results for a case that no longer exists under `evals/cases/` are skipped. `summarize` names them,
+  and any key-less or partial file it skipped, on stderr.
+- Version, judge, date, and cost come only from documents that supply a winning case.
 - A summary whose model is in the judge's family is refused.
- Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
+
+Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
 It reads only results the runner accepted (those with a `.key`), and it checks before writing: if
 any case is missing runs or still holds an API error, it writes nothing and exits 1 (`--check` is
 accepted and changes nothing). It also refuses to write text holding an `sk-ant-` key, a local
