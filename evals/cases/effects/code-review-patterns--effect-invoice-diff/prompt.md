@@ -1,4 +1,5 @@
 ---
+description: "cite file:line with a priority, tag findings no hunk introduces or exposes as pre-existing, cap nits at five, give no praise, and end with one verdict; .claude/skills/code-review-patterns/SKILL.md; hard because the card-number log sits in the diff context and reads as this change's fault"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

@@ -1,4 +1,5 @@
 ---
+description: "assess before coding: measured scope, the driving complexity factor, one strategy, and unresolved behavior questions written before the port; .claude/skills/code-migration/SKILL.md; hard because the port is small enough that a model writes the code first and silently picks one behavior for mean([])"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

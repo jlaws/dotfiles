@@ -1,4 +1,5 @@
 ---
+description: "treat --legacy-peer-deps as a bandaid, resolve the peer conflict at its source, document any override, commit the lockfile, and use frozen installs in CI; .claude/skills/dependency-upgrade/SKILL.md; hard because a teammate proposes the flag and it does make the install pass"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

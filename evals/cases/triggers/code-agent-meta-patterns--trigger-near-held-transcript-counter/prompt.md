@@ -1,4 +1,5 @@
 ---
+description: "a request for a script that counts tool calls in a session transcript, a coding task about agent data rather than agent behavior; .claude/skills/code-agent-meta-patterns/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

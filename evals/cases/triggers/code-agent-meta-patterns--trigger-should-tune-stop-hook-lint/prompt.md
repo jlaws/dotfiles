@@ -1,4 +1,5 @@
 ---
+description: "a user wants the agent to run the linter after every edit and never touch migrations, enforced rather than asked; .claude/skills/code-agent-meta-patterns/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

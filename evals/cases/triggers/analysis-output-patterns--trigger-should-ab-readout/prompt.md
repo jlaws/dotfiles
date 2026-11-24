@@ -1,4 +1,5 @@
 ---
+description: "a user asks for a trustworthy findings report on an A/B test for leadership; .claude/skills/analysis-output-patterns/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

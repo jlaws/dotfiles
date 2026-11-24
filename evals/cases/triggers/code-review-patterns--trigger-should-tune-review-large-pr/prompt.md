@@ -1,4 +1,5 @@
 ---
+description: "a reviewer with one hour asks how to review a 1,400-line auth PR and word the feedback; .claude/skills/code-review-patterns/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

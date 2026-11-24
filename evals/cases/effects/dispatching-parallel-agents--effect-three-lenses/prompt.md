@@ -1,4 +1,5 @@
 ---
+description: "dispatch independent questions in parallel with focused, constrained briefs, and treat each report as peer input to confirm against the code before stating it as fact; .claude/skills/dispatching-parallel-agents/SKILL.md; hard because a model relays helper summaries as confirmed findings"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

@@ -1,4 +1,5 @@
 ---
+description: "flag inlined secrets without printing them, wildcard Bash allows, remote content piped to a shell, write tools on a read-only agent, and an un-ignored settings.local.json, with check IDs and file:line, ending FAIL; .claude/skills/config-security-audit/SKILL.md; hard because the missing gitignore entry is a check on a file that is absent, not a line one can point at"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

@@ -1,4 +1,5 @@
 ---
+description: "a user asks where global, repo, and package rules belong in agent instruction files and how to keep the always-loaded part small; .claude/skills/code-agent-meta-patterns/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

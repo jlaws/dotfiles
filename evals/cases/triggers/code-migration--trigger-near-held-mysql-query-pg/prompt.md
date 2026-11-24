@@ -1,4 +1,5 @@
 ---
+description: "a request to convert one SQL query between dialects, a snippet translation rather than a migration; .claude/skills/code-migration/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

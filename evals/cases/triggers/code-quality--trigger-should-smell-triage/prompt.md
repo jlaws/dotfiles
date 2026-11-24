@@ -1,4 +1,5 @@
 ---
+description: "a user inherits a service with long functions and deep nesting and asks which smells to fix first; .claude/skills/code-quality/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

@@ -1,4 +1,5 @@
 ---
+description: "after a Node upgrade, large uploads fail with socket hang up and the user does not know where to start; .claude/skills/debugging-methodology/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

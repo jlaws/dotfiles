@@ -1,4 +1,5 @@
 ---
+description: "reproduce first, classify the failure locus, and fix the fault where it lives, here the documentation; .claude/skills/debugging-methodology/SKILL.md; hard because adding an --out alias to the code is the quickest way to make the command work"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

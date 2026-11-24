@@ -1,4 +1,5 @@
 ---
+description: "CLAUDE.md holds only what the model cannot infer, has no volatile content, links instead of restating, lists each command with its quiet flag and healthy-run line, and has a Compact instructions section; .claude/skills/code-agent-meta-patterns/SKILL.md; hard because timestamps and counts look harmless and the healthy-run line is not a common convention"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900

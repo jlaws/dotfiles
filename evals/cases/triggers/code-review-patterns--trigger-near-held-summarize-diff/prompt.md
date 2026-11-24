@@ -1,4 +1,5 @@
 ---
+description: "a request to summarize what changed in one file, a description task rather than a review; .claude/skills/code-review-patterns/SKILL.md; near: none"
 tags: [triggers, trigger-near]
 max_turns: 6
 timeout_seconds: 120

@@ -1,4 +1,5 @@
 ---
+description: "a team asks how to carve up moving 80 jQuery pages to Vue 3 while both run; .claude/skills/code-migration/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120

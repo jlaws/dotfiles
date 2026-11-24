@@ -1,4 +1,5 @@
 ---
+description: "a team on Django 3.2 with pinned packages asks the order of bumps that avoids a big-bang break; .claude/skills/dependency-upgrade/SKILL.md; should"
 tags: [triggers, trigger-should]
 max_turns: 6
 timeout_seconds: 120
