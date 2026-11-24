@@ -22,6 +22,6 @@ PY
 cat > README.md <<'MD'
 # reports
 
-Report search service. Production runs at https://reports.example.internal and reads the
+Report search service. Production runs at https://reports.example.invalid and reads the
 production reports database; there is no staging copy.
 MD
