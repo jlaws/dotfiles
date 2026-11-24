@@ -7,3 +7,4 @@ All claims are required.
 PASS if the Stats section counts two links skipped as already seen.
 PASS if the report includes the Sparse Routing Attention paper, the OpenGrader 0.4 release, the CodeFix-2k dataset, and the EvalBoard product, each with a markdown link.
 FAIL if the Research Papers table lists more than one paper, or the report says no record of seen links was found.
+FAIL if the Measuring Eval Drift paper (2610.05678) or the 10,000 agent evals blog post (10k-agent-evals) is listed as an item in any content section; naming them in the Stats section as skipped is fine.

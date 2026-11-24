@@ -6,4 +6,4 @@ timeout_seconds: 900
 allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]
 ---
 
-/kb:j-tdd add a removeTodo(list, id) function to src/todo.js and export it. It returns a new list without the todo that has that id and does not mutate the input, and it throws an Error when no todo has that id. Write the tests first in test/todo.test.js. Commit the change in the state you would ship. Then run `node --test > ./tests.txt 2>&1` and `git log -1 -p --format=%s > ./last-commit.txt`.
+/kb:j-tdd add a removeTodo(list, id) function to src/todo.js and export it. It returns a new list without the todo that has that id and does not mutate the input, and it throws an Error when no todo has that id. Write the tests first in test/todo.test.js. Commit the change in the state you would ship. Then run `node --test > ./tests.txt 2>&1` and `git log -p --format='commit: %s' > ./commits.txt`.
