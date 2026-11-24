@@ -10,8 +10,9 @@ Usage: python3 -m evals.kbeval.hillclimb adopt --asset A [A ...] --before P [P .
 
 Prints `CRITERION <asset> <name> PASS|FAIL|BLOCKED|SKIPPED <counts>` lines and `ADOPT <asset>
 adopt|restore|blocked` per asset, then neighbour lines (untuned assets on Sonnet), which change no
-verdict. Exits 1 when any asset is `blocked`, or, printing nothing else, when a (case, model) row
-is read from more than one purpose (`BLOCKED duplicate ...` on stderr).
+verdict. Stderr names each purpose with no results directory (`MISSING purpose ...`) and ends with
+`NEIGHBOURS <n> assets checked`. Exits 1 when any asset is `blocked`, or, printing nothing else,
+when a (case, model) row is read from more than one purpose (`BLOCKED duplicate ...` on stderr).
 """
 
 from __future__ import annotations
@@ -80,6 +81,10 @@ def adopt(
     A (case, model) row read from more than one purpose in `before`, `after`, or the neighbour rows
     would count twice: each is printed to stderr as `BLOCKED duplicate ...` and nothing else runs.
     """
+    for purpose in dict.fromkeys([*before, *after, effects]):
+        path = det.RESULTS / purpose
+        if not path.is_dir():
+            print(f"MISSING purpose {purpose} ({path})", file=sys.stderr)
     loaded = {asset: (_rows(before, [asset]), _rows(after, [asset])) for asset in assets}
     others = _others(assets, after)
     near_rows, near_dups = _rows(after, others)
@@ -159,6 +164,7 @@ def adopt(
         blocked = blocked or verdict == "blocked"
         print(f"ADOPT {asset} {verdict}")
     _neighbours(others, near_rows, neighbour_base)
+    print(f"NEIGHBOURS {len(others)} assets checked", file=sys.stderr)
     return 1 if blocked else 0
 
 

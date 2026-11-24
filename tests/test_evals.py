@@ -2727,6 +2727,24 @@ class HillclimbAdoptTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("CRITERION a effects PASS no regression vs baseline (2 pairs)\n", out)
 
+    def test_mistyped_after_purpose_is_named(self):
+        self._asset(held=(0, 4))
+        self._adopt(after=("f", "hf-typo"))
+        self.assertIn(f"MISSING purpose hf-typo ({self.tmp / 'hf-typo'})\n", self.err)
+        self.assertNotIn("MISSING purpose f ", self.err)
+
+    def test_neighbour_count_is_printed_with_one_neighbour(self):
+        self._asset(held=(0, 4))
+        self._trigger("f", kdet.SONNET, "n--trigger-near-y", 0, 3)
+        _, out = self._adopt()
+        self.assertTrue(self.err.endswith("NEIGHBOURS 1 assets checked\n"), self.err)
+        self.assertNotIn("NEIGHBOURS", out)
+
+    def test_neighbour_count_is_printed_with_no_neighbour(self):
+        self._asset(held=(0, 4))
+        self._adopt()
+        self.assertTrue(self.err.endswith("NEIGHBOURS 0 assets checked\n"), self.err)
+
     def test_neighbour_should_with_differing_graded_counts_is_reviewed(self):
         self._asset(held=(0, 4))
         self._trigger("baseline", kdet.SONNET, "n--trigger-should-x", 3, 3)
