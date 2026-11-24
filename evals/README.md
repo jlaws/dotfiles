@@ -197,8 +197,9 @@ and `refsMode` (`workspace`, or `add_dirs`).
   stagings: "In this sandbox `/usr/bin/git` fails; run git as `<git>`." `<git>` is the first `git`
   on the staging machine's `PATH` outside `/usr/bin`; with none, the line is left out.
 - For an agent effect prompt in the kb staging, the builder adds one line: "Tell the agent: KB
-  references cited as `.claude/references/<p>` or `references/<p>` are at `<where>`<p>; they are
-  not project files." A dispatched agent does not see the session's system prompt, which is where
+  references cited as `.claude/references/<p>` or `references/<p>` are at <where><p>; they are not
+  project files." (`<where>` is `./.kb-references/`, or the run's `_refs/` directory in the
+  `add_dirs` reference mode.) A dispatched agent does not see the session's system prompt, which is where
   every other run learns that path. Measured on 2026-11-24 with
   architecture-specialist--effect-notification-fallbacks on Sonnet (purpose `audit-probe`, 1.65
   USD): without the line the agent read a reference in 0 of 3 runs and reported the file missing;
@@ -289,9 +290,13 @@ fix.
 in the format Case audit gives for its kind; lint rejects a case without one, a malformed one, and
 one whose asset path does not exist.
 
-**Agents reach their references.** Each agent that indexes a reference directory has an effect case
-that carries a Read grader on that directory and a result claim that can only be met from a named
-reference file. Lint rejects an agent that indexes a directory and has no such reading case.
+**Agents reach their references.** Authoring rule: each agent that indexes a reference directory
+has an effect case that carries a Read grader on that directory and a result claim that can only
+be met from a named reference file. Lint checks the first half only: it rejects an agent whose
+file names `references/<category>/` when none of its effect cases has a `tool_used` grader on
+`Read` whose `input_match` is non-empty, has no maximum of 0, and matches a path in one of those
+directories. One directory is enough for an agent that names several. Whether the result claim
+needs the reference is a judgment the case audit makes, not lint.
 
 ## Offline limits
 
@@ -336,6 +341,9 @@ Absolute scores differ from a real session in these ways; comparisons within the
   runs stopped on it more often than they switched binaries (the KB's stop-after-two-failures
   rule), which biases against kb. The builder's git line (Prompts) names a working git in both
   arms.
+- A dispatched agent does not see the session's system prompt, so in the kb staging an agent
+  case's task carries the reference-path line (Prompts). The vanilla arm has no references and no
+  such line.
 - The seed adds `__pycache__/` to `.git/info/exclude`, so running Python leaves `git status` clean.
 - The sandbox refuses writes under `.git/worktrees` and to `.git/config` ("Operation not
   permitted"), so no run can create a git worktree. `git worktree add -b` creates the branch before
@@ -397,8 +405,10 @@ Which result is read:
 - For one case the newest result by `startedAt` wins. On a tie an exact-case file beats the asset
   batch, and an `@` rerun beats both.
 - Each accepted result gets a `<label>.meta.json` sidecar holding `kbDigest`. The digest covers the
-  staged skills, commands, agents, references, fixtures, `.claude/CLAUDE.md`, and
-  `evals/harness.json`. `summarize` refuses results that mix KB digests within one staging; results
+  staged skills, commands, agents, references, fixtures, `.claude/CLAUDE.md`,
+  `evals/harness.json`, and the builder's prompt-note templates (`_kb/prompt-notes.txt`), so a
+  change to a line the builder appends to prompts moves the digest. Case prompts and graders are
+  not in it. `summarize` refuses results that mix KB digests within one staging; results
   with no sidecar count as one digest, `unrecorded`. The check compares results with each other,
   not with the KB staged now. The 2026-11-16 baselines predate sidecars, so their `kbDigest` reads
   `unrecorded` and their KB version is not verified. A partial rerun over older results is refused:
@@ -709,9 +719,10 @@ total after the reruns, at that time: $868.54 of $2,500 (`evals/spend.json`). `e
 
 ## Case audit
 
-Every case is checked once against the rubric below, one asset at a time. A case that passes gets
-a `description` line and nothing else, so its results stay comparable. Rows are appended to the
-results table as each asset is done.
+Every case was checked once against the rubric below, one asset at a time, in three groups
+(skills, commands, then agents) finished on 2026-11-24. A case that passed got a `description` line
+and nothing else, so its results stay comparable. The results table has one row per asset. A new
+case is written to the same rubric.
 
 **Inputs per asset:** the asset file; its case directories; its lines in `make eval-headroom`; and,
 for a `dead` or `kb-below-vanilla` case, the stored evidence of its failing llm grader under the
@@ -732,7 +743,9 @@ score never decides a rewrite: A5 can send a case back through A2 to A4, and not
 | A5 Headroom | Report the `make eval-headroom` class. For `dead`, read the stored evidence and re-apply A2 to A4. For `kb-below-vanilla`, re-apply A3 and A4 | (report only) |
 | A6 Triggers | A should-fire prompt is a user in the situation the asset's `description` names, never naming the asset. A near prompt is a request a neighbouring asset or no asset should take | `unrealistic` or `not-near` |
 
-**The `description` line** is a double-quoted, single-line value with no `"` or `\` inside it:
+**The `description` line** is a double-quoted, single-line value with no `"` or `\` inside it,
+in three parts separated by `; `. The first part holds no `;` (use a comma), and the path holds no
+space, starts with `.claude/`, and names a file in the repo:
 - effect and workflow cases: `"<the rule, as a clause>; <asset path>; hard because <why a capable model without the asset would plausibly miss it>"`
 - trigger cases: `"<the situation>; <asset path>; should"`, `"...; near: <neighbour or none>"`, or `"...; noauto"`. The neighbour is the one-word name of whatever should take the request instead: a KB skill, command, or agent, a KB reference file's stem, or a built-in skill
 
@@ -850,7 +863,7 @@ void the held-out comparison the next baseline makes.
 | j-review-claudemd | 3 | effect-conflict-redundant-specific: hidden-criterion, fixed | effect-conflict-redundant-specific saturated; effect-violated-missing-stale saturated | j-review-claudemd--effect-volatile-status-line |
 | j-skill-audit | 4 | all pass (the full-axes-weakest suspect was not confirmed) | discriminating | none |
 | j-tdd | 3 | all pass | effect-median-readme saturated; effect-remove-todo-unique-ids saturated | j-tdd--effect-docs-in-commit |
-| architecture-specialist | 2 | effect-retry-policy-adr: ambiguous (the jitter and attempt-limit regexes turned on wording), widened | effect-catalog-cache-traps saturated | architecture-specialist--effect-notification-fallbacks |
+| architecture-specialist | 2 | effect-retry-policy-adr: ambiguous (the jitter and attempt-limit regexes turned on wording), replaced by llm claims | effect-catalog-cache-traps saturated | architecture-specialist--effect-notification-fallbacks |
 | business-analyst | 2 | all pass | effect-saas-kpi-numbers saturated; effect-subscription-webhooks saturated | business-analyst--effect-tracking-reset |
 | cloud-architect | 2 | effect-bill-egress-review: ambiguous (a claim required a saving "near the $2,000 line", a figure neither the prompt nor the asset fixes), fixed | effect-sqs-lambda-burst saturated | cloud-architect--effect-steady-api-compute |
 | code-reviewer | 2 | all pass | effect-simplified-marker saturated; effect-weakened-quality-bar saturated | code-reviewer--effect-experiment-ratio-mismatch |

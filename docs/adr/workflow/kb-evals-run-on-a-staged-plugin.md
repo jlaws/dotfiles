@@ -22,7 +22,9 @@ settings, hooks, memory, or outside skills load. This KB is a plain `.claude/` t
 
 We will **stage the Claude tree into two temporary plugins and run each with `--ablation none`**:
 - `kb`: skills, commands, and agents. `.claude/CLAUDE.md` plus two harness notes go in through each
-  case's `append_system_prompt`. References are copied into each run's workspace by a scaffold.
+  case's `append_system_prompt`; an agent case's task also carries the reference-path note, because
+  a dispatched agent does not see that system prompt. References are copied into each run's
+  workspace by a scaffold.
 - `vanilla`: an empty plugin, which is plain Claude.
 
 Delta is kb minus vanilla, computed on result graders only. There are three suites (triggers,
