@@ -72,6 +72,11 @@ them as evidence for the **Orphans** judgment below: an asset that is both unref
 unmentioned is a strong removal candidate, while one that is unmentioned but well-referenced is more
 likely a discoverability problem. A `cold` asset has positive evidence -- treat it as used.
 
+Two Claude Code commands add to this report. `/skill-doctor` (v2.1.252 or later) reports what each
+skill costs in the listing and how often it is invoked. `/claude-api prompt-audit` (v2.1.221 or
+later) flags instructions written for older models in skills and proposes a diff; run it when the
+model generation changes.
+
 ## Check memory
 
 Reached by `/j-skill-audit memory`. Auto-memory is the harness's runtime state, not a synced asset:
