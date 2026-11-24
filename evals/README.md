@@ -656,8 +656,10 @@ staged on a clean tree. Counts are passing runs over graded runs.
 
 At that rerun `self-contained` caught `src`/`href` loads, `@import`, and `url()` and missed
 `srcset`, `<object data>`, SVG `<image href>`, and script-issued requests, so 12/12 was a lower bar
-than the skill's zero-network-requests rule. The case audit widened the grader to those constructs
-(Case audit, `j-explain` row); the widened grader has not been run.
+than the skill's zero-network-requests rule. The case audit widened the grader to those
+constructs, to module imports, workers, `poster` and `background` attributes, and to relative
+resource paths (Case audit, `j-explain` row). It still flags the text `fetch(` in prose. The
+widened grader has not been run.
 
 `no-regression` passed for every rerun asset. Per-case kb scores that moved (baseline -> post-fix):
 architecture-specialist catalog-cache-traps Opus 1.00 -> 0.67 (one model, under the 2/3 line);
@@ -749,6 +751,18 @@ gains one new effect case tagged `extended`, written by the hard-case rules abov
 exempt: its `extended` case has not been measured yet. An asset gains its case when its group is
 audited, so until the last group is done the list still names assets of the groups not yet reached.
 
+**Reference-grounded cases.** Each consult command gains one `extended` case whose answer comes
+from one reference file the command lists, whether or not the command is on the hardening list
+(`j-data` is not; for the others this is the hardening case). Its `description` names that
+reference file, its prompt asks for the decision by topic, and its `read-refs` grader names that
+file's directory alone. `read-refs` shows a read somewhere in the directory, not of the named
+file, so it measures reach; the result claim measures whether the reference's rule was applied.
+
+**"The state you would ship."** A prompt that asks for work "in the state you would ship", or for
+commits "you would ship as is", states the criterion class for a docs or cleanup gate the asset
+applies before a commit. Under A2 it grounds claims that the shipped state includes what that gate
+requires (docs that match the change, a retired workaround), without naming the gate.
+
 **Limits.** No KB asset and no file under `evals/fixtures/` is edited; either would change every
 case's content. Case slugs keep their `tune-` and `held-` prefixes. Every new llm grader has two to
 five claims with both `PASS if` and `FAIL if`. A `held-` case gets its `description` line and
@@ -793,7 +807,7 @@ void the held-out comparison the next baseline makes.
 | held-out triggers | 24 | checked by A2, A4, and A6: all pass; each got its `description` line and nothing else | not applicable | none |
 | j-arch | 4 | effect-cache-layer: hidden-criterion, fixed; effect-feed-pagination: ambiguous, fixed | effect-cache-layer saturated; effect-feed-pagination saturated | j-arch--effect-fulfillment-saga |
 | j-cloud | 4 | effect-gpu-idle: ambiguous (the regex turned on how the condition was worded), fixed | effect-dev-cost-cuts saturated; effect-gpu-idle saturated | j-cloud--effect-large-upload-path |
-| j-data | 4 | all pass | effect-not-null-uuid-column saturated | j-data--effect-late-events-incremental |
+| j-data | 4 | all pass | effect-not-null-uuid-column saturated | j-data--effect-late-events-incremental (reference-grounded; not a hardening case) |
 | j-devops | 4 | all pass | effect-ci-deploy-workflow saturated; effect-python-dockerfile saturated | j-devops--effect-latency-api-resources |
 | j-docs | 4 | all pass | effect-openapi-orders saturated; effect-readme-and-changelog saturated | j-docs--effect-upgrade-warning-order |
 | j-frontend | 4 | all pass | effect-next15-product-page saturated; effect-svelte5-cart saturated | j-frontend--effect-keyboard-tabs |
@@ -802,7 +816,7 @@ void the held-out comparison the next baseline makes.
 | j-system-design | 4 | all pass | effect-auth-from-docs saturated; effect-document-existing-orders saturated | j-system-design--effect-tenant-isolation |
 | j-brainstorm | 4 | all pass | effect-conventions-digest saturated; effect-scoped-history saturated | j-brainstorm--effect-unfiltered-principles |
 | j-plan | 4 | effect-small-feature: ambiguous (the command forbids a plan in the repo and needs plan mode; the case asked for ./plans/plan.md), fixed; effect-validated-percentile: ambiguous (the same, and a regex that turned on the table's column order), fixed | effect-small-feature saturated; effect-validated-percentile saturated | j-plan--effect-adr-in-place |
-| j-execute-plan | 4 | all pass | effect-phase-one-only saturated; effect-two-phase-ledger saturated | j-execute-plan--effect-phase-acceptance |
+| j-execute-plan | 4 | effect-phase-one-only: ambiguous (the prompt did not say whether the command's closing review runs, and a review fix would add a commit the grader fails), fixed | effect-phase-one-only saturated; effect-two-phase-ledger saturated | j-execute-plan--effect-phase-acceptance |
 | j-next | 4 | effect-dirty-tree: hidden-criterion, fixed; effect-second-part: ambiguous (a run that follows the command could fail one commit claim, and a permission was written as a PASS), regraded | discriminating | none |
 | j-diff-review | 4 | all pass | effect-injection-and-dispositions saturated | none |
 | j-create-pr | 4 | all pass | effect-secret-and-pr-body saturated | none |
@@ -818,7 +832,7 @@ void the held-out comparison the next baseline makes.
 | j-explain | 4 | effect-calc-package-explainer and effect-docs-drift-report: generic (`self-contained` passed pages that load from the network and failed some that do not), widened test-first | discriminating | none |
 | j-init | 4 | all pass | effect-python-package saturated; effect-stale-config saturated | j-init--effect-gitignore-shared-settings |
 | j-new | 4 | all pass | effect-agent-draft saturated; effect-skill-draft saturated | j-new--effect-register-command-counterparts |
-| j-paper | 5 | effect-rebuttal-triage: ambiguous, fixed | effect-bib-hygiene-report saturated; effect-fill-related-work saturated; effect-rebuttal-triage unmeasured | none (exempt) |
+| j-paper | 5 | effect-rebuttal-triage: ambiguous, fixed | effect-bib-hygiene-report saturated; effect-fill-related-work saturated; effect-rebuttal-triage `MISSING` (added after the baseline) | none (exempt) |
 | j-paper-analysis | 4 | all pass | effect-flawed-routekv saturated | none |
 | j-pr-fix | 3 | all pass | effect-float-test-and-declined-rewrite saturated; effect-stale-claim-and-question saturated | j-pr-fix--effect-out-of-scope-suggestion |
 | j-retro | 4 | all pass | effect-since-tag-unmerged-branch saturated | none |
@@ -905,8 +919,9 @@ calls `EnterPlanMode` and says never to write a plan into the repository; the ca
 plan at `./plans/plan.md`, and plan mode is not available to a harness run. A run that cannot take
 Step 0 as written may drop the steps that follow it. The harness as it stands therefore cannot
 compare dispatched lenses with inline lenses, and nothing here applies to an interactive session.
-The case audit has since changed both cases to name a git-ignored plan file in place of plan mode
-(Case audit, `j-plan` row); no run has measured dispatches on the changed cases.
+The case audit has since reworded both prompts: the plan still goes to `./plans/plan.md`, which
+the prompt now names as the plan file to use in place of plan mode and the fixture now git-ignores
+(Case audit, `j-plan` row). No run has measured dispatches on the changed cases.
 
 Not incurred, and not tested:
 - No case carries the `fanout` tag, and the recurring cost in the design does not apply.
