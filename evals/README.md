@@ -565,12 +565,18 @@ trigger case, $1.33 an effect case, $1.01 a workflow case; Opus $0.39, $2.23, $1
 Sonnet and $554 Opus, $878 in all, inside the 2,000 USD authorized for this baseline. Purpose
 `baseline` had spent $661.44 before the run, so every paid command passes `CAP=2661.44`.
 
+**Spend.** Sonnet half, first pass: $325.44 (the purpose went from $661.44 to $986.88), against
+the $325 estimate; 2026-11-24, Claude Code 2.1.331.
+
 **Results.** To fill.
 
 | Model | Suite | Cases | kb | Vanilla | Delta | Spend |
 |---|---|---|---|---|---|---|
 
 ## Asset determination
+
+The raw results behind this section are under `results/baseline-2026-11-16`; `determination` and
+`hillclimb adopt` read `results/baseline`, so move that directory back to reproduce these figures.
 
 Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63, 3 kb runs per
 case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`, `triggers`)

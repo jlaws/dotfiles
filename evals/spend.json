@@ -3,11 +3,11 @@
   "totals": {
     "byModel": {
       "claude-opus-5-5": 611.0928,
-      "claude-sonnet-5-5": 468.03
+      "claude-sonnet-5-5": 793.4685
     },
     "byPurpose": {
       "audit-probe": 1.6549,
-      "baseline": 661.4377,
+      "baseline": 986.8762,
       "fanout-check-a": 0.8126,
       "fanout-check-c": 1.5793,
       "fix-asset-defects": 89.7104,
@@ -31,6 +31,6 @@
       "trigger-recall-r2": 12.2754,
       "trigger-recall-r3": 7.3696
     },
-    "totalUsd": 1079.1228
+    "totalUsd": 1404.5613
   }
 }
