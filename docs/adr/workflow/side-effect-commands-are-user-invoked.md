@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-11-14
-updated: 2026-11-14
+updated: 2026-11-24
 ---
 # Side-effect commands are user-invoked
 
@@ -33,8 +33,10 @@ own control.
 ## Consequences
 **Gained**: the model cannot start these four side-effect commands unprompted.
 **Accepted**: Claude reaches the same logic through `pr-comment-resolution`,
-`test-driven-development`, `refactoring-and-debt`, and `code-quality`. j-review-claudemd runs only
-when typed. Other Codex command skills stay implicitly invocable, as they already were in practice.
+`test-driven-development`, and `code-quality`. The j-defrag logic has no measured path: at the
+2026-11-16 baseline `refactoring-and-debt` fired in none of its 18 kb runs (6 trigger-should, 12
+effect, both models), so no run has shown Claude reaching it unprompted. j-review-claudemd runs
+only when typed. Other Codex command skills stay implicitly invocable, as they already were in practice.
 
 ## Ruled Out
 | Idea | Why ruled out | When |
