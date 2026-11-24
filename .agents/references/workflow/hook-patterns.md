@@ -43,13 +43,14 @@ Hooks live in `.claude/settings.json` (project) or `~/.claude/settings.json` (gl
 ```
 
 `type` names the handler: `command`, `http`, `mcp_tool`, `prompt`, or `agent`. The examples in this
-file use `command`. `timeout` is in seconds.
+file use `command`. `timeout` is in seconds, and is not enforced on an async hook.
 
 ### Matcher Syntax
 
 `matcher` is tested against **tool names**, not against the command or the file path. A matcher
 made only of letters, digits, `_`, `-`, spaces, `,`, and `|` is an exact tool name, or a list of
 exact names separated by `|` or `,`. Any other character makes it an unanchored regular expression.
+The one exception is `*`: alone, like an empty or missing matcher, it matches every tool.
 It is the one thing in this file that is easy to get wrong, because `permissions.allow` in the same
 `settings.json` *does* use the `Bash(npm *)` form. The two surfaces do not share a syntax.
 
@@ -64,7 +65,9 @@ It is the one thing in this file that is easy to get wrong, because `permissions
 
 To act on a specific command or path, match the tool name and add the `if` field to the handler.
 `if` takes permission-rule syntax, such as `"Bash(git *)"` or `"Edit(*.ts)"`, and is read on tool
-events only. Inspect `tool_input` inside the script for what `if` cannot express.
+events only. Inspect `tool_input` inside the script for what `if` cannot express. `if` is a
+best-effort filter, not a boundary: a command it does not match skips the hook, so a hard deny
+belongs in `permissions.deny`.
 
 ### Skill and Agent Scoped Hooks
 
@@ -156,8 +159,11 @@ reads the path itself:
 
 ```bash
 #!/bin/bash
-file=$(jq -r '.tool_input.file_path')
-eslint --fix "$file" && prettier --write "$file"
+file=$(jq -r '.tool_input.file_path // empty')
+[ -n "$file" ] || exit 0
+if ! eslint --fix -- "$file" >&2 || ! prettier --write -- "$file" >&2; then
+  exit 2
+fi
 ```
 
 ### Block Dangerous Commands
@@ -167,15 +173,15 @@ eslint --fix "$file" && prettier --write "$file"
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "^Bash$",
+        "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "guard-destructive.sh", "timeout": 5 }
+          { "type": "command", "command": "guard-destructive.sh", "timeout": 5, "onFailure": "block" }
         ]
       },
       {
-        "matcher": "^Bash$",
+        "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "guard-force-push.sh", "timeout": 5 }
+          { "type": "command", "command": "guard-force-push.sh", "timeout": 5, "onFailure": "block" }
         ]
       }
     ]
@@ -190,7 +196,7 @@ eslint --fix "$file" && prettier --write "$file"
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "^(Write|Edit)$",
+        "matcher": "Write|Edit",
         "hooks": [
           { "type": "command", "command": "typecheck-file.sh", "timeout": 30 }
         ]
@@ -200,8 +206,9 @@ eslint --fix "$file" && prettier --write "$file"
 }
 ```
 
-The script type-checks only the file named in `tool_input.file_path` and exits 2 with the errors on
-stderr. Do not pipe the checker into a pager or a line filter: a pipeline returns its last
+The script reports the type errors for the file named in `tool_input.file_path` and exits 2 with
+them on stderr. On `PostToolUse` the edit has already happened, so exit 2 does not undo it; it puts
+the errors in front of the model. Do not pipe the checker into a pager or a line filter: a pipeline returns its last
 command's status, so the hook could never report a failure.
 
 ### Post-Stop Verification
@@ -221,7 +228,7 @@ command's status, so the hook could never report a failure.
 ```
 
 `async: true` runs the suite in the background and delivers its output on the next turn. An async
-hook cannot block.
+hook cannot block, and its output is lost if the session ends before the next turn.
 
 ## Design Principles
 
