@@ -18,6 +18,7 @@ when a (case, model) row is read from more than one purpose (`BLOCKED duplicate 
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from typing import Dict, List, Optional, Tuple
 
@@ -25,6 +26,14 @@ from evals.kbeval import determination as det
 from evals.kbeval.results import load_cases, paired_scores, regressed
 
 HELD_GAIN, HELD_RUNS = 4, 12
+NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+
+
+def _name(value: str) -> str:
+    """Return a purpose or asset name that is one plain path component, or raise an argparse error."""
+    if not NAME.fullmatch(value):
+        raise argparse.ArgumentTypeError(f"not a plain name: {value!r}")
+    return value
 
 
 def _rows(purposes: List[str], assets: List[str]) -> Tuple[List[det.TriggerRow], List[str]]:
@@ -201,10 +210,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Compute trigger-tuning adoption criteria")
     sub = parser.add_subparsers(dest="cmd", required=True)
     a = sub.add_parser("adopt")
-    a.add_argument("--asset", nargs="+", required=True)
-    a.add_argument("--before", nargs="+", required=True)
-    a.add_argument("--after", nargs="+", required=True)
-    a.add_argument("--effects", required=True)
+    a.add_argument("--asset", nargs="+", required=True, type=_name)
+    a.add_argument("--before", nargs="+", required=True, type=_name)
+    a.add_argument("--after", nargs="+", required=True, type=_name)
+    a.add_argument("--effects", required=True, type=_name)
     args = parser.parse_args(argv)
     return adopt(args.asset, args.before, args.after, args.effects)
 

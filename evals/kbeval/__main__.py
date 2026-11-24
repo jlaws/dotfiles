@@ -160,7 +160,7 @@ def _parse_changes(diff: str, status: str) -> List[Tuple[str, str]]:
 
 def _affected(args: argparse.Namespace) -> int:
     try:
-        base = _git(["merge-base", args.base, "HEAD"]).strip()
+        base = _git(["merge-base", "--end-of-options", args.base, "HEAD"]).strip()
         diff = _git(["diff", "--name-status", "--no-renames", "-z", base])
         status = _git(["status", "--porcelain", "-z", "--untracked-files=all"])
         changes = _parse_changes(diff, status)

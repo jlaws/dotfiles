@@ -2115,6 +2115,20 @@ class EntryPointTests(OrchestrateTests):
                     code = kmain.main(["affected"])
         return code, out.getvalue(), err.getvalue()
 
+    def test_affected_passes_a_dash_base_to_git_as_a_ref(self):
+        calls = []
+
+        def fake_git(args, **kwargs):
+            calls.append(args)
+            out = {"merge-base": "abc\n", "diff": "", "status": "", "rev-parse": "feat/x\n"}[args[1]]
+            return subprocess.CompletedProcess(args, 0, out, "")
+
+        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.subprocess, "run", fake_git):
+            with mock.patch.object(kmain.orchestrate, "_capped", lambda purpose, cap: cap):
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    kmain.main(["affected", "--base=-x"])
+        self.assertEqual(calls[0], ["git", "merge-base", "--end-of-options", "-x", "HEAD"])
+
     def test_affected_with_no_changes_prints_nothing_to_run(self):
         code, out, err = self.run_affected()
         self.assertEqual(code, 0)
@@ -2744,6 +2758,14 @@ class HillclimbAdoptTests(unittest.TestCase):
         self._asset(held=(0, 4))
         self._adopt()
         self.assertTrue(self.err.endswith("NEIGHBOURS 0 assets checked\n"), self.err)
+
+    def test_purpose_names_that_are_not_plain_are_refused(self):
+        for bad in ("../x", "/abs", "a*"):
+            argv = ["adopt", "--asset", "a", "--before", bad, "--after", "f", "--effects", "e"]
+            with contextlib.redirect_stderr(io.StringIO()) as err, self.assertRaises(SystemExit) as raised:
+                khill.main(argv)
+            self.assertEqual(raised.exception.code, 2, bad)
+            self.assertIn("--before", err.getvalue(), bad)
 
     def test_neighbour_should_with_differing_graded_counts_is_reviewed(self):
         self._asset(held=(0, 4))
