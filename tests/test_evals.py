@@ -1497,7 +1497,7 @@ class SummaryTests(unittest.TestCase):
         late = self.results / "kb" / OPUS / "effects" / "j-arch--late.json"
         self.assertEqual(notes, [
             f"kb/{OPUS}/effects: skipped {late} (no .key)",
-            f"kb/{OPUS}/effects: dropped 1 results for cases no longer under evals/cases: j-arch--effect-gone",
+            f"kb/{OPUS}/effects: dropped results for 1 cases no longer under evals/cases: j-arch--effect-gone",
         ])
 
     def test_determination_load_sees_exact_case_files(self):

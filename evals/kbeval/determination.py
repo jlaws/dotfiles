@@ -50,8 +50,8 @@ def models(asset: str) -> Tuple[str, ...]:
 
 def load(purpose: str, model: str, asset: str, suite: str = "effects") -> Optional[Cases]:
     """Return {case: entry} for one asset, newest result per case; None when no complete result exists."""
-    loaded = load_cases(RESULTS / purpose / "kb" / model / suite, asset=asset)
-    return loaded.cases if loaded.docs else None
+    found = load_cases(RESULTS / purpose / "kb" / model / suite, asset=asset)
+    return found.cases if found.docs else None
 
 
 def find_case(cases: Cases, suffix: str) -> Optional[dict]:

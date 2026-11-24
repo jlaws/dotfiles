@@ -105,7 +105,7 @@ def summarize(
             notes.extend(f"{where}: skipped {entry}" for entry in found.skipped)
             if found.dropped:
                 notes.append(
-                    f"{where}: dropped {len(found.dropped)} results for cases no longer under "
+                    f"{where}: dropped results for {len(found.dropped)} cases no longer under "
                     f"evals/cases: {', '.join(found.dropped)}"
                 )
     kb_cases, kb_docs, kb_digests, *_ = by_staging["kb"]
