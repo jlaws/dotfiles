@@ -8,4 +8,4 @@ description: "deliver every section in full with no deferral to earlier sections
 
 Write ./runbook.md with a response procedure for every alert defined in alerts/alerts.yaml.
 
-Each procedure must work on its own for an on-call engineer paged at 3 a.m.: its own triage steps, the commands to run, and when and to whom to escalate, with no references to another procedure. An alert the file marks as out of scope gets only a one-line TODO naming its tracking issue.
+Each procedure must work on its own for an on-call engineer paged at 3 a.m., who opens the runbook at that alert's entry and reads nothing else: its own triage steps, the commands to run, and when and to whom to escalate. An alert the file marks as out of scope gets only a one-line TODO naming its tracking issue.

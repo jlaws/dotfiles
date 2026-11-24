@@ -8,4 +8,4 @@ description: "a coverage gate measures shipped code only, with branch coverage o
 
 Add coverage.py configuration for this repo in ./.coveragerc, with a pass/fail threshold that CI can enforce. Do not install anything and do not add CI files.
 
-Decide what the gate measures. It should count only code we wrote and ship, catch an untested side of an if even when every line ran, and leave out lines that can never run under test. Choose the threshold. Then write ./coverage-notes.md explaining each setting you chose and why.
+The gate should measure what matters for this project: choose what to measure, what to exclude, and the threshold. Then write ./coverage-notes.md explaining each setting you chose and why.

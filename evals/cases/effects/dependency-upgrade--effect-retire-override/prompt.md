@@ -6,4 +6,4 @@ timeout_seconds: 900
 allowed_tools: [Skill, Read, Glob, Grep, Agent, TodoWrite]
 ---
 
-Upgrade this app from React 17 to React 18. You cannot run npm here, so edit the files directly and leave installing to us. Make every change to package.json the upgrade calls for, including any workaround it makes obsolete, and keep OVERRIDES.md accurate. Then write ./upgrade-notes.md listing each change you made to package.json with the reason, each entry you kept unchanged in "overrides" with the reason, any code change the upgrade needs, and what we must run and check after installing.
+Upgrade this app from React 17 to React 18. You cannot run npm here, so edit the files directly and leave installing to us. Leave package.json in the state you would ship after the upgrade, and keep OVERRIDES.md accurate. Then write ./upgrade-notes.md listing each change you made to package.json with the reason, each entry you kept unchanged in "overrides" with the reason, any code change the upgrade needs, and what we must run and check after installing.
