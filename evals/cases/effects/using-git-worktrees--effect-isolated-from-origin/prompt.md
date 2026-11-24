@@ -1,5 +1,5 @@
 ---
-description: "a worktree for new work starts from an explicitly named, fetched origin/main rather than the current HEAD, and its directory stays out of commits; .claude/skills/using-git-worktrees/SKILL.md; hard because worktree add defaults to HEAD, which here carries an unpushed commit"
+description: "a worktree for new work starts from an explicitly named origin/main rather than the current HEAD, and its directory stays out of commits; the case grades the new branch and its start point, not the worktree directory, which the run sandbox cannot create; .claude/skills/using-git-worktrees/SKILL.md; hard because worktree add defaults to HEAD, which here carries an unpushed commit"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
