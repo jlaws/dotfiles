@@ -1174,12 +1174,50 @@ class OrchestrateTests(RunnerCase):
     def test_baseline_stops_with_two_when_the_cap_is_spent(self):
         kledger.append({"period": self.budget["period"], "purpose": "baseline", "costUsd": 5.0})
         cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=0.1), 0, ""))
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
             status = korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0, cli=cli)
         self.assertEqual(status, 2)
         self.assertEqual(cli.calls, [])
-        self.assertIn("baseline: purpose cap reached", out.getvalue())
+        self.assertIn(
+            "baseline: purpose cap reached (cap $5.00, spent $5.00); no step started. Raise the cap to continue.",
+            err.getvalue(),
+        )
+
+    def test_remainder_below_the_runner_minimum_counts_as_spent(self):
+        kledger.append({"period": self.budget["period"], "purpose": "baseline", "costUsd": 4.999})
+        err = io.StringIO()
+        with mock.patch.object(korch.runner, "run", return_value=0) as run, contextlib.redirect_stderr(err):
+            status = korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0)
+        self.assertEqual(status, 2)
+        run.assert_not_called()
+        self.assertIn("purpose cap reached (cap $5.00, spent $5.00)", err.getvalue())
+
+    def test_cap_preamble_precedes_the_first_step(self):
+        kledger.append({"period": self.budget["period"], "purpose": "baseline", "costUsd": 1.0})
+        err = io.StringIO()
+
+        def step(*args, **kwargs):
+            self.assertIn("baseline: purpose cap $5.00, spent $1.00, left $4.00\n", err.getvalue())
+            return 0
+
+        with mock.patch.object(korch.runner, "run", side_effect=step), contextlib.redirect_stderr(err):
+            self.assertEqual(korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0), 0)
+        self.assertEqual(err.getvalue().count("purpose cap $5.00, spent"), 1)
+        self.assertIn("baseline: spent $1.00 of cap $5.00\n", err.getvalue())
+
+    def test_step_spend_past_the_cap_is_called_out(self):
+        def spend(*args, **kwargs):
+            kledger.append({"period": self.budget["period"], "purpose": "baseline", "costUsd": 6.5})
+            return 0
+
+        err = io.StringIO()
+        with mock.patch.object(korch.runner, "run", side_effect=spend), contextlib.redirect_stderr(err):
+            korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0)
+        self.assertIn(
+            "baseline: spent $6.50 of cap $5.00 (over the cap by $1.50: runs in flight finished past it)\n",
+            err.getvalue(),
+        )
 
     def test_baseline_without_cap_passes_no_limit(self):
         with mock.patch.object(korch.runner, "run", return_value=0) as run:
@@ -2156,6 +2194,22 @@ class EntryPointTests(OrchestrateTests):
         with mock.patch.object(kmain.runner, "run", return_value=0) as run:
             self.assertEqual(kmain.main([*self.RUN_ARGS, "--cap-usd", "5"]), 0)
         self.assertEqual(run.call_args.kwargs["cap_limit"], 3.0)
+
+    def test_run_with_the_cap_spent_exits_two_without_calling_the_runner(self):
+        for spent in (5.0, 6.0):
+            purpose = f"fanout-s{int(spent)}"
+            args = [*self.RUN_ARGS[:-1], purpose]
+            with self.subTest(spent=spent):
+                kledger.append({"period": self.budget["period"], "purpose": purpose, "costUsd": spent})
+                err = io.StringIO()
+                with mock.patch.object(kmain.runner, "run", return_value=0) as run, contextlib.redirect_stderr(err):
+                    self.assertEqual(kmain.main([*args, "--cap-usd", "5"]), 2)
+                run.assert_not_called()
+                self.assertIn(
+                    f"{purpose}: purpose cap reached (cap $5.00, spent ${spent:.2f}); "
+                    "no step started. Raise the cap to continue.",
+                    err.getvalue(),
+                )
 
     def test_run_cap_must_be_a_positive_finite_amount(self):
         for value in ("nan", "inf", "0", "-3"):

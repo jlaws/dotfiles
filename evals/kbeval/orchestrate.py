@@ -7,6 +7,7 @@ per suite and staging, stopping at the first non-zero status.
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 from typing import Iterable, List, Optional
 
@@ -38,15 +39,56 @@ def _capped(purpose: str, cap_usd: float) -> float:
     return cap_usd - ledger.spent(budget["period"], purpose=purpose)
 
 
+def _spent(purpose: str) -> float:
+    return ledger.spent(runner.load_budget(REPO)["period"], purpose=purpose)
+
+
+def announce_cap(purpose: str, cap_usd: float) -> None:
+    """Print the purpose cap, what it has spent, and what is left, before the first step."""
+    spent = _spent(purpose)
+    print(
+        f"{purpose}: purpose cap ${cap_usd:.2f}, spent ${spent:.2f}, left ${cap_usd - spent:.2f}",
+        file=sys.stderr,
+    )
+
+
+def cap_left(purpose: str, cap_usd: float) -> Optional[float]:
+    """Return the purpose remainder, or None (after saying so on stderr) when the cap is spent."""
+    spent = _spent(purpose)
+    left = cap_usd - spent
+    if left < runner.MIN_CAP_USD:
+        print(
+            f"{purpose}: purpose cap reached (cap ${cap_usd:.2f}, spent ${spent:.2f}); "
+            "no step started. Raise the cap to continue.",
+            file=sys.stderr,
+        )
+        return None
+    return left
+
+
+def report_cap(purpose: str, cap_usd: float) -> None:
+    """Print the purpose spend against its cap after a step ran."""
+    spent = _spent(purpose)
+    line = f"{purpose}: spent ${spent:.2f} of cap ${cap_usd:.2f}"
+    if spent > cap_usd:
+        line += f" (over the cap by ${spent - cap_usd:.2f}: runs in flight finished past it)"
+    print(line, file=sys.stderr)
+
+
 def _sequence(steps: Iterable[tuple], cli: Optional[runner.Cli], cap_usd: Optional[float] = None) -> int:
+    first = True
     for suite, staging, model, runs, purpose, assets, jobs, options in steps:
         if cap_usd is not None:
-            left = _capped(purpose, cap_usd)
-            if left <= 0:
-                print(f"{purpose}: purpose cap reached")
+            if first:
+                announce_cap(purpose, cap_usd)
+                first = False
+            left = cap_left(purpose, cap_usd)
+            if left is None:
                 return 2
             options = {**options, "cap_limit": left}
         status = runner.run(suite, staging, model, runs, purpose, assets, jobs, cli, **options)
+        if cap_usd is not None:
+            report_cap(purpose, cap_usd)
         if status != 0:
             return status
     return 0

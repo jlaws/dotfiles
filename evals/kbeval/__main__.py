@@ -56,11 +56,19 @@ def _lint(args: argparse.Namespace) -> int:
 
 
 def _run(args: argparse.Namespace) -> int:
-    return runner.run(
+    cap_limit = None
+    if args.cap_usd is not None:
+        orchestrate.announce_cap(args.purpose, args.cap_usd)
+        cap_limit = orchestrate.cap_left(args.purpose, args.cap_usd)
+        if cap_limit is None:
+            return 2
+    status = runner.run(
         args.suite, args.staging, args.model, args.runs, args.purpose, args.assets, args.jobs,
-        plugin=Path(args.plugin), keep_temp=args.keep_temp,
-        cap_limit=None if args.cap_usd is None else orchestrate._capped(args.purpose, args.cap_usd),
+        plugin=Path(args.plugin), keep_temp=args.keep_temp, cap_limit=cap_limit,
     )
+    if args.cap_usd is not None:
+        orchestrate.report_cap(args.purpose, args.cap_usd)
+    return status
 
 
 def _pilot(args: argparse.Namespace) -> int:
