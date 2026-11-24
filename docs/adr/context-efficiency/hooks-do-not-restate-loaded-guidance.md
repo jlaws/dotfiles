@@ -2,7 +2,7 @@
 status: accepted
 topic: context-efficiency
 created: 2026-09-21
-updated: 2026-09-21
+updated: 2026-11-23
 ---
 # Hooks do not restate always-loaded guidance
 
@@ -74,6 +74,7 @@ terser than the bullet `.gemini/GEMINI.md` carries. If the model ignores prose, 
 | Narrow the guard to `git log` and `git diff` | Keeps a script, a `--format` flag, and a `make verify` surface alive to restate one line of `CLAUDE.md`. The maintenance is the cost, not the rule count. | 2026-09-21 |
 | Unwire the guard but keep the script | Leaves ~600 lines of dead bash and inverts its tests from "is registered" to "is not registered" -- a dormant feature that reads as a live one. | 2026-09-21 |
 | Keep the `SessionStart` banner because it is short | Length is not the objection. Duplication is, and a short duplicate is still a duplicate. | 2026-09-21 |
+| Secrets, protected-path, and test-file guards as registered hooks | Owner decision: correct the reference only. Each guard duplicates `permissions.deny`, is stack-specific in a config that loads in every repo, or needs task state a hook cannot see. | 2026-11-23 |
 
 ## Enforcement
 - `tests/test_agent_config.py::test_no_hook_restates_always_loaded_guidance` pins that

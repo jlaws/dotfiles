@@ -245,7 +245,7 @@ worktree after that to set up its scenario.
 
 ## CLI surface
 
-Checked on `2.1.325 (Claude Code)`: every flag the runner passes exists in
+Checked on `2.1.331 (Claude Code)`: every flag the runner passes exists in
 `claude plugin eval --help`.
 
 ## Summaries and compare
@@ -265,6 +265,8 @@ are committed to a public repo.
 `make eval-compare OLD=... NEW=...` compares two summaries: the suite means with both intervals,
 cases whose `kbScore` dropped by at least 1/3, and pass/fail flips. Cases in only one file are
 listed as "not run here", since a partial rerun covers a subset.
+
+26 of 2250 llm-grader records in the stored baseline are split judge votes (1.2%).
 
 ## Pilot measurements
 
@@ -543,4 +545,4 @@ their findings ... For small systems, analyze the perspectives inline instead." 
 the shipped text differs from it only by naming `devops-engineer` in the opening delegation line.
 
 Purpose spend: $89.71 of the $100 cap (estimate $84.60, plus $7.24 for the 6faff20 rerun). Period
-total after the reruns: $868.54 of $2,500 (`evals/spend.json`). `evals/baselines/` is unchanged.
+total after the reruns, at that time: $868.54 of $2,500 (`evals/spend.json`). `evals/baselines/` is unchanged.

@@ -239,7 +239,7 @@ The `.claude/` directory is self-contained with `/j-*` commands, specialist agen
 
 #### Evals
 
-`evals/` holds behavioral evals for the Claude tree, run through `claude plugin eval` on a staged copy of the tree. Trigger and effect cases are being added asset group by asset group, and baselines land under `evals/baselines/` once recorded. The runs bill an API key. See [`evals/README.md`](evals/README.md).
+`evals/` holds behavioral evals for the Claude tree, run through `claude plugin eval` on a staged copy of the tree. Trigger and effect cases are being added asset group by asset group, and baselines are under `evals/baselines/`. The runs bill an API key. See [`evals/README.md`](evals/README.md).
 
 ### Codex
 
