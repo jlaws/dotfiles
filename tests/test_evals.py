@@ -1395,7 +1395,9 @@ class SummaryTests(unittest.TestCase):
     def test_mixed_kb_digests_are_refused(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True] * 3), digest="aaa")
         self.put("kb", "j-arch--other", self.renamed("j-arch--effect-other"), digest="bbb")
-        with self.assertRaisesRegex(ValueError, "results mix KB digests: aaa, bbb"):
+        with self.assertRaisesRegex(
+            ValueError, "results mix KB digests: aaa, bbb; rerun that staging or move the older results aside$"
+        ):
             ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
 
     def test_kb_and_vanilla_may_carry_different_digests(self):

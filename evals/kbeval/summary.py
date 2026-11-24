@@ -121,7 +121,10 @@ def summarize(
     van_cases, van_docs, van_digests = loaded["vanilla"].cases, loaded["vanilla"].docs, loaded["vanilla"].digests
     for digests in (kb_digests, van_digests):
         if len(digests) > 1:
-            raise ValueError(f"results mix KB digests: {', '.join(sorted(digests))}")
+            raise ValueError(
+                f"results mix KB digests: {', '.join(sorted(digests))}; "
+                "rerun that staging or move the older results aside"
+            )
     docs = kb_docs + van_docs
     versions = sorted({d.get("claudeVersion") for d in docs if d.get("claudeVersion")})
     if len(versions) > 1:
