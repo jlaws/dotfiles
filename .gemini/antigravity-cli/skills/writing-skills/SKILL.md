@@ -241,6 +241,10 @@ LLMs respond to the same persuasion principles as humans (reported elsewhere, un
 5. Write minimal instructions that address the recorded failures.
 6. Iterate one change at a time: evaluate, compare with the baseline, refine (references/ai-ml/eval-and-benchmarking.md, Hillclimbing).
 
+When the agent writes a superseded form although the skill states the current one, add a table near the top mapping the remembered form to the current form.
+
+Process graders are indicators and stay out of the score. A should-not-fire check is a Skill `tool_used` grader with `min: 0` and `max: 0`. When the skill loaded but the delta is negative, suspect the judge before the skill. Pin the model and the judge for any series you compare.
+
 ### Quick Checklist
 - [ ] Frontmatter: `name`, `description` (with trigger phrases)
 - [ ] Description starts with "Use when..." and includes negative triggers

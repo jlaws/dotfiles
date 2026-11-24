@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-11-14
-updated: 2026-11-14
+updated: 2026-11-23
 ---
 # Plans record decisions, not code
 
@@ -41,6 +41,7 @@ scope; this rule governs how in-scope work is written down, so the bar is "unamb
 |------|---------------|------|
 | Keep "Complete code" | Plans duplicate the code they describe | 2026-11-14 |
 | Compare plan length to spec length | A short spec makes every plan look long | 2026-11-14 |
+| Commit `intent.md`, `spec.md`, and `plan.md` as a per-stage artifact thread | A plan is working state for the session that implements it | 2026-11-23 |
 
 ## Enforcement
 - Owner: `.claude/skills/writing-plans/SKILL.md`

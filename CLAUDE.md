@@ -91,7 +91,7 @@ dotfiles/
 | `.vim/` | Solarized colorscheme, syntax files, and state directories |
 | `setup.sh` | Shim that execs `python3 -m macos_setup` |
 | `macos_setup/` | Install/archive/uninstall package (stdlib only) |
-| `evals/` | KB eval harness (`kbeval`), cases, fixtures, and budget; baselines under `evals/baselines/` once recorded |
+| `evals/` | KB eval harness (`kbeval`), cases, fixtures, and budget; baselines under `evals/baselines/` |
 | `ghosty_config.txt` | Ghostty terminal configuration reference |
 
 ## Shell Aliases (from .extra)

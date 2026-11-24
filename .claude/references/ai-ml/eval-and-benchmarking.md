@@ -17,7 +17,7 @@
 
 ## Eval Task Design
 
-Source tasks in this order: production transcripts, bug reports, a handful written by hand, then synthetic cases anchored on those. Read every input before it enters the set. Choose hard cases on purpose, never only today's failures; a set built from current failures measures one fix and goes stale.
+Source tasks in this order: production transcripts, bug reports, a handful written by hand, then synthetic cases anchored on those. Read every input before it enters the set. Choose hard cases on purpose, never only today's failures; a set built from current failures measures one fix and goes stale. Report cases whose right behavior is to do nothing as their own row, because a ceiling there inflates the mean.
 
 ### Validity Checks
 
@@ -25,6 +25,7 @@ Source tasks in this order: production transcripts, bug reports, a handful writt
 - **Headroom**: read the failures that fail every replicate. A task no system can pass is broken or unfair, not hard.
 - **Expert agreement**: an expert grading the same output reaches the grader's verdict. This only holds when the task states every graded criterion.
 - **Stability**: replicate scores agree. When they do not, look for an ambiguous task, a flaky grader, mixed effort settings, or state left over from an earlier run.
+- **Capped runs**: report turn caps and timeouts apart. A capped run that already showed the graded event counts; one that had not is censored.
 
 ### Golden Sets
 
@@ -33,6 +34,7 @@ Source tasks in this order: production transcripts, bug reports, a handful writt
 - Start the set before the first change, so the change has a baseline.
 - Run it on a schedule and on every change to instructions, skills, hooks, or tool descriptions.
 - Rerun it on each new model.
+- A case every system passes on every run moves no score. Harden it or keep it as a regression guard.
 
 ## lm-evaluation-harness
 
@@ -209,16 +211,17 @@ Write claims per task, each one checkable against the response ("names the off-b
 - Hand-grade a handful of outputs and compare with the judge.
 - Rerun the judge on the same outputs; verdicts that flip mark an ambiguous claim.
 - Plumbing failures (a parse error, a claim-count mismatch) surface as errors, never as a score.
+- Pin the judge for a series and record it with the scores.
 
 ## Hillclimbing
 
 1. Scope one objective on a cheap surface, with a coupled metric that must not regress.
 2. Baseline: average repeats per task, then bootstrap over tasks with `bootstrap_ci` until the interval is narrower than the smallest gain worth acting on. If the headroom is smaller than that, switch the objective to cost or latency.
-3. Split tasks into train and test at random.
+3. Split so the tuner never sees test: at random when tasks come from one pool; by author when you write the cases, with test cases written by someone who does not tune and never shown to the tuner.
 4. Make one root-cause change per round.
-5. Keep a change only when train and test both rise beyond noise. Revert on a train-only gain or any regression. Inspect the tasks that flipped with `paired_bootstrap_test`.
+5. Keep a change only when train and test both rise beyond noise. Revert on a train-only gain or any regression. Inspect the tasks that flipped with `paired_bootstrap_test`. For a cost-at-parity change (a fold, a trim), fix a loss margin before the run and adopt when the upper bound of the loss is inside it.
 6. After two rounds with no kept change, sort every remaining train failure by cause before trying again.
-7. Finish on the version that is best on test, confirm it on unseen tasks, and recommend against merging gains within noise.
+7. Finish on the version that is best on test, confirm it on unseen tasks, and recommend against merging gains within noise. Each keep-or-revert call that reads test makes test a weaker estimate; with few tasks, read test at baseline and at the end only.
 
 ### Overfitting
 

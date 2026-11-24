@@ -86,7 +86,7 @@ Two agents argue for/against, a judge decides.
 
 ### Fold or Keep a Subagent
 
-Fold a specialist into the main loop when it chains on another's output, touches the same data, or is usually called together with it; fold routers and planners the model can do itself. Keep a subagent for one of five reasons: its work would bloat the main context, it runs in parallel with context you can discard, its tools conflict with the main agent's, it verifies work from a fresh context given no author intent, or it needs its own permissions. Use a full conversation handoff only when the subagent must talk to the user. Do not split agents by team or problem type; that copies the org chart, not the work. Fold one subagent at a time, and keep it only if the folded version scores worse on your evals. Build that eval before the first fold (references/ai-ml/eval-and-benchmarking.md, Golden Sets). Measure routing accuracy before folding and skill-load accuracy after, on the same tasks.
+Fold a specialist into the main loop when it chains on another's output, touches the same data, or is usually called together with it; fold routers and planners the model can do itself. Keep a subagent for one of five reasons: its work would bloat the main context, it runs in parallel with context you can discard, its tools conflict with the main agent's, it verifies work from a fresh context given no author intent, or it needs its own permissions. Use a full conversation handoff only when the subagent must talk to the user. Do not split agents by team or problem type; that copies the org chart, not the work. Fold one subagent at a time, and keep the subagent only if the folded version scores worse on your evals. Build that eval before the first fold (references/ai-ml/eval-and-benchmarking.md, Golden Sets). Measure routing accuracy before folding and skill-load accuracy after, on the same tasks. When folding, ordering and procedure move into skills, hard limits and approval gates into tools or hooks, and reference material into on-demand lookup. As a middle step, call the subagent as a tool with a shared response schema while the main agent keeps the conversation and checks its conclusions. Decide by a loss margin fixed before the run, not by whether a difference reaches significance.
 
 Failure modes to watch: lossy handoffs, overlapping subagents no one owns, rules added piecemeal until they conflict, and evals that optimize one subagent while the whole system regresses.
 
@@ -108,7 +108,7 @@ Failure modes to watch: lossy handoffs, overlapping subagents no one owns, rules
 |-----------|---------|-----|
 | **Max iterations** | 10-15 | Prevents infinite loops |
 | **Timeout** | 60-120s total | Caps wall-clock time |
-| **Token budget** | Near the p90 of observed tokens per task (Anthropic's task budget floor: 20K) | Caps cost per execution. A client-side cap cuts runs off and still bills them; a model-visible task budget, where the API offers one, lets the model economize instead. For a hard dollar cap, price `response.usage` across calls; the per-call `max_tokens` is a safety cap, not a task cap |
+| **Token budget** | Near the p90 of observed tokens per task | Caps cost per execution. A client-side cap cuts runs off and still bills them; a model-visible task budget, where the API offers one, lets the model economize instead. For a hard dollar cap, price `response.usage` across calls; the per-call `max_tokens` is a safety cap, not a task cap |
 | **Human-in-the-loop** | On destructive actions | Prevents irreversible damage |
 | **Tool allowlist** | Explicit per agent | Limits blast radius |
 | **Output validation** | Schema check on final output | Ensures usable result |
@@ -116,7 +116,7 @@ Failure modes to watch: lossy handoffs, overlapping subagents no one owns, rules
 ## Gotchas
 
 ### Tool Description Quality
-Vague tool descriptions cause wrong tool selection. "Gets data" is bad. "Retrieves customer order history by email address, returning last 30 days of orders with status and totals" is good. Tool choice degrades once the prompt carries roughly 30-50 tool definitions. Past that, load tools on demand.
+Vague tool descriptions cause wrong tool selection. "Gets data" is bad. "Retrieves customer order history by email address, returning last 30 days of orders with status and totals" is good. Tool choice degrades once the prompt carries roughly 30-50 tool definitions (reported elsewhere, unmeasured here). Past that, load tools on demand.
 
 ### Infinite Loops
 Agents can loop calling the same tool with the same args. Track call history and inject "You already called {tool} with these args. Try a different approach." after 2 duplicate calls.
