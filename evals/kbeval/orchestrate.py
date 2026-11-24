@@ -47,7 +47,7 @@ def announce_cap(purpose: str, cap_usd: float) -> None:
     """Print the purpose cap, what it has spent, and what is left, before the first step."""
     spent = _spent(purpose)
     print(
-        f"{purpose}: purpose cap ${cap_usd:.2f}, spent ${spent:.2f}, left ${cap_usd - spent:.2f}",
+        f"{purpose}: purpose cap ${cap_usd:.2f}, spent ${spent:.2f}, left ${max(cap_usd - spent, 0.0):.2f}",
         file=sys.stderr,
     )
 
