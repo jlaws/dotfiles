@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
+from evals.kbeval import affected as kaffected
 from evals.kbeval import cases as kcases
 from evals.kbeval import compare as kcompare
+from evals.kbeval import headroom as kheadroom
+from evals.kbeval import ledger as kledger
 from evals.kbeval import orchestrate, runner
 from evals.kbeval import stage as kstage
 from evals.kbeval import summary as ksummary
@@ -119,6 +123,76 @@ def _compare(args: argparse.Namespace) -> int:
     return 0
 
 
+def _headroom(args: argparse.Namespace) -> int:
+    live: dict = {}
+    try:
+        for case in kcases.discover(REPO / "evals" / "cases"):
+            live.setdefault(case.suite, set()).add(case.name)
+        lines = kheadroom.report(REPO / args.baselines, live)
+    except (OSError, ValueError) as error:
+        print(f"headroom: {error}", file=sys.stderr)
+        return 1
+    for line in lines:
+        print(line)
+    return 0
+
+
+def _git(args: List[str]) -> str:
+    result = subprocess.run(
+        ["git", *args], cwd=REPO, capture_output=True, encoding="utf-8", errors="surrogateescape",
+        stdin=subprocess.DEVNULL, check=False,
+    )
+    if result.returncode != 0:
+        raise OSError(f"git {' '.join(args)}: {result.stderr.strip()}")
+    return result.stdout
+
+
+def _parse_changes(diff: str, status: str) -> List[Tuple[str, str]]:
+    """Return `(status, path)` from NUL-separated `git diff --name-status` and `git status --porcelain` output."""
+    tokens = diff.split("\0")
+    changes = [(tokens[i][:1], tokens[i + 1]) for i in range(0, len(tokens) - 1, 2)]
+    entries = iter(status.split("\0"))
+    for entry in entries:
+        if entry[3:] and entry[:2] == "??":
+            changes.append(("A", entry[3:]))
+        elif set(entry[:2]) & {"R", "C"}:
+            next(entries, None)
+    return changes
+
+
+def _affected(args: argparse.Namespace) -> int:
+    try:
+        base = _git(["merge-base", "--end-of-options", args.base, "HEAD"]).strip()
+        diff = _git(["diff", "--name-status", "--no-renames", "-z", base])
+        status = _git(["status", "--porcelain", "-z", "--untracked-files=all"])
+        changes = _parse_changes(diff, status)
+        plan = kaffected.affected(REPO, changes)
+        for note in plan.notes:
+            print(note, file=sys.stderr)
+        if plan.everything:
+            path = next(p for _, p in changes if p in kaffected.EVERYTHING)
+            print(f"ALL <- {path}; a smoke cannot cover it", file=sys.stderr)
+            return 2
+        if not plan.names:
+            print("nothing to run", file=sys.stderr)
+        kb, vanilla, cost, unpriced = kaffected.estimate(REPO, plan.names)
+        for line in unpriced:
+            print(line, file=sys.stderr)
+        purpose = f"smoke-{orchestrate._branch().replace('/', '-')}"
+        left = orchestrate._capped(purpose, float(runner.load_budget(REPO)["smokeCapUsd"]))
+    except (OSError, ValueError, KeyError, kledger.LedgerError) as error:
+        print(f"affected: {error}", file=sys.stderr)
+        return 1
+    print(
+        f"ESTIMATE {kb} kb runs + {vanilla} vanilla runs, about ${cost:.2f}; "
+        f"smoke cap left ${left:.2f} (purpose {purpose})",
+        file=sys.stderr,
+    )
+    if plan.names:
+        print(" ".join(sorted(set(plan.names))))
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """Parse arguments and run one harness command."""
     parser = argparse.ArgumentParser(prog="python3 -m evals.kbeval")
@@ -172,6 +246,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     compare.add_argument("old")
     compare.add_argument("new")
     compare.set_defaults(func=_compare)
+
+    headroom = sub.add_parser("headroom", help="list cases that cannot show a change")
+    headroom.add_argument("--baselines", default="evals/baselines")
+    headroom.set_defaults(func=_headroom)
+
+    affected = sub.add_parser("affected", help="assets a diff touches and the projected smoke cost")
+    affected.add_argument("--base", default="origin/main")
+    affected.set_defaults(func=_affected)
 
     spend = sub.add_parser("spend", help="snapshot ledger totals into evals/spend.json")
     spend.set_defaults(func=_spend)

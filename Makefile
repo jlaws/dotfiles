@@ -3,7 +3,7 @@ BIN := $(VENV)/bin
 PY_FILES := $(shell find . -name '*.py' -not -path './.venv/*' -not -path './.claude/references/*' -not -path './evals/fixtures/*')
 
 .PHONY: venv lint format fix typecheck check test verify eval-stage eval-lint eval-pilot \
-	eval-smoke eval-baseline eval-spend eval-compare
+	eval-smoke eval-baseline eval-spend eval-compare eval-headroom eval-affected
 
 venv: $(VENV)/.installed
 
@@ -65,3 +65,9 @@ eval-compare:
 	$(if $(OLD),,$(error OLD is required))
 	$(if $(NEW),,$(error NEW is required))
 	python3 -m evals.kbeval compare $(OLD) $(NEW)
+
+eval-headroom:
+	@python3 -m evals.kbeval headroom
+
+eval-affected:
+	@python3 -m evals.kbeval affected

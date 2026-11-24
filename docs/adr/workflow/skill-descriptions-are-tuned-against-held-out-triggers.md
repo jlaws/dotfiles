@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-11-23
-updated: 2026-11-23
+updated: 2026-11-24
 ---
 # Skill descriptions are tuned against held-out triggers
 
@@ -62,10 +62,11 @@ cases existed.
 | Change the shared `.agents` descriptions | Codex holds them to 64 characters | 2026-11-23 |
 | Add a `when_to_use` field | A second field for the job `description` already does | 2026-11-23 |
 | Tune commands | Commands are typed, not chosen from the listing | 2026-11-23 |
+| Mechanize the neighbour call | The call rests on a kept trace that shows which skill took the request, and counts alone cannot show that. The tool prints the neighbour lines and the owner decides | 2026-11-23 |
 
 ## Enforcement
 - Owner: `evals/README.md` (case-authoring rules, Asset determination)
-- Pinned by: "nothing: convention only"
+- Pinned by: `python3 -m evals.kbeval.hillclimb adopt` and `tests/test_evals.py::HillclimbAdoptTests`
 
 ## Reversal Conditions
 - Held-out recall for an adopted description does not hold on the next full baseline.
