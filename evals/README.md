@@ -718,6 +718,36 @@ place of it.
 - **Recurring cost:** the eight new cases add about 31 to 35 USD to each two-model baseline; they
   carry the tag `fanout`, so a baseline can exclude them with `EXCLUDE_TAGS=fanout`.
 
+### Result: stopped at the one-run check (2026-11-24)
+
+The harness does not exercise `j-plan`'s fan-out, so the experiment took its stop branch. No
+experiment run was made, the eight lens-mapped cases were not written, and `j-plan` is unchanged.
+
+One run per guard case per arm, `claude-opus-5-5`, Claude Code 2.1.331:
+
+| Arm | Case | Lens dispatches | Turns | Seconds | Cost net of judge |
+|---|---|---|---|---|---|
+| A | `j-plan--effect-small-feature` | 0 | 5 | 43 | $0.22 |
+| A | `j-plan--effect-validated-percentile` | 0 | 8 | 94 | $0.42 |
+| C | `j-plan--effect-small-feature` | 0 | 5 | 38 | $0.21 |
+| C | `j-plan--effect-validated-percentile` | 1 | 9 | 236 | $1.22 |
+
+The gate needed 6 or more lens dispatches on both cases under arm A and at most 1 under arm C. Arm A
+showed 0 on both. Its kept traces hold no agent dispatch of any kind, Step 1's recon included: the
+tool calls were Bash and Write, plus one Skill call on the second case, although the dispatch tool
+and every `kb:` agent were available to the run. Arm C's one dispatch is inside its allowance (the
+Step 4 red team). Both arms passed the `plan` result grader on both cases.
+
+What this does and does not show: in a non-interactive run on these two specs, Opus writes the plan
+directly and skips the command's dispatch steps, so this harness cannot compare dispatched lenses
+with inline lenses. It says nothing about which is better, and nothing about an interactive session.
+The cost clause of the rule was not tested either: no arm A trace holds a subagent, so whether a
+run's cost includes subagent spend stays unconfirmed here.
+
+Spend: $0.81 under `fanout-check-a` and $1.58 under `fanout-check-c`, $2.39 of the 100 USD budget.
+The `lens-dispatches` process grader stays on the two guard cases as an indicator; it is not part
+of the score.
+
 ### Arm C text
 
 The two tables are the core-lens and conditional-lens tables of arm A's Step 2, unchanged.
