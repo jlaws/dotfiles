@@ -2984,6 +2984,27 @@ class RunnerSafetyTests(RunnerCase):
             [(e["charged"], e["costUsd"]) for e in self.entries()], [("reserved", 60.0)]
         )
 
+    def test_paths_that_keep_the_cap_charged_print_the_settle_command(self):
+        def unreadable(args):
+            return None, 143, "killed"
+
+        def bad_cost(args):
+            return result_doc({"j-demo--effect-cache": [None]}, cost=-1.0), 0, ""
+
+        def leaked(args):
+            doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.0)
+            doc["note"] = "sk-ant-abc"
+            return doc, 0, ""
+
+        for name, responder in (("unreadable", unreadable), ("cost", bad_cost), ("leak", leaked)):
+            with self.subTest(name):
+                self.ledger_path.unlink(missing_ok=True)
+                code, err = self.run_suite(FakeCli(responder))
+                self.assertNotEqual(code, 0)
+                reserved = self.entries()[0]
+                self.assertIn("python3 -m evals.kbeval settle", err)
+                self.assertIn(f"--id {reserved['id']}", err)
+
     def test_load_error_charges_nothing(self):
         cli = FakeCli(lambda args: (None, 1, "Error: No eval cases found"))
         code, err = self.run_suite(cli)

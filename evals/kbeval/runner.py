@@ -13,8 +13,9 @@ interrupt leaves the cap charged and concurrent runners cannot spend the same he
 One CLI per invocation: `ClaudeCli` resolves `claude` to its real path once and runs that binary
 throughout, and each batch checks the version before its paid call. A change stops the run with
 exit 4; a result whose own `claudeVersion` differs from the step's is settled, then moved to
-`quarantine/` beside the results with a README.txt note. An interrupt prints the `settle` command
-that closes its reservation once the real cost is known; nothing releases it automatically.
+`quarantine/` beside the results with a README.txt note. An interrupt, and any other path that
+keeps the cap charged, prints the `settle` command that closes its reservation once the real cost is
+known; nothing releases it automatically.
 """
 
 from __future__ import annotations
@@ -314,6 +315,13 @@ class _Batches:
             f"--id {reserved.get('id') or reserved.get('ts')} --actual-usd <N>"
         )
 
+    def charged_hint(self, label: str, cap: float, reserved: dict) -> str:
+        """Return the line that tells the owner how to close a reservation left at its cap."""
+        return (
+            f"{label}: the ${cap:.2f} reservation stays charged. Once the real cost is known, "
+            f"settle it:\n  {self.settle_command(label, reserved)}"
+        )
+
     def quarantine(
         self, label: str, json_path: Path, out_dir: Path, found: str, actual: float
     ) -> Path:
@@ -413,11 +421,7 @@ class _Batches:
         try:
             result = self.cli.run(args)
         except KeyboardInterrupt:
-            _err(
-                f"{label}: interrupted; its ${cap:.2f} reservation stays charged. Once the real "
-                f"cost is known, settle it:\n"
-                f"  {self.settle_command(label, reserved)}"
-            )
+            _err(f"{label}: interrupted.\n{self.charged_hint(label, cap, reserved)}")
             raise
         log = out_dir / "cli.log"
         log.write_text(
@@ -431,7 +435,8 @@ class _Batches:
             if json_path.exists():
                 json_path.rename(json_path.with_suffix(".quarantined"))
             _err(
-                f"{label}: sk-ant- found in {leaked}; result quarantined; aborting: rotate the key."
+                f"{label}: sk-ant- found in {leaked}; result quarantined; aborting: rotate the key.\n"
+                f"{self.charged_hint(label, cap, reserved)}"
             )
             return 3, None
         stderr_tail = "\n".join((result.stderr or "").strip().splitlines()[-5:])
@@ -447,7 +452,7 @@ class _Batches:
                 return 1, None
             _err(
                 f"{label}: no readable JSON result (exit {result.returncode}); "
-                f"the ${cap:.2f} cap stays charged. Log: {log}"
+                f"Log: {log}\n{self.charged_hint(label, cap, reserved)}"
             )
             if stderr_tail:
                 _err(stderr_tail)
@@ -458,7 +463,8 @@ class _Batches:
         )
         if not math.isfinite(cost) or cost < 0 or (_runs(doc) and not cost):
             _err(
-                f"{label}: result reports cost {raw!r}; aborting; the ${cap:.2f} cap stays charged"
+                f"{label}: result reports cost {raw!r}; aborting\n"
+                f"{self.charged_hint(label, cap, reserved)}"
             )
             return 1, None
         reason = doc.get("partialReason") if doc.get("partial") else None

@@ -161,7 +161,8 @@ result whose cost is missing, negative, or not a number aborts the run with the 
 ledger line that cannot be read stops every run until it is fixed by hand.
 
 An interrupt leaves the cap charged because the cost of runs in flight is unknown, and nothing
-releases it for you. The runner prints the command that closes it once you know the real cost:
+releases it for you. The runner prints the command that closes it once you know the real cost, on an interrupt and on
+every other path that keeps the cap charged (an unreadable result, a bad cost, a key leak):
 
 ```bash
 python3 -m evals.kbeval settle --purpose P --staging S --model M --suite X --batch B --id R --actual-usd N
