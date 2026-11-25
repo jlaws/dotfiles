@@ -785,6 +785,14 @@ class SyncAgentsTests(unittest.TestCase):
 
         self.assertFalse(mine.exists())
 
+    def test_the_orphan_glob_removes_the_retired_finalize_pr_command(self):
+        self._write_repo(".claude/commands/j-keep.md")
+        stale = self._write_target(".claude/commands/j-finalize-pr.md")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(stale.exists())
+
 
 class RevertFilesTests(unittest.TestCase):
     def setUp(self):
