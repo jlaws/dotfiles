@@ -1148,7 +1148,28 @@ UNPROVEN: the fix stands on the pin, and the reason is given.
 | scope-review | EXPAND is defined as the agent defines it ("missing capabilities"), not "10x version" | Sonnet `scope-reviewer--effect-every-mode-weighed` kb 0.3333 vs vanilla 1.0; the link to this clash is an inference |
 | file-storage-patterns | the presigned-expiry gotcha covers multipart part URLs | UNPROVEN: the covering case passed before the fix (12 of 12) |
 
-Smoke result after the edits: not yet run.
+Smoke result after the edits (2026-11-25, Claude Code 2.1.332, Sonnet, one run per case; purpose
+`smoke-fix-kb-asset-and-case-defects`, 13.99 USD): exit 0; 55 kb cases ran and 34 scored 1.0. Thirteen
+cases with a stored kb score of 1.0 scored lower, and every failing grader was a tool-call count:
+`delegated` and `read-refs` (j-cloud, j-docs, j-lang consult commands did not call the agent),
+`lens-dispatches` and `wrote-plan` (j-plan dispatched no lens), and `skill-loaded` (writing-plans,
+using-git-worktrees).
+
+- Rerun, three runs each (purpose `smoke-rerun-kb-asset-and-case-defects`, 8.43 USD): 12 of the 13
+  stayed below 1.0; `scope-reviewer--effect-expand-missing-capability` passed 3 of 3. No consult
+  command delegated in any run, and j-plan dispatched no lens.
+- A/B, two runs each (purpose `smoke-ab-pre-plan-kb`, 4.93 USD): the KB staged from `c8979cd`, before
+  any edit in this plan, with that commit's own harness, on the same CLI. The same twelve cases failed
+  the same graders in every case; per-case means differ by at most one
+  run's grader. The drop follows the CLI change from 2.1.331
+  (the stored baselines) to 2.1.332, not these edits. The 2.1.332 session lists `Task`, `TaskCreate`,
+  `TaskGet`, `TaskList`, `TaskStop`, and `TaskUpdate` tools; a prompt that names a `kb:` agent still
+  dispatches it.
+- Watch item: `using-git-worktrees--effect-isolated-from-origin` scored 0.5 mean on this branch (three
+  runs; `edits-preserved`, `report`, `worktree-made` also failed) against 0.875 for the pre-plan KB (two
+  runs). The sample is small and the skill changed here; the next baseline measures it.
+
+The next full baseline runs on 2.1.332 or later, so its scores are not comparable with 2026-12.
 
 ## Fan-out experiment
 

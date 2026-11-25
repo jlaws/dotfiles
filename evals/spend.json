@@ -3,7 +3,7 @@
   "totals": {
     "byModel": {
       "claude-opus-5-5": 1234.2647,
-      "claude-sonnet-5-5": 803.6289
+      "claude-sonnet-5-5": 831.3703
     },
     "byPurpose": {
       "audit-probe": 1.6549,
@@ -13,11 +13,15 @@
       "fix-asset-defects": 89.7104,
       "kb-harvest-pr1": 33.7511,
       "pilot": 3.4145,
+      "probe-land-uncommitted-work": 0.3908,
       "research-paper-pr4": 17.6784,
+      "smoke-ab-pre-plan-kb": 4.9295,
       "smoke-feat-kb-evals-agents": 35.0462,
       "smoke-feat-kb-evals-consult-commands": 20.8341,
       "smoke-feat-kb-evals-skills": 39.1492,
       "smoke-feat-kb-evals-workflow-commands": 18.947,
+      "smoke-fix-kb-asset-and-case-defects": 13.9898,
+      "smoke-rerun-kb-asset-and-case-defects": 8.4313,
       "trigger-recall-base": 28.547,
       "trigger-recall-effects": 20.5707,
       "trigger-recall-effects-sdd": 6.0038,
@@ -31,6 +35,6 @@
       "trigger-recall-r2": 12.2754,
       "trigger-recall-r3": 7.3696
     },
-    "totalUsd": 2037.8936
+    "totalUsd": 2065.635
   }
 }
