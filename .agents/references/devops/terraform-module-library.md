@@ -2,10 +2,10 @@
 
 ## Critical Rules
 
-- **Always** run `terraform plan` and review the diff before `terraform apply` -- unreviewed applies destroy infrastructure
-- **Never** store state files locally or in Git -- use remote backends (S3, GCS) with locking enabled
-- **Always** pin provider and module versions to exact versions -- unpinned upgrades break infrastructure silently
-- **Never** hardcode secrets in `.tf` files -- use variables with `sensitive = true` and inject from a secret store
+- **Always** run `terraform plan` and review the diff before `terraform apply`: unreviewed applies destroy infrastructure
+- **Never** store state files locally or in Git: use remote backends (S3, GCS) with locking enabled
+- **Always** pin provider and module versions to exact versions: unpinned upgrades break infrastructure silently
+- **Never** hardcode secrets in `.tf` files: use variables with `sensitive = true` and inject from a secret store
 
 ## Module Structure
 
@@ -202,5 +202,5 @@ Never in `.tfvars`. Pass via: `TF_VAR_db_password`, `-var`, or secret manager da
 
 ## Cross-References
 
-- **devops:kubernetes-configuration** -- K8s manifest generation, security policies
-- **devops:pipeline-design** -- CI/CD pipeline for Terraform (plan in PR, apply on merge)
+- **devops:kubernetes-configuration**: K8s manifest generation, security policies
+- **devops:pipeline-design**: CI/CD pipeline for Terraform (plan in PR, apply on merge)

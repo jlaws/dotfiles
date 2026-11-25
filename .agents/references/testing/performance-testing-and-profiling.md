@@ -206,25 +206,25 @@ def find_slow_queries(conn, min_mean_ms=100, limit=20):
 
 ## Gotchas
 
-- **Locust counts RPS per worker** -- aggregate in master UI, not per-worker logs
-- **py-spy needs root on Linux** -- use `--nonblocking` or run as root; macOS needs SIP consideration
-- **cProfile overhead ~2x** -- never in production; use py-spy for live systems
-- **k6 thresholds are assertions** -- non-zero exit if thresholds fail; wire into CI
-- **Warmup matters** -- first N requests hit cold caches/JIT; always discard
-- **Coordinated omission** -- if tool waits for response before sending next, tail latency is undercounted
-- **EXPLAIN vs EXPLAIN ANALYZE** -- plain EXPLAIN = estimated plan; ANALYZE executes query
-- **Go pprof heap** -- shows live objects by default; use `-alloc_space` for total allocations
-- **Rust benchmarks MUST use `--release`** -- debug builds 10-100x slower
-- **CI benchmark noise** -- use dedicated runners or statistical comparison with 5-10% tolerance
+- **Locust counts RPS per worker**: aggregate in master UI, not per-worker logs
+- **py-spy needs root on Linux**: use `--nonblocking` or run as root; macOS needs SIP consideration
+- **cProfile overhead ~2x**: never in production; use py-spy for live systems
+- **k6 thresholds are assertions**: non-zero exit if thresholds fail; wire into CI
+- **Warmup matters**: first N requests hit cold caches/JIT; always discard
+- **Coordinated omission**: if tool waits for response before sending next, tail latency is undercounted
+- **EXPLAIN vs EXPLAIN ANALYZE**: plain EXPLAIN = estimated plan; ANALYZE executes query
+- **Go pprof heap**: shows live objects by default; use `-alloc_space` for total allocations
+- **Rust benchmarks MUST use `--release`**: debug builds 10-100x slower
+- **CI benchmark noise**: use dedicated runners or statistical comparison with 5-10% tolerance
 - **Memory profiler overhead** can change GC behavior, hiding/creating leaks
 - **Flame graphs from short runs** are noisy; collect 10-30 seconds minimum
 
 ## Extended References
 
 See `references/` for:
-- **language-profilers.md** -- Go pprof, Rust flamegraph/criterion, JS Clinic.js, detailed Python memory profiling
-- **memory-and-antipatterns.md** -- Memory leak patterns by language, common performance anti-patterns, CI regression detection
+- **language-profilers.md**: Go pprof, Rust flamegraph/criterion, JS Clinic.js, detailed Python memory profiling
+- **memory-and-antipatterns.md**: Memory leak patterns by language, common performance anti-patterns, CI regression detection
 
 ## Cross-References
 
-- **testing:debugging-methodology** -- systematic debugging when profiling reveals unexpected behavior
+- **testing:debugging-methodology**: systematic debugging when profiling reveals unexpected behavior

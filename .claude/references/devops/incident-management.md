@@ -94,10 +94,10 @@ Quarterly: Review patterns
 
 ### Required Sections
 
-1. **Executive Summary** -- 1-2 sentences: what, impact, resolution
-2. **Timeline (UTC)** -- timestamped events
-3. **Root Cause (5 Whys)** -- keep asking "why" until you hit a systemic issue
-4. **Detection** -- what worked, what didn't
-5. **Response** -- what worked, what could improve
-6. **Lessons Learned** -- went well, went wrong, got lucky
-7. **Action Items** -- priority, owner, due date, ticket (always concrete)
+1. **Executive Summary**: 1-2 sentences: what, impact, resolution
+2. **Timeline (UTC)**: timestamped events
+3. **Root Cause (5 Whys)**: keep asking "why" until you hit a systemic issue
+4. **Detection**: what worked, what didn't
+5. **Response**: what worked, what could improve
+6. **Lessons Learned**: went well, went wrong, got lucky
+7. **Action Items**: priority, owner, due date, ticket (always concrete)

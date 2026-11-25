@@ -11,7 +11,7 @@ description: "Use when designing Python or JavaScript test suites."
 
 ### Test User Stories, Not Internals
 - Focus tests on verifying key **user stories / user needs**, not implementation details
-- Test **public interfaces / APIs** -- not private methods or internal state
+- Test **public interfaces / APIs**: not private methods or internal state
 - Coverage hierarchy: **important user story coverage > branch coverage > line coverage**
 - Write a failing test for user-reported bugs **before** fixing
 - Avoid testing trivial functionality (framework-generated getters/setters, `@ConfigurationProperties` classes, constructor assignments)
@@ -46,7 +46,7 @@ function createUser(overrides?: Partial<User>): User {
 }
 ```
 
-**Why**: Returns a callable -- tests create exactly what they need. Avoids "magic values" scattered across tests.
+**Why**: Returns a callable; tests create exactly what they need. Avoids "magic values" scattered across tests.
 
 ## Ship Test Utilities with Components
 
@@ -61,8 +61,8 @@ When writing libraries or shared components, provide test utilities that make it
 
 For detailed language-specific patterns, see the corresponding reference files:
 
-- **Python (pytest)**: See `${CLAUDE_SKILL_DIR}/../../references/testing/python-testing-patterns.md` -- fixtures, monkeypatch, parametrize, conftest strategy, CI markers
-- **JavaScript/TypeScript (Vitest/Jest)**: See `${CLAUDE_SKILL_DIR}/../../references/testing/javascript-testing-patterns.md` -- DI over module mocking, async testing, component testing, msw, mock hygiene
+- **Python (pytest)**: See `${CLAUDE_SKILL_DIR}/../../references/testing/python-testing-patterns.md` (fixtures, monkeypatch, parametrize, conftest strategy, CI markers)
+- **JavaScript/TypeScript (Vitest/Jest)**: See `${CLAUDE_SKILL_DIR}/../../references/testing/javascript-testing-patterns.md` (DI over module mocking, async testing, component testing, msw, mock hygiene)
 
 ## Test Generation Patterns
 
@@ -97,8 +97,8 @@ def mock_api_client():
 ## Gotchas
 
 ### Python
-- Always use `spec=True` when mocking classes -- catches attribute errors that a bare `Mock()` would silently swallow
-- `monkeypatch` > `unittest.mock` -- auto-reverts without needing a context manager
+- Always use `spec=True` when mocking classes: catches attribute errors that a bare `Mock()` would silently swallow
+- `monkeypatch` > `unittest.mock`: auto-reverts without needing a context manager
 - Fixture scope leaks: module/session fixtures with mutable state
 - `autouse` fixtures create invisible dependencies
 - Patching at wrong location (where defined vs. where used)

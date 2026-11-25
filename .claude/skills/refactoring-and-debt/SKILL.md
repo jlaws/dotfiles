@@ -11,15 +11,15 @@ description: "Use when restructuring working code without changing what it does:
 TEST -> REFACTOR -> VERIFY -> COMMIT
 ```
 
-Follow the cadence in order -- skipping a step removes the safety net that makes refactoring reversible. Keep refactoring and behavior changes in separate commits: mixing them makes the diff unreviewable and any regression unattributable.
+Follow the cadence in order: skipping a step removes the safety net that makes refactoring reversible. Keep refactoring and behavior changes in separate commits: mixing them makes the diff unreviewable and any regression unattributable.
 
-A refactoring changes structure without changing behavior. If you're adding features or fixing bugs at the same time, you're not refactoring -- you're gambling.
+A refactoring changes structure without changing behavior. If you're adding features or fixing bugs at the same time, you're not refactoring: you're gambling.
 
 ### The Cadence
 
 1. **Ensure tests pass** (run full suite, green baseline)
 2. **Make ONE structural change** (single refactoring operation)
-3. **Run tests again** (must still pass -- if not, revert immediately)
+3. **Run tests again** (must still pass: if not, revert immediately)
 4. **Commit** (small atomic commit, message describes the refactoring)
 5. **Repeat**
 
@@ -56,7 +56,7 @@ Each commit is a safe rollback point. If anything breaks, `git revert` is trivia
 
 | Refactoring | IDE? | Notes |
 |-------------|:---:|-------|
-| Rename | Yes | Always use IDE -- catches all references |
+| Rename | Yes | Always use IDE: catches all references |
 | Extract function | Yes | IDE infers parameters and return type |
 | Move file/module | Yes | Updates import paths automatically |
 | Change signature | Yes | IDE updates all call sites |
@@ -78,7 +78,7 @@ Gradually replace a legacy system by routing new functionality to a new implemen
 5. Remove old implementation when 100% migrated
 
 **Progressive rollout:** increase traffic in stages, observing after each increase long enough to catch delayed failures (at least a full daily traffic cycle)
-**Rollback triggers:** set error-rate and latency thresholds from your own pre-migration baseline before rolling out -- a guessed percentage has no provenance
+**Rollback triggers:** set error-rate and latency thresholds from your own pre-migration baseline before rolling out: a guessed percentage has no provenance
 
 ### Branch by Abstraction
 
@@ -147,8 +147,8 @@ ci_pipeline:
 ## Forcing Functions
 
 - **Canonical run scripts**: Provide scripts for running services locally. If setup is broken, someone finds out immediately
-- **Encode standards in tooling**: Linters, formatters, pre-commit hooks, coding agent prompts -- not just wikis
-- **Tickets over bare TODOs**: Prefer filing a ticket with a deadline. A `// TODO` that stays in code must carry a ticket reference -- see `code-quality`'s TODO policy
+- **Encode standards in tooling**: Linters, formatters, pre-commit hooks, coding agent prompts, not just wikis
+- **Tickets over bare TODOs**: Prefer filing a ticket with a deadline. A `// TODO` that stays in code must carry a ticket reference; see `code-quality`'s TODO policy
 - **Continuous releases**: If deployment is painful, that pain surfaces immediately and gets fixed
 
 ## Boy Scout Rule
@@ -172,7 +172,7 @@ Leave the code a little better than you found it.
 ## Gotchas
 
 - Refactoring without tests is walking a tightrope without a net. Write characterization tests first if coverage is low
-- "Refactoring" that changes behavior is rewriting -- separate into distinct commits
+- "Refactoring" that changes behavior is rewriting: separate into distinct commits
 - Large PRs labeled "refactoring" are suspicious; each step should be its own atomic green commit
 - Branch by abstraction's "temporary" interface layer tends to become permanent; set a deadline
 
@@ -207,5 +207,5 @@ After analyzing all perspectives, synthesize findings: deduplicate, resolve cont
 
 ## Cross-References
 
-- **workflow:code-quality** -- code smells, style conventions
-- **workflow:documentation-validation** -- when a rename or interface change touches public surface, confirm docs (README, API reference) still match
+- **workflow:code-quality**: code smells, style conventions
+- **workflow:documentation-validation**: when a rename or interface change touches public surface, confirm docs (README, API reference) still match

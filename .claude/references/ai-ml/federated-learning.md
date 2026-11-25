@@ -116,7 +116,7 @@ DP-SGD clips **per-sample** gradients to `max_grad_norm`, then adds Gaussian noi
 
 **Do not hand-roll this.** After `loss.backward()` PyTorch has already reduced gradients across
 the batch, so clipping `p.grad` at that point bounds the *batch* norm, not any individual
-sample's contribution -- it yields no per-sample sensitivity bound and therefore no
+sample's contribution: it yields no per-sample sensitivity bound and therefore no
 `(epsilon, delta)` guarantee, however plausible the clip-then-noise code looks. Getting the
 guarantee requires materializing per-sample gradients (vectorized hooks) plus an accountant to
 compose epsilon over steps. Use Opacus, which does both: see

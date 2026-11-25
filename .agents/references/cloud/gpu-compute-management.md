@@ -183,7 +183,7 @@ Typical error: `CUDA out of memory. Tried to allocate X MiB`.
 
 Steps:
 1. Check actual usage: `torch.cuda.memory_summary()` or `torch.cuda.max_memory_allocated()`
-2. Look for gradient accumulation leaks -- ensure `loss.backward()` is followed by `optimizer.zero_grad()`
+2. Look for gradient accumulation leaks: ensure `loss.backward()` is followed by `optimizer.zero_grad()`
 3. Use `torch.cuda.empty_cache()` after validation loops
 4. Enable gradient checkpointing for transformer models:
    ```python

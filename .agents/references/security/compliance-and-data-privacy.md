@@ -2,11 +2,11 @@
 
 ## Critical Rules
 
-- **Never** store full track data, CVV/CVC, or PINs -- PCI-DSS violation with severe penalties
+- **Never** store full track data, CVV/CVC, or PINs: PCI-DSS violation with severe penalties
 - **Always** notify supervisory authority within 72 hours of a data breach (GDPR requirement)
-- **Always** have BAAs in place with third-party processors *before* sharing PHI (HIPAA requirement -- cannot be retroactive)
-- **Never** treat pseudonymized data as anonymous -- pseudonymized data is still in GDPR scope
-- **Always** document the legal basis for each processing activity -- "we need it" is not a valid legitimate interest
+- **Always** have BAAs in place with third-party processors *before* sharing PHI (HIPAA requirement: cannot be retroactive)
+- **Never** treat pseudonymized data as anonymous: pseudonymized data is still in GDPR scope
+- **Always** document the legal basis for each processing activity: "we need it" is not a valid legitimate interest
 
 ## Framework Decision Matrix
 
@@ -56,9 +56,9 @@ Access, Rectification, Erasure, Restrict Processing, Portability, Object
 - Display PAN as first-6 + last-4 only (mask middle)
 
 ### Scope Reduction Strategy (in order of preference)
-1. **Hosted payments** (Stripe Checkout, PayPal) -- SAQ A (~20 questions)
-2. **Embedded JS** (Stripe Elements) -- SAQ A-EP (~180 questions)
-3. **Direct handling** -- SAQ D (~300 questions); avoid if possible
+1. **Hosted payments** (Stripe Checkout, PayPal): SAQ A (~20 questions)
+2. **Embedded JS** (Stripe Elements): SAQ A-EP (~180 questions)
+3. **Direct handling**: SAQ D (~300 questions); avoid if possible
 
 ### Compliance Levels
 | Level | Volume | Audit |
@@ -128,13 +128,13 @@ Access, Rectification, Erasure, Restrict Processing, Portability, Object
 
 ## Non-Obvious Gotchas
 
-- Legitimate interest requires a documented balancing test -- "we need it" is not sufficient
+- Legitimate interest requires a documented balancing test: "we need it" is not sufficient
 - GDPR erasure has exceptions: legal obligations (tax records) override right to delete
-- PCI scope creep: if card data touches a system, that system is in scope -- network segmentation is the primary defense
+- PCI scope creep: if card data touches a system, that system is in scope; network segmentation is the primary defense
 - Tokenization only reduces scope if the token vault is isolated and separately secured
-- SOC2 Type I (point-in-time) vs Type II (over a period) -- customers increasingly demand Type II
+- SOC2 Type I (point-in-time) vs Type II (over a period); customers increasingly demand Type II
 - HIPAA BAAs must be in place BEFORE sharing PHI, not retroactively
-- Anonymized data is outside GDPR scope, but pseudonymized data is NOT -- know the difference
+- Anonymized data is outside GDPR scope, but pseudonymized data is NOT: know the difference
 - Log retention itself creates compliance obligations; don't log PII unless required
 
 ## References

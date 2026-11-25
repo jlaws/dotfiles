@@ -1,6 +1,6 @@
 ---
 name: j-paper
-description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, submission readiness, and rebuttals. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, preparing a venue submission, or answering reviewers. Do NOT use for general LaTeX syntax questions (read ~/.claude/references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
+description: "LaTeX research paper consultation: templates, section editing, compile + log analysis, source research, citation integration, submission readiness, and rebuttals. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, preparing a venue submission, or answering reviewers. Do NOT use for general LaTeX syntax questions (read ~/.claude/references/research/latex-paper-writing.md directly) or non-academic documents (use /j-docs)."
 argument-hint: "<task: e.g., 'init neurips template', 'compile and fix errors', 'add citation for <url>', 'check page limit', 'draft rebuttal for reviews.md'>"
 ---
 
@@ -12,8 +12,8 @@ If no arguments provided, ask what the user wants to do (init a new paper, edit 
 
 Load skills via the Skill tool, in order:
 
-1. `analysis-output-patterns` -- output structure rules
-2. `output-completeness` -- for any generated section, template, or table (no truncation)
+1. `analysis-output-patterns`: output structure rules
+2. `output-completeness`: for any generated section, template, or table (no truncation)
 
 "Compiles cleanly" means the build log shows it. LaTeX exits zero on plenty of broken output, so read the
 log for errors, undefined references, and overfull boxes rather than trusting the exit code.
@@ -35,7 +35,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 
 - Determine target venue from arguments. If ambiguous, ask.
 - Pull the preamble + macros from `~/.claude/references/research/latex-paper-writing.md`.
-- If the venue style file is not present locally, take its current filename from the venue's author guidelines and tell the user to download it from the venue site -- do NOT fabricate a URL.
+- If the venue style file is not present locally, take its current filename from the venue's author guidelines and tell the user to download it from the venue site; do NOT fabricate a URL.
 - Scaffold: `main.tex`, `references.bib`, `sections/`, `figures/`, `latexmkrc`. Use `Write` only for new files; `Edit` for any pre-existing file.
 
 ### b. Section editing
@@ -50,7 +50,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 - Run the build in one Bash call: `latexmk -pdf -interaction=nonstopmode <root>.tex`.
 - On failure, parse the `.log` for: lines starting with `! `, `LaTeX Warning: Reference`, `LaTeX Warning: Citation`, `Overfull \hbox`, `Underfull \vbox`, `! Package` errors, and font-substitution warnings.
 - Categorize each issue: missing package, undefined ref, missing citation, overfull box, font issue, math-mode error.
-- Iteration cap: max 2 fix attempts on the same error class. If still failing, stop and report -- do not loop.
+- Iteration cap: max 2 fix attempts on the same error class. If still failing, stop and report; do not loop.
 - Verify before claiming success: re-run `latexmk` and paste the tail of the output showing 0 errors and 0 undefined refs/citations.
 
 ### d. Source research + citation integration
@@ -68,10 +68,10 @@ Look up the target venue's requirements in `~/.claude/references/research/latex-
 
 | Check | How |
 |-------|-----|
-| Page count | Compile, then `pdfinfo <pdf>` (one Bash call) -- compare to venue limit |
+| Page count | Compile, then `pdfinfo <pdf>` (one Bash call); compare to venue limit |
 | Anonymization | grep `\author{`, acknowledgments block, and self-citations like "in our prior work" / "we previously showed" |
-| Style flag | grep the style option -- it must match the phase under the venue's current style file. For NeurIPS a submission takes no option; `[preprint]` de-anonymizes it |
-| Font embedding | `pdffonts <pdf>` (one Bash call) -- every font must show "yes" under "emb" |
+| Style flag | grep the style option: it must match the phase under the venue's current style file. For NeurIPS a submission takes no option; `[preprint]` de-anonymizes it |
+| Font embedding | `pdffonts <pdf>` (one Bash call); every font must show "yes" under "emb" |
 | Abstract length | Word-count the abstract block against the venue limit (NeurIPS: 250) |
 | Supplementary structure | Confirm appendix is in the right form for the venue (separate PDF vs appended) |
 | Number provenance | Every number in the draft traces to a saved log, script, or run config; Methods values match the config that ran |
@@ -87,7 +87,7 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 - Parse `.bib` entries. Use `bibtool` if installed; otherwise grep-based scan.
 - Detect duplicates by DOI first, then by normalized title (lowercase, strip punctuation).
 - Flag entries with missing year or venue, and entries with no DOI unless they cite a proceedings page. Propose a DOI only when a resolved record matches on title, first author, and year (`~/.claude/references/research/literature-review.md`, Citation Verification).
-- Propose merges -- never silently delete entries.
+- Propose merges: never silently delete entries.
 
 ### g. Rebuttal / response to reviewers
 
@@ -98,17 +98,17 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 - Lead with the answer, fix, or generated content.
 - For multi-step tasks, paste verification output (compile log tail, page count, font table) BEFORE declaring done.
 - When a fact is unknown (style file URL, exact filename version for the current year, DOI), say so explicitly. Do not guess.
-- When generating LaTeX, never truncate -- every section, every table cell, every preamble line must be complete.
+- When generating LaTeX, never truncate: every section, every table cell, every preamble line must be complete.
 
 ---
 
 ### Cross-References
 
-- **~/.claude/references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
-- **~/.claude/references/documentation/ai-writing-tells.md** -- prose habits to revise before delivering text
-- **~/.claude/references/research/literature-review.md** -- before adding or cleaning a citation (Citation Verification), or when scope expands to surveying related work
-- **~/.claude/references/research/rebuttal-writing.md** -- triage, response structure, and what never to claim
-- **~/.claude/references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
-- **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate via the Agent tool (it loads `~/.claude/references/research/`); verify its output
-- **skill:analysis-output-patterns** -- output structure rules
-- **skill:output-completeness** -- required when generating templates, sections, or tables
+- **~/.claude/references/research/latex-paper-writing.md**: venue specs, preamble template, gotchas
+- **~/.claude/references/documentation/ai-writing-tells.md**: prose habits to revise before delivering text
+- **~/.claude/references/research/literature-review.md**: before adding or cleaning a citation (Citation Verification), or when scope expands to surveying related work
+- **~/.claude/references/research/rebuttal-writing.md**: triage, response structure, and what never to claim
+- **~/.claude/references/research/paper-analysis-methodology.md**: when reading cited papers in depth
+- **agent:research-analyst**: for literature surveys or deep reading of cited papers, delegate via the Agent tool (it loads `~/.claude/references/research/`); verify its output
+- **skill:analysis-output-patterns**: output structure rules
+- **skill:output-completeness**: required when generating templates, sections, or tables

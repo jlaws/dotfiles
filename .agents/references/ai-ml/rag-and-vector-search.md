@@ -19,7 +19,7 @@
 ### Matryoshka Embeddings
 Models like text-embedding-3-large support dimension reduction: truncate vectors to 256/512/1024 dims with minimal quality loss. Reduces storage 3-12x. Test recall at target dimension before committing.
 
-**Never mix embedding models** in the same index -- vectors from different models are incompatible.
+**Never mix embedding models** in the same index: vectors from different models are incompatible.
 
 ## Bi-Encoder vs Cross-Encoder
 
@@ -181,5 +181,5 @@ Example: 1M vectors, 1536 dims, FP32, M=16 = ~6.1 GB vectors + ~128 MB index ove
 
 ## Cross-References
 
-- **ai-ml:llm-application-patterns** -- prompt engineering, agent patterns, production deployment
-- **ai-ml:llm-application-patterns#structured-output** -- extracting structured data from retrieved documents
+- **ai-ml:llm-application-patterns**: prompt engineering, agent patterns, production deployment
+- **ai-ml:llm-application-patterns#structured-output**: extracting structured data from retrieved documents

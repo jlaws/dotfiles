@@ -201,9 +201,9 @@ token.cancel();
 ```
 
 ### Async gotchas
-- **Never `std::thread::sleep` in async** -- blocks the entire runtime
-- **Don't hold `MutexGuard` across `.await`** -- causes deadlocks
-- **Spawned futures must be `Send`** -- no `Rc`, non-Send types
+- **Never `std::thread::sleep` in async**: blocks the entire runtime
+- **Don't hold `MutexGuard` across `.await`**: causes deadlocks
+- **Spawned futures must be `Send`**: no `Rc`, non-Send types
 - **Use `tokio::select!`** for racing futures, not manual polling
 - **`async_trait`** still needed for trait objects (RPITIT stabilized but limited)
 

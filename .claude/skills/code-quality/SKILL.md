@@ -39,7 +39,7 @@ description: "Use when assessing code smells, health, or style."
 - Use generics / type hints to catch issues at compile-time / static analysis (Python `list[str]`, Java `List<String>`, TS `Array<string>`)
 - Use specialized types where invalid inputs are unrepresentable (pydantic `BaseModel` with `dict[str, str]` over raw `str`, typed keys over string constants)
 - No `any` in TypeScript (use `unknown`); no force unwraps in Swift (unless provably safe)
-- Use `Optional` / `Option` for null safety -- never return bare `None`/`null` when absence is possible
+- Use `Optional` / `Option` for null safety: never return bare `None`/`null` when absence is possible
 - Validate early at boundaries, convert to constrained types, pass constrained types downstream
 - Leverage utility types: `Pick`, `Omit`, `Partial`, `NonNullable`
 - Priority: **compile-time > static analysis > runtime** for catching errors
@@ -47,10 +47,10 @@ description: "Use when assessing code smells, health, or style."
 ## Anti-Patterns
 
 **Code**
-- **Premature abstraction** -- wait for 2+ concrete implementations
-- **Reinvented stdlib** -- hand-rolled debounce, deep-clone, groupBy, retry loop, date math. Climb `code-efficiency-ladder` before writing any of them
-- **A config that never varies** -- an option, flag, or parameter with exactly one value at every call site
-- **A new dependency for a few lines** -- check what is already installed first
+- **Premature abstraction**: wait for 2+ concrete implementations
+- **Reinvented stdlib**: hand-rolled debounce, deep-clone, groupBy, retry loop, date math. Climb `code-efficiency-ladder` before writing any of them
+- **A config that never varies**: an option, flag, or parameter with exactly one value at every call site
+- **A new dependency for a few lines**: check what is already installed first
 
 **Process**
 - **TODOs**: acceptable only with a ticket and a reason, e.g. `// TODO(#123): handle rate limiting`. Prefer filing a ticket over leaving a bare marker. A bare `// TODO`, or one standing in for work that was in scope, is not acceptable.
@@ -130,8 +130,8 @@ function processOrder(order: Order): Result {
 
 ## Deliberate Simplifications
 
-A shortcut that cuts a real corner with a known ceiling -- a global lock, an O(n-squared) scan, a
-naive heuristic -- gets marked where it lives:
+A shortcut that cuts a real corner with a known ceiling: a global lock, an O(n-squared) scan, a
+naive heuristic: gets marked where it lives:
 
 ```
 // SIMPLIFIED: global lock, per-account locks if throughput matters
@@ -142,21 +142,21 @@ when) and **the upgrade path** (what to reach for instead). A marker naming no t
 that silently rots, because nobody can tell whether its condition has arrived.
 
 It does two jobs at once. It records that the simplification was a decision rather than an
-oversight, and it tells a reviewer not to flag it -- a marked shortcut is sanctioned, an unmarked
+oversight, and it tells a reviewer not to flag it; a marked shortcut is sanctioned, an unmarked
 one is a finding. Distinct from `// TODO(#123):`, which marks work still owed; a `// SIMPLIFIED:`
 may never need doing.
 
 **Never a security control.** Authentication, authorization, input validation at a trust boundary,
 and secret handling are not valid `// SIMPLIFIED:` subjects. A marker on one of those is itself the
-finding -- flag it regardless of the two fields it carries. Otherwise the marker is a channel for
+finding: flag it regardless of the two fields it carries. Otherwise the marker is a channel for
 reviewed code to tell its reviewer to look away, which is the one thing it must not be. Same list
 as `code-efficiency-ladder`'s Never Simplify Away.
 
-Find them with `grep -rnE '(#|//|--|;|%) ?SIMPLIFIED:'` -- the comment leader varies by language,
+Find them with `grep -rnE '(#|//|--|;|%) ?SIMPLIFIED:'`: the comment leader varies by language,
 and a SQL or Lisp simplification is the kind most worth finding.
 
 ## Cross-References
 
-- **reference:code-efficiency-ladder** -- whether the code should exist at all, before any of the above applies
-- **reference:completeness-principle** -- how thoroughly to build what is in scope
-- **skill:refactoring-and-debt** -- removing what was already built
+- **reference:code-efficiency-ladder**: whether the code should exist at all, before any of the above applies
+- **reference:completeness-principle**: how thoroughly to build what is in scope
+- **skill:refactoring-and-debt**: removing what was already built

@@ -84,7 +84,7 @@ Squash first, then rebase; a single commit resolves each conflict once instead o
 
 ### Cross-References
 
-- **agent:create-pr** -- baseline stage/commit/push/open logic this command extends with fetch, rebase, and force-push
-- **skill:finishing-branch** -- base detection via `git merge-base` and the heredoc PR body; note it flags force-push, which is intentional and authorized here
-- **skill:using-git-worktrees** -- source of the canonical 3-call squash sequence
-- **skill:documentation-validation** -- per-change doc gate applied in Phase 4 before force-push
+- **agent:create-pr**: baseline stage/commit/push/open logic this command extends with fetch, rebase, and force-push
+- **skill:finishing-branch**: base detection via `git merge-base` and the heredoc PR body; note it flags force-push, which is intentional and authorized here
+- **skill:using-git-worktrees**: source of the canonical 3-call squash sequence
+- **skill:documentation-validation**: per-change doc gate applied in Phase 4 before force-push

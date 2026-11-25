@@ -11,7 +11,7 @@ Two arguments: `<emails-dir>` and `<output-path>`.
 
 ## Setup (always do first)
 
-Load skill `output-completeness` via the Skill tool -- the digest must account for every source with real signal; no silently dropped items, no truncated sections.
+Load skill `output-completeness` via the Skill tool: the digest must account for every source with real signal; no silently dropped items, no truncated sections.
 
 You will build the consolidated weekly digest **incrementally**: write a skeleton first, then extend it as you read each source file. Do NOT batch all reads before writing. The output file must grow monotonically and visibly as you work.
 
@@ -56,7 +56,7 @@ For each source file from Step 1:
 1. **Read** the source file.
 2. **Classify each item** in it into one of the six sections above. A single source file usually contributes to multiple sections.
 3. **Insert each item** by calling Edit on `<output-path>`. Use `old_string = "<!-- END SECTION:<name> -->"` and `new_string = "<item-as-tight-markdown>\n<!-- END SECTION:<name> -->"`. The sentinel stays in place so subsequent Edits keep working.
-4. **Merge-on-insert**: before inserting, check whether the item already exists in the summary (from a previous source file in this same iteration). If a near-duplicate is already there, either skip it or do a small Edit to enrich the existing entry: do NOT add a second copy. Prefer skipping over enriching when the new info adds nothing material.
+4. **Merge-on-insert**: before inserting, check whether the item already exists in the summary (from a previous source file in this same iteration). If a near-duplicate is already there, either skip it or do a small Edit to enrich the existing entry; do NOT add a second copy. Prefer skipping over enriching when the new info adds nothing material.
 5. **End-of-source self-check**: after the last Edit for this source, write one short text line in the form `Finished <source-basename>: inserted N, merged M, skipped K`. This is a forcing function for full enumeration, not output; it is not part of the digest.
 
 **Critical: process one source per cycle.** Each source file gets its own complete Read → classify → Edit → self-check loop before you touch the next file. Do NOT issue multiple Read tool calls in parallel or in rapid succession across different source files, even for short scholar alerts, small product roundups, or files that look similar. The "let me batch-read several at once to speed up" shortcut is the exact failure mode this prompt is designed to prevent: it produces silent topic drops, especially in the last 20% of files. There is no time budget pressure that justifies it: process every source individually, even if there are 80+ of them.

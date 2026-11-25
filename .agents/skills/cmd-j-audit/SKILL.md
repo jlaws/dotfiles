@@ -83,7 +83,7 @@ Score < 3:   Low (accept or defer)
 
 #### Start Narrow, Expand Gradually
 1. Begin with `p/security-audit` + `p/owasp-top-ten` rulesets
-2. Block CI only on `ERROR` severity -- `WARNING` as informational
+2. Block CI only on `ERROR` severity: `WARNING` as informational
 3. After team adapts (~2 weeks), add language-specific rules
 4. Custom rules only for org-specific patterns
 
@@ -113,7 +113,7 @@ Run SAST early (before build) for fast feedback. Gate on errors only, not warnin
 #### False Positive Management
 - `# nosemgrep: rule-id` with mandatory comment explaining why
 - Exclude `tests/`, `vendor/`, `node_modules/`, `generated/`
-- Review suppressions quarterly -- code changes may invalidate them
+- Review suppressions quarterly: code changes may invalidate them
 
 ### Custom Semgrep Rules
 
@@ -176,9 +176,9 @@ Every security requirement must link back to:
 ### Gotchas
 
 - OR-node attack trees need ALL paths mitigated; missing one leaves the goal achievable
-- Risk scores should drive requirement priority -- don't let stakeholder politics override
+- Risk scores should drive requirement priority: don't let stakeholder politics override
 - Detective controls (logging) are necessary but insufficient alone; pair with preventive
-- Error messages are an info disclosure vector -- generic errors externally, detailed internally
+- Error messages are an info disclosure vector: generic errors externally, detailed internally
 - Session management is often the weakest STRIDE link; model it explicitly
 - Compliance mapping gaps surface best through automated traceability matrices, not manual review
 

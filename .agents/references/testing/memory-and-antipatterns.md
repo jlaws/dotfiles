@@ -39,7 +39,7 @@
 - Excessive small allocations in hot path (pre-allocate slices, sync.Pool)
 - String concatenation in loops (use `strings.Builder`)
 - Unbuffered channels as queues (buffer appropriately)
-- Reflection in hot paths (`reflect` is slow -- generate code instead)
+- Reflection in hot paths (`reflect` is slow: generate code instead)
 
 ### Rust
 - Unnecessary cloning (borrow instead)

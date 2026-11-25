@@ -185,11 +185,11 @@ tokenizer.save_pretrained("./merged_model")
 ### Fine-Tuning
 - **Chat template mismatch**: training with one template, inferring with another, destroys quality. Save tokenizer alongside adapter; use `apply_chat_template` consistently
 - **Padding direction**: training = `"right"`, batch inference = `"left"`. Forgetting to switch is a silent quality killer
-- Setting `lora_alpha = r` instead of `2*r` -- underscales adapter contribution
-- Using `packing=True` without many short examples -- wastes compute if examples are near `max_seq_length`
-- Not setting `pad_token` -- many models (Llama) lack one: `tokenizer.pad_token = tokenizer.eos_token`
-- Training on prompt tokens -- use `DataCollatorForCompletionOnly` or mask labels manually
-- Evaluating with `do_sample=True` -- introduces variance making comparison meaningless
+- Setting `lora_alpha = r` instead of `2*r`: underscales adapter contribution
+- Using `packing=True` without many short examples: wastes compute if examples are near `max_seq_length`
+- Not setting `pad_token`: many models (Llama) lack one: `tokenizer.pad_token = tokenizer.eos_token`
+- Training on prompt tokens: use `DataCollatorForCompletionOnly` or mask labels manually
+- Evaluating with `do_sample=True`: introduces variance making comparison meaningless
 
 ### Pretraining
 - **Data dedup across phases**: repeated high-quality data in annealing causes memorization; track doc-level overlap
@@ -197,7 +197,7 @@ tokenizer.save_pretrained("./merged_model")
 - **Chinchilla is a lower bound**: overtrained models transfer better; plan 2-5x Chinchilla tokens at smaller scales
 - **Batch size ramp**: ramp too fast = instability; ramp over 2-5% of total steps
 - **Checkpoint storage**: 70B checkpoint ~140GB; with Adam states ~420GB per save; budget 10-50TB
-- Loss spikes below 1B tokens are normal -- don't rollback before 0.5-1% of total training tokens
+- Loss spikes below 1B tokens are normal: don't rollback before 0.5-1% of total training tokens
 - MFU drops with PP: expect 30-35% with pipeline parallelism vs 40-45% with pure TP/FSDP
 - LR restarts between phases: use smooth transitions, not cold restarts
 - bf16 vs fp32 accumulation: always accumulate gradients in fp32; skipping causes slow divergence

@@ -234,7 +234,7 @@ class UserProfile(CamelModel):
 ## Gotchas
 
 - **v1 vs v2**: `validator` -> `field_validator`, `root_validator` -> `model_validator`, `Config` class -> `model_config = ConfigDict(...)`. v2 is a full rewrite; avoid the v1 compat layer in new code.
-- **`mode="before"` receives raw input**: could be `dict`, `str`, `None` -- always type-check before operating on the value.
+- **`mode="before"` receives raw input**: could be `dict`, `str`, `None`; always type-check before operating on the value.
 - **`ConfigDict(strict=True)`**: disables coercion (`"123"` won't become `int`). Use per-field `Strict` types for granular control.
 - **Mutable defaults**: `list[str] = []` is safe in Pydantic (deep-copied per instance), unlike plain Python classes.
 - **`from_attributes=True`** must be set on the Pydantic model, not the ORM model. Without it, `model_validate(orm_obj)` raises.
@@ -245,6 +245,6 @@ class UserProfile(CamelModel):
 
 ## Cross-References
 
-- **languages:fastapi-templates** -- FastAPI request/response models, dependency injection with Pydantic
-- **languages:python-patterns** -- async validators, concurrent validation pipelines
-- **ai-ml:llm-application-patterns#structured-output** -- LLM structured extraction with Pydantic models
+- **languages:fastapi-templates**: FastAPI request/response models, dependency injection with Pydantic
+- **languages:python-patterns**: async validators, concurrent validation pipelines
+- **ai-ml:llm-application-patterns#structured-output**: LLM structured extraction with Pydantic models

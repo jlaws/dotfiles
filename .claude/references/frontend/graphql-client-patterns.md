@@ -272,11 +272,11 @@ const client = createClient({
 ## Gotchas
 
 - **N+1 on server**: Use DataLoader per-request; client cannot solve this
-- **Cache invalidation**: `refetchQueries` is simpler than manual `cache.modify` -- use it unless perf-critical
+- **Cache invalidation**: `refetchQueries` is simpler than manual `cache.modify`; use it unless perf-critical
 - **Fragment colocation**: Keep fragments next to components that consume them; avoids stale field selections
 - **Over-fetching**: Use `@defer` directive for heavy fields; split queries by viewport priority
 - **SSR hydration mismatch**: Extract and rehydrate cache state; Apollo's `getDataFromTree` or urql's `ssrExchange`
 
 ## Cross-References
 
-- **architecture:api-design-principles** -- API design, SDK architecture, retry/error handling
+- **architecture:api-design-principles**: API design, SDK architecture, retry/error handling

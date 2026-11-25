@@ -53,7 +53,7 @@ class SepConv(nn.Module):
 Relax the discrete choice into a softmax-weighted sum over all candidate ops per edge, with
 one `alphas` parameter matrix of shape `(num_edges, len(OPS))` per cell type (normal and
 reduction), initialized near zero. `num_edges` for `n` intermediate nodes is
-`sum(i + 2 for i in range(n))` -- the `+2` is the two cell input nodes.
+`sum(i + 2 for i in range(n))`: the `+2` is the two cell input nodes.
 
 Train by **alternating optimization**: architecture parameters on a held-out validation
 batch, network weights on the training batch. Using the training batch for both lets the
@@ -66,14 +66,14 @@ weight update and costs substantially more per step.
 An LSTM controller samples a connection and an op per node, and is trained with REINFORCE
 against held-out accuracy, using a moving-average baseline for variance reduction and
 gradient clipping on the controller. Use held-out accuracy, never training accuracy, as the
-reward -- see Gotchas.
+reward: see Gotchas.
 
 ## One-Shot SuperNet Training
 
 Build one weight-sharing network holding every candidate op, then train a single uniformly
 sampled path per step. Sampling uniformly (rather than by the controller's current
 distribution) keeps the shared weights from co-adapting to whichever path is currently
-favored. SuperNet rankings do not transfer directly to standalone accuracy -- retrain the
+favored. SuperNet rankings do not transfer directly to standalone accuracy: retrain the
 top-k from scratch before believing them.
 
 ## Hardware-Aware NAS

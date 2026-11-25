@@ -46,7 +46,7 @@ else:
     result = message.parsed
 ```
 
-## Anthropic Structured Outputs -- Multiple Extractions
+## Anthropic Structured Outputs: Multiple Extractions
 
 Extract multiple entity types from a single document with one nested model.
 

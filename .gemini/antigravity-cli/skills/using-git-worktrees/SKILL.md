@@ -43,7 +43,7 @@ git check-ignore -q .worktrees 2>/dev/null
 
 ## Base Commit
 
-`git worktree add` with no start point uses the current HEAD -- right only by coincidence, and silent
+`git worktree add` with no start point uses the current HEAD: right only by coincidence, and silent
 when it is wrong. Name the start point every time:
 
 | Purpose | Start point |
@@ -54,7 +54,7 @@ when it is wrong. Name the start point every time:
 
 A worktree holds only committed work. Staged and modified files stay behind in the caller's tree, so
 anything you want isolated has to be committed first. That is also why reviewing in a worktree
-reviews the wrong code -- see `dispatching-parallel-agents`, Workspace Selection.
+reviews the wrong code: see `dispatching-parallel-agents`, Workspace Selection.
 
 ## Creation Steps
 
@@ -108,7 +108,7 @@ loses work silently.
 4. **Integrate with `git merge`, never by copying files.** `cp` or `rsync` out of a worktree loses
    history and silently overwrites concurrent work in the destination.
 5. **Leave the worktree in place.** The caller owns `git merge` and `git worktree remove`, and cannot
-   integrate a tree you already deleted. For the same reason, do not invoke `finishing-branch` --
+   integrate a tree you already deleted. For the same reason, do not invoke `finishing-branch`;
    return the work on its branch.
 
 ## Quick Reference
@@ -121,7 +121,7 @@ loses work silently.
 | Neither exists | Check CLAUDE.md, then ask user |
 | Directory not ignored | Add to `.git/info/exclude`, or commit `.gitignore` alone |
 | Tests fail in baseline | Report failures + ask |
-| No start point in mind | Name one anyway -- `origin/main`, a branch, or a SHA |
+| No start point in mind | Name one anyway: `origin/main`, a branch, or a SHA |
 | HEAD is not the commit you were given | Stop, report BLOCKED |
 | Task is review or audit | Work in the caller's tree instead |
 | Work to isolate is uncommitted | Commit it first, or skip the worktree |

@@ -49,7 +49,7 @@
 ### Multi-Head Attention (MHA)
 
 Fused `qkv_proj` to `3 * d_model`, reshape to `(B, T, 3, n_heads, head_dim)`, then delegate to
-`F.scaled_dot_product_attention` -- it dispatches to FlashAttention where the shapes and dtype
+`F.scaled_dot_product_attention`: it dispatches to FlashAttention where the shapes and dtype
 allow, so a hand-rolled `softmax(qk^T / sqrt(d))` is both slower and more memory-hungry.
 
 ### Grouped Query Attention (GQA)
@@ -111,19 +111,19 @@ helpers and the per-scale data/batch/LR table.
 
 ### Diffusion
 - `scaled_linear` beta schedule is SD1/SD2 default; `squaredcos_cap_v2` better for high-res
-- v-prediction requires matching schedule at training AND inference -- cannot swap to epsilon
+- v-prediction requires matching schedule at training AND inference: cannot swap to epsilon
 - Always multiply latents by `vae.config.scaling_factor` (0.18215 SD1.x, 0.13025 SDXL)
 - Use EMA decay 0.9999 for >100M params; start after warmup; evaluate EMA model not training model
-- LR above 1e-4 for diffusion fine-tuning is too high -- 1e-5 to 5e-5 typical
+- LR above 1e-4 for diffusion fine-tuning is too high: 1e-5 to 5e-5 typical
 - Freeze VAE and text encoder during UNet training
 - `pipe.enable_model_cpu_offload()` + `torch.compile(pipe.unet)` for inference optimization
 
 ### Transformer
 - **KV cache OOM**: GQA/MQA reduce KV cache linearly with `n_kv_heads`
 - **RoPE extrapolation fails** past ~1.5x training length without NTK scaling or YaRN
-- **ALiBi hurts on short seqs** (<2k) -- linear bias penalizes distant tokens regardless
+- **ALiBi hurts on short seqs** (<2k): linear bias penalizes distant tokens regardless
 - **MoE load imbalance**: without aux loss, >80% tokens route to 1-2 experts; use `aux_loss_weight=0.01`
-- **MoE memory**: total params = N_experts * FFN_size -- top-2/8 with 7B active holds ~40B total
+- **MoE memory**: total params = N_experts * FFN_size; top-2/8 with 7B active holds ~40B total
 - **fp16 overflow**: attention logits overflow at seq >4k; use bf16 or fp32 for attention compute
 - **Chinchilla is a lower bound**: for inference-optimized models, overtrain 2-5x tokens (LLaMA approach)
 

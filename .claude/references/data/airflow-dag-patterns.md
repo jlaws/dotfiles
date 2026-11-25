@@ -240,13 +240,13 @@ airflow/
 
 ## Do's and Don'ts
 
-- **Use TaskFlow API** -- cleaner code, automatic XCom
-- **Set timeouts** -- prevent zombie tasks
-- **Use `mode='reschedule'`** for sensors -- free up workers
-- **Idempotent tasks** -- safe to retry
-- **Don't use `depends_on_past=True`** -- creates bottlenecks
-- **Don't hardcode dates** -- use `{{ ds }}` macros
-- **Don't put heavy logic in DAG file** -- import from modules
+- **Use TaskFlow API**: cleaner code, automatic XCom
+- **Set timeouts**: prevent zombie tasks
+- **Use `mode='reschedule'`** for sensors: free up workers
+- **Idempotent tasks**: safe to retry
+- **Don't use `depends_on_past=True`**: creates bottlenecks
+- **Don't hardcode dates**: use `{{ ds }}` macros
+- **Don't put heavy logic in DAG file**: import from modules
 
 ## Extended References
 

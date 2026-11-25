@@ -83,7 +83,7 @@ for await (const user of client.users.list({ role: "admin" })) {
 
 ## Key Design Rules
 
-- Always use **lazy iterators** -- never load all pages into memory
+- Always use **lazy iterators**: never load all pages into memory
 - Buffer one page at a time; fetch next page only when buffer exhausts
 - Expose both `for item in results` (one-at-a-time) and `results.pages()` (page-at-a-time) APIs
 - Pass page size as configurable param with sensible default (20-100)

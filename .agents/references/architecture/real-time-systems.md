@@ -233,9 +233,9 @@ class LWWRegister:
 
 - **WebSocket ping/pong**: Browsers don't expose ping frames; implement application-level heartbeats (30s interval, 10s timeout)
 - **SSE reconnection ID**: Use `id:` field so `Last-Event-ID` header enables gap-free reconnection
-- **Redis pub/sub is fire-and-forget**: No persistence; if subscriber is down, message is lost -- use Streams for durability
+- **Redis pub/sub is fire-and-forget**: No persistence; if subscriber is down, message is lost; use Streams for durability
 - **Connection limits**: Each WebSocket holds a file descriptor; set `ulimit -n`; 10K connections per instance is a reasonable ceiling
 - **CRDT clock skew**: LWW-Register depends on synchronized clocks; use hybrid logical clocks (HLC) in distributed setups
-- **Thundering herd on reconnect**: After restart, all clients reconnect at once -- add jittered backoff (random 0-5s delay)
+- **Thundering herd on reconnect**: After restart, all clients reconnect at once; add jittered backoff (random 0-5s delay)
 - **JSON serialization overhead**: For >10K msg/s, switch to MessagePack or Protobuf
-- **NATS subject naming**: Use dots for hierarchy (`events.chat.room1`), stars for wildcard -- avoid >5 levels deep
+- **NATS subject naming**: Use dots for hierarchy (`events.chat.room1`), stars for wildcard; avoid >5 levels deep

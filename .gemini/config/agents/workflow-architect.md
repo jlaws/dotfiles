@@ -1,6 +1,6 @@
 ---
 name: workflow-architect
-description: "Pre-implementation workflow specification -- complete path mapping, failure modes, state machines, and handoff contracts. Use when mapping execution paths before coding, specifying failure scenarios, or designing state machines. Do NOT use for: system architecture (use architecture-specialist), infrastructure design (use devops-engineer), or API design (use architecture-specialist)."
+description: "Pre-implementation workflow specification: complete path mapping, failure modes, state machines, and handoff contracts. Use when mapping execution paths before coding, specifying failure scenarios, or designing state machines. Do NOT use for: system architecture (use architecture-specialist), infrastructure design (use devops-engineer), or API design (use architecture-specialist)."
 subagent: true
 mainAgent: true
 model: inherit

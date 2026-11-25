@@ -1,6 +1,6 @@
 ---
 name: j-system-design
-description: "Comprehensive system design suite -- produce architecture documents covering multiple perspectives. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /j-arch instead)."
+description: "Comprehensive system design suite: produce architecture documents covering multiple perspectives. Use when designing a new system or documenting existing architecture. Do NOT use for quick design questions (use /j-arch instead)."
 ---
 
 # System Design
@@ -9,7 +9,7 @@ Load skill `design-first` for design-before-implementation discipline.
 Load skill `analysis-output-patterns` for output structure rules.
 
 Parse arguments: `$ARGUMENTS` is a freeform system description that may contain file or directory references inline.
-- The entire string is the system description -- do not strip paths from it.
+- The entire string is the system description: do not strip paths from it.
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
 - If `$ARGUMENTS` is empty, ask the user for a system description.
 
@@ -19,24 +19,24 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 
 ### Phase 1: Discovery
 
-**Step 1 -- Scan for candidate documentation:**
+**Step 1: Scan for candidate documentation:**
 1. Glob for common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
 2. Glob for root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
 3. Glob for design doc patterns: `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`
 4. Include any file or directory paths found inline in `$ARGUMENTS`
 
-**Step 2 -- Filter by relevance to the system description:**
-1. First pass: filter candidates by file/directory names and paths -- keep files whose names relate to the described system
+**Step 2: Filter by relevance to the system description:**
+1. First pass: filter candidates by file/directory names and paths; keep files whose names relate to the described system
 2. Second pass: for ambiguous candidates, use Grep to search file contents for keywords from the system description
 3. Discard files that are clearly unrelated (e.g. skip `docs/billing.md` when designing an auth system)
 
-**Step 3 -- Read selected files and explore the codebase:**
+**Step 3: Read selected files and explore the codebase:**
 1. Read the relevant documentation files selected above
 2. Read the project structure and key source files
 3. Identify existing architecture patterns, APIs, data models
 
-**Step 4 -- Delegate perspectives to specialist agents (recommended when the system is large):**
-Hand each Phase 2 perspective to its agent, in parallel -- they load the relevant skills + `~/.agents/references/` libraries and return findings:
+**Step 4: Delegate perspectives to specialist agents (recommended when the system is large):**
+Hand each Phase 2 perspective to its agent, in parallel; they load the relevant skills + `~/.agents/references/` libraries and return findings:
 - Component Architecture, API Design -> `architecture-specialist`
 - Data Architecture -> `data-engineer`
 - Security & Operations -> `security-reviewer` (security) + `devops-engineer` (deployment/observability)
@@ -90,7 +90,7 @@ Analyze the system from each perspective (inline, or delegated in parallel per S
 - Dependencies and interaction patterns (who calls whom, sync vs async)
 - Data flow between components
 - Identify god classes, circular dependencies, unclear ownership
-- Map the dependency graph -- are layers clean or tangled?
+- Map the dependency graph: are layers clean or tangled?
 
 **2.2 API Design**
 - Public interfaces and contracts
@@ -105,7 +105,7 @@ Analyze the system from each perspective (inline, or delegated in parallel per S
 - Storage strategy and access patterns (read-heavy? write-heavy? mixed?)
 - Migration and evolution approach
 - Data consistency model (strong, eventual, causal)
-- Data lifecycle -- creation, transformation, archival, deletion
+- Data lifecycle: creation, transformation, archival, deletion
 - Sensitive data identification and handling
 
 **2.4 Security & Operations**
@@ -114,7 +114,7 @@ Analyze the system from each perspective (inline, or delegated in parallel per S
 - Observability: metrics, logging, tracing, alerting
 - Failure modes and recovery strategy
 - Capacity planning and scaling approach
-- Incident response -- what can be rolled back, what can't
+- Incident response: what can be rolled back, what can't
 
 ### Phase 3: Cross-Cutting Analysis
 
@@ -143,10 +143,10 @@ Combine findings into a unified architecture document:
 ### Phase 5: Implementation Planning
 
 Produce an actionable implementation plan:
-1. **Task breakdown** -- ordered list of implementation tasks with dependencies
-2. **Risk-first ordering** -- tackle the hardest/riskiest parts first
-3. **Vertical slices** -- each task should produce something testable end-to-end
-4. **Test strategy** -- what tests are needed at each level (unit, integration, e2e)
+1. **Task breakdown**: ordered list of implementation tasks with dependencies
+2. **Risk-first ordering**: tackle the hardest/riskiest parts first
+3. **Vertical slices**: each task should produce something testable end-to-end
+4. **Test strategy**: what tests are needed at each level (unit, integration, e2e)
 
 ---
 
@@ -180,7 +180,7 @@ For each significant design decision:
 
 These four fields map one-to-one onto an ADR; persist each significant decision as an ADR at `docs/adr/<topic>/<slug>.md` following the `architecture-decision-records` reference.
 
-### Red Flags -- Redesign Before Implementing
+### Red Flags: Redesign Before Implementing
 - Component has multiple unrelated responsibilities
 - Circular dependencies between components
 - Design requires coordination between components for basic operations

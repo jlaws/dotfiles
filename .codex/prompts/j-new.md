@@ -278,5 +278,5 @@ After writing:
 
 ### Cross-References
 
-- **skill:writing-skills** -- skill authoring TDD methodology, CSO, persuasion principles
-- **skill:skill-audit** -- validation rules for all asset types
+- **skill:writing-skills**: skill authoring TDD methodology, CSO, persuasion principles
+- **skill:skill-audit**: validation rules for all asset types

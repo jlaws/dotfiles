@@ -105,6 +105,6 @@ Export `middleware()` from root `middleware.ts`. Use `config.matcher` array to s
 
 ## Cross-References
 
-- **frontend:form-patterns** -- React Hook Form, Zod validation, multi-step forms
-- **frontend:react-state-management** -- client state patterns, Zustand/Jotai with Next.js
-- **frontend:i18n-and-localization** -- next-intl setup, locale routing middleware
+- **frontend:form-patterns**: React Hook Form, Zod validation, multi-step forms
+- **frontend:react-state-management**: client state patterns, Zustand/Jotai with Next.js
+- **frontend:i18n-and-localization**: next-intl setup, locale routing middleware

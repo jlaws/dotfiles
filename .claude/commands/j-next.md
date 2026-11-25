@@ -94,8 +94,8 @@ Write the run's final report yourself: the /j-diff-review report, plus the branc
 
 ### Cross-References
 
-- **command:/j-execute-plan** -- executes a plan from its first part; /j-next resumes at a later PR boundary
-- **command:/j-rebase** -- refreshes an already-open PR; /j-next opens the next one
-- **skill:writing-plans** -- PR Boundaries, and the between-PRs reset sequence Phase 3 runs
-- **skill:executing-plans** -- the living-document ledger Phase 4 maintains
-- **command:/j-diff-review** -- closes the part and opens its PR
+- **command:/j-execute-plan**: executes a plan from its first part; /j-next resumes at a later PR boundary
+- **command:/j-rebase**: refreshes an already-open PR; /j-next opens the next one
+- **skill:writing-plans**: PR Boundaries, and the between-PRs reset sequence Phase 3 runs
+- **skill:executing-plans**: the living-document ledger Phase 4 maintains
+- **command:/j-diff-review**: closes the part and opens its PR

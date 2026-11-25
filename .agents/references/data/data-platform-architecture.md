@@ -29,7 +29,7 @@
 Key points:
 - **Hidden partitioning**: users write `timestamp`, Iceberg partitions by day automatically
 - **Partition evolution**: change strategy without rewriting existing data
-- **Schema evolution**: add, drop, rename, reorder columns -- no data rewrite needed
+- **Schema evolution**: add, drop, rename, reorder columns; no data rewrite needed
 
 ```python
 # iceberg_setup.py -- PyIceberg catalog, schema, and table creation
@@ -209,7 +209,7 @@ changes = (
 
 ### Query Engine Integration
 
-DuckDB + Iceberg and Trino + Iceberg patterns -- see `data/data-platform-architecture/query-engines.md`.
+DuckDB + Iceberg and Trino + Iceberg patterns: see `data/data-platform-architecture/query-engines.md`.
 
 ### Compaction and Maintenance
 
@@ -222,14 +222,14 @@ DuckDB + Iceberg and Trino + Iceberg patterns -- see `data/data-platform-archite
 
 ### Lakehouse Gotchas
 
-- **Small file problem** -- frequent writes create thousands of tiny files; schedule compaction
-- **VACUUM too aggressive** -- retention below 7 days (Delta) risks breaking concurrent readers
-- **Partition cardinality** -- >10K partitions degrades metadata; use bucket transforms
-- **Schema evolution with Parquet** -- column renames work in Iceberg (name-based) but break raw Parquet (position-based)
-- **Catalog lock contention** -- concurrent writers need atomic commits; use catalog-level locking
-- **Cost of time travel** -- every snapshot retains file references; unbounded snapshots bloat metadata
-- **Delta outside Databricks** -- UniForm improves compatibility but some features are Databricks-only
-- **Partition evolution pitfall** -- old data keeps old layout; spanning queries may scan more files
+- **Small file problem**: frequent writes create thousands of tiny files; schedule compaction
+- **VACUUM too aggressive**: retention below 7 days (Delta) risks breaking concurrent readers
+- **Partition cardinality**: >10K partitions degrades metadata; use bucket transforms
+- **Schema evolution with Parquet**: column renames work in Iceberg (name-based) but break raw Parquet (position-based)
+- **Catalog lock contention**: concurrent writers need atomic commits; use catalog-level locking
+- **Cost of time travel**: every snapshot retains file references; unbounded snapshots bloat metadata
+- **Delta outside Databricks**: UniForm improves compatibility but some features are Databricks-only
+- **Partition evolution pitfall**: old data keeps old layout; spanning queries may scan more files
 
 ## Data Quality
 
@@ -358,7 +358,7 @@ def build_orders_suite() -> ExpectationSuite:
 
 ### dbt Data Tests
 
-Built-in + custom generic and singular tests -- see `data/data-platform-architecture/dbt-quality-tests.md`.
+Built-in + custom generic and singular tests: see `data/data-platform-architecture/dbt-quality-tests.md`.
 
 Key pattern: combine `unique`, `not_null`, `relationships`, `accepted_values` with custom `expression_is_true` and `recency` tests.
 
@@ -469,7 +469,7 @@ class DataQualityPipeline:
 | Point-in-time joins | Built-in | Built-in | Must implement |
 | Team size sweet spot | 2-15 | 15-100+ | 5-20 (eng-heavy) |
 
-**Recommendation**: Feast for most teams -- covers 80% of use cases with minimal operational burden.
+**Recommendation**: Feast for most teams (covers 80% of use cases with minimal operational burden).
 
 ### Feast Patterns
 

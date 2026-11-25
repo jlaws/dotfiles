@@ -13,8 +13,8 @@ max_depth = 3
 
 # Codex reads hooks either here or in .codex/hooks.json. log-prompt.sh synced from day one but was
 # never registered, so it had never fired while its Claude twin was wired the whole time. This
-# matches .claude/settings.json, which also registers UserPromptSubmit and nothing else --
-# see docs/adr/context-efficiency/hooks-do-not-restate-loaded-guidance.md.
+# matches .claude/settings.json, which also registers UserPromptSubmit and nothing else
+# (see docs/adr/context-efficiency/hooks-do-not-restate-loaded-guidance.md).
 [[hooks.UserPromptSubmit]]
 
 [[hooks.UserPromptSubmit.hooks]]

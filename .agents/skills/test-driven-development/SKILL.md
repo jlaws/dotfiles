@@ -131,7 +131,7 @@ Then: next failing test for next behavior.
 | **Minimal** | One thing. "and" in name? Split it. | `test('validates email and domain and whitespace')` |
 | **Clear** | Name describes behavior | `test('test1')` |
 | **Shows intent** | Demonstrates desired API | Obscures what code should do |
-| **Tests logic** | Exercises a decision, transformation, or path | `expect(config.timeout).toBe(5000)` -- restates source code |
+| **Tests logic** | Exercises a decision, transformation, or path | `expect(config.timeout).toBe(5000)`: restates source code |
 | **Targets production** | Tests real application code | Tests for test helpers, factories, or fixtures |
 | **Names its break** | You can name the production change that would turn it red | No change you can name would make it fail |
 | **Independent oracle** | Expected values are literals or come from the spec | Expected value computed by the code under test or its helpers |

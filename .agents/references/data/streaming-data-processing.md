@@ -197,13 +197,13 @@ env.set_state_backend("rocksdb")  # disk-backed, supports TBs of state
 
 ## Gotchas
 
-- **Consumer lag monitoring** -- track `kafka_consumer_group_lag`; unbounded lag means processing cannot keep up
-- **Watermark stalls** -- idle partitions prevent watermark advancement; configure idle source timeout
-- **Checkpoint size growth** -- large state slows checkpoints; use incremental checkpoints with RocksDB
-- **Spark micro-batch latency** -- minimum ~100ms per batch; not suitable for sub-second requirements
-- **Kafka rebalancing storms** -- frequent consumer joins/leaves trigger rebalances; use static group membership
-- **Serialization costs** -- Avro/Protobuf with schema registry beats JSON by 5-10x in throughput
-- **Out-of-order data** -- always set watermarks; late data beyond watermark is silently dropped
-- **foreachBatch idempotency** -- Spark may re-execute a batch on failure; sink must handle duplicates
-- **Faust is single-process** -- scale by running multiple instances with same app name
-- **Transaction timeout** -- Kafka default `transaction.timeout.ms` is 60s; long processing needs higher values
+- **Consumer lag monitoring**: track `kafka_consumer_group_lag`; unbounded lag means processing cannot keep up
+- **Watermark stalls**: idle partitions prevent watermark advancement; configure idle source timeout
+- **Checkpoint size growth**: large state slows checkpoints; use incremental checkpoints with RocksDB
+- **Spark micro-batch latency**: minimum ~100ms per batch; not suitable for sub-second requirements
+- **Kafka rebalancing storms**: frequent consumer joins/leaves trigger rebalances; use static group membership
+- **Serialization costs**: Avro/Protobuf with schema registry beats JSON by 5-10x in throughput
+- **Out-of-order data**: always set watermarks; late data beyond watermark is silently dropped
+- **foreachBatch idempotency**: Spark may re-execute a batch on failure; sink must handle duplicates
+- **Faust is single-process**: scale by running multiple instances with same app name
+- **Transaction timeout**: Kafka default `transaction.timeout.ms` is 60s; long processing needs higher values

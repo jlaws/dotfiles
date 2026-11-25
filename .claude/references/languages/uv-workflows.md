@@ -184,8 +184,8 @@ uv add -p api requests@^2.30.0
 
 ## Key Opinions
 
-- **Always commit `uv.lock`** -- reproducible builds, deterministic deploys
-- **Use `uv run`** instead of activating venvs -- works in CI, Docker, scripts
+- **Always commit `uv.lock`**: reproducible builds, deterministic deploys
+- **Use `uv run`** instead of activating venvs: works in CI, Docker, scripts
 - **`--locked` in CI**: fails when `uv.lock` is stale; `--frozen` skips that check and installs from the lockfile as it is
 - **Pin Python version** with `uv python pin 3.12`
 - **Export for compatibility**: `uv export > requirements.txt` for legacy tooling

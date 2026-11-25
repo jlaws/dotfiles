@@ -33,7 +33,7 @@ CREATE INDEX idx_events_type ON events(event_type);
 4. Drop old after validation
 ```
 
-Never rebuild in-place -- risks data loss on failure.
+Never rebuild in-place: risks data loss on failure.
 
 ## Projection Types
 

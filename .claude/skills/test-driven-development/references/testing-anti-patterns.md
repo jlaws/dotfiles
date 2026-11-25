@@ -352,9 +352,9 @@ test('loadFixture returns parsed JSON', () => {
 ```
 
 **Why this is wrong:**
-- **Circular validation** -- test code verifying test code, no production behavior exercised
-- **Inflates coverage on non-production code** -- meaningless metric improvement
-- **Test code is validated implicitly** -- if `createMockUser` is broken, the production tests using it fail
+- **Circular validation**: test code verifying test code, no production behavior exercised
+- **Inflates coverage on non-production code**: meaningless metric improvement
+- **Test code is validated implicitly**: if `createMockUser` is broken, the production tests using it fail
 - **If a helper is complex enough to need its own tests, it should be production code**
 
 **The fix:**

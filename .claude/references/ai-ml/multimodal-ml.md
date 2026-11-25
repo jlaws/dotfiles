@@ -22,7 +22,7 @@ Default recommendation: Late fusion (contrastive) for retrieval/matching. Early 
 | GPT (OpenAI) | Strong general vision, function calling | General VQA, tool use with images |
 | Gemini (Google) | Native video support | Video understanding, many-image tasks |
 
-Check each provider's current model list rather than pinning a specific version -- the
+Check each provider's current model list rather than pinning a specific version: the
 frontier tiers all now offer long context and vision, so capability gaps close fast.
 
 ### SDK Examples
@@ -81,7 +81,7 @@ Project both encoders to a shared `embed_dim`, L2-normalize, and compute a symme
 cross-entropy over the scaled `img @ txt.T` similarity matrix (in-batch negatives, so the
 labels are just `arange(batch)`). Two details matter: keep `logit_scale` a learnable
 parameter and clamp its exponential (a runaway scale is a common divergence cause), and
-normalize before the matmul -- skipping it diverges immediately.
+normalize before the matmul: skipping it diverges immediately.
 
 ### Contrastive Training Tips
 
@@ -244,7 +244,7 @@ optimizer = torch.optim.AdamW(
 ### Modality Imbalance
 - Vision encoders produce 256-576 tokens per image vs 20-200 text tokens. LLM attention cost is O(n^2)
 - Use pooling/resampling (Perceiver, Q-Former) to reduce visual tokens to 32-128 for efficiency
-- **Anti-pattern**: feeding raw ViT patches (576 tokens) into a 7B LLM for every image -- prohibitive for multi-image
+- **Anti-pattern**: feeding raw ViT patches (576 tokens) into a 7B LLM for every image (prohibitive for multi-image)
 
 ### Resolution vs Compute
 - ViT-L/14@336px: 576 patches. ViT-L/14@224px: 196 patches. 3x tokens for 1.5x resolution
@@ -266,9 +266,9 @@ optimizer = torch.optim.AdamW(
 | Vision LoRA + LLM LoRA | Efficient adaptation | May underfit on complex tasks | Fine-tuning with limited compute |
 
 ### Common Mistakes
-- Not normalizing embeddings before contrastive loss -- training diverges immediately
-- Using CLS token from ViT instead of patch tokens for VLMs -- loses spatial information
-- Same learning rate for vision and text encoders -- vision encoder usually needs 5-10x lower
-- Not padding/truncating to consistent sequence lengths within batch -- silent shape bugs
-- Training projector and LLM simultaneously from scratch -- projector should be aligned first
-- Ignoring image aspect ratio (center-crop everything) -- destroys information for documents/charts
+- Not normalizing embeddings before contrastive loss: training diverges immediately
+- Using CLS token from ViT instead of patch tokens for VLMs: loses spatial information
+- Same learning rate for vision and text encoders: vision encoder usually needs 5-10x lower
+- Not padding/truncating to consistent sequence lengths within batch: silent shape bugs
+- Training projector and LLM simultaneously from scratch: projector should be aligned first
+- Ignoring image aspect ratio (center-crop everything): destroys information for documents/charts

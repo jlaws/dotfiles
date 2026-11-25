@@ -264,7 +264,7 @@ optimizer = torch.optim.AdamW(
 ### Modality Imbalance
 - Vision encoders produce 256-576 tokens per image vs 20-200 text tokens. LLM attention cost is O(n^2)
 - Use pooling/resampling (Perceiver, Q-Former) to reduce visual tokens to 32-128 for efficiency
-- **Anti-pattern**: feeding raw ViT patches (576 tokens) into a 7B LLM for every image -- prohibitive for multi-image
+- **Anti-pattern**: feeding raw ViT patches (576 tokens) into a 7B LLM for every image (prohibitive for multi-image)
 
 ### Resolution vs Compute
 - ViT-L/14@336px: 576 patches. ViT-L/14@224px: 196 patches. 3x tokens for 1.5x resolution
@@ -286,9 +286,9 @@ optimizer = torch.optim.AdamW(
 | Vision LoRA + LLM LoRA | Efficient adaptation | May underfit on complex tasks | Fine-tuning with limited compute |
 
 ### Common Mistakes
-- Not normalizing embeddings before contrastive loss -- training diverges immediately
-- Using CLS token from ViT instead of patch tokens for VLMs -- loses spatial information
-- Same learning rate for vision and text encoders -- vision encoder usually needs 5-10x lower
-- Not padding/truncating to consistent sequence lengths within batch -- silent shape bugs
-- Training projector and LLM simultaneously from scratch -- projector should be aligned first
-- Ignoring image aspect ratio (center-crop everything) -- destroys information for documents/charts
+- Not normalizing embeddings before contrastive loss: training diverges immediately
+- Using CLS token from ViT instead of patch tokens for VLMs: loses spatial information
+- Same learning rate for vision and text encoders: vision encoder usually needs 5-10x lower
+- Not padding/truncating to consistent sequence lengths within batch: silent shape bugs
+- Training projector and LLM simultaneously from scratch: projector should be aligned first
+- Ignoring image aspect ratio (center-crop everything): destroys information for documents/charts

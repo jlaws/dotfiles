@@ -129,7 +129,7 @@ Use `SHARDED_STATE_DICT` during training. `FULL_STATE_DICT` only for final expor
 
 ### Training Correctness
 - [ ] `model.train()` before training, `model.eval()` before eval
-- [ ] `optimizer.zero_grad(set_to_none=True)` -- more memory-efficient
+- [ ] `optimizer.zero_grad(set_to_none=True)`: more memory-efficient
 - [ ] Loss divided by `accumulation_steps` when using gradient accumulation
 - [ ] `torch.no_grad()` AND `model.eval()` during validation (both required)
 
@@ -149,8 +149,8 @@ Use `SHARDED_STATE_DICT` during training. `FULL_STATE_DICT` only for final expor
 ### Numeric Stability
 - [ ] Gradient clipping before optimizer step (`clip_grad_norm_` max: 1.0)
 - [ ] `bfloat16` over `float16` when hardware supports it
-- [ ] Watch for NaN in loss -- often LR too high or data issues
-- [ ] `torch.compile` can change numerics slightly -- validate against eager mode
+- [ ] Watch for NaN in loss: often LR too high or data issues
+- [ ] `torch.compile` can change numerics slightly: validate against eager mode
 
 ### Performance
 - [ ] `pin_memory=True` in DataLoader for GPU training
@@ -161,14 +161,14 @@ Use `SHARDED_STATE_DICT` during training. `FULL_STATE_DICT` only for final expor
 
 ## Gotchas
 
-- **ZeRO-3 + gradient accumulation**: Must use `model.no_sync()` or let DeepSpeed handle it internally -- mixing manual and DS accumulation double-counts
+- **ZeRO-3 + gradient accumulation**: Must use `model.no_sync()` or let DeepSpeed handle it internally; mixing manual and DS accumulation double-counts
 - **FSDP + torch.compile**: Requires `use_orig_params=True`; without it, compile silently falls back to eager
-- **TP across nodes**: Tensor parallelism across nodes (non-NVLink) kills throughput -- keep TP intra-node only
+- **TP across nodes**: Tensor parallelism across nodes (non-NVLink) kills throughput; keep TP intra-node only
 - **NCCL timeouts**: Default 30min masks errors; set `TORCH_NCCL_BLOCKING_WAIT=1` and lower to 5-10min
-- **Batch size scaling**: Effective batch = micro_batch * accumulation_steps * dp_world_size; changing GPU count changes effective batch -- adjust LR (linear scaling rule)
+- **Batch size scaling**: Effective batch = micro_batch * accumulation_steps * dp_world_size; changing GPU count changes effective batch; adjust LR (linear scaling rule)
 - **Mixed precision with ZeRO-3**: `bf16` strongly preferred; `fp16` with ZeRO-3 offload can diverge
 - **Checkpoint compatibility**: ZeRO-3 sharded checkpoints require same world size to reload; convert to consolidated for portability
 - **Pipeline parallelism bubble**: Minimize with micro-batch count >> PP stages (4x PP degree minimum)
-- **DDP unused params**: Unused parameters cause hangs -- `find_unused_parameters=True` or fix the model
-- **FSDP auto_wrap_policy**: Must match model's layer class -- wrong wrapping = OOM or no sharding
+- **DDP unused params**: Unused parameters cause hangs; `find_unused_parameters=True` or fix the model
+- **FSDP auto_wrap_policy**: Must match model's layer class; wrong wrapping = OOM or no sharding
 - **FSDP cpu_offload**: Saves GPU memory but 5-10x slower; last resort only

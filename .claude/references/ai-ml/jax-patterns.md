@@ -30,7 +30,7 @@ def forward(params, x, use_dropout: bool):
     ...
 ```
 
-### vmap -- Automatic Batching
+### vmap: Automatic Batching
 
 ```python
 def single_loss(params, x, y):
@@ -41,7 +41,7 @@ batched_loss = jax.vmap(single_loss, in_axes=(None, 0, 0))  # batch over x, y; n
 per_sample_grads = jax.vmap(jax.grad(single_loss), in_axes=(None, 0, 0))  # for DP
 ```
 
-### pmap -- Data Parallelism
+### pmap: Data Parallelism
 
 ```python
 @jax.pmap
@@ -214,22 +214,22 @@ def train_step(state, batch):
 
 ### Pytree Handling
 - All JAX transforms operate on pytrees. Custom classes need pytree registration or a framework
-- `None` values in pytrees are silently dropped -- can cause shape mismatches
+- `None` values in pytrees are silently dropped: can cause shape mismatches
 - Use `jax.tree.map` (not manual loops) for transformations across nested structures
 
 ### XLA Compilation Caching
 - First JIT call is slow (XLA compilation). Same-shape subsequent calls are fast
-- Shape changes trigger recompilation -- pad to fixed shapes when possible
+- Shape changes trigger recompilation: pad to fixed shapes when possible
 - Set `JAX_COMPILATION_CACHE_DIR` to persist compiled programs across runs
 
 ### TPU Topology
 - `pmap` handles 1D parallelism. For 2D+ mesh, use `jax.sharding` + `mesh_utils`
 - Data loading bottleneck: TPU VMs have limited CPU/RAM. Use `tf.data` or Grain
-- TPU bfloat16 is default for matmuls -- don't force float16, it's slower on TPU
+- TPU bfloat16 is default for matmuls: don't force float16, it's slower on TPU
 
 ### Common Mistakes
-- Using `np` instead of `jnp` inside JIT -- silent fallback to CPU
+- Using `np` instead of `jnp` inside JIT: silent fallback to CPU
 - Forgetting `axis_name` in `pmap` when using `pmean`/`psum`
-- Creating arrays inside JIT -- they become constants baked into the compiled graph
-- Reusing PRNG keys without splitting -- produces correlated "random" numbers
-- Python `for` loops in JIT unroll fully -- use `jax.lax.scan` or `fori_loop` instead
+- Creating arrays inside JIT: they become constants baked into the compiled graph
+- Reusing PRNG keys without splitting: produces correlated "random" numbers
+- Python `for` loops in JIT unroll fully: use `jax.lax.scan` or `fori_loop` instead

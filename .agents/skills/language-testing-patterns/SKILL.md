@@ -16,7 +16,7 @@ description: "Use when designing Python or JavaScript test suites."
 ### What NOT to Unit Test
 - Simple getters/setters, pass-through functions
 - Framework internals (React rendering, Express routing)
-- Implementation details -- test behavior, not structure
+- Implementation details: test behavior, not structure
 - Config/settings values (defaults, env var assignments, constants)
 - Constructor assignments (`this.x = x` tests the language, not your code)
 - Route/endpoint registration (test handler logic instead)
@@ -29,7 +29,7 @@ description: "Use when designing Python or JavaScript test suites."
 
 ### Test User Stories, Not Internals
 - Focus tests on verifying key **user stories / user needs**, not implementation details
-- Test **public interfaces / APIs** -- not private methods or internal state
+- Test **public interfaces / APIs**: not private methods or internal state
 - Coverage hierarchy: **important user story coverage > branch coverage > line coverage**
 - Write a failing test for user-reported bugs **before** fixing
 - Avoid testing trivial functionality (framework-generated getters/setters, `@ConfigurationProperties` classes, constructor assignments)
@@ -64,7 +64,7 @@ function createUser(overrides?: Partial<User>): User {
 }
 ```
 
-**Why**: Returns a callable -- tests create exactly what they need. Avoids "magic values" scattered across tests.
+**Why**: Returns a callable; tests create exactly what they need. Avoids "magic values" scattered across tests.
 
 ## Testing Pyramid (Shift Left)
 
@@ -96,8 +96,8 @@ When writing libraries or shared components, provide test utilities that make it
 
 For detailed language-specific patterns, see the corresponding reference files:
 
-- **Python (pytest)**: See `~/.agents/references/testing/python-testing-patterns.md` -- fixtures, monkeypatch, parametrize, conftest strategy, CI markers
-- **JavaScript/TypeScript (Vitest/Jest)**: See `~/.agents/references/testing/javascript-testing-patterns.md` -- DI over module mocking, async testing, component testing, msw, mock hygiene
+- **Python (pytest)**: See `~/.agents/references/testing/python-testing-patterns.md` (fixtures, monkeypatch, parametrize, conftest strategy, CI markers)
+- **JavaScript/TypeScript (Vitest/Jest)**: See `~/.agents/references/testing/javascript-testing-patterns.md` (DI over module mocking, async testing, component testing, msw, mock hygiene)
 
 ### Python Quick Reference
 - pytest + pytest-asyncio + pytest-cov

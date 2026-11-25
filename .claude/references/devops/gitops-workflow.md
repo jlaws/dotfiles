@@ -2,10 +2,10 @@
 
 ## Critical Rules
 
-- **Never** commit plaintext secrets to the GitOps repo -- use Sealed Secrets, SOPS, or External Secrets Operator
-- **Always** enable `selfHeal: true` in production -- manual `kubectl` edits create drift that causes outages
-- **Always** set `allowEmpty: false` on sync policies -- prevents accidental deletion of all resources
-- **Never** deploy to production without sync windows or approval gates -- unrestricted auto-sync is a foot-gun
+- **Never** commit plaintext secrets to the GitOps repo: use Sealed Secrets, SOPS, or External Secrets Operator
+- **Always** enable `selfHeal: true` in production: manual `kubectl` edits create drift that causes outages
+- **Always** set `allowEmpty: false` on sync policies: prevents accidental deletion of all resources
+- **Never** deploy to production without sync windows or approval gates: unrestricted auto-sync is a foot-gun
 
 ## ArgoCD vs Flux
 
@@ -86,9 +86,9 @@ retry:
 - Emergency override via ArgoCD admin role
 
 ### Useful Sync Options
-- `ApplyOutOfSyncOnly=true` -- only apply changed resources (faster for large apps)
-- `PruneLast=true` -- delete after create (safer for resource dependencies)
-- `CreateNamespace=true` -- auto-create target namespace
+- `ApplyOutOfSyncOnly=true`: only apply changed resources (faster for large apps)
+- `PruneLast=true`: delete after create (safer for resource dependencies)
+- `CreateNamespace=true`: auto-create target namespace
 
 ## Flux Patterns
 
@@ -140,7 +140,7 @@ strategy:
 ```
 
 **Opinions:**
-- Use canary for most services -- lower risk than blue-green
+- Use canary for most services: lower risk than blue-green
 - Blue-green for databases or stateful services where you need instant rollback
 - Always define automatic rollback criteria (error rate, latency thresholds)
 - Pair with Prometheus metrics analysis for automated promotion
@@ -168,6 +168,6 @@ argocd app sync my-app --force     # Force sync (recreates resources)
 
 ## Cross-References
 
-- **devops:pipeline-design** -- CI/CD pipeline structure, approval gates, DORA metrics
-- **devops:github-actions-patterns** -- reusable workflows, OIDC auth for cloud deploys
-- **devops:docker-patterns** -- container builds, multi-stage images for GitOps pipelines
+- **devops:pipeline-design**: CI/CD pipeline structure, approval gates, DORA metrics
+- **devops:github-actions-patterns**: reusable workflows, OIDC auth for cloud deploys
+- **devops:docker-patterns**: container builds, multi-stage images for GitOps pipelines

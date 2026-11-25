@@ -282,13 +282,13 @@ Data ingestion → validation → feature engineering → training → evaluatio
 ### Tracking
 - Not logging exact command/config to reproduce a run
 - Forgetting `wandb.finish()` without `with` context manager (data loss)
-- Logging `torch.Tensor` instead of `.item()` -- silently stores the whole tensor
-- Not setting `group` for related runs -- sweeps hard to analyze
+- Logging `torch.Tensor` instead of `.item()`: silently stores the whole tensor
+- Not setting `group` for related runs: sweeps hard to analyze
 - Logging eval metrics at training step count (misaligns x-axis in charts)
 
 ### Reproducibility
-- Parallel reductions (multi-GPU) change floating point accumulation order -- document exact GPU count
-- PyTorch weight init changed between versions -- same seed, different version = different weights
+- Parallel reductions (multi-GPU) change floating point accumulation order: document exact GPU count
+- PyTorch weight init changed between versions: same seed, different version = different weights
 - FP16/BF16 results vary across GPU architectures (A100 vs V100 vs H100)
-- `num_workers > 0` introduces OS-level scheduling non-determinism -- use `worker_init_fn`
+- `num_workers > 0` introduces OS-level scheduling non-determinism: use `worker_init_fn`
 - Saving model weights without optimizer/scheduler/RNG state makes resume non-deterministic

@@ -67,15 +67,15 @@ Built-in `transition:fade`, `in:fly`, `out:slide`. Use `animate:flip` for list r
 
 ## Gotchas
 
-- **Svelte 5 migration**: `let x = 0` is no longer reactive at top level -- must use `$state(0)`. `$:` labels are deprecated; use `$derived` and `$effect`
+- **Svelte 5 migration**: `let x = 0` is no longer reactive at top level; must use `$state(0)`. `$:` labels are deprecated; use `$derived` and `$effect`
 - **`$effect` vs `$derived`**: use `$derived` for computed values, `$effect` only for side effects. `$effect` does NOT return a value
 - **Object/array reactivity**: `$state` uses proxies; direct property mutation works (`obj.key = val`), but reassigning nested arrays needs care: `items = [...items, newItem]` or mutate in place
 - **Stores to runes**: Svelte 5 still supports stores but runes are preferred. `$state` replaces `writable` for component-local state; stores still useful for cross-component shared state
 - **Hydration mismatch**: SvelteKit SSR means server/client must render identically. Guard browser APIs with `browser` from `$app/environment` or `onMount`
-- **Form action gotcha**: `throw redirect()` (not `return redirect()`) -- redirect is implemented as a thrown response in SvelteKit
+- **Form action gotcha**: `throw redirect()` (not `return redirect()`); redirect is implemented as a thrown response in SvelteKit
 - **`use:enhance`**: without it, form submissions trigger full page reload. With it, SvelteKit progressively enhances to fetch
 
 ## Cross-References
 
-- **frontend:form-patterns** -- advanced form validation and multi-step wizard patterns
-- **frontend:react-state-management** -- compare Svelte stores/runes with React state solutions
+- **frontend:form-patterns**: advanced form validation and multi-step wizard patterns
+- **frontend:react-state-management**: compare Svelte stores/runes with React state solutions

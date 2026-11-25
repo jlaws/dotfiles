@@ -26,10 +26,10 @@
 - Page objects return other page objects for navigation flows
 
 ### Selector Strategy (Priority Order)
-1. `getByRole` -- accessible, resilient to refactors
-2. `getByLabel` -- form elements
-3. `getByText` -- visible content
-4. `getByTestId` -- last resort
+1. `getByRole`: accessible, resilient to refactors
+2. `getByLabel`: form elements
+3. `getByText`: visible content
+4. `getByTestId`: last resort
 
 **Never use**: CSS classes, nth-child, complex XPath, DOM structure
 
@@ -43,7 +43,7 @@ GOOD: await page.waitForURL('/dashboard')
 GOOD: await page.waitForResponse(resp => resp.url().includes('/api/users'))
 ```
 
-- Never use fixed timeouts -- they're either too long (slow) or too short (flaky)
+- Never use fixed timeouts: they're either too long (slow) or too short (flaky)
 - Auto-waiting assertions (`toBeVisible`, `toBeEnabled`) handle timing naturally
 - Wait for specific network responses when testing after API calls
 
@@ -69,14 +69,14 @@ GOOD: await page.waitForResponse(resp => resp.url().includes('/api/users'))
 ### Pipeline Strategy
 - Run E2E after unit + integration tests pass (fail fast on cheaper tests)
 - E2E against deployed staging, not localhost
-- Set hard timeout (10-15 min) -- if E2E takes longer, you have too many
-- Keep suite under 50 tests -- decompose into integration tests when growing
+- Set hard timeout (10-15 min): if E2E takes longer, you have too many
+- Keep suite under 50 tests: decompose into integration tests when growing
 
 ## Debugging Failed Tests
 
-1. **Trace viewer**: `npx playwright show-trace trace.zip` -- step through every action
-2. **Headed mode**: `npx playwright test --headed` -- watch it happen
-3. **Debug mode**: `npx playwright test --debug` -- step with inspector
+1. **Trace viewer**: `npx playwright show-trace trace.zip`; step through every action
+2. **Headed mode**: `npx playwright test --headed`; watch it happen
+3. **Debug mode**: `npx playwright test --debug`; step with inspector
 4. **`page.pause()`**: Insert in test to pause at that point
 5. **`test.step()`**: Break test into named steps for better reporting
 
@@ -117,9 +117,9 @@ expect(apiCalls[0].method()).toBe('GET')
 ```
 
 ### Mock Boundaries
-- Mock third-party services (Stripe, analytics, auth providers) -- always
-- Mock your own API -- only for specific error/edge scenarios
-- Never mock everything in E2E -- defeats the purpose
+- Mock third-party services (Stripe, analytics, auth providers): always
+- Mock your own API: only for specific error/edge scenarios
+- Never mock everything in E2E: defeats the purpose
 
 ## Anti-Patterns
 

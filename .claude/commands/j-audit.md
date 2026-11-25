@@ -18,7 +18,7 @@ Before invoking the analysis, perform reconnaissance:
 
 ## Security Analysis
 
-Apply STRIDE threat modeling, risk scoring, SAST tool selection, and compliance mapping per `~/.claude/references/security/security-analysis.md` -- it covers the STRIDE categories and requirements mapping, the risk-scoring formula, the controls library, SAST tool/rule selection and CI integration, the threat model document structure, and the compliance framework quick reference. For multi-trust-boundary systems, that reference's "Comprehensive Threat Modeling" section gives the sequential-perspective breakdown (STRIDE analyst, compliance mapper, attack path analyst, mitigation planner).
+Apply STRIDE threat modeling, risk scoring, SAST tool selection, and compliance mapping per `~/.claude/references/security/security-analysis.md`: it covers the STRIDE categories and requirements mapping, the risk-scoring formula, the controls library, SAST tool/rule selection and CI integration, the threat model document structure, and the compliance framework quick reference. For multi-trust-boundary systems, that reference's "Comprehensive Threat Modeling" section gives the sequential-perspective breakdown (STRIDE analyst, compliance mapper, attack path analyst, mitigation planner).
 
 ### References
 

@@ -1,6 +1,6 @@
 ---
 name: j-observe
-description: "Observability consultation -- logging, metrics, tracing, alerting, and analytics instrumentation. Use when designing observability systems, adding instrumentation, setting up dashboards, or defining SLOs. Do NOT use for CI/CD pipeline config (use $cmd-j-devops) or cloud infrastructure (use $cmd-j-cloud)."
+description: "Observability consultation: logging, metrics, tracing, alerting, and analytics instrumentation. Use when designing observability systems, adding instrumentation, setting up dashboards, or defining SLOs. Do NOT use for CI/CD pipeline config (use $cmd-j-devops) or cloud infrastructure (use $cmd-j-cloud)."
 argument-hint: "<question-or-task>"
 ---
 
@@ -13,12 +13,12 @@ Before starting, gather diagnostic context:
 5. **Get scope overview** of the target area (if $ARGUMENTS specifies a service or component, scope to that; otherwise scan for monitoring/, observability/, telemetry/, instrumentation/, or analytics/ directories and config).
 
 Load relevant references based on what the diagnostic context reveals:
-- `~/.agents/references/devops/observability` -- golden signals, metric design, tracing strategy, alerting, stack preferences
-- `~/.agents/references/devops/sre-practices` -- error budgets, SLO targets by tier, progressive deployment
-- `~/.agents/references/devops/incident-management` -- severity framework, runbook structure, postmortem process
-- `~/.agents/references/business/analytics-instrumentation` -- event taxonomy, tracking wrappers, funnel design, PII gotchas
-- `~/.agents/references/architecture/error-handling-patterns` -- error hierarchy, logging levels, resilience patterns
-- `~/.agents/references/business/kpi-dashboard-design` -- dashboard hierarchy, KPI framework
+- `~/.agents/references/devops/observability`: golden signals, metric design, tracing strategy, alerting, stack preferences
+- `~/.agents/references/devops/sre-practices`: error budgets, SLO targets by tier, progressive deployment
+- `~/.agents/references/devops/incident-management`: severity framework, runbook structure, postmortem process
+- `~/.agents/references/business/analytics-instrumentation`: event taxonomy, tracking wrappers, funnel design, PII gotchas
+- `~/.agents/references/architecture/error-handling-patterns`: error hierarchy, logging levels, resilience patterns
+- `~/.agents/references/business/kpi-dashboard-design`: dashboard hierarchy, KPI framework
 
 For deep observability design, you may delegate to the `devops-engineer` agent (it loads the `~/.agents/references/devops/` library incl. observability, sre-practices, incident-management). Verify its output before presenting.
 
@@ -38,7 +38,7 @@ Help with: $ARGUMENTS
 | **DEBUG** | Diagnostic detail for troubleshooting | SQL queries, cache hits, intermediate state |
 
 Rules:
-- ERROR means "wake someone up" -- if it doesn't, it's WARN
+- ERROR means "wake someone up": if it doesn't, it's WARN
 - INFO should tell the story of what the system did, not how
 - DEBUG should never appear in production log aggregation by default
 - Never log at ERROR for expected conditions (404s, validation failures)
@@ -65,17 +65,17 @@ BAD:  INFO: Payment of $49.99 processed for user u_123 in 142ms
 
 ### Context Enrichment
 
-Add context at the right level -- don't repeat in every log call:
+Add context at the right level: don't repeat in every log call:
 - **Request middleware**: inject `request_id`, `user_id`, `trace_id` into logger context
 - **Service init**: inject `service`, `version`, `environment`
 - **Per-call**: only add fields specific to that log event
 
 ### What NOT to Log
 
-- PII (emails, names, phone numbers, IPs) -- hash or redact
-- Secrets (tokens, passwords, API keys) -- never, even at DEBUG
-- Full request/response bodies -- log selectively, redact sensitive fields
-- High-frequency success paths without sampling -- kills storage budget
+- PII (emails, names, phone numbers, IPs): hash or redact
+- Secrets (tokens, passwords, API keys): never, even at DEBUG
+- Full request/response bodies: log selectively, redact sensitive fields
+- High-frequency success paths without sampling: kills storage budget
 
 ### Log Correlation
 
@@ -102,7 +102,7 @@ Pick ONE framework per service type. Don't mix.
 | **Gauge** | Current values | `active_connections`, `queue_depth` |
 
 Rules:
-- Always histograms over summaries for latency -- histograms are aggregatable across instances
+- Always histograms over summaries for latency: histograms are aggregatable across instances
 - Default histogram buckets: `[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5]` seconds
 - Exclude health/metrics endpoints from SLI calculations
 - Use recording rules for any query in alerts or dashboards
@@ -160,7 +160,7 @@ Always:
 - Name spans as `<component>.<operation>` (e.g., `db.query`, `http.request`, `queue.publish`)
 - Add attributes: `db.statement`, `http.method`, `http.status_code`, `messaging.destination`
 - Set span status to ERROR on failures with error message
-- Keep span count reasonable -- 50-200 spans per trace is normal; >1000 indicates over-instrumentation
+- Keep span count reasonable: 50-200 spans per trace is normal; >1000 indicates over-instrumentation
 
 ### Collector Architecture
 
@@ -202,7 +202,7 @@ Benefits: buffering, retry, sampling decisions, multi-backend fanout, protocol t
 ### Alert Design
 
 Rules:
-- **Alert on symptoms, not causes** -- alert on error rate, not "pod restarted"
+- **Alert on symptoms, not causes**: alert on error rate, not "pod restarted"
 - Every alert MUST have a runbook link
 - Severity: `critical` (pages on-call), `warning` (creates ticket), `info` (dashboard only)
 - `for:` duration minimums: critical >= 2min, warning >= 5min, info >= 15min
@@ -238,7 +238,7 @@ BAD:  clickedButton, Create Account, user_did_thing
 
 | Track On | What |
 |----------|------|
-| **Server-side** | Revenue, signups, conversions, subscription changes -- anything ad blockers would drop |
+| **Server-side** | Revenue, signups, conversions, subscription changes: anything ad blockers would drop |
 | **Client-side** | UI interactions, page views, feature usage, navigation patterns |
 
 Reconcile client/server counts weekly. Expect 10-30% client-side drop from ad blockers.
@@ -247,7 +247,7 @@ Reconcile client/server counts weekly. Expect 10-30% client-side drop from ad bl
 
 - **PII leakage**: allowlist permitted properties per event; middleware strips non-allowed fields
 - **Cardinality explosion**: never group by UUIDs or free text; bucket continuous values
-- **Over-tracking**: every click tracked, 500 event types, nobody queries 450 -- storage bill explodes
+- **Over-tracking**: every click tracked, 500 event types, nobody queries 450; storage bill explodes
 - **Naming drift**: enforce typed schema + CI checks; "Button Clicked" vs "button_clicked" vs "btn_click" is tech debt
 
 ## Dashboard Design
@@ -263,9 +263,9 @@ L3: Investigation (traces, logs, detailed breakdowns)
 ### Dashboard Rules
 
 - Every dashboard must use template variables (environment, service, time range)
-- No more than 12 panels per dashboard -- split into drilldowns
+- No more than 12 panels per dashboard: split into drilldowns
 - Include annotation markers for deployments and incidents
-- Dashboard-as-code (Grafana JSON, Terraform, or provider API) -- never click-ops only
+- Dashboard-as-code (Grafana JSON, Terraform, or provider API): never click-ops only
 - Every panel must have a description explaining what it shows and what "bad" looks like
 
 ## OpenTelemetry Integration Checklist

@@ -84,6 +84,6 @@ Insert + F7  Link list    Insert + F6  Heading list
 
 ## Cross-References
 
-- **frontend:design-system-patterns** -- accessible headless components, ARIA defaults
-- **frontend:form-patterns** -- accessible forms, labels, error messages, aria-describedby
-- **frontend:web-animation-patterns** -- reduced-motion preferences, prefers-reduced-motion
+- **frontend:design-system-patterns**: accessible headless components, ARIA defaults
+- **frontend:form-patterns**: accessible forms, labels, error messages, aria-describedby
+- **frontend:web-animation-patterns**: reduced-motion preferences, prefers-reduced-motion

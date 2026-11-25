@@ -1,6 +1,6 @@
 ---
 name: j-review-claudemd
-description: "Analyze recent conversation history to improve CLAUDE.md files -- find violated instructions, missing patterns, and outdated rules. Use when tuning Claude Code behavior or after a batch of sessions. Do NOT use for quick questions (edit files directly instead)."
+description: "Analyze recent conversation history to improve CLAUDE.md files: find violated instructions, missing patterns, and outdated rules. Use when tuning Claude Code behavior or after a batch of sessions. Do NOT use for quick questions (edit files directly instead)."
 ---
 
 # Review Claudemd
@@ -13,15 +13,15 @@ If no arguments provided, analyzes both global and local CLAUDE.md against last 
 
 Load these before analyzing:
 - Load skill `analysis-output-patterns` for output structure rules
-- Load skill `code-agent-meta-patterns` -- what belongs in CLAUDE.md, context budget rules, layering, and progressive disclosure
-- Load skill `writing-skills` -- skill creation and testing methodology
-- Read `~/.agents/references/workflow/context-efficiency` -- context management patterns
-- Read `~/.agents/references/workflow/task-execution-checklists` -- implementation and review checklists
+- Load skill `code-agent-meta-patterns`: what belongs in CLAUDE.md, context budget rules, layering, and progressive disclosure
+- Load skill `writing-skills`: skill creation and testing methodology
+- Read `~/.agents/references/workflow/context-efficiency`: context management patterns
+- Read `~/.agents/references/workflow/task-execution-checklists`: implementation and review checklists
 
 ## Review Process
 
 ### Step 1: Gather Conversation History
-1. Read recent conversation logs (use `$ARGUMENTS` to determine scope -- global, local, or N conversations)
+1. Read recent conversation logs (use `$ARGUMENTS` to determine scope: global, local, or N conversations)
 2. Identify conversations where Claude Code behavior was suboptimal, instructions were violated, or the user had to correct course
 
 ### Step 2: Analyze Current CLAUDE.md

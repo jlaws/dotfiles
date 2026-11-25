@@ -12,8 +12,8 @@ If no arguments provided, ask for the paper URL, arxiv ID, or local file path.
 
 Load skills via the Skill tool, in order:
 
-1. `analysis-output-patterns` -- output structure rules
-2. `output-completeness` -- the full analysis must be emitted without truncated sections
+1. `analysis-output-patterns`: output structure rules
+2. `output-completeness`: the full analysis must be emitted without truncated sections
 
 ## Fetch and gather resources
 
@@ -31,7 +31,7 @@ Before analyzing, resolve and fetch the paper, then gather its resources in para
    | Videos, talks, blog posts, explainers | `research-analyst` | Conference/author talk URLs, blog/Distill/explainer URLs |
    | Supplementary materials, BibTeX citation | `research-analyst` | Project page, appendix, and dataset URLs; BibTeX from arxiv, Semantic Scholar, or publisher |
 
-**Integrate**: collect the subagent results, dedupe, and populate the Resources & Links section. A subagent reporting "found it" is not proof -- resolve each link yourself and confirm it actually loads before writing it down as resolved. Use "Not available" for expected resources such as official code, and "None found" for optional ones such as blogs or videos.
+**Integrate**: collect the subagent results, dedupe, and populate the Resources & Links section. A subagent reporting "found it" is not proof; resolve each link yourself and confirm it actually loads before writing it down as resolved. Use "Not available" for expected resources such as official code, and "None found" for optional ones such as blogs or videos.
 
 For small or well-known papers, run these searches inline instead of delegating.
 
@@ -111,18 +111,18 @@ Virtually re-implement the paper mentally. Challenge everything.
 
 ### References
 
-- `~/.claude/references/ai-ml/eval-and-benchmarking.md` -- ML evaluation methodology and benchmarks
+- `~/.claude/references/ai-ml/eval-and-benchmarking.md`: ML evaluation methodology and benchmarks
 
 ---
 
 ### Output
 
-Write the analysis to a file named `{paper-short-title}.md`. Produce these sections, in order; each row lists the fields the section must cover -- write the content in whatever prose or table form fits the paper, not a form to fill in.
+Write the analysis to a file named `{paper-short-title}.md`. Produce these sections, in order; each row lists the fields the section must cover: write the content in whatever prose or table form fits the paper, not a form to fill in.
 
 | Section | Required content |
 |---|---|
 | Header | Full title, authors, venue and year, DOI if available, one-sentence TL;DR of the core contribution and result |
-| Resources & Links | Paper page, PDF, official code ("Not available" if none), PapersWithCode, community implementations (with framework noted), video/talk, blog/explainer, supplementary materials -- each a URL, or "Not available"/"None found"; BibTeX citation |
+| Resources & Links | Paper page, PDF, official code ("Not available" if none), PapersWithCode, community implementations (with framework noted), video/talk, blog/explainer, supplementary materials: each a URL, or "Not available"/"None found"; BibTeX citation |
 | Five Cs (first-pass) | Category, Context, Correctness, Contributions, Clarity |
 | Problem Statement | The problem this paper addresses and why it matters |
 | Motivation & Gap | The gap in existing work this paper fills |
@@ -151,24 +151,24 @@ Write the analysis to a file named `{paper-short-title}.md`. Produce these secti
 
 | Score | Meaning |
 |-------|---------|
-| 1 | Low -- outside area of expertise |
+| 1 | Low: outside area of expertise |
 | 2 | Willing to defend but not certain |
 | 3 | Fairly confident |
-| 4 | Confident -- checked key details |
-| 5 | Very confident -- deeply familiar with area |
+| 4 | Confident: checked key details |
+| 5 | Very confident: deeply familiar with area |
 
 ### Process Guidelines
 
 - Read the full paper across all three passes before writing the summary
-- Be precise -- use exact numbers from the paper
+- Be precise: use exact numbers from the paper
 - Distinguish between what the paper claims and what the evidence supports
 - **Linchpin check:** would removing any single piece of evidence collapse the argument? Say so
 - **Proportionate requests:** ask for a new experiment only when a central claim needs it; offer a narrower claim or a stated limitation first.
 - **Read scope:** with only an abstract or a paywalled page, write "not assessed (read scope: abstract)" for methods critique rather than inferring weaknesses
-- For critical analysis, be honest and constructive -- identify real issues, not nitpicks
+- For critical analysis, be honest and constructive: identify real issues, not nitpicks
 - The summary should be self-contained: someone reading it should understand the paper without reading the original
 - **Score calibration:** 6-7 = good paper with solid contribution; 8+ = genuinely strong/exceptional; don't grade-inflate
 - **Omit N/A sections** rather than filling them with "Not applicable" placeholders
 - **Novelty assessment:** compare against the closest specific prior work, not the field in general
 - **TL;DR:** draft after Pass 1, refine after Pass 3
-- **Resource links:** require genuine search effort -- use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos) A confidential manuscript skips the search; write "Not searched (confidential manuscript)" instead.
+- **Resource links:** require genuine search effort: use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos). A confidential manuscript skips the search; write "Not searched (confidential manuscript)" instead.

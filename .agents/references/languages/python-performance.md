@@ -14,7 +14,7 @@ Profiling, concurrency, vectorization, memory efficiency, and data structures.
 | Benchmarking | `pytest-benchmark` | `pytest --benchmark-compare` |
 
 ### Profiling workflow
-1. **Measure first** -- never optimize without a profile
+1. **Measure first**: never optimize without a profile
 2. `cProfile` to find hot functions (sort by `cumtime`)
 3. `line_profiler` on the hot function to find hot lines
 4. Fix algorithmic issues before micro-optimizations
@@ -115,7 +115,7 @@ for result in read_file_fast("large.txt"):
 ```
 
 - Use `yield` for large datasets or streaming.
-- Pipelines: `gen1 | map(f) | filter(g)` -- each item processed once.
+- Pipelines: `gen1 | map(f) | filter(g)`; each item processed once.
 
 ## Data Structure Selection
 
@@ -158,7 +158,7 @@ most_common = count.most_common(10)
 | Async | `aiocache` or manual dict + asyncio.Lock |
 | Cross-process | Redis or memcached |
 
-**Gotcha**: `@lru_cache` requires hashable args -- use `tuple` not `dict`.
+**Gotcha**: `@lru_cache` requires hashable args; use `tuple` not `dict`.
 
 ## __slots__ for Many Instances
 

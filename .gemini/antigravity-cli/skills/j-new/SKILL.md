@@ -5,7 +5,7 @@ description: "Scaffold a new .claude/ command, skill, or agent with correct stru
 
 # New
 
-Load skill `writing-skills` before scaffolding -- it holds the authoring criteria this command applies.
+Load skill `writing-skills` before scaffolding; it holds the authoring criteria this command applies.
 
 Create: $ARGUMENTS
 
@@ -23,7 +23,7 @@ A name must be lowercase letters, numbers, and single internal hyphens, and must
 
 ## Phase 2: Gather requirements
 
-Ask for a one-line purpose for every type -- it drives the description. Then, by type:
+Ask for a one-line purpose for every type; it drives the description. Then, by type:
 
 **Command:** does it take arguments (and what should `argument-hint` say)? Which skills does it invoke,
 and which agents does it delegate to? List candidates with `Glob("~/.gemini/antigravity-cli/skills/*/SKILL.md")` and
@@ -48,7 +48,7 @@ gain is marginal.
 
 ## Phase 3: Draft the description
 
-A skill description is **triggering conditions only** -- never a workflow summary, because Claude will
+A skill description is **triggering conditions only**: never a workflow summary, because Claude will
 follow the summary instead of reading the body. Commands and agents describe what they are and when to
 reach for them, and may scope out near-misses to keep routing clean.
 
@@ -68,7 +68,7 @@ Paths are flat. There are no category subdirectories:
 | Skill | `~/.gemini/antigravity-cli/skills/{name}/SKILL.md` |
 | Agent | `~/.gemini/config/agents/{name}.md` |
 
-**Command** -- route, do not explain. Gather context, then invoke a skill or delegate to an agent. If you
+**Command**: route, do not explain. Gather context, then invoke a skill or delegate to an agent. If you
 find yourself writing the methodology inline, it belongs in a skill instead:
 
 ```markdown
@@ -91,7 +91,7 @@ If no arguments provided, {fallback}.
 {the work, or the delegation}
 ```
 
-**Skill** -- state the goal and why it matters, so judgment covers cases you did not foresee. Put
+**Skill**: state the goal and why it matters, so judgment covers cases you did not foresee. Put
 mechanical steps in a `scripts/` file and call it; put heavy detail in `references/` so it loads on
 demand:
 
@@ -115,11 +115,11 @@ description: "{trigger}"
 - **{failure mode}**: {what happens} -- {what to do instead}
 ```
 
-Do not add rationalization tables, "Red Flags -- STOP" lists, or an all-caps non-negotiable rule. Those
+Do not add rationalization tables, "Red Flags: STOP" lists, or an all-caps non-negotiable rule. Those
 narrow the model's judgment and are usually wrong for some real situation. State the goal and the
 consequence instead.
 
-**Agent** -- a role statement plus pointers. Delegate methodology to skills:
+**Agent**: a role statement plus pointers. Delegate methodology to skills:
 
 ```markdown
 ---
@@ -138,7 +138,7 @@ Reference library at ~/.agents/references/{category}/:
 Read the relevant reference file(s) for the user's topic before responding.
 ```
 
-Every reference stem listed must exist -- the audit script fails on a dangling index entry.
+Every reference stem listed must exist; the audit script fails on a dangling index entry.
 
 ## Phase 5: Validate
 
@@ -161,7 +161,7 @@ Show the file, get approval, write it, and confirm the path.
 Then register it. A new command needs its Codex and Gemini counterparts plus the shared `cmd-j-*` skill;
 a new agent needs native definitions in all three tool trees; a shared workflow skill needs an
 `.agents/skills/` source. `.claude/` skill and reference *bodies* have intentionally diverged from
-`.agents/` and are not kept in sync -- only the asset sets are. Where a parity test guards those
+`.agents/` and are not kept in sync; only the asset sets are. Where a parity test guards those
 sets, the repo's own CLAUDE.md names it; declare any single-tree asset in that test's exception list.
 
 Update the GEMINI.md Knowledge Base Structure section if a new asset directory was added, then run the repo's
@@ -195,5 +195,5 @@ Field semantics: `writing-skills`, SKILL.md Structure.
 
 ### Cross-References
 
-- **skill:writing-skills** -- authoring criteria, frontmatter spec, discoverability
-- **skill:skill-audit** -- the validation script and the judgment axes
+- **skill:writing-skills**: authoring criteria, frontmatter spec, discoverability
+- **skill:skill-audit**: the validation script and the judgment axes
