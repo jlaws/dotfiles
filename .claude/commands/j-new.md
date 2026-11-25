@@ -32,8 +32,8 @@ and which agents does it delegate to? List candidates with `Glob(".claude/skills
 Claude invoke it automatically, or only the user (`disable-model-invocation: true`)? Does it apply only
 to certain files (`paths:`)?
 
-**Agent:** which tools, which skills to preload, and which `.claude/references/` categories should it
-consult (`Glob(".claude/references/*/")`)? Persistent memory: read `code-agent-meta-patterns`, Agent memory, first.
+**Agent:** which tools, which skills to preload, and which `~/.claude/references/` categories should it
+consult (`Glob("~/.claude/references/*/")`)? Persistent memory: read `code-agent-meta-patterns`, Agent memory, first.
 
 Leave `model` unset on commands and inline skills. They run inside the conversation, so a `model`
 other than the session's makes that turn a model switch, and the switch re-reads the whole history
@@ -133,7 +133,7 @@ skills:
 
 You are a {role}. {One sentence on approach.}
 
-Reference library at .claude/references/{category}/:
+Reference library at ~/.claude/references/{category}/:
 - {reference}, {reference}, {reference}
 
 Read the relevant reference file(s) for the user's topic before responding.

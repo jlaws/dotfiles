@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from macos_setup.dotfiles import EXPANDED_SUFFIXES, HOME_ANCHORS
 from tests.markdown import HEADING, heading_texts, markdown_headings
 
 REPO = Path(__file__).resolve().parents[1]
@@ -626,13 +627,31 @@ REFERENCE_FORMS: dict[tuple[str, str], str] = {
     (".claude", "commands"): CLAUDE_REFERENCES,
     (".claude", "agents"): CLAUDE_REFERENCES,
 }
-REFERENCE_CATEGORIES = sorted(path.name for path in (REPO / ".agents" / "references").iterdir())
+REFERENCE_CATEGORIES = sorted(
+    {
+        path.name
+        for tree in (".agents", ".claude")
+        for path in (REPO / tree / "references").iterdir()
+        if path.is_dir()
+    }
+)
 # One citation token: everything from the last delimiter up to and including `<category>/`.
 REFERENCE_CITATION = re.compile(
     r"[^\s`'\"(\[*<>=,]*references/(?P<category>" + "|".join(REFERENCE_CATEGORIES) + ")/"
 )
-# These name project-scope surfaces on purpose, so they keep the relative form.
-RELATIVE_REFERENCE_EXEMPT = ("config-security-audit/SKILL.md",)
+# A reference directory named with no category: a `Glob(`, `Scan`, or `Reference library at` read
+# instruction. The token runs back to the last delimiter, so `~/.claude/references/` is one token.
+BARE_REFERENCE_DIR = re.compile(r"[^\s`'\"(\[*<>=,]*(?:\.claude|\.agents)/references/")
+# These describe the repo layout or name project-scope surfaces on purpose, so they keep the
+# relative form. Exact tracked paths, never a suffix match.
+RELATIVE_REFERENCE_EXEMPT = (
+    ".agents/skills/config-security-audit/SKILL.md",
+    ".agents/skills/skill-audit/SKILL.md",
+    ".claude/skills/config-security-audit/SKILL.md",
+    ".claude/skills/skill-audit/scripts/audit.py",
+    ".gemini/antigravity-cli/skills/config-security-audit/SKILL.md",
+    ".gemini/antigravity-cli/skills/skill-audit/SKILL.md",
+)
 
 
 def reference_form_key(rel: str) -> tuple[str, str] | None:
@@ -650,6 +669,18 @@ def project_relative_citations(text: str, prefix: str) -> list[str]:
         for match in REFERENCE_CITATION.finditer(text)
         if match.group(0) != f"{prefix}{match.group('category')}/"
     ]
+
+
+def bare_prefixes(key: tuple[str, str]) -> tuple[str, ...]:
+    """The prefixes a bare reference directory may carry under one REFERENCE_FORMS key."""
+    if key == (".claude", "skills"):
+        return (CLAUDE_REFERENCES,)
+    return (REFERENCE_FORMS[key],)
+
+
+def bare_reference_dirs(text: str, prefixes: tuple[str, ...]) -> list[str]:
+    """Return each `.claude/references/` or `.agents/references/` token not written as a prefix."""
+    return [m.group(0) for m in BARE_REFERENCE_DIR.finditer(text) if m.group(0) not in prefixes]
 
 
 def command_copies(command: str) -> tuple[tuple[Path, str], ...]:
@@ -2534,7 +2565,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         ).stdout.split("\0")
         scanned = 0
         offenders = []
-        exempt_hits = 0
+        exempt_hits = set()
         for rel in tracked:
             key = reference_form_key(rel)
             path = REPO / rel
@@ -2545,33 +2576,68 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             except UnicodeDecodeError:
                 continue
             scanned += 1
-            bad = project_relative_citations(text, REFERENCE_FORMS[key])
-            if rel.endswith(RELATIVE_REFERENCE_EXEMPT):
-                exempt_hits += len(bad)
+            prefix = REFERENCE_FORMS[key]
+            bad = project_relative_citations(text, prefix)
+            bad += bare_reference_dirs(text, bare_prefixes(key))
+            if rel in RELATIVE_REFERENCE_EXEMPT:
+                if bad:
+                    exempt_hits.add(rel)
                 continue
             offenders.extend(f"{rel}: {citation}" for citation in bad)
+            if path.suffix not in EXPANDED_SUFFIXES and any(a in text for a in HOME_ANCHORS):
+                offenders.append(f"{rel}: home anchor in a file sync does not expand")
         self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
-        self.assertGreaterEqual(
-            exempt_hits, 2, "the exempt copies no longer hold the relative form"
+        self.assertEqual(
+            sorted(exempt_hits),
+            sorted(RELATIVE_REFERENCE_EXEMPT),
+            "the exempt copies no longer hold the relative form",
         )
         self.assertEqual(offenders, [], "\n".join(offenders[:40]))
 
     def test_project_relative_reference_scan_controls(self):
-        prefix = AGENTS_REFERENCES
+        for (tree, kind), prefix in REFERENCE_FORMS.items():
+            with self.subTest(form=f"{tree}/{kind}"):
+                self.assertEqual(
+                    project_relative_citations(f"Read `{prefix}cloud/x.md`.", prefix), []
+                )
+        agents = AGENTS_REFERENCES
         self.assertEqual(
-            project_relative_citations("Read `.agents/references/cloud/x.md`.", prefix),
+            project_relative_citations("Read `.agents/references/cloud/x.md`.", agents),
             [".agents/references/cloud/"],
         )
         self.assertEqual(
-            project_relative_citations("Read `references/cloud/x.md`.", prefix),
+            project_relative_citations("Read `references/cloud/x.md`.", agents),
             ["references/cloud/"],
         )
         self.assertEqual(
-            project_relative_citations("Read `~/.agents/references/cloud/x.md`.", prefix), []
+            project_relative_citations("Read `./references/cloud/x.md`.", agents),
+            ["./references/cloud/"],
         )
         self.assertEqual(
-            project_relative_citations("Read `code-review-patterns/references/x.md`.", prefix), []
+            project_relative_citations("Read `../references/cloud/x.md`.", agents),
+            ["../references/cloud/"],
         )
+        self.assertEqual(
+            project_relative_citations("Read `~/.claude/references/cloud/x.md`.", agents),
+            ["~/.claude/references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("See [x](.agents/references/cloud/x.md).", agents),
+            [".agents/references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("Read `code-review-patterns/references/x.md`.", agents), []
+        )
+        for text, token in (
+            ('Glob(".claude/references/*/")', ".claude/references/"),
+            ("Scan .agents/references/ for patterns", ".agents/references/"),
+            ("Reference library at .claude/references/{category}/:", ".claude/references/"),
+            ("Scan `~/.claude/references/` here", "~/.claude/references/"),
+            ("Scan `~/.agents/references/` here", None),
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(bare_reference_dirs(text, (agents,)), [token] if token else [])
+        self.assertEqual(bare_reference_dirs('Glob("~/.agents/references/*/")', (agents,)), [])
 
     def test_consult_cases_measure_reference_reads(self):
         """Each consult case carries a read-refs grader on its agents' reference directories.

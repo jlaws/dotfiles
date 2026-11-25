@@ -15,7 +15,7 @@ expensive case is discovering halfway through that one applied.
 ## The check
 
 1. **Identify** the kind of work: feature, bug, refactor, review, plan.
-2. **Scan** `.claude/skills/` and `.claude/references/` for applicable patterns.
+2. **Scan** `~/.claude/skills/` and `~/.claude/references/` for applicable patterns.
 3. **Prune** to the smallest set that covers the task. Loading extras dilutes attention, which costs
    quality and not just tokens.
 4. **Load** the matches via the Skill tool.

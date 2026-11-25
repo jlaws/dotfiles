@@ -51,7 +51,7 @@ If name fails validation, explain why and ask for a corrected name.
 
 **For agents:**
 1. **Skills to load**: Which shared workflows should the agent invoke?
-2. **Reference library**: Which `.agents/references/` paths should the agent consult?
+2. **Reference library**: Which `~/.agents/references/` paths should the agent consult?
 3. **Model override?** Default inheritance or an installed Codex model
 4. **Reasoning effort?** Default inheritance or a supported effort value
 5. **Sandbox override?** Default inheritance or a narrower sandbox
