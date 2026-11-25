@@ -15,7 +15,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import ClassVar
 
@@ -3154,6 +3154,7 @@ class RunnerSafetyTests(RunnerCase):
         reserved = kledger.reserve(
             batches._entry("j-demo", 30.0, "reserved", capUsd=30.0), 1000, 0, self.ledger_path
         )
+        assert reserved is not None
         kledger.append(
             {**batches._entry("j-demo", -25.0, "settle"), "settles": reserved["id"]},
             self.ledger_path,
@@ -3612,9 +3613,12 @@ class EntryPointTests(OrchestrateTests):
         key = {"period": self.budget["period"], "purpose": "fanout-x", "staging": "kb",
                "model": "claude-opus-5-5", "suite": "effects", "batch": "j-demo"}  # fmt: skip
         rows = [
-            kledger.reserve({**key, "costUsd": 30.0, "charged": "reserved", "capUsd": 30.0}, 1000, 0)
+            kledger.reserve(
+                {**key, "costUsd": 30.0, "charged": "reserved", "capUsd": 30.0}, 1000, 0
+            )
             for _ in range(2)
         ]
+        rows = [row for row in rows if row is not None]
         args = ["settle", "--purpose", "fanout-x", "--staging", "kb", "--model", "claude-opus-5-5",
                 "--suite", "effects", "--batch", "j-demo", "--actual-usd", "4.5"]  # fmt: skip
         err = io.StringIO()

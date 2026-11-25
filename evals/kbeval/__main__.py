@@ -196,9 +196,7 @@ def _settle(args: argparse.Namespace) -> int:
         "batch": args.batch,
     }
     try:
-        row = kledger.settle_open(
-            match, args.actual_usd, args.reason, reservation_id=args.id
-        )
+        row = kledger.settle_open(match, args.actual_usd, args.reason, reservation_id=args.id)
     except kledger.LedgerError as error:
         print(f"settle: {error}", file=sys.stderr)
         return 1
