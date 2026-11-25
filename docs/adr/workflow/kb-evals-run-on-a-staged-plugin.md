@@ -39,6 +39,7 @@ raw results stay machine-local. Runs bill an API key. One invocation holds one C
   command closes it at a cost the owner states.
 - `run --plugin` refuses a plugin staged before an edit to the tree: the stage marker holds a source
   digest, and a mismatch exits 1 before any spend.
+  The marker also records the staging, and a plugin staged as the other one is refused the same way.
 
 ## Rationale
 

@@ -3484,9 +3484,12 @@ class EntryPointTests(OrchestrateTests):
 
     def setUp(self):
         super().setUp()
-        self.stale_patch = mock.patch.object(kmain.kstage, "staleness", return_value=None)
-        self.stale_patch.start()
-        self.addCleanup(self.stale_patch.stop)
+        patch = mock.patch.object(kmain.kstage, "staleness", return_value=None)
+        self.staleness = patch.start()
+        self.addCleanup(patch.stop)
+        marker = mock.patch.object(kmain.kstage, "marker_staging", return_value="kb")
+        self.marker_staging = marker.start()
+        self.addCleanup(marker.stop)
 
     def test_compare_exits_1_on_incomparable_summaries(self):
         paths = []
@@ -3502,11 +3505,11 @@ class EntryPointTests(OrchestrateTests):
             "compare: judge models differ (j1 vs j2); scores are not comparable", err.getvalue()
         )
 
-    def run_against_staged_tree(self, edit: bool):
-        self.stale_patch.stop()
-        self.addCleanup(self.stale_patch.start)
+    def run_against_staged_tree(self, edit: bool, staged: str = "kb"):
+        self.staleness.side_effect = REAL_STALENESS
+        self.marker_staging.side_effect = REAL_MARKER_STAGING
         out = self.tmp / "out-entry"
-        plugin = kstage.stage(self.repo, out, "kb")
+        plugin = kstage.stage(self.repo, out, staged)
         if edit:
             skill = self.repo / ".claude/skills/demo-skill/SKILL.md"
             skill.write_text(skill.read_text() + "More.\n")
@@ -3519,6 +3522,12 @@ class EntryPointTests(OrchestrateTests):
         ):
             status = kmain.main(args)
         return status, run, err.getvalue()
+
+    def test_run_refuses_a_plugin_staged_with_the_other_staging(self):
+        status, run, err = self.run_against_staged_tree(edit=False, staged="vanilla")
+        self.assertEqual(status, 1)
+        run.assert_not_called()
+        self.assertIn("was staged as vanilla, not kb; rerun make eval-stage", err)
 
     def test_run_refuses_a_plugin_staged_before_a_tree_edit(self):
         status, run, err = self.run_against_staged_tree(edit=True)
@@ -4053,6 +4062,9 @@ class RealFixtureTests(unittest.TestCase):
 
 
 from evals.kbeval import __main__ as kmain  # noqa: E402
+
+REAL_STALENESS = kstage.staleness
+REAL_MARKER_STAGING = kstage.marker_staging
 from evals.kbeval import determination as kdet  # noqa: E402
 
 

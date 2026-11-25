@@ -78,6 +78,15 @@ def source_digest(repo: Path, staging: str, exclude_tags: frozenset) -> str:
     return digest.hexdigest()
 
 
+def marker_staging(plugin: Path) -> Optional[str]:
+    """Return the staging (`kb` or `vanilla`) recorded in `plugin`'s stage marker, or None."""
+    try:
+        marker = json.loads((plugin.parent / MARKER).read_text(encoding="utf-8"))
+        return str(marker["staging"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
 def staleness(repo: Path, plugin: Path) -> Optional[str]:
     """Return why `plugin` no longer matches the tree, or None when it does."""
     try:

@@ -76,6 +76,14 @@ def _run(args: argparse.Namespace) -> int:
     if stale:
         print(f"run: {stale}; rerun make eval-stage", file=sys.stderr)
         return 1
+    staged = kstage.marker_staging(Path(args.plugin))
+    if staged != args.staging:
+        print(
+            f"run: staged plugin {args.plugin} was staged as {staged}, not {args.staging}; "
+            "rerun make eval-stage",
+            file=sys.stderr,
+        )
+        return 1
     cap_limit = None
     if args.cap_usd is not None:
         orchestrate.announce_cap(args.purpose, args.cap_usd)

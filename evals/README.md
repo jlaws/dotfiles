@@ -34,7 +34,9 @@ the source digest in the stage marker (it covers the cases, fixtures, `harness.j
 files for a kb staging, and the staging code in `stage.py` and `cases.py`) with the tree and, on a difference, prints
 `run: staged plugin <dir> is stale (staged <8 hex>, tree <8 hex>); rerun make eval-stage` (or
 `run: staged plugin <dir> holds no source digest; rerun make eval-stage`) and exits 1 before any cap
-or ledger work. The plans restage at start and are unaffected.
+or ledger work. It also refuses a plugin staged as the other staging
+(`run: staged plugin <dir> was staged as <marker staging>, not <--staging>; rerun make eval-stage`),
+so a vanilla plugin cannot be recorded as `kb`. The plans restage at start and are unaffected.
 `run --cap-usd <usd>` and `make eval-baseline CAP=<usd>` cap a purpose, which is the label passed
 as `--purpose` (`baseline` for the baseline). Both print
 `<purpose>: purpose cap $<cap>, spent $<spent>, left $<left>` on stderr before the first step and
