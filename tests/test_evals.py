@@ -3121,6 +3121,17 @@ class RunnerSafetyTests(RunnerCase):
         self.assertIn("2.1.326", err)
         self.assertEqual(len([e for e in self.entries() if e["charged"] == "reserved"]), 1)
 
+    def test_an_empty_version_reading_is_named_as_such(self):
+        versions = ("2.1.325 (Claude Code)", "2.1.325 (Claude Code)", "")
+        cli = FakeCli(
+            lambda args: (result_doc({case_arg(args).rstrip("*-"): [None]}), 0, ""), versions
+        )
+        code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))
+        self.assertEqual(code, 4)
+        self.assertEqual(len(cli.calls), 1)
+        self.assertIn("claude --version printed nothing", err)
+        self.assertNotIn("changed from 2.1.325 to ", err)
+
     def test_an_unchanged_version_does_not_stop_the_run(self):
         cli = FakeCli(lambda args: (result_doc({case_arg(args).rstrip("*-"): [None]}), 0, ""))
         code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))

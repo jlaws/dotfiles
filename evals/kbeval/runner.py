@@ -388,10 +388,10 @@ class _Batches:
             return 0, doc
         now = cli_version(self.cli.version())
         if now != self.version_number:
-            _err(
-                f"{label}: claude version changed from {self.version_number} to {now}; "
-                "stopping before the paid call"
+            seen = f"changed from {self.version_number} to {now}" if now else (
+                f"printed nothing (the step started on {self.version_number})"
             )
+            _err(f"{label}: claude --version {seen}; stopping before the paid call")
             return VERSION_STOP, None
         cap, bound = self.cap(len(case_dirs))
         if cap < MIN_CAP_USD:
