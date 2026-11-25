@@ -651,6 +651,39 @@ class SyncAgentsTests(unittest.TestCase):
             captured.output,
         )
 
+    def test_removal_logs_carry_a_reason(self):
+        self._write_repo(".claude/commands/j-keep.md")
+        retired = self._write_target(".claude/hooks/guard-bash-output.sh")
+        glob_hit = self._write_target(".agents/skills/agent-x/SKILL.md").parent
+        orphan = self._write_target(".claude/commands/j-gone.md")
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        def line(path):
+            return next(entry for entry in captured.output if f"removed stale {path}" in entry)
+
+        self.assertIn("retired", line(retired))
+        self.assertIn("retired glob", line(glob_hit))
+        self.assertIn("not shipped", line(orphan))
+
+    def test_sync_summary_counts_removals(self):
+        self._write_repo(".claude/commands/j-keep.md")
+        self._write_target(".claude/commands/j-gone.md")
+        self._write_target(".claude/hooks/guard-bash-output.sh")
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+        self.assertTrue(any("2 removed" in e for e in captured.output), captured.output)
+
+        self._write_target(".claude/commands/j-gone.md")
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+        self.assertTrue(
+            any("Would sync" in e and "1 would remove" in e for e in captured.output),
+            captured.output,
+        )
+
 
 class RevertFilesTests(unittest.TestCase):
     def setUp(self):

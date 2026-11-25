@@ -332,12 +332,13 @@ def sync_dotfiles(repo: Path, home: Path, archive: Archive, *, dry_run: bool = F
             _LOG.debug("sync %s", dest)
 
 
-def _agent_removal_paths(repo: Path, target: Path) -> Iterator[Path]:
-    """Yield stale managed paths, including command skills removed from the source tree."""
+def _agent_removal_paths(repo: Path, target: Path) -> Iterator[tuple[Path, str]]:
+    """Yield ``(path, reason)`` for stale managed paths, including commands the repo dropped."""
     for removal in AGENT_REMOVALS:
-        yield target / removal
+        yield target / removal, "retired"
     for pattern in AGENT_REMOVAL_GLOBS:
-        yield from sorted(target.glob(pattern))
+        for match in sorted(target.glob(pattern)):
+            yield match, "retired glob"
 
     for root, pattern in AGENT_ORPHAN_GLOBS:
         shipped = {path.name for path in (repo / root).glob(pattern)}
@@ -347,7 +348,7 @@ def _agent_removal_paths(repo: Path, target: Path) -> Iterator[Path]:
             if entry.is_symlink():
                 _LOG.warning("keeping symlinked command %s", entry)
                 continue
-            yield entry
+            yield entry, "not shipped"
 
 
 def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = False) -> None:
@@ -394,29 +395,33 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
     # the dry-run branch rather than at DEBUG inside `remove_path`. Without this the preview was
     # louder than the real run: `--dry-run` listed every path while the live run said nothing, and
     # the only record that anything went was the archive manifest.
-    for removal in _agent_removal_paths(repo, target):
+    removed = 0
+    for removal, reason in _agent_removal_paths(repo, target):
         if not removal.exists() and not removal.is_symlink():
             continue
+        removed += 1
         if dry_run:
-            _LOG.info("would remove %s", removal)
+            _LOG.info("would remove %s (%s)", removal, reason)
         else:
             remove_path(removal, archive)
-            _LOG.info("removed stale %s", removal)
+            _LOG.info("removed stale %s (%s)", removal, reason)
 
     if dry_run:
         _LOG.info(
-            "Would sync %d agent config files to %s (%d would merge, %d would sync)",
+            "Would sync %d agent config files to %s (%d would merge, %d would sync, %d would remove)",
             would_sync + would_merge,
             target,
             would_merge,
             would_sync,
+            removed,
         )
         return
 
     _LOG.info(
-        "Synced %d agent config files to %s (%d merged, %d synced)",
+        "Synced %d agent config files to %s (%d merged, %d synced, %d removed)",
         synced + merged,
         target,
         merged,
         synced,
+        removed,
     )
