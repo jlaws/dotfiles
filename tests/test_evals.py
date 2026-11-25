@@ -2799,6 +2799,14 @@ class CompareTests(unittest.TestCase):
         self.assertIn("regressed (1):", report)
         self.assertRegex(report, r"a--effect-x.*1\.00 -> 0\.33")
 
+    def test_an_unknown_passed_value_is_not_a_flip(self):
+        for old_passed, new_passed in ((None, True), (True, None), (None, None)):
+            with self.subTest(old=old_passed, new=new_passed):
+                old = summary_doc({"a--effect-x": (1.0, old_passed)})
+                new = summary_doc({"a--effect-x": (1.0, new_passed)})
+                report = "\n".join(kcompare.compare(old, new))
+                self.assertIn("within run-to-run noise: 0 cases", report)
+
     def test_compare_refuses_different_judge_models(self):
         old = summary_doc({"a--effect-x": (1.0, True)}, judge="j1")
         new = summary_doc({"a--effect-x": (1.0, True)}, judge="j2")

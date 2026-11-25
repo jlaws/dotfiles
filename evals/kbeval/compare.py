@@ -1,6 +1,7 @@
 """Compare two baseline summaries and report regressions.
 
 A case is named only when kbScore fell by 2/3 or more; a smaller drop or a pass/fail flip is counted.
+A `passed` value of None on either side is unknown, not a flip.
 Summaries judged by different models raise `IncomparableError`.
 
 Only cases present in both summaries are compared. A case in one file only is listed as "not run
@@ -70,7 +71,8 @@ def compare(old: dict, new: dict) -> List[str]:
         notes = []
         b, a = before.get("kbScore"), after.get("kbScore")
         drop = b is not None and a is not None and b - a >= REGRESSED_DROP - TOLERANCE
-        flipped = before.get("passed") != after.get("passed")
+        known = before.get("passed") is not None and after.get("passed") is not None
+        flipped = known and before.get("passed") != after.get("passed")
         if drop:
             notes.append(f"kbScore {b:.2f} -> {a:.2f}")
         if drop and flipped:
