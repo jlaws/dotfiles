@@ -692,7 +692,7 @@ the stored Opus runs (kb 1.0, vanilla 1.0) did. All eleven stay as they are.
 | Case | What the runs did |
 |---|---|
 | business-analyst--effect-tracking-reset | every failing plan starts with 20 to 30 events against the reference's 10 to 15; one kb run read the rule and overrode it |
-| code-quality--effect-marker-audit | the skill loaded in 0 of 3 kb runs, and every Sonnet run in both arms called the login shortcut sanctioned (Opus passed 1.0 / 1.0) (`tasks/kb-asset-defects-from-eval-audit.md`) |
+| code-quality--effect-marker-audit | the skill loaded in 0 of 3 kb runs, and every Sonnet run in both arms called the login shortcut sanctioned (Opus passed 1.0 / 1.0); description tuning was tried and restored (see "Trigger tuning, code-quality") |
 | code-review-patterns--effect-receiving-comments | all 6 runs asked about the unclear comment but implemented a clear one first, including the kb run that loaded the skill; the case grades only `replies.md`, and lint's grounding rule bars a grader on the seeded `calc/ops.py`, so a run that edited the file while claiming otherwise would pass; no stored run did |
 | dependency-upgrade--effect-multi-major-plan | all 6 plans upgrade jest before express and mongoose; the skill loaded in all 3 kb runs |
 | j-devops--effect-latency-api-resources | failing runs set the memory limit equal to the request; no kb run read the reference |
@@ -872,6 +872,25 @@ adopted subagent-driven-development description summarized the skill's workflow;
 re-measured under the `-sdd` purposes (held-out 10 of 12, existing 6 of 6, no near fires, effects
 `no-regression` PASS on both models). The should-fire mean is not comparable with baselines taken before these
 cases existed.
+
+**Trigger tuning, code-quality (2026-11-25, Claude Code 2.1.332).** Same columns and counts as the
+table above. `code-quality` loaded in none of the stored kb runs of `code-quality--effect-marker-audit`.
+New cases: `code-quality--trigger-should-tune-marked-shortcuts` (written by the tuner) and
+`code-quality--trigger-should-held-health-audit` / `code-quality--trigger-near-held-split-function`
+(written by a separate author given only the description and these rules). The held-out base fired 6
+of 12 (Opus 6/6, Sonnet 0/6), below the 9-of-12 "restored by rule" bar, so tuning ran. Three
+candidates were tried on the tune cases; the best, "Use when reviewing a module's quality: smells,
+style, shortcuts, or TODOs.", moved the tuning case from 0/6 to 4/6 at round 3 (3/6 at final).
+
+| Skill | Class | Existing should | Held-out should | Near fires | Outcome |
+|---|---|---|---|---|---|
+| code-quality | MISS | 6 -> 6 | 6 -> 4 | 0 -> 0 | restored: held-out gain -2 |
+
+`hillclimb adopt` printed `ADOPT code-quality restore`; the effects criterion was skipped because a
+trigger criterion failed, and the neighbour line reported 0 assets checked. The description stays
+"Use when assessing code smells, health, or style." Purposes and spend: `cq-tune-base` 1.67,
+`cq-tune-held-base` 2.50, `cq-tune-r1` to `-r3` 5.09, `cq-tune-final` 1.79, `cq-tune-held-final`
+2.47, `cq-tune-effects` 2.90, `cq-tune-neighbours` 31.99 (48.41 USD in total).
 
 **Consult commands.** `delegated` passed in 0 of 12 kb runs for each of j-arch, j-cloud, j-devops,
 j-docs, j-frontend, j-lang, and j-data (0 of 84), and in 0 of 12 for j-system-design. Stored graded
