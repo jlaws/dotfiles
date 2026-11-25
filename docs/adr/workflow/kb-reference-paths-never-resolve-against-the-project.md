@@ -47,18 +47,24 @@ Each (tree, kind) cites references in one form:
 | Tree and kind | Form | Text in the installed asset |
 |---|---|---|
 | `.agents/skills` and `.gemini/antigravity-cli/skills` | `abs` | `<home>/.agents/references/<category>/` (repo text `~/.agents/references/<category>/`, expanded by sync) |
-| `.codex/agents`, `.codex/prompts` | `abs` | `<home>/.agents/references/<category>/` (expanded by sync) |
+| `.codex/agents`, `.codex/prompts` | `abs` | `<home>/.agents/references/<category>/` (repo text `~/.agents/references/<category>/`, expanded by sync) |
 | `.gemini/config/agents` | `abs` | `<home>/.agents/references/<category>/` (repo text `~/.agents/references/<category>/`, expanded by sync) |
 | `.claude/skills` | `sibling` | `${CLAUDE_SKILL_DIR}/../../references/<category>/` |
 | `.claude/commands`, `.claude/agents` | `abs` | `<home>/.claude/references/<category>/` (repo text `~/.claude/references/<category>/`, expanded by sync) |
 
 No asset in any tree cites a reference by a path that resolves against the working directory.
+Two exemptions keep the relative form on purpose: `config-security-audit` (it names project-scope
+surfaces to audit) and the `skill-audit` copies in `.agents` and `.gemini` (they describe the
+repo layout). `tests/test_agent_config.py` lists them by exact path.
 
-Executor decision (2026-11-25): the rule above gave Antigravity agents `tilde`, because the one
-session that did not read home died on an account quota error (HTTP 429) before its first turn.
-That miss is quota, not path. `tilde` and `abs` share the repo text `~/.agents/references/...`, and
-Antigravity's `read_file` rejects a literal `~`, so the `abs` installed form (home expanded by
-sync) is the safe one. Antigravity agents take `abs`.
+Override of the literal rule (2026-11-25), made by the agent executing the plan, not by the repo
+owner: the rule above gave Antigravity agents `tilde`, because the one session that did not read
+home died on an account quota error (HTTP 429) before its first turn. The executing agent took
+`abs` instead, for two reasons: that miss is quota, not path, and Antigravity's `read_file`
+rejects a literal `~` while `abs` (home expanded by sync) needs no model expansion. `tilde` and
+`abs` share the repo text `~/.agents/references/...`. `abs` for Antigravity agents is measured 2
+of 3 with one quota error, not a clean 3 of 3, and is re-measured when the agy quota resets (see
+Reversal Conditions).
 
 ## Rationale
 
@@ -131,7 +137,8 @@ skill-relative path leaves the model guessing; it then probes project paths.
 for KB guidance in any measured tool and kind. Claude skills cite the sibling tree through a
 harness-substituted variable, with no sync rewrite.
 
-**Accepted**: The `abs` forms need sync to expand `~/.agents/references/` and
+**Accepted**: A `-p <project>` install expands the anchors to that project's synced references
+copy, and each sync overwrites that copy from the repo. The `abs` forms need sync to expand `~/.agents/references/` and
 `~/.claude/references/` into the absolute home path in installed copies, so the installed text
 differs from the repo text and uninstall must recognise the expanded file. The eval stager must
 rewrite every installed form to its workspace copy. Codex skills give up `sibling`, which

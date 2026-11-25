@@ -29,7 +29,7 @@ delegation**, and let the model choose. The command says "Load the relevant refe
 topic, based on the diagnostic context:" followed by the agent's `Reference library at` and
 `Also see` blocks, names verbatim, in that tree's path form (`~/.agents/references/<category>/`
 in `.agents`, `.codex`, and `.gemini`, `~/.claude/references/<category>/` in `.claude/commands` and
-`.claude/agents`, and `${CLAUDE_SKILL_DIR}/../../references/<category>/` in `.claude/skills`;
+`.claude/agents`, and `${CLAUDE_SKILL_DIR}/../../references/<category>/` in `.claude/skills` (listed for completeness of the tree forms);
 sync expands the `~` forms to the absolute home path, see
 [KB reference paths never resolve against the project](kb-reference-paths-never-resolve-against-the-project.md)); the delegation sentence reads "you may
 instead delegate to". j-system-design carries each perspective agent's index the same way. The full
