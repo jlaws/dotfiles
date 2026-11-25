@@ -1124,6 +1124,14 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertGreater(text.index("collapse its phases"), text.index("git checkout -b"))
 
+    def test_create_pr_branch_case_grades_the_convention_not_the_prompt(self):
+        case = REPO / "evals" / "cases" / "effects" / "create-pr--effect-derive-branch-and-skip-debris"
+        prompt = (case / "prompt.md").read_text(encoding="utf-8")
+        grader = (case / "graders" / "branch.md").read_text(encoding="utf-8")
+        self.assertNotIn("any prefix is fine", prompt)
+        self.assertNotIn("kebab-case", prompt)
+        self.assertIn("[a-z]+/[a-z0-9]", grader)
+
     def test_create_pr_agents_use_the_branch_convention_and_remote_base(self):
         agents = (
             REPO / ".claude" / "agents" / "create-pr.md",
