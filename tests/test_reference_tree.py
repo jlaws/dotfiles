@@ -570,6 +570,14 @@ class SkillReferenceMentionTests(unittest.TestCase):
         self.assertEqual(len(findings), 1, findings)
         self.assertIn("missing.md", findings[0].message)
 
+    def test_installed_directory_forms_check_the_category(self):
+        for form in ("${CLAUDE_SKILL_DIR}/../../references/", "~/.claude/references/"):
+            with self.subTest(form=form):
+                self.assertEqual(self.findings_for(f"{form}workflow/"), [])
+                findings = self.findings_for(f"{form}nowhere/")
+                self.assertEqual(len(findings), 1, findings)
+                self.assertIn("nowhere", findings[0].message)
+
 
 if __name__ == "__main__":
     unittest.main()
