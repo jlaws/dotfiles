@@ -31,7 +31,7 @@ We will divide agent synchronization into two lifecycle policies:
 2. **Machine Configuration Files (Deep Key Merge)**: Target configuration files (`.claude/settings.json`, `.codex/config.toml`, and `.gemini/antigravity-cli/settings.json`) are merged when the target already exists:
    - Repository-managed keys update or insert into the target.
    - User-defined or machine-local keys and sections absent from the repository template are preserved.
-   - For `.json`, merging uses Python stdlib `json` with recursive dictionary updates and order-preserving permission list unions (`permissions.allow`, `permissions.deny`). Hooks are replaced with repo hooks.
+   - For `.json`, merging uses Python stdlib `json` with recursive dictionary updates and order-preserving permission list unions (`permissions.allow`, `permissions.deny`). Hooks are replaced with repo hooks. After the union, the merge strips every entry in `RETIRED_PERMISSIONS` (`macos_setup/dotfiles.py`) from the target's `permissions.allow` on every sync, a hand-added one included, and logs `retired <entry> from <dest>`. A user who wants one back puts it in `settings.local.json`.
    - For `.toml`, merging uses a minimal stdlib-only section/key parser and serializer that preserves existing machine tables, keys, and comments without requiring `tomllib` or external packages. Hooks are replaced with repo hooks.
    - If a target configuration file contains invalid syntax, it is archived to `~/.dotfile-archive/` with a warning, and overwritten with the clean repository template.
 
@@ -59,6 +59,7 @@ Overwriting skills and commands while merging configs aligns with their distinct
 | Harness `.local` include configuration files | Upstream harnesses (`claude`, `codex`, `antigravity`) do not support an `include` or `.local` file pattern for their primary configuration files. | 2026-09-28 |
 | Third-party TOML library via pip | Violates the strict standard-library-only requirement for `macos_setup` on fresh macOS installations (`README.md:79-80`, `CLAUDE.md:20`). | 2026-09-28 |
 | Mirror each synced directory | Deleting everything the repo does not ship would delete user-authored files. | 2026-11-25 |
+| Leave removed allow entries in `~` | The union keeps them forever, so a narrowed repo allow list never narrows a synced machine. | 2026-11-25 |
 | Prune from the archive manifests | No manifest records the stale files, so there is nothing to compare against. | 2026-11-25 |
 
 ## Enforcement

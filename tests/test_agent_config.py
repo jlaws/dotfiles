@@ -1773,6 +1773,15 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 f"Antigravity rule {rule} has trailing '/**' which is invalid path syntax",
             )
 
+        translated_claude_allow = set()
+        for rule in claude_allow:
+            if rule.startswith("Bash(") and rule.endswith(")"):
+                cmd = rule[len("Bash(") : -1].removesuffix(" *")
+                if cmd == "grep:*":
+                    cmd = "grep"
+                translated_claude_allow.add(f"command({cmd})")
+        self.assertEqual(agy_allow, translated_claude_allow)
+
         # Check command translations: Bash(cmd) -> command(prefix)
         for rule in claude_allow:
             if rule.startswith("Bash(") and rule.endswith(")"):
@@ -1793,6 +1802,145 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     continue  # non-absolute paths are rejected by the Antigravity sandbox
                 expected = f"read_file({path})"
                 self.assertIn(expected, agy_deny, f"Missing denied read_file: {expected}")
+
+    def test_no_agent_config_allows_a_retired_entry(self):
+        """No allow list or Codex allow rule may hold an entry that runs arbitrary code."""
+        from macos_setup.dotfiles import RETIRED_PERMISSIONS
+
+        for relative, retired in RETIRED_PERMISSIONS.items():
+            allow = json.loads((REPO / relative).read_text())["permissions"]["allow"]
+            for entry in retired:
+                self.assertNotIn(entry, allow, f"{relative} still allows {entry}")
+
+        # Every word of a retired command is banned from a Codex allow pattern, except the
+        # families that keep audited subcommands (git, gh, npm) and `test` as in `npm test`
+        # (a bare "test" never appears in an allow pattern; `just` and `ci` stay listed by hand).
+        # `python`, `uv`, `make`, `ruff`, `rg`, `find` come from the Antigravity entries.
+        words: set[str] = set()
+        for entries in RETIRED_PERMISSIONS.values():
+            for entry in entries:
+                command = entry[entry.index("(") + 1 : -1].removesuffix(" *").removesuffix(":*")
+                words.update(command.split())
+        words -= {"git", "gh", "npm"}
+        words.update(["just", "ci"])
+        banned = [rf"[\"']{re.escape(t)}[\"']" for t in sorted(words)]
+        rules = (REPO / ".codex" / "rules" / "default.rules").read_text()
+        blocks = re.split(r"(?m)^(?=prefix_rule\()", rules)
+        gh_patterns = []
+        for block in blocks:
+            if not block.startswith("prefix_rule(") or not re.search(
+                r'decision\s*=\s*"allow"', block
+            ):
+                continue
+            start = block.index("pattern")
+            decision = re.search(r"decision\s*=", block)
+            if decision is None:
+                self.fail("allow rule has no decision")
+            pattern = block[start : decision.start()]
+            for token in banned:
+                self.assertIsNone(
+                    re.search(token, pattern), f"allow rule holds {token}: {pattern.strip()}"
+                )
+            for path in ("/private/", "/tmp/", ".venv/"):
+                self.assertNotIn(path, pattern, f"allow rule names {path}: {pattern.strip()}")
+            if re.search(r'pattern\s*=\s*\[\s*["\']gh["\']', pattern):
+                gh_patterns.append(pattern)
+        self.assertTrue(gh_patterns, "no gh allow rule found")
+        for pattern in gh_patterns:
+            self.assertRegex(
+                pattern, r'["\']gh["\']\s*,', f"gh rule pattern is a bare prefix: {pattern}"
+            )
+
+    # Subcommands of `gh` the KB runs. A new entry here is a deliberate decision, because every
+    # `gh` subcommand is a remote call (see docs/adr/workflow/skills-do-not-pre-approve-tools.md).
+    GH_ALLOWED = frozenset(
+        {
+            "pr view",
+            "pr list",
+            "pr diff",
+            "pr checks",
+            "pr create",
+            "pr edit",
+            "issue view",
+            "issue list",
+            "run list",
+            "run view",
+            "repo view",
+        }
+    )
+
+    def test_gh_allow_set_is_the_same_exact_set_in_all_three_configs(self):
+        claude = json.loads((REPO / ".claude" / "settings.json").read_text())
+        agy = json.loads((REPO / ".gemini" / "antigravity-cli" / "settings.json").read_text())
+        claude_gh = {
+            rule[len("Bash(gh ") : -1].removesuffix(" *")
+            for rule in claude["permissions"]["allow"]
+            if rule.startswith("Bash(gh")
+        }
+        agy_gh = {
+            rule[len("command(gh ") : -1]
+            for rule in agy["permissions"]["allow"]
+            if rule.startswith("command(gh")
+        }
+        self.assertEqual(claude_gh, self.GH_ALLOWED)
+        self.assertEqual(agy_gh, self.GH_ALLOWED)
+
+        rules = (REPO / ".codex" / "rules" / "default.rules").read_text()
+        codex_gh: set[str] = set()
+        for block in re.split(r"(?m)^(?=prefix_rule\()", rules):
+            if not block.startswith("prefix_rule(") or not re.search(
+                r'decision\s*=\s*"allow"', block
+            ):
+                continue
+            match = re.search(r"pattern\s*=\s*(\[.*?\]),\s*\n\s*decision", block, re.S)
+            if match is None:
+                self.fail("allow rule has no pattern")
+            pattern = match.group(1)
+            if not re.match(r'\[\s*["\']gh["\']', pattern):
+                continue
+            head = re.match(r'\[\s*["\']gh["\']\s*,\s*["\'](\w+)["\']', pattern)
+            if head is None:
+                self.fail(f"gh rule has no subcommand: {pattern}")
+            first = head.group(1)
+            rest = re.match(r'\[\s*["\']gh["\']\s*,\s*["\']\w+["\']\s*,\s*(.+)\]$', pattern, re.S)
+            if rest is None:
+                self.fail(f"gh rule has no third element: {pattern}")
+            verbs = re.findall(r'["\'](\w+)["\']', rest.group(1))
+            codex_gh.update(f"{first} {verb}" for verb in verbs)
+        self.assertEqual(codex_gh, self.GH_ALLOWED)
+
+    def test_codex_git_allow_rules_cover_the_claude_git_subcommands(self):
+        claude = json.loads((REPO / ".claude" / "settings.json").read_text())
+        claude_git = {
+            rule[len("Bash(git ") : -1].removesuffix(" *")
+            for rule in claude["permissions"]["allow"]
+            if rule.startswith("Bash(git ")
+        }
+        rules = (REPO / ".codex" / "rules" / "default.rules").read_text()
+        codex_git: set[str] = set()
+        for block in re.split(r"(?m)^(?=prefix_rule\()", rules):
+            if not re.search(r'decision\s*=\s*"allow"', block):
+                continue
+            match = re.search(
+                r'pattern\s*=\s*\[\s*["\']git["\']\s*,\s*(.+?)\],\s*\n\s*decision', block, re.S
+            )
+            if match:
+                codex_git.update(re.findall(r'["\']([\w-]+)["\']', match.group(1)))
+        self.assertEqual(codex_git, claude_git)
+
+    def test_npm_audit_fix_is_denied_or_prompted_in_every_tree(self):
+        """`npm audit *` also matches `npm audit fix`, which runs an install and its scripts."""
+        claude = json.loads((REPO / ".claude" / "settings.json").read_text())
+        agy = json.loads((REPO / ".gemini" / "antigravity-cli" / "settings.json").read_text())
+        for rule in ("Bash(npm audit fix *)", "Bash(npm audit fix)"):
+            self.assertIn(rule, claude["permissions"]["deny"])
+        self.assertIn("command(npm audit fix)", agy["permissions"]["deny"])
+        rules = (REPO / ".codex" / "rules" / "default.rules").read_text()
+        self.assertRegex(
+            rules,
+            r'(?s)prefix_rule\(\s*pattern\s*=\s*\[\s*["\']npm["\']\s*,\s*["\']audit["\']\s*,'
+            r'\s*["\']fix["\']\s*\],\s*decision\s*=\s*"prompt"',
+        )
 
     def test_legacy_gemini_artifacts_are_not_tracked(self):
         """Legacy Gemini CLI policy engine, hooks, commands, and agents must not be present in .gemini/."""

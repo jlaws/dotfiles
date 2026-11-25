@@ -212,6 +212,50 @@ class MergeJsonTests(unittest.TestCase):
         self.assertEqual(data["env"]["LIMIT"], "20")
         self.assertEqual(data["env"]["ENABLE_FEATURE"], "true")
 
+    def test_merge_drops_retired_allow_entries_the_target_still_holds(self) -> None:
+        target = '{"permissions": {"allow": ["Bash(npx *)", "Bash(ls *)", "Bash(gh *)"]}}'
+        repo = '{"permissions": {"allow": ["Bash(git diff *)"]}}'
+        data = json.loads(merge_json(repo, target, retired=("Bash(npx *)", "Bash(gh *)")))
+        self.assertEqual(data["permissions"]["allow"], ["Bash(git diff *)", "Bash(ls *)"])
+
+    def test_merge_drops_the_legacy_colon_form_of_a_retired_entry(self) -> None:
+        target = '{"permissions": {"allow": ["Bash(gh:*)", "Bash(npm test:*)", "Bash(ls *)"]}}'
+        repo = '{"permissions": {"allow": ["Bash(git diff *)"]}}'
+        retired = ("Bash(gh *)", "Bash(npm test *)")
+        data = json.loads(merge_json(repo, target, retired=retired))
+        self.assertEqual(data["permissions"]["allow"], ["Bash(git diff *)", "Bash(ls *)"])
+
+    def test_merge_retires_a_colon_form_listed_in_the_retired_set(self) -> None:
+        target = '{"permissions": {"allow": ["Bash(gh *)"]}}'
+        data = json.loads(merge_json("{}", target, retired=("Bash(gh:*)",)))
+        self.assertEqual(data["permissions"]["allow"], [])
+
+    def test_merge_without_a_permissions_key_ignores_retired(self) -> None:
+        data = json.loads(merge_json('{"a": 1}', '{"b": 2}', retired=("Bash(gh *)",)))
+        self.assertEqual(data, {"a": 1, "b": 2})
+
+    def test_merge_leaves_a_non_list_allow_unchanged(self) -> None:
+        target = '{"permissions": {"allow": "Bash(gh *)"}}'
+        data = json.loads(merge_json("{}", target, retired=("Bash(gh *)",)))
+        self.assertEqual(data["permissions"]["allow"], "Bash(gh *)")
+
+    def test_merge_drops_a_retired_entry_that_comes_from_the_repo(self) -> None:
+        repo = '{"permissions": {"allow": ["Bash(gh *)", "Bash(ls *)"]}}'
+        target = '{"permissions": {"allow": []}}'
+        data = json.loads(merge_json(repo, target, retired=("Bash(gh *)",)))
+        self.assertEqual(data["permissions"]["allow"], ["Bash(ls *)"])
+
+    def test_merging_retired_twice_is_a_no_op(self) -> None:
+        repo = '{"permissions": {"allow": ["Bash(git diff *)"]}}'
+        target = '{"permissions": {"allow": ["Bash(gh:*)", "Bash(ls *)"]}}'
+        once = merge_json(repo, target, retired=("Bash(gh *)",))
+        self.assertEqual(merge_json(repo, once, retired=("Bash(gh *)",)), once)
+
+    def test_a_bare_string_retired_is_one_entry_not_a_substring_pattern(self) -> None:
+        target = '{"permissions": {"allow": ["Bash(gh *)", "Bash(ls *)", "g"]}}'
+        data = json.loads(merge_json("{}", target, retired="Bash(gh *)"))
+        self.assertEqual(data["permissions"]["allow"], ["Bash(ls *)", "g"])
+
     def test_unions_permission_lists_without_duplicates(self) -> None:
         target = '{"permissions": {"allow": ["Bash(git diff *)", "Bash(custom)"], "deny": ["Read(~/.secret)"]}}'
         repo = '{"permissions": {"allow": ["Bash(git diff *)", "Bash(git log *)"], "deny": ["Read(~/.ssh/**)"]}}'

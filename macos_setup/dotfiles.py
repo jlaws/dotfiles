@@ -8,6 +8,7 @@ sha, leaving anything edited after setup untouched.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import os
 import shutil
@@ -16,7 +17,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from macos_setup.config_merge import ConfigMergeError, merge_json, merge_toml
+from macos_setup.config_merge import ConfigMergeError, merge_json, merge_toml, permission_key
 
 if TYPE_CHECKING:
     from macos_setup.archive import Archive
@@ -67,6 +68,50 @@ CONFIG_MERGE_POLICIES: dict[str, str] = {
     ".claude/settings.json": "json",
     ".codex/config.toml": "toml",
     ".gemini/antigravity-cli/settings.json": "json",
+}
+
+# Allow entries that run arbitrary code, launch apps, or reach a remote. The merge unions the
+# target's allow list with the repo's, so a removed repo entry would otherwise live on in `~`.
+# Keep a retired entry here for good; a user who wants one back adds it to settings.local.json.
+RETIRED_PERMISSIONS: dict[str, tuple[str, ...]] = {
+    ".claude/settings.json": (
+        "Bash(git clone *)",
+        "Bash(git clean *)",
+        "Bash(gh *)",
+        "Bash(awk *)",
+        "Bash(npm test *)",
+        "Bash(npx *)",
+        "Bash(eslint *)",
+        "Bash(prettier *)",
+        "Bash(chmod *)",
+        "Bash(open *)",
+        "Bash(xargs *)",
+        "Bash(tee *)",
+        "Bash(env)",
+    ),
+    ".gemini/antigravity-cli/settings.json": (
+        "command(git clone)",
+        "command(git clean)",
+        "command(gh)",
+        "command(awk)",
+        "command(npm test)",
+        "command(npx)",
+        "command(eslint)",
+        "command(prettier)",
+        "command(chmod)",
+        "command(open)",
+        "command(xargs)",
+        "command(tee)",
+        "command(env)",
+        "command(python3)",
+        "command(python)",
+        "command(uv)",
+        "command(cargo)",
+        "command(make)",
+        "command(ruff)",
+        "command(rg)",
+        "command(find)",
+    ),
 }
 
 # Stale files removed from the target after syncing (archived first so uninstall can restore).
@@ -184,6 +229,28 @@ def apply_file(src: Path, dest: Path, archive: Archive) -> None:
     archive.record_file(str(dest), action, sha256_file(src))
 
 
+def _retired_for(dest: Path) -> tuple[str, ...]:
+    posix = dest.as_posix()
+    for key, entries in RETIRED_PERMISSIONS.items():
+        if posix.endswith("/" + key):
+            return entries
+    return ()
+
+
+def _held_retired(dest: Path, retired: tuple[str, ...]) -> list[str]:
+    """The retired allow entries ``dest`` holds now, as written there."""
+    if not retired or not dest.is_file():
+        return []
+    try:
+        held = json.loads(dest.read_text(encoding="utf-8"))["permissions"]["allow"]
+    except (ValueError, KeyError, TypeError, OSError):
+        return []
+    if not isinstance(held, list):
+        return []
+    gone = {permission_key(entry) for entry in retired}
+    return [entry for entry in held if permission_key(entry) in gone]
+
+
 def apply_merged_file(src: Path, dest: Path, archive: Archive, format_type: str) -> str:
     """Merge ``src`` into ``dest``, archiving any replaced original and recording dest SHA-256.
 
@@ -199,20 +266,22 @@ def apply_merged_file(src: Path, dest: Path, archive: Archive, format_type: str)
     Raises:
         ValueError: If format_type is not 'json' or 'toml'.
     """
-    if format_type == "json":
-        merger = merge_json
-    elif format_type == "toml":
-        merger = merge_toml
-    else:
+    if format_type not in ("json", "toml"):
         raise ValueError(f"Unsupported configuration format: {format_type}")
 
     repo_text = src.read_text(encoding="utf-8")
     dest.parent.mkdir(parents=True, exist_ok=True)
+    retired = _retired_for(dest) if format_type == "json" else ()
+    # Read before the write replaces the file; logged only once the write has landed.
+    dropped = _held_retired(dest, retired)
 
     if dest.exists():
         try:
             target_text = dest.read_text(encoding="utf-8")
-            merged_text = merger(repo_text, target_text)
+            if format_type == "json":
+                merged_text = merge_json(repo_text, target_text, retired)
+            else:
+                merged_text = merge_toml(repo_text, target_text)
             action = "replaced"
         except (ConfigMergeError, UnicodeDecodeError) as exc:
             if "Malformed source" in str(exc):
@@ -249,6 +318,8 @@ def apply_merged_file(src: Path, dest: Path, archive: Archive, format_type: str)
             tmp_dest.unlink()
         raise
 
+    for entry in dropped:
+        _LOG.info("retired %s from %s (add it to settings.local.json to keep it)", entry, dest)
     archive_action = "added" if action == "added" else "replaced"
     archive.record_file(str(dest), archive_action, sha256_file(dest))
     return action
@@ -376,6 +447,7 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
     merged = 0
     would_sync = 0
     would_merge = 0
+    retired_count = 0
 
     for src_rel, dest_rel in AGENT_SYNC:
         for src_file, dest_file in _iter_pairs(repo / src_rel, target / dest_rel):
@@ -386,10 +458,16 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
                     if dest_file.exists():
                         _LOG.info("would merge %s", dest_file)
                         would_merge += 1
+                        if fmt == "json":
+                            for entry in _held_retired(dest_file, _retired_for(dest_file)):
+                                _LOG.info("would retire %s from %s", entry, dest_file)
+                                retired_count += 1
                     else:
                         _LOG.info("would sync %s", dest_file)
                         would_sync += 1
                     continue
+                if fmt == "json":
+                    retired_count += len(_held_retired(dest_file, _retired_for(dest_file)))
                 action = apply_merged_file(src_file, dest_file, archive, format_type=fmt)
                 if action == "added":
                     _LOG.info("added %s", dest_file)
@@ -431,20 +509,22 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
 
     if dry_run:
         _LOG.info(
-            "Would sync %d agent config files to %s (%d would merge, %d would sync, %d would remove)",
+            "Would sync %d agent config files to %s (%d would merge, %d would sync, %d would remove, %d would retire)",
             would_sync + would_merge,
             target,
             would_merge,
             would_sync,
             removed,
+            retired_count,
         )
         return
 
     _LOG.info(
-        "Synced %d agent config files to %s (%d merged, %d synced, %d removed)",
+        "Synced %d agent config files to %s (%d merged, %d synced, %d removed, %d retired)",
         synced + merged,
         target,
         merged,
         synced,
         removed,
+        retired_count,
     )

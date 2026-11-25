@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Sequence
 from typing import Any
 
 
@@ -55,12 +56,26 @@ def _merge_dict(
     return merged
 
 
-def merge_json(repo_content: str, target_content: str) -> str:
+_COLON_WILDCARD = re.compile(r"^(Bash\(.+):\*\)$")
+
+
+def permission_key(entry: Any) -> Any:
+    """Canonical form of a permission entry: the legacy ``Bash(cmd:*)`` equals ``Bash(cmd *)``."""
+    if isinstance(entry, str):
+        match = _COLON_WILDCARD.match(entry)
+        if match:
+            return f"{match.group(1)} *)"
+    return entry
+
+
+def merge_json(repo_content: str, target_content: str, retired: Sequence[str] | str = ()) -> str:
     """Merge JSON repo updates into target machine settings, preserving target keys.
 
     Args:
         repo_content: Source configuration template from the repository.
         target_content: Existing host configuration to update in-place.
+        retired: ``permissions.allow`` entries dropped from the merged result, a
+            hand-added one included.
 
     Returns:
         The merged JSON configuration string ending in a newline.
@@ -80,7 +95,15 @@ def merge_json(repo_content: str, target_content: str) -> str:
     if not isinstance(repo_data, dict) or not isinstance(target_data, dict):
         raise ConfigMergeError("JSON configuration root must be an object")
 
+    if isinstance(retired, str):
+        retired = (retired,)
     merged = _merge_dict(repo_data, target_data)
+    permissions = merged.get("permissions")
+    if retired and isinstance(permissions, dict) and isinstance(permissions.get("allow"), list):
+        gone = {permission_key(entry) for entry in retired}
+        permissions["allow"] = [
+            item for item in permissions["allow"] if permission_key(item) not in gone
+        ]
     return json.dumps(merged, indent=2, ensure_ascii=False) + "\n"
 
 
