@@ -49,7 +49,7 @@ Overwriting skills and commands while merging configs aligns with their distinct
 
 **Accepted**: `macos_setup` must maintain a stdlib-only TOML merge implementation compatible with Python 3.9. Merge conflict rules must be deterministic (repo keys override target on collisions).
 
-**Removal scope**: a `j-*` entry the repo does not ship is removed from any sync target, a `--project` directory included. Removals are archived and restorable with `--uninstall`.
+**Removal scope**: `AGENT_ORPHAN_GLOBS` names the pruned roots. A `j-*` (`cmd-j-*` under `.agents/skills`) entry the repo does not ship is removed from any sync target, a `--project` directory included. Those names are reserved for repo-shipped commands, so a user-authored `j-mine.md` is removed too. A symlinked entry, or one behind a symlinked parent directory, is kept with a warning. A root whose repo source ships nothing is not pruned. A failed removal warns and the sync continues. Removals are archived and restorable with `--uninstall`.
 
 ## Ruled Out
 
