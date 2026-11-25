@@ -82,8 +82,6 @@ Tag a finding `(pre-existing)` when no hunk in the diff introduces it, exposes i
 
 ### Feedback Techniques
 
-- **Ask questions** instead of stating problems: "What happens if `items` is empty?"
-- **Suggest, don't command**: "Would it make sense to extract this? It appears in 3 places."
 - **Be specific and actionable**: "Race condition when concurrent access; consider a mutex here."
 
 ### Handling Disagreements

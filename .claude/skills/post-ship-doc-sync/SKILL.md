@@ -49,9 +49,9 @@ For each doc file, cross-reference its content against the changed files to iden
 
 ## Step 5: Present for Approval
 
-- Show diff preview for each doc file before applying
-- Wait for explicit approval before committing
-- Never auto-commit documentation changes
+Run as a standalone sweep (`/j-doc-sync`): show a diff preview for each doc file and wait for
+explicit approval before committing. Run inside a plan or a diff review that already owns the
+commit: apply the edits and let that workflow commit them.
 
 ## Red Flags
 

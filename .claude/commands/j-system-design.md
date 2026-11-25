@@ -188,29 +188,6 @@ These four fields map one-to-one onto an ADR; persist each significant decision 
 - Can't explain a component's purpose in one sentence
 - "It depends" is the answer to most questions about the design
 
----
-
-## Self-Review Before Presenting
-
-Review your work with fresh eyes before presenting to the user:
-
-**Completeness:**
-- Did I analyze every perspective thoroughly?
-- Did I miss any requirements or constraints?
-- Are there edge cases or failure modes I didn't consider?
-
-**Quality:**
-- Is the design document clear and actionable?
-- Are diagrams/descriptions precise enough to implement from?
-- Did I follow existing codebase patterns where appropriate?
-
-**Discipline:**
-- Did I avoid overbuilding (YAGNI)?
-- Is the design the simplest thing that could work?
-- Did I only design what was requested?
-
-Fix any issues found during self-review before presenting.
-
 ## Report Format
 
 When done, present:

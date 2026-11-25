@@ -73,8 +73,7 @@ the job actually takes.
 
 Delegate work that is genuinely independent and big enough to be worth its own context: a wide
 multi-file investigation, or several unrelated tracks at once. Work you could finish in a handful of
-tool calls costs more to delegate than to do, and a subagent should never be spawned to verify or
-double-check your own work.
+tool calls costs more to delegate than to do.
 
 - Pick the tier with the lowest cost per completed task, not per token: a cheap tier that fails pays
   twice. Without data, take the cheapest tier whose output a test or check verifies. Use a floating
