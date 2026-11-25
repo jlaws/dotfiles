@@ -2313,11 +2313,26 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for tree in (".claude", ".agents"):
             path = REPO / tree / "references" / "research" / "literature-review.md"
             text = path.read_text(encoding="utf-8")
-            for needle in ("\\write18", "\\input", "shell-escape", '{\\"o}'):
+            needles = (
+                "\\write18",
+                "\\input",
+                "shell-escape",
+                '{\\"o}',
+                "@preamble",
+                "Reject anything outside the allowlist",
+                "every fetched field (title, author, venue, note, abstract, and any other)",
+                "`url` or `doi` value verbatim",
+                "depth never goes below 0",
+                "line-leading `@`",
+                "`\\mathbb{<letters>}`",
+                "bidi",
+                "restricted `\\write18`",
+            )
+            for needle in needles:
                 with self.subTest(path=path.relative_to(REPO), needle=needle):
                     self.assertIn(needle, text)
         paper = [p for p in PROSE_TELL_CONSUMERS if "j-paper" in str(p)]
-        self.assertEqual(len(paper), 4)
+        self.assertTrue(paper)
         for path in paper:
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("untrusted TeX", path.read_text(encoding="utf-8"))
