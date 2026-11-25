@@ -896,7 +896,9 @@ trigger criterion failed, and the neighbour line reported 0 assets checked. The 
 the effects and neighbour steps before the verdict, so their 34.89 USD bought runs the restore left
 unused. The defect stays open: `code-quality` still does not load in
 `code-quality--effect-marker-audit`, and a description rewrite did not fix it on this evidence; the
-next full baseline measures it again. The description stays
+next full baseline measures it again. The raw results sit in the kbeval state directory, not in the repo;
+`python3 -m evals.kbeval.hillclimb adopt --asset code-quality --before cq-tune-base cq-tune-held-base
+--after cq-tune-final cq-tune-held-final --effects cq-tune-effects` (free) reprints the verdict. The description stays
 "Use when assessing code smells, health, or style." Purposes and spend: `cq-tune-base` 1.67,
 `cq-tune-held-base` 2.50, `cq-tune-r1` to `-r3` 5.09, `cq-tune-final` 1.79, `cq-tune-held-final`
 2.47, `cq-tune-effects` 2.90, `cq-tune-neighbours` 31.99 (48.41 USD in total).
