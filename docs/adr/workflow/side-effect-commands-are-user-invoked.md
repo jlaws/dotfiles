@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-11-14
-updated: 2026-11-24
+updated: 2026-11-25
 ---
 # Side-effect commands are user-invoked
 
@@ -14,6 +14,14 @@ the Skill tool, and skills chain to j-diff-review and j-execute-plan. Nothing in
 j-tdd, j-defrag, or j-review-claudemd. Codex ignores `disable-model-invocation` and reads
 `agents/openai.yaml` instead. Antigravity documents no invocation control.
 
+Codex collects explicit skill mentions from user input only (`codex-rs/skills/src/selection.rs`,
+openai/codex `c9870d0157`), so a `$skill` the model writes is not an explicit invocation.
+`allow_implicit_invocation: false` hides the skill from the model's catalog and skill list, and
+Codex has no skill-to-skill call. Measured on codex-cli 0.172.0: UNMEASURED. All three control runs
+failed before the first turn with "The 'gpt-6.1-sol' model is not supported when using Codex with a
+ChatGPT account", so no run reached a skill; the hidden-target condition was not run. The source
+evidence above stands alone.
+
 ## Decision Drivers
 * **Must not break observed flows**: commands the model or a skill invokes stay invocable
 * **Should match across harnesses** where a harness offers a control
@@ -23,6 +31,7 @@ j-tdd, j-defrag, or j-review-claudemd. Codex ignores `disable-model-invocation` 
 We will make **exactly j-pr-fix, j-tdd, j-defrag, and j-review-claudemd** user-invoked:
 - Their `.claude/commands/` files set `disable-model-invocation: true`.
 - Their `.agents/skills/cmd-j-*` twins carry `agents/openai.yaml` with implicit invocation off.
+- No chain target carries `agents/openai.yaml`.
 - No `.agents` skill keeps the inert `disable-model-invocation` key.
 
 ## Rationale
@@ -49,6 +58,7 @@ only when typed. Other Codex command skills stay implicitly invocable, as they a
 | Flag every command except the chain targets | Breaks the observed Skill-tool flows | 2026-11-14 |
 | Flag none | Leaves unused side-effect commands model-invocable | 2026-11-14 |
 | Keep the inert `.agents` key | No harness reads it | 2026-11-14 |
+| Turn off implicit invocation for `cmd-j-diff-review` | The executing-plans, subagent-driven-development, cmd-j-execute-plan, and cmd-j-next chains reach it by a model-written `$cmd-j-diff-review` | 2026-11-25 |
 
 ## Enforcement
 - Owner: `.claude/commands/*.md` frontmatter and `.agents/skills/cmd-j-*/agents/openai.yaml`
@@ -57,6 +67,7 @@ only when typed. Other Codex command skills stay implicitly invocable, as they a
 ## Reversal Conditions
 - A skill or coordinator starts invoking one of the four.
 - A harness changes its invocation semantics.
+- Codex treats a model-written `$skill` mention as an explicit invocation (reopens the `cmd-j-diff-review` Ruled Out row).
 
 ## Related
 - [Skills do not pre-approve tools](skills-do-not-pre-approve-tools.md)

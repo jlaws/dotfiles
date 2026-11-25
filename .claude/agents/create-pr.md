@@ -17,8 +17,7 @@ You automate the full PR workflow. Follow these steps in order:
 ## 2. Branch Check
 - Run `git branch --show-current`
 - If on `main` or `master`:
-  - Get GitHub username: `gh api user -q .login`
-  - Derive branch name from `$ARGUMENTS` or summarize changes: `<username>/<short-kebab-description>`
+  - Derive the branch name from `$ARGUMENTS` or a summary of the changes as `type/short-description` (`type` is `feat`, `fix`, `docs`, `chore`, `refactor`, or `test`; lowercase letters, digits, `/`, `.`, `_`, `-`)
   - Run `git checkout -b <branch-name>`
 - Otherwise stay on current branch
 
@@ -34,7 +33,7 @@ You automate the full PR workflow. Follow these steps in order:
 - Run `git push -u origin <branch>`
 - Create PR with explicit title and body (never use `--fill`):
   - Title: the commit message or a summary of changes
-  - Body: bullet-point summary of what changed, derived from `git log --oneline main..<branch>`; a Test Plan with the verification that ran; and a Merge Danger section: one-way or two-way door, blast radius in one word, and how to revert
+  - Body: bullet-point summary of what changed, derived from `git log --oneline origin/main..<branch>` after `git fetch origin main`; a Test Plan with the verification that ran; and a Merge Danger section: one-way or two-way door, blast radius in one word, and how to revert
   - Run `gh pr create --title "<title>" --body "<body>"`
 
 ## 5. Output

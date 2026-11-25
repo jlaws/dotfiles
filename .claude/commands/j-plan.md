@@ -25,7 +25,11 @@ Read `.claude/references/workflow/existing-code-discipline.md` when the spec tou
 Call `EnterPlanMode` unless the session is already in plan mode. It takes no arguments and requires
 the user's consent, so expect an approval prompt. Plan mode's file is where the plan goes - **never
 write a plan into the repository.** From here through Step 5 everything is read-only apart from that
-one file.
+one file. Outside plan mode (the tool is unavailable or the user declines it), create
+`~/.claude/plans/<repo-name>-<feature>.md` and hold to the same rule: that file is the only thing
+written through Step 5.
+`<repo-name>` is `basename "$(git rev-parse --show-toplevel)"`; `<feature>` is a lowercase kebab slug
+(`[a-z0-9-]`), never a path.
 
 `$ARGUMENTS` is freeform and may carry paths inline (commonly a design doc from /j-brainstorm). The
 whole string is the spec - do not strip paths from it. Scan for path-like tokens (containing `/`, or
@@ -167,4 +171,5 @@ finalized plan has no open-questions section.**
 
 Call `ExitPlanMode` for approval. Alongside it, summarize which lenses ran, what each surfaced, and
 the plan's PR boundaries. Once approved, `writing-plans`' Execution Handoff applies: execute the plan in
-this session through /j-execute-plan, which picks the mode from the plan.
+this session through /j-execute-plan, which picks the mode from the plan. Outside plan mode, present
+the same summary and ask for approval with `AskUserQuestion`; start nothing until it is given.

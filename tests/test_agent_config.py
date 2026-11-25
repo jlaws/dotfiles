@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -1041,6 +1043,116 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("bug and task tracking mechanism", body)
                 self.assertNotIn("public tracker", body)
+
+    def test_between_pr_cleanup_deletes_only_merged_branches(self):
+        blocks = []
+        for path in (*J_NEXT_COMMANDS, *WRITING_PLANS_SKILLS):
+            lines = path.read_text(encoding="utf-8").splitlines()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotIn("branch --merged", "\n".join(lines))
+                start = next(
+                    (i for i, ln in enumerate(lines) if ln.startswith("git for-each-ref")), -1
+                )
+                self.assertNotEqual(start, -1, "'git for-each-ref' not found")
+                end = lines.index("done", start)
+                blocks.append("\n".join(lines[start : end + 1]))
+        self.assertEqual(len(blocks), len(J_NEXT_COMMANDS) + len(WRITING_PLANS_SKILLS))
+        self.assertEqual(len(set(blocks)), 1)
+        env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        env.update(
+            {
+                "GIT_CONFIG_GLOBAL": "/dev/null",
+                "GIT_CONFIG_NOSYSTEM": "1",
+                "GIT_AUTHOR_NAME": "t",
+                "GIT_AUTHOR_EMAIL": "t@example.com",
+                "GIT_COMMITTER_NAME": "t",
+                "GIT_COMMITTER_EMAIL": "t@example.com",
+            }
+        )
+
+        def run(argv, cwd):
+            try:
+                return subprocess.run(
+                    argv,
+                    cwd=cwd,
+                    env=env,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    stdin=subprocess.DEVNULL,
+                ).stdout
+            except subprocess.CalledProcessError as exc:
+                self.fail(
+                    f"{argv} failed ({exc.returncode})\nstdout: {exc.stdout}\nstderr: {exc.stderr}"
+                )
+
+        def git(*args, cwd):
+            return run(["git", *args], cwd)
+
+        def commit_file(tmp, name, label):
+            Path(tmp, name).write_text(label, encoding="utf-8")
+            git("add", ".", cwd=tmp)
+            git("commit", "-q", "-m", label, cwd=tmp)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            git("init", "-q", "-b", "main", cwd=tmp)
+            git("commit", "-q", "--allow-empty", "-m", "base", cwd=tmp)
+            for name in ("feat/ff", "feat/squash", "feat/open"):
+                git("checkout", "-q", "-b", name, "main", cwd=tmp)
+                slug = name.replace("/", "_")
+                for i in (1, 2) if name == "feat/squash" else (1,):
+                    commit_file(tmp, f"{slug}{i}.txt", f"{name} {i}")
+            git("checkout", "-q", "-b", "feat/squash-plus", "feat/squash", cwd=tmp)
+            commit_file(tmp, "extra.txt", "extra unmerged")
+            git("checkout", "-q", "main", cwd=tmp)
+            git("merge", "-q", "--ff-only", "feat/ff", cwd=tmp)
+            git("merge", "-q", "--squash", "feat/squash", cwd=tmp)
+            git("commit", "-q", "-m", "squash", cwd=tmp)
+            git("update-ref", "refs/remotes/origin/main", "HEAD", cwd=tmp)
+            out = run(["bash", "-c", f"set -eo pipefail\n{blocks[0]}"], tmp)
+            self.assertIn("kept: feat/open", out)
+            left = git("for-each-ref", "--format=%(refname:short)", "refs/heads/", cwd=tmp).split()
+        self.assertEqual(set(left), {"main", "feat/open", "feat/squash-plus"})
+
+        with tempfile.TemporaryDirectory() as tmp:
+            git("init", "-q", "-b", "main", cwd=tmp)
+            git("commit", "-q", "--allow-empty", "-m", "base", cwd=tmp)
+            git("update-ref", "refs/remotes/origin/main", "HEAD", cwd=tmp)
+            run(["bash", "-c", f"set -eo pipefail\n{blocks[0]}"], tmp)
+
+    def test_j_next_edits_the_plan_after_the_new_branch_exists(self):
+        for path in J_NEXT_COMMANDS:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertGreater(text.index("collapse its phases"), text.index("git checkout -b"))
+
+    def test_create_pr_branch_case_grades_the_convention_not_the_prompt(self):
+        case = (
+            REPO / "evals" / "cases" / "effects" / "create-pr--effect-derive-branch-and-skip-debris"
+        )
+        prompt = (case / "prompt.md").read_text(encoding="utf-8")
+        grader = (case / "graders" / "branch.md").read_text(encoding="utf-8")
+        self.assertNotIn("any prefix is fine", prompt)
+        self.assertNotIn("kebab-case", prompt)
+        self.assertIn("[a-z]+/[a-z0-9]", grader)
+
+    def test_create_pr_agents_use_the_branch_convention_and_remote_base(self):
+        agents = (
+            REPO / ".claude" / "agents" / "create-pr.md",
+            REPO / ".gemini" / "config" / "agents" / "create-pr.md",
+            REPO / ".codex" / "agents" / "create-pr.toml",
+        )
+        for path in agents:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("type/short-description", text)
+                self.assertIn("origin/main..", text)
+                self.assertIn("git fetch origin main", text)
+                self.assertIn(
+                    "`type` is `feat`, `fix`, `docs`, `chore`, `refactor`, or `test`", text
+                )
+                self.assertNotIn("<username>", text)
+                self.assertIsNone(re.search(r"(?<![\w/])main\.\.", text))
 
     def test_plans_size_prs_for_review(self):
         self.assertEqual(len(WRITING_PLANS_SKILLS), 3)
@@ -2195,6 +2307,41 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                         self.assertNotIn(
                             other, grader, "a grounded case grades one directory alone"
                         )
+
+    def test_j_plan_states_an_outside_plan_mode_path(self):
+        text = CLAUDE_J_PLAN_COMMAND.read_text(encoding="utf-8")
+        self.assertGreaterEqual(text.count("Outside plan mode"), 2)
+        self.assertIn("~/.claude/plans/<repo-name>-", text)
+        self.assertIn('basename "$(git rev-parse --show-toplevel)"', text)
+        self.assertIn("[a-z0-9-]", text)
+
+    def test_fetched_citation_fields_are_untrusted_tex(self):
+        for tree in (".claude", ".agents"):
+            path = REPO / tree / "references" / "research" / "literature-review.md"
+            text = path.read_text(encoding="utf-8")
+            needles = (
+                "\\write18",
+                "\\input",
+                "shell-escape",
+                '{\\"o}',
+                "@preamble",
+                "Reject anything outside the allowlist",
+                "every fetched field (title, author, venue, note, abstract, and any other)",
+                "`url` or `doi` value verbatim",
+                "depth never goes below 0",
+                "line-leading `@`",
+                "`\\mathbb{<letters>}`",
+                "bidi",
+                "restricted `\\write18`",
+            )
+            for needle in needles:
+                with self.subTest(path=path.relative_to(REPO), needle=needle):
+                    self.assertIn(needle, text)
+        paper = [p for p in PROSE_TELL_CONSUMERS if "j-paper" in str(p)]
+        self.assertTrue(paper)
+        for path in paper:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("untrusted TeX", path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

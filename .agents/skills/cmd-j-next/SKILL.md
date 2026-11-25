@@ -42,7 +42,6 @@ Do not ask GitHub; the API is slow, and a squash merge severs ancestry, so `git 
    ```
    An empty diff means the previous part is merged.
 5. A non-empty diff is not automatically a failure; `origin/main` may carry later edits to the same files. Read it and judge whether the previous part's behavior is present. STOP and show the diff if you cannot tell, or if the part is plainly absent. Building the next part on top of unmerged work produces a PR that silently re-lands or reverts it.
-6. Once the previous part is confirmed merged, collapse its phases in the plan file to one line each with the PR number (`Phase 3: retrieval rewrite, merged in #123`). Anything those phases left unfinished is folded into the next part's phases as tasks before execution starts; the plan keeps no follow-ups section (`writing-plans`, No follow-up tail).
 
 ## Phase 3: Clean slate off main
 
@@ -57,8 +56,17 @@ git fetch origin main
 ```bash
 git reset --hard origin/main
 ```
+
+`git branch -d` cannot see a squash merge, so the loop compares each branch's whole diff with `origin/main` by patch id and force-deletes only on a match and prints each branch it keeps.
+
 ```bash
-git branch --merged origin/main | grep -vE '^\*|^\s*(main|master)$' | xargs -r git branch -d
+git for-each-ref --format='%(refname:short)' refs/heads/ | while read -r b; do
+  case "$b" in main|master) continue ;; esac
+  if git merge-base --is-ancestor "$b" origin/main; then git branch -d "$b"
+  elif [ "$(git cherry origin/main "$(git commit-tree --no-gpg-sign "$b^{tree}" -p "$(git merge-base origin/main "$b")" -m squash)" | cut -c1)" = "-" ]; then git branch -D "$b"
+  else echo "kept: $b (no merge or squash match on origin/main)"
+  fi
+done
 ```
 ```bash
 git checkout -b <type>/<short-description> origin/main
@@ -67,6 +75,8 @@ git checkout -b <type>/<short-description> origin/main
 Name the branch from the next part's phases, `type/short-description`.
 
 ## Phase 4: Execute the next part
+
+First, on the new branch: once the previous part is confirmed merged, collapse its phases in the plan file to one line each with the PR number (`Phase 3: retrieval rewrite, merged in #123`). Anything those phases left unfinished is folded into the next part's phases as tasks before execution starts; the plan keeps no follow-ups section (`writing-plans`, No follow-up tail).
 
 Load the skills these phases actually need, then execute:
 
