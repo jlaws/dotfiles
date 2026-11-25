@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import re
+import os
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -1041,6 +1043,54 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("bug and task tracking mechanism", body)
                 self.assertNotIn("public tracker", body)
+
+    def test_between_pr_cleanup_deletes_only_merged_branches(self):
+        blocks = []
+        for path in (*J_NEXT_COMMANDS, *WRITING_PLANS_SKILLS):
+            lines = path.read_text(encoding="utf-8").splitlines()
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertNotIn("branch --merged", "\n".join(lines))
+                start = next((i for i, ln in enumerate(lines) if ln.startswith("git for-each-ref")), None)
+                self.assertIsNotNone(start, "'git for-each-ref' not found")
+                end = lines.index("done", start)
+                blocks.append("\n".join(lines[start : end + 1]))
+        self.assertEqual(len(blocks), 7)
+        self.assertEqual(len(set(blocks)), 1)
+        env = {
+            **os.environ,
+            "GIT_CONFIG_GLOBAL": "/dev/null",
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_AUTHOR_NAME": "t",
+            "GIT_AUTHOR_EMAIL": "t@example.com",
+            "GIT_COMMITTER_NAME": "t",
+            "GIT_COMMITTER_EMAIL": "t@example.com",
+        }
+
+        def git(*args, cwd):
+            return subprocess.run(
+                ["git", *args], cwd=cwd, env=env, check=True, capture_output=True, text=True, stdin=subprocess.DEVNULL
+            ).stdout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            git("init", "-q", "-b", "main", cwd=tmp)
+            git("commit", "-q", "--allow-empty", "-m", "base", cwd=tmp)
+            for name in ("feat/ff", "feat/squash", "feat/open"):
+                git("checkout", "-q", "-b", name, "main", cwd=tmp)
+                for i in (1, 2) if name == "feat/squash" else (1,):
+                    slug = name.replace("/", "_")
+                    Path(tmp, f"{slug}{i}.txt").write_text(name, encoding="utf-8")
+                    git("add", ".", cwd=tmp)
+                    git("commit", "-q", "-m", f"{name} {i}", cwd=tmp)
+            git("checkout", "-q", "main", cwd=tmp)
+            git("merge", "-q", "--ff-only", "feat/ff", cwd=tmp)
+            git("merge", "-q", "--squash", "feat/squash", cwd=tmp)
+            git("commit", "-q", "-m", "squash", cwd=tmp)
+            git("update-ref", "refs/remotes/origin/main", "HEAD", cwd=tmp)
+            subprocess.run(
+                ["bash", "-c", blocks[0]], cwd=tmp, env=env, check=True, capture_output=True, stdin=subprocess.DEVNULL
+            )
+            left = git("for-each-ref", "--format=%(refname:short)", "refs/heads/", cwd=tmp).split()
+        self.assertEqual(set(left), {"main", "feat/open"})
 
     def test_plans_size_prs_for_review(self):
         self.assertEqual(len(WRITING_PLANS_SKILLS), 3)

@@ -125,11 +125,17 @@ One commit per phase. Every unit of plan work ends in a pull request, opened aut
 
 Between PRs, reset to a clean slate:
 
+`git branch -d` cannot see a squash merge, so the loop compares each branch's whole diff with `origin/main` by patch id and force-deletes only on a match.
+
 ```bash
 git checkout main
 git fetch origin main
 git reset --hard origin/main
-git branch --merged origin/main | grep -vE '^\*|^\s*(main|master)$' | xargs -r git branch -d
+git for-each-ref --format='%(refname:short)' refs/heads/ | grep -vxE 'main|master' | while read -r b; do
+  if git merge-base --is-ancestor "$b" origin/main; then git branch -d "$b"
+  elif [ "$(git cherry origin/main "$(git commit-tree --no-gpg-sign "$b^{tree}" -p "$(git merge-base origin/main "$b")" -m squash)" | cut -c1)" = "-" ]; then git branch -D "$b"
+  fi
+done
 git checkout -b <type>/<next-description> origin/main
 ```
 
