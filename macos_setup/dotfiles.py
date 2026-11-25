@@ -222,18 +222,36 @@ HOME_ANCHORS = ("~/.agents/references/", "~/.claude/references/")
 EXPANDED_SUFFIXES = (".md", ".toml")
 
 
+def _unsafe_home(home: Path) -> bool:
+    """True when ``home`` holds a character that would break a TOML string or inject text."""
+    return any(ch in str(home) for ch in ('"', "\\", "\n", "\r"))
+
+
+def _refuse_unsafe_home(home: Path) -> bool:
+    if _unsafe_home(home):
+        _LOG.warning("not expanding reference anchors: unsafe home path %r", str(home))
+        return True
+    return False
+
+
 def expand_home_anchors(text: str, home: Path) -> str:
-    """Rewrite the ``~/.agents/references/`` and ``~/.claude/references/`` prefixes under ``home``."""
+    """Rewrite the ``~/.agents/references/`` and ``~/.claude/references/`` prefixes under ``home``.
+
+    A ``home`` containing a quote, backslash, or newline is not expanded into the text.
+    """
+    if _refuse_unsafe_home(home):
+        return text
     for anchor in HOME_ANCHORS:
         text = text.replace(anchor, f"{home}/{anchor[2:]}")
     return text
 
 
-def apply_file(src: Path, dest: Path, archive: Archive, *, home: Path | None = None) -> None:
+def apply_file(src: Path, dest: Path, archive: Archive, *, home: Path | None = None) -> bool:
     """Copy ``src`` to ``dest``, archiving any replaced original and recording the change.
 
     With ``home`` set, ``.md`` and ``.toml`` files get their home-anchored reference prefixes
-    expanded, and the recorded sha is that of the file written, so a guarded revert still matches.
+    expanded in one write of the bytes, and the recorded sha is that of the file written, so a
+    guarded revert still matches. Returns whether any anchor was expanded.
     """
     if dest.exists():
         backup = _archive_dest(archive, dest)
@@ -243,13 +261,17 @@ def apply_file(src: Path, dest: Path, archive: Archive, *, home: Path | None = N
     else:
         action = "added"
     dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, dest)
-    if home is not None and dest.suffix in EXPANDED_SUFFIXES:
-        text = src.read_text(encoding="utf-8")
-        expanded = expand_home_anchors(text, home)
-        if expanded != text:
-            dest.write_text(expanded, encoding="utf-8")
+    data = src.read_bytes()
+    expanded = False
+    if home is not None and dest.suffix in EXPANDED_SUFFIXES and not _refuse_unsafe_home(home):
+        original = data
+        for anchor in HOME_ANCHORS:
+            data = data.replace(anchor.encode(), f"{home}/{anchor[2:]}".encode())
+        expanded = data != original
+    dest.write_bytes(data)
+    shutil.copystat(src, dest)
     archive.record_file(str(dest), action, sha256_file(dest))
+    return expanded
 
 
 def _retired_for(dest: Path) -> tuple[str, ...]:
@@ -506,8 +528,10 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
                     _LOG.info("would sync %s", dest_file)
                     would_sync += 1
                     continue
-                apply_file(src_file, dest_file, archive, home=target)
-                _LOG.debug("sync %s", dest_file)
+                if apply_file(src_file, dest_file, archive, home=target):
+                    _LOG.debug("sync %s (home anchors expanded)", dest_file)
+                else:
+                    _LOG.debug("sync %s", dest_file)
                 synced += 1
 
     # A removal deletes a file out of the user's home directory, so it is reported at INFO like
