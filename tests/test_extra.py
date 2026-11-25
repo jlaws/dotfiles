@@ -31,25 +31,25 @@ class ExtraFileLimitTests(unittest.TestCase):
         )
 
     def test_sourcing_extra_writes_git_config_under_the_temp_home(self):
-        self._shell("zsh", f"source {EXTRA_PATH} 2>/dev/null")
+        self._shell("zsh", f"source {shlex.quote(str(EXTRA_PATH))} 2>/dev/null")
         self.assertTrue((self.home / ".gitconfig").is_file())
 
     def test_zsh_raises_ulimit(self):
-        cmd = f"ulimit -Sn 256\nsource {EXTRA_PATH} 2>/dev/null\nulimit -n"
+        cmd = f"ulimit -Sn 256\nsource {shlex.quote(str(EXTRA_PATH))} 2>/dev/null\nulimit -n"
         result = self._shell("zsh", cmd)
         limit = int(result.stdout.strip())
         self.assertGreaterEqual(limit, 10240)
         self.assertEqual(limit, 65536)
 
     def test_bash_raises_ulimit(self):
-        cmd = f"ulimit -Sn 256\nsource {EXTRA_PATH} 2>/dev/null\nulimit -n"
+        cmd = f"ulimit -Sn 256\nsource {shlex.quote(str(EXTRA_PATH))} 2>/dev/null\nulimit -n"
         result = self._shell("bash", cmd)
         limit = int(result.stdout.strip())
         self.assertGreaterEqual(limit, 10240)
         self.assertEqual(limit, 65536)
 
     def test_preserves_higher_limit(self):
-        cmd = f"ulimit -n 245760 2>/dev/null\nsource {EXTRA_PATH} 2>/dev/null\nulimit -n"
+        cmd = f"ulimit -n 245760 2>/dev/null\nsource {shlex.quote(str(EXTRA_PATH))} 2>/dev/null\nulimit -n"
         result = self._shell("zsh", cmd)
         limit = int(result.stdout.strip())
         self.assertEqual(limit, 245760)

@@ -11,6 +11,9 @@ from macos_setup.archive import Archive
 from macos_setup.config_merge import ConfigMergeError
 from macos_setup.dotfiles import (
     AGENT_ORPHAN_GLOBS,
+    AGENT_REMOVALS,
+    AGENT_SYNC,
+    _iter_pairs,
     apply_file,
     apply_merged_file,
     file_revert_decision,
@@ -745,6 +748,42 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertTrue(any("j-bad" in e and "could not remove" in e for e in captured.output))
         self.assertFalse(later.exists())
         self.assertFalse(hook.exists())
+
+    def test_orphan_globs_cover_the_four_command_trees(self):
+        self.assertEqual(
+            AGENT_ORPHAN_GLOBS,
+            [
+                (".agents/skills", "cmd-j-*"),
+                (".claude/commands", "j-*.md"),
+                (".codex/prompts", "j-*.md"),
+                (".gemini/antigravity-cli/skills", "j-*"),
+            ],
+        )
+
+    def test_no_retired_path_names_a_file_the_repo_ships(self):
+        repo_root = Path(__file__).resolve().parent.parent
+        shipped = {
+            dest.relative_to(Path("/t"))
+            for src_rel, dest_rel in AGENT_SYNC
+            for _, dest in _iter_pairs(repo_root / src_rel, Path("/t") / dest_rel)
+        }
+        for removal in AGENT_REMOVALS:
+            with self.subTest(removal=removal):
+                path = Path(removal)
+                self.assertFalse(
+                    any(item == path or path in item.parents for item in shipped),
+                    f"{removal} is retired but the repo ships it",
+                )
+
+    def test_a_user_authored_j_command_the_repo_does_not_ship_is_removed(self):
+        # `j-` is reserved for repo-shipped commands; the prune cannot tell a user's j-mine.md
+        # from a deleted one, so it removes both (archived, restorable).
+        self._write_repo(".claude/commands/j-keep.md")
+        mine = self._write_target(".claude/commands/j-mine.md", "my own command")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(mine.exists())
 
 
 class RevertFilesTests(unittest.TestCase):
