@@ -2284,6 +2284,19 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertGreaterEqual(text.count("Outside plan mode"), 2)
         self.assertIn("~/.claude/plans/<repo-name>-", text)
 
+    def test_fetched_citation_fields_are_untrusted_tex(self):
+        for tree in (".claude", ".agents"):
+            path = REPO / tree / "references" / "research" / "literature-review.md"
+            text = path.read_text(encoding="utf-8")
+            for needle in ("\\write18", "\\input", "shell-escape", '{\\"o}'):
+                with self.subTest(path=path.relative_to(REPO), needle=needle):
+                    self.assertIn(needle, text)
+        paper = [p for p in PROSE_TELL_CONSUMERS if "j-paper" in str(p)]
+        self.assertEqual(len(paper), 4)
+        for path in paper:
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("untrusted TeX", path.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

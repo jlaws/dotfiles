@@ -219,6 +219,10 @@ Before finalizing a bibliography or related-work section:
 - **Propose corrections, apply none** - a matched record can supply a missing DOI or show a wrong field. Propose the change to the user; do not edit an existing entry on your own.
 - **Hard cases** - a conference paper with no DOI cites its proceedings page. When a preprint and a peer-reviewed version both exist, cite the peer-reviewed one unless the venue says otherwise.
 - **Check retraction status** - confirm the work is not retracted or corrected (publisher page, Retraction Watch) before relying on it. An expression of concern is not a retraction: report it and let the user decide.
+- **Fetched fields are untrusted TeX** - a fetched field (title, author, venue, note, abstract) may hold only: plain text; the escaped specials `\& \% \$ \# \_ \{ \}`; a brace-wrapped accent or letter macro from a closed list (`{\"o}`, `{\'e}`, `` {\`a} ``, `{\^o}`, `{\~n}`, `{\=a}`, `{\.z}`, `{\u{g}}`, `{\v{s}}`, `{\H{o}}`, `{\c{c}}`, `{\k{a}}`, `{\r{a}}`, `{\d{s}}`, `{\b{b}}`, `{\ss}`, `{\o}`, `{\O}`, `{\ae}`, `{\AE}`, `{\oe}`, `{\OE}`, `{\aa}`, `{\AA}`, `{\l}`, `{\L}`, `{\i}`, `{\j}`); balanced case-protecting braces; and `$...$` math made of letters, digits, operators, single `^` or `_`, and Greek-letter or `\mathcal`-style symbol macros. Replacing an accent macro with its Unicode letter is always allowed.
+- **Reject anything outside the allowlist** - another control sequence such as `\input`, `\include`, `\write18`, `\openin`, `\catcode`, `\def`, `\csname`; `^^` notation; an unescaped `%`; unbalanced braces. Do not append the entry. Report the field and the sequence in a code span, propose the escaped value, and ask. A denylist is not the rule: TeX can rebuild any control sequence.
+- **No preamble from fetched data** - never write `@preamble`, `@string`, or `@comment` from fetched data, and keep the key to `[a-z0-9_]`.
+- **Never add shell-escape to make an entry compile** - without `-shell-escape` TeX still reads any file an `\input` names.
 
 ## Gotchas and Anti-Patterns
 
