@@ -165,12 +165,22 @@ Every security requirement must link back to:
 - Error messages are an info disclosure vector -- generic errors externally, detailed internally
 - Session management is often the weakest STRIDE link; model it explicitly
 - Compliance mapping gaps surface best through automated traceability matrices, not manual review
-- A shared write-to-staging-then-rename helper changes behavior: test the destination mode after rewrite, a symlinked destination (rename replaces the link), a link pre-created at the predictable staging name (create staging with O_EXCL or mkstemp), and ignore patterns that miss the staging suffix
-- A trust check on a store of executable data (pickles, plugins, path files) must cover every entry read, not only the root: test entries made under a permissive umask, symlinked entries, a root swapped after the check, loose subdirectory modes, and ACLs; require no-follow opens with per-entry owner, type, and mode checks
-- A dedup or link step that guards only the final path component is open to a symlinked intermediate directory: replace one sibling directory with a symlink to out-of-tree identical bytes, and check that linked files do not inherit a foreign owner or mode
-- When a widening is justified by "the provenance field still marks it", grep every writer of that field; a generic update path that stamps a constant can relabel the data, and the audit log then shows the wrong origin
-- A reserved-spelling refusal must run after any pass that strips markers: plant a prefix, a marker, and a suffix that join into the reserved value; for new regex parsing of a fetched field, time quadratic patterns (adjacent optional whitespace quantifiers) at the response byte cap
-- A user-supplied integer used as a path component cannot traverse, because parsing canonicalizes it; check the remaining risks: digit count against the filename length limit when no max is declared, negative values when no min is declared, and non-ASCII digits normalizing
+- A shared write-to-staging-then-rename helper: test the destination mode after rewrite.
+- Same helper: test a symlinked destination, since rename replaces the link.
+- Same helper: pre-create a link at the predictable staging name, and create staging with O_EXCL or mkstemp.
+- Same helper: check that ignore patterns match the staging suffix.
+- A trust check on a store of executable data (pickles, plugins, path files) must cover every entry read, not only the root.
+- Test entries made under a permissive umask, symlinked entries, loose subdirectory modes, and ACLs.
+- Test a root swapped after the check.
+- Require no-follow opens with per-entry owner, type, and mode checks.
+- A dedup or link step that guards only the final path component is open to a symlinked intermediate directory. Replace one sibling directory with a symlink to out-of-tree identical bytes.
+- After a dedup or link step, check that linked files do not inherit a foreign owner or mode.
+- A widening justified by "the provenance field still marks it" needs one writer per provenance field. Grep every writer: a generic update path that stamps a constant relabels the data, and the audit log then shows the wrong origin.
+- A reserved-spelling refusal must run after any pass that strips markers. Plant a prefix, a marker, and a suffix that join into the reserved value.
+- New regex parsing of a fetched field: time quadratic patterns (adjacent optional whitespace quantifiers) at the response byte cap.
+- A user-supplied integer used as a path component is safe only when the re-rendered parsed value, not the raw string, builds the path. `int()` also accepts surrounding spaces, `+`, `_`, and non-ASCII digits.
+- For such an integer, check the digit count against the filename length limit when no max is declared.
+- For such an integer, check negative values when no min is declared.
 
 ## Comprehensive Threat Modeling
 

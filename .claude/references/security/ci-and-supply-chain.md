@@ -49,6 +49,11 @@ yarn install --frozen-lockfile
 pip install --require-hashes -r requirements.txt
 ```
 
+- A command that resolves implicitly (`uv run`, `uv sync` without a flag) can re-lock and rewrite the lockfile.
+- Do not call a make or script target read-only if its recipe runs such a command.
+- Pass `--locked` or `--frozen` to stop the re-resolve. `npm run` and `pnpm run` do not re-resolve.
+- Reproduce the check in an export of the tree, not the working copy.
+
 ## Supply Chain Attack Patterns
 
 | Attack | Description | Mitigation |
@@ -140,5 +145,3 @@ Run static analysis in this order: code patterns first (cheapest, fastest), then
 # Good: SHA is immutable
 - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 ```
-
-- Do not call a make or script target read-only if its recipe runs a package-manager run command without a locked or frozen flag: it can re-resolve, rewrite the lockfile, and sync installs when the manifest is ahead; reproduce in an export of the tree
