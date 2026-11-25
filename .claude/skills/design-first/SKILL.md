@@ -9,11 +9,9 @@ description: "Use when designing features or behavior before coding."
 
 ## Hard Gate
 
-```
-DO NOT write any code, scaffold any project, or take any implementation
-action until you have presented a design and the user has approved it.
-This applies to EVERY feature regardless of perceived simplicity.
-```
+Present a design and get the user's approval before writing code or scaffolding. This holds for
+small work too, because the gate is what surfaces the unexamined assumption; the design for a tiny
+change is a sentence or two and the approval is one inline reply.
 
 ## "This is too simple to need a design"
 
@@ -102,7 +100,7 @@ Scale the process to the task's complexity:
 | Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes (save to the harness plan file) |
 | Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes (save to the harness plan file before proceeding) |
 
-The process is the same regardless of size; the depth scales, not the steps. Even tiny tasks get clarifying questions.
+The process is the same regardless of size; the depth scales, not the steps. A tiny task gets a question only when the code cannot answer it and a wrong guess means redoing the work.
 
 ## Red Flags
 

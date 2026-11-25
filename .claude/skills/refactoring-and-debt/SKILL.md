@@ -52,19 +52,6 @@ Each commit is a safe rollback point. If anything breaks, `git revert` is trivia
 | Simplify complex conditional | Extract each branch into named function -> Replace with lookup map or polymorphism |
 | Migrate to new API | Introduce adapter -> Route calls through adapter -> Swap implementation -> Inline adapter |
 
-## IDE-Assisted vs Manual
-
-| Refactoring | IDE? | Notes |
-|-------------|:---:|-------|
-| Rename | Yes | Always use IDE: catches all references |
-| Extract function | Yes | IDE infers parameters and return type |
-| Move file/module | Yes | Updates import paths automatically |
-| Change signature | Yes | IDE updates all call sites |
-| Replace conditional with polymorphism | No | Requires architectural judgment |
-| Strangler fig / Branch by abstraction | No | Strategy, not mechanical transformation |
-
-**Rule**: If your IDE can do it, let your IDE do it.
-
 ## Large-Scale Refactoring Strategies
 
 ### Strangler Fig

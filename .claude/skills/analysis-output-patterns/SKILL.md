@@ -11,7 +11,7 @@ Patterns for producing clear, trustworthy analysis output in data analysis, rese
 
 | Section | Purpose |
 |---------|---------|
-| Summary | 3 bullets max. Lead with the finding, not the methodology. |
+| Summary | Lead with the finding, not the methodology. Short enough to read at a glance. |
 | Supporting data | Tables, charts, evidence. Numbers with units and sources. |
 | Caveats and limitations | What the data doesn't show. Confidence level and why. |
 
