@@ -65,6 +65,7 @@ def source_digest(repo: Path, staging: str, exclude_tags: frozenset) -> str:
     digest.update(f"{staging}\0{','.join(sorted(exclude_tags))}\0".encode())
     paths = [
         repo / "evals" / "kbeval" / "stage.py",
+        repo / "evals" / "kbeval" / "cases.py",
         repo / "evals" / "harness.json",
         repo / "evals" / "fixtures",
         repo / "evals" / "cases",

@@ -30,7 +30,8 @@ python3 -m evals.kbeval.hillclimb adopt --asset A... --before P... --after P... 
 and model; the make targets call the plans built on it. Add `--keep-temp` to keep each run's trace.
 
 `run --plugin` refuses a plugin staged before an edit to the tree it was staged from. It compares
-the source digest in the stage marker with the tree and, on a difference, prints
+the source digest in the stage marker (it covers the cases, fixtures, `harness.json`, the KB
+files for a kb staging, and the staging code in `stage.py` and `cases.py`) with the tree and, on a difference, prints
 `run: staged plugin <dir> is stale (staged <8 hex>, tree <8 hex>); rerun make eval-stage` (or
 `run: staged plugin <dir> holds no source digest; rerun make eval-stage`) and exits 1 before any cap
 or ledger work. The plans restage at start and are unaffected.

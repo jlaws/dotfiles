@@ -240,6 +240,13 @@ class StageTests(TempRepoCase):
         (self.tmp / "out-kb" / ".kbeval-stage").write_text("staged by evals.kbeval\n")
         self.assertIn("holds no source digest", kstage.staleness(self.repo, plugin) or "")
 
+    def test_staleness_sees_an_edit_to_the_case_loader(self):
+        plugin = self.stage()
+        loader = self.repo / "evals" / "kbeval" / "cases.py"
+        loader.parent.mkdir(parents=True, exist_ok=True)
+        loader.write_text("# loader\n")
+        self.assertIsNotNone(kstage.staleness(self.repo, plugin))
+
     def test_stage_refuses_unmarked_nonempty_out(self):
         out = self.tmp / "busy"
         out.mkdir()
