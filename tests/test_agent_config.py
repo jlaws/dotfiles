@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-import re
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -1050,8 +1050,10 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             lines = path.read_text(encoding="utf-8").splitlines()
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertNotIn("branch --merged", "\n".join(lines))
-                start = next((i for i, ln in enumerate(lines) if ln.startswith("git for-each-ref")), None)
-                self.assertIsNotNone(start, "'git for-each-ref' not found")
+                start = next(
+                    (i for i, ln in enumerate(lines) if ln.startswith("git for-each-ref")), -1
+                )
+                self.assertNotEqual(start, -1, "'git for-each-ref' not found")
                 end = lines.index("done", start)
                 blocks.append("\n".join(lines[start : end + 1]))
         self.assertEqual(len(blocks), 7)
@@ -1068,7 +1070,13 @@ class AgentConfigArchitectureTests(unittest.TestCase):
 
         def git(*args, cwd):
             return subprocess.run(
-                ["git", *args], cwd=cwd, env=env, check=True, capture_output=True, text=True, stdin=subprocess.DEVNULL
+                ["git", *args],
+                cwd=cwd,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+                stdin=subprocess.DEVNULL,
             ).stdout
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -1087,7 +1095,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             git("commit", "-q", "-m", "squash", cwd=tmp)
             git("update-ref", "refs/remotes/origin/main", "HEAD", cwd=tmp)
             subprocess.run(
-                ["bash", "-c", blocks[0]], cwd=tmp, env=env, check=True, capture_output=True, stdin=subprocess.DEVNULL
+                ["bash", "-c", blocks[0]],
+                cwd=tmp,
+                env=env,
+                check=True,
+                capture_output=True,
+                stdin=subprocess.DEVNULL,
             )
             left = git("for-each-ref", "--format=%(refname:short)", "refs/heads/", cwd=tmp).split()
         self.assertEqual(set(left), {"main", "feat/open"})
