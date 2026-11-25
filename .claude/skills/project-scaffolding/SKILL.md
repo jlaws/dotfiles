@@ -153,7 +153,7 @@ in full, ask once, then run them. Nothing is installed before that single yes.
 Say what the approval actually covers. `npm install` runs lifecycle scripts, `pip install` runs build
 hooks, and `cargo build` runs `build.rs`, so the user is approving a transitive dependency tree rather
 than the string on screen. Prefer the lockfile-respecting form where the project has a lockfile
-(`npm ci`, `uv sync --frozen`), and pin versions rather than floating them.
+(`npm ci`, `uv sync --locked`, which fails on a stale lockfile), and pin versions rather than floating them.
 
 If an install command exits non-zero, stop there and do not run the gate. A missing binary makes the
 gate fail for the wrong reason and hides the real fault.

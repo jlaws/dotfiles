@@ -2712,6 +2712,23 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("untrusted TeX", path.read_text(encoding="utf-8"))
 
+    def test_no_kb_asset_recommends_uv_sync_frozen(self):
+        out = subprocess.run(
+            ["git", "ls-files", ".claude", ".agents", ".codex", ".gemini"],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+            stdin=subprocess.DEVNULL,
+        ).stdout.split()
+        for rel in out:
+            path = REPO / rel
+            if not path.is_file():
+                continue
+            with self.subTest(path=rel):
+                text = path.read_text(encoding="utf-8", errors="ignore")
+                self.assertNotRegex(text, r"uv sync --frozen")
+
     def test_eval_audit_asset_fixes_hold(self):
         def read(rel):
             return (REPO / rel).read_text(encoding="utf-8")
@@ -2722,7 +2739,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 text = read(rel)
                 self.assertIn("-- .gitignore", text)
                 self.assertIn(".git/info/exclude", text)
+                self.assertIn("git rev-parse --git-path info/exclude", text)
                 self.assertNotIn("Add to .gitignore, commit, then proceed", text)
+                self.assertNotIn("Add to .gitignore + commit", text)
         for tree in (".claude", ".agents"):
             ref = f"{tree}/references"
             with self.subTest(row="uv-workflows", tree=tree):
@@ -2732,6 +2751,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(row="python-packaging", tree=tree):
                 text = read(f"{ref}/languages/python-packaging-and-distribution.md")
                 self.assertNotIn("pydantic>=2.0,<3.0", text)
+                self.assertNotRegex(text, r"pydantic>=2[^\"\n]*<3")
             with self.subTest(row="js-ts-patterns", tree=tree):
                 text = read(f"{ref}/languages/js-ts-patterns.md")
                 lines = [ln for ln in text.splitlines() if '"import"' in ln and '"types"' in ln]
