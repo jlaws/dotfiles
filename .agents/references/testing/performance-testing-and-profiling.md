@@ -227,4 +227,4 @@ See `references/` for:
 
 ## Cross-References
 
-- **testing:debugging-methodology**: systematic debugging when profiling reveals unexpected behavior
+- **skill:debugging-methodology**: systematic debugging when profiling reveals unexpected behavior

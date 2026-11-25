@@ -54,7 +54,7 @@ when it is wrong. Name the start point every time:
 
 Harness-created worktrees (`--worktree`, `EnterWorktree`, the Agent tool's `isolation: "worktree"`)
 take their start point from the `worktree.baseRef` setting instead: `head` for your local HEAD,
-`fresh` for `origin/<default-branch>`. This repo sets `head` in `.claude/settings.json`.
+`fresh` for `origin/<default-branch>`. Check which one the project sets before relying on either.
 
 Either way, a worktree holds only committed work. Staged and modified files stay behind in the
 caller's tree, so anything you want isolated has to be committed first. That is also why reviewing in
@@ -160,6 +160,6 @@ collisions surface as merge conflicts after the fact. Coordinate before they hap
 
 ## Integration
 
-- **Called by:** brainstorming (after design approved), any skill needing isolation
+- **Called by:** any skill needing isolation
 - **Pairs with:** `finishing-branch` (cleanup after), `executing-plans` (work happens here)
 - **Defers to:** `dispatching-parallel-agents` on whether an agent should get a worktree at all

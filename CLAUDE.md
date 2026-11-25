@@ -17,7 +17,7 @@ Personal macOS dotfiles and development environment configuration. Combines trad
 ./setup.sh --dry-run -m    # Preview a step's changes without writing
 ```
 
-`setup.sh` is a shim that runs the `macos_setup` Python package (stdlib only, Python 3.12+).
+`setup.sh` is a shim that runs the `macos_setup` Python package (stdlib only; it runs on the system `python3`, 3.9 or later; the dev venv is 3.12+).
 
 ### Linting & Tests
 ```bash

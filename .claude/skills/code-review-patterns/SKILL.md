@@ -198,16 +198,16 @@ Every finding cites `file:line`. Run this with the harness Workflow / `deep-rese
 
 ## Cross-References
 
-Load these skills if the review scope requires them:
-- `workflow:code-quality`: if detecting code smells or anti-patterns not covered above
-- `security:security-analysis`: if the diff touches auth, crypto, network, or trust boundaries
-- `security:auth-implementation-patterns`: if reviewing auth/authz logic specifically
-- `security:secrets-management`: if the diff contains credentials, tokens, or env var handling
-- `testing:language-testing-patterns`: if assessing test coverage or test quality
-- `testing:test-driven-development`: if evaluating test design or TDD compliance
+Load these skills, or read these references, if the review scope requires them:
+- `code-quality`: if detecting code smells or anti-patterns not covered above
+- `${CLAUDE_SKILL_DIR}/../../references/security/security-analysis.md`: if the diff touches auth, crypto, network, or trust boundaries
+- `${CLAUDE_SKILL_DIR}/../../references/security/auth-implementation-patterns.md`: if reviewing auth/authz logic specifically
+- `${CLAUDE_SKILL_DIR}/../../references/security/secrets-management.md`: if the diff contains credentials, tokens, or env var handling
+- `language-testing-patterns`: if assessing test coverage or test quality
+- `test-driven-development`: if evaluating test design or TDD compliance
 - `verification-before-completion`: verdict grammar, evidence hierarchy, read-only reviewer contract
-- `workflow:pr-comment-resolution`: if responding to reviewer feedback on your own PR
-- `languages:*-patterns`: load the language-specific skill matching the primary language in the diff
-- `workflow:documentation-validation`: if the diff changes public surface or documented behavior and docs may be stale
+- `pr-comment-resolution`: if responding to reviewer feedback on your own PR
+- `${CLAUDE_SKILL_DIR}/../../references/languages/`: read the file matching the primary language in the diff
+- `documentation-validation`: if the diff changes public surface or documented behavior and docs may be stale
 
-If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `${CLAUDE_SKILL_DIR}/../../references/workflow/review-checklists` for domain-specific checklists.
+If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `${CLAUDE_SKILL_DIR}/../../references/workflow/review-checklists.md` for domain-specific checklists.

@@ -134,6 +134,6 @@ loses work silently.
 
 ## Integration
 
-- **Called by:** brainstorming (after design approved), any skill needing isolation
+- **Called by:** any skill needing isolation
 - **Pairs with:** `finishing-branch` (cleanup after), `executing-plans` (work happens here)
 - **Defers to:** `dispatching-parallel-agents` on whether an agent should get a worktree at all

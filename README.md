@@ -76,7 +76,7 @@ Or skip confirmation prompts:
 
 ## What the Setup Script Does
 
-`setup.sh` is a thin shim that runs the `macos_setup` Python package (Python 3.12+, standard
+`setup.sh` is a thin shim that runs the `macos_setup` Python package (system `python3`, 3.9 or later; standard
 library only — no virtualenv or pip installs at runtime). It performs three main tasks and
 **archives every file and setting it changes** so a run can be undone later (see
 [Uninstall / Reset](#uninstall--reset)).

@@ -50,7 +50,7 @@ Read every changed file in full to understand the surrounding context, not just 
 
 ## Step 3: Categorize Comments
 
-Cross-reference `workflow:code-review-patterns` severity labels when classifying.
+Use the `code-review-patterns` skill's severity labels when classifying.
 
 ```
 For each comment/review:
@@ -64,16 +64,16 @@ For each comment/review:
 
 ### Detect Language Context
 
-Inspect file extensions of changed files and cross-reference matching `languages:*` skills for implementation guidance:
+Inspect file extensions of changed files and read the matching reference under `~/.agents/references/languages/` for implementation guidance:
 
-| Extension | Skill |
-|-----------|-------|
-| `.py` | `languages:python-patterns` |
-| `.js`, `.ts`, `.tsx` | `languages:js-ts-patterns` |
-| `.go` | `languages:go-concurrency-patterns` |
-| `.sh` | `languages:bash-defensive-patterns` |
-| `.swift` | `languages:swift-patterns` |
-| `.rs` | `languages:rust-project-patterns` |
+| Extension | Reference |
+|-----------|-----------|
+| `.py` | `python-patterns.md` |
+| `.js`, `.ts`, `.tsx` | `js-ts-patterns.md` |
+| `.go` | `go-concurrency-patterns.md` |
+| `.sh` | `bash-defensive-patterns.md` |
+| `.swift` | `swift-patterns.md` |
+| `.rs` | `rust-project-patterns.md` |
 
 ### Produce Fix Plan
 
@@ -118,7 +118,7 @@ Reply with a clear, concise answer in the thread. Don't make unnecessary code ch
 
 ## Step 5: Verify & Push
 
-Cross-reference `workflow:verification-before-completion`: evidence before claims.
+Cross-reference `verification-before-completion`: evidence before claims.
 
 ```
 1. Run project tests (identify test command from package.json, Makefile, etc.)
@@ -173,6 +173,6 @@ Do not auto-file issues for deferred items. List them for the user to decide.
 
 ## Cross-References
 
-- `workflow:code-review-patterns`: Severity labels, comment response patterns
-- `workflow:verification-before-completion`: Verification gate before any completion claims
-- `languages:*-patterns`: Auto-detected language-specific implementation guidance
+- `code-review-patterns`: Severity labels, comment response patterns
+- `verification-before-completion`: Verification gate before any completion claims
+- `~/.agents/references/languages/`: language-specific implementation guidance for the detected language

@@ -89,5 +89,5 @@ Load proactively when:
 
 ## Cross-References
 
-- **workflow:llm-output-completeness**: root cause research and parameter tuning for truncation
-- **workflow:completeness-principle**: project-level completeness standards
+- `~/.agents/references/workflow/llm-output-completeness.md`: root cause research and parameter tuning for truncation
+- `~/.agents/references/workflow/completeness-principle.md`: project-level completeness standards
