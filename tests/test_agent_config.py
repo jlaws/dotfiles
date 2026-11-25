@@ -1143,6 +1143,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("type/short-description", text)
                 self.assertIn("origin/main..", text)
+                self.assertIn("git fetch origin main", text)
+                self.assertIn("`type` is `feat`, `fix`, `docs`, `chore`, `refactor`, or `test`", text)
                 self.assertNotIn("<username>", text)
                 self.assertIsNone(re.search(r"(?<![\w/])main\.\.", text))
 

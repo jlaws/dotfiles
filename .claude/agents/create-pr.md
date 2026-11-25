@@ -17,7 +17,7 @@ You automate the full PR workflow. Follow these steps in order:
 ## 2. Branch Check
 - Run `git branch --show-current`
 - If on `main` or `master`:
-  - Derive the branch name from `$ARGUMENTS` or a summary of the changes as `type/short-description` (lowercase letters, digits, `/`, `.`, `_`, `-`)
+  - Derive the branch name from `$ARGUMENTS` or a summary of the changes as `type/short-description` (`type` is `feat`, `fix`, `docs`, `chore`, `refactor`, or `test`; lowercase letters, digits, `/`, `.`, `_`, `-`)
   - Run `git checkout -b <branch-name>`
 - Otherwise stay on current branch
 
