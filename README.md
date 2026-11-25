@@ -267,7 +267,7 @@ The `.gemini/` directory contains a configuration optimized for Google Antigravi
 - **`antigravity-cli/settings.json`** — Antigravity permissions equal to the Claude allow list, translated
 - **`antigravity-cli/skills/`** — global workflow and command skills (`j-*/SKILL.md`) auto-discovered by Antigravity at `~/.gemini/antigravity-cli/skills/`
 
-Skills are synchronized to `~/.gemini/antigravity-cli/skills/` to match Antigravity's global skill discovery location. Slash commands (`/j-*`) are implemented as native Antigravity skills. Specialist subagents reside in `~/.gemini/config/agents/`. Permissions in `~/.gemini/antigravity-cli/settings.json` enforce parity with Claude and Codex allow/deny rules. References remain shared at `~/.agents/references/`. Legacy Gemini CLI artifacts (`.gemini/commands/`, `.gemini/agents/`, `.gemini/policies/`, `.gemini/hooks/`, and root `.gemini/settings.json`) have been removed. The existing `setup.sh -c` sync covers everything.
+Skills are synchronized to `~/.gemini/antigravity-cli/skills/` to match Antigravity's global skill discovery location. Slash commands (`/j-*`) are implemented as native Antigravity skills. Specialist subagents reside in `~/.gemini/config/agents/`. Permissions in `~/.gemini/antigravity-cli/settings.json` equal the Claude allow list, translated. References remain shared at `~/.agents/references/`. Legacy Gemini CLI artifacts (`.gemini/commands/`, `.gemini/agents/`, `.gemini/policies/`, `.gemini/hooks/`, and root `.gemini/settings.json`) have been removed. The existing `setup.sh -c` sync covers everything.
 
 #### Recommended Plugins
 

@@ -55,9 +55,26 @@ and `plan` mode, where most sessions run.
 `awk`, `xargs`, `env`, `git clone`, `git clean`, `gh api`, `gh pr merge`, `gh issue comment`, and
 `gh issue close`. On Antigravity also `make`, `python3`, `python`, `uv`, `cargo`, `ruff`, `rg`, and
 `find`.
-**Accepted limits** (recorded, not filed): a prefix rule cannot bound the target of `cp`, `mv`,
-`mkdir`, `touch`, or `sed -i`, nor a later `--force` on `git push`. The sandbox setting is the
-control for that class and stays off.
+**Accepted limits** (recorded, not filed): the rule above is a bound on what the KB pre-approves,
+not a proof that nothing kept can run code. These kept entries can still run a program or reach a
+remote. Each is workflow-critical, and a prefix rule cannot bound a flag in a later position:
+- `git commit`, `checkout`, `switch`, `merge`: repo hooks and filters run.
+- `git rebase`: `-x` and `--exec` run a command.
+- `git fetch`, `git pull`: `--upload-pack` runs a command.
+- `git push`: `--receive-pack`, a later `--force`, and any remote added with `git remote add`.
+- `git worktree`: checkout runs hooks.
+- `sed`: GNU `e` runs a command (macOS BSD `sed` lacks it); `sed -i` rewrites any file.
+- `sort`: `--compress-program` runs a program, `-o` writes any file.
+- `cp`, `mv`, `mkdir`, `touch`: can overwrite hook scripts, settings, and shell rc files.
+- `agent-browser`: launches a browser and sends to any URL.
+- `gh pr create`, `gh pr edit`: `--body-file` reads any file into a remote; `--repo` picks the target.
+- `cat`, `head`, `tail`, `grep`: reading `~/.ssh/...` through them is not a `Read`, so the `Read`
+  deny does not apply.
+
+`npm audit *` also matches `npm audit fix`, which runs an install; every tree denies or prompts
+for that one. The sandbox setting is the control for the rest of this class and stays off.
+`RETIRED_PERMISSIONS` only grows: deleting an entry would bring the old allow back on any machine
+that still holds it.
 
 ## Ruled Out
 | Idea | Why ruled out | When |
@@ -69,7 +86,8 @@ control for that class and stays off.
 
 ## Enforcement
 - Owner: `.claude/skills/*/SKILL.md` and `.claude/commands/*.md` frontmatter
-- Pinned by: audit `SK-F11` and `CM-F8`; `tests/test_reference_tree.py::SkillPreApprovalTests`
+- Pinned by: audit `SK-F11` and `CM-F8`; `tests/test_reference_tree.py::SkillPreApprovalTests`;
+  `tests/test_agent_config.py::test_no_agent_config_allows_a_retired_entry`
 
 ## Reversal Conditions
 - `allowed-tools` starts restricting the tool set instead of only pre-approving.
