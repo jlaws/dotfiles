@@ -500,15 +500,22 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertFalse(other.exists())
 
     def test_dry_run_reports_pruned_commands_without_removing_them(self):
-        gone = self._write_target(".claude/commands/j-gone.md")
+        for root, pattern in AGENT_ORPHAN_GLOBS:
+            with self.subTest(root=root):
+                self._write_repo(self._orphan_entry(root, pattern, "keep"))
+                gone = self._write_target(self._orphan_entry(root, pattern, "gone"))
 
-        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
-            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+                with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+                    sync_agents(self.repo, self.target, self.archive, dry_run=True)
 
-        self.assertTrue(gone.exists())
-        self.assertTrue(
-            any("would remove" in line and "j-gone.md" in line for line in captured.output)
-        )
+                self.assertTrue(gone.exists())
+                self.assertTrue(
+                    any(
+                        "would remove" in line and str(gone.parent) in line
+                        for line in captured.output
+                    ),
+                    captured.output,
+                )
 
     def test_keeps_a_user_authored_command_the_repo_never_shipped(self):
         notes = [
@@ -702,6 +709,21 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertTrue(victim.exists())
         self.assertTrue(hook.exists())
         self.assertTrue(any("symlink" in e and "commands" in e for e in captured.output))
+
+    def test_a_root_the_repo_ships_nothing_in_is_not_pruned(self):
+        stale = self._write_target(".claude/commands/j-user.md")
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertTrue(stale.exists())
+        self.assertTrue(
+            any(
+                "not pruning .claude/commands: the repo ships no j-*.md there" in e
+                for e in captured.output
+            ),
+            captured.output,
+        )
 
 
 class RevertFilesTests(unittest.TestCase):

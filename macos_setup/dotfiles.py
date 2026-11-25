@@ -346,7 +346,12 @@ def _agent_removal_paths(repo: Path, target: Path) -> Iterator[tuple[Path, str]]
 
     for root, pattern in AGENT_ORPHAN_GLOBS:
         shipped = {path.name for path in (repo / root).glob(pattern)}
-        for entry in sorted((target / root).glob(pattern)):
+        present = sorted((target / root).glob(pattern))
+        if not shipped:
+            if present:
+                _LOG.warning("not pruning %s: the repo ships no %s there", root, pattern)
+            continue
+        for entry in present:
             if entry.name in shipped:
                 continue
             if entry.is_symlink():
