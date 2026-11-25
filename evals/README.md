@@ -401,8 +401,9 @@ Absolute scores differ from a real session in these ways; comparisons within the
   stored 2026-11-16 baseline runs (both stagings, both models), and 5 of those runs record the
   error text. The same limit stops using-git-worktrees--effect-land-uncommitted-work: it needs
   `git commit` inside `.worktrees/feat-rst`, which fails with `Unable to create
-  '.../.git/worktrees/feat-rst/index.lock': Operation not permitted`; 4 of 6 runs of the 2026-12
-  baseline and 4 of 6 probe runs (3 kb, 1 vanilla) stopped on it.
+  '.../.git/worktrees/feat-rst/index.lock': Operation not permitted`. The probe reproduced it (4 of
+  6 probe runs, 3 kb and 1 vanilla, stopped on it); the 2026-12 baseline's 4 of 6 early stops are
+  consistent with the same limit, but their traces were not kept.
 - The child session inherits `ANTHROPIC_API_KEY`, so a run granted Bash could print it. The
   sandbox blocks network, and the key scan covers results, logs, and kept traces; traces of runs
   without `--keep-temp` are deleted by the CLI unscanned.
@@ -659,28 +660,39 @@ the whole asset batch in both arms, so the other cases of those three assets got
 | j-data--effect-late-events-incremental | A4: "3 days back" had two readings (three daily partitions, or a 3-day interval) | the claim accepts both and still fails a one-day or two-partition re-read | 0.67, 0.00 |
 | j-cloud--effect-large-upload-path | judged A3: the claim required a 1-hour expiry on every part URL | the claim now also accepts part URLs signed on demand | 1.00, 1.00 |
 
-The `j-cloud` loosening stands by owner decision. `references/cloud/file-storage-patterns.md` now
+The `j-cloud` loosening stands by the owner's 2026-11-25 decision. `references/cloud/file-storage-patterns.md` now
 states the rule the claim grades (sign each part on demand with a short expiry and re-sign on retry,
-or sign every part up front with an expiry that covers the whole upload), S3 documents no "one hour
-per part" rule, and read against the old claim all six stored Opus runs (both arms) chose short
-part URLs signed on demand. The case is unchanged.
+or sign every part up front with an expiry that covers the whole upload); it states no
+per-part one-hour rule. In a reviewer reading against the old claim (results keep no judge
+reasons) all six stored Opus runs (both arms) chose short part URLs signed on demand. The Sonnet
+split (kb 2 of 3, vanilla 1 of 3) is three-run noise on a claim both arms can meet; it was not
+investigated further. The case is unchanged
+in its prompt.
 
 Ten of the other eleven are dead and valid on Sonnet: the case is sound and both arms failed it.
 The eleventh, using-git-worktrees--effect-land-uncommitted-work, was unexplained until a probe
 (purpose `probe-land-uncommitted-work`, Claude Code 2.1.332, Sonnet, 3 runs per arm with
-`--keep-temp`, 0.3908 USD). Every run of 5 turns or fewer (3 kb, 1 vanilla) read the state, ran
+`--keep-temp`; the stored baselines ran on 2.1.331; spend 0.3908 USD, in the ledger under that
+purpose, while `evals/spend.json` is a snapshot not refreshed here). Every run of 5 turns or fewer (3 kb, 1 vanilla) read the state, ran
 `git commit` in `.worktrees/feat-rst`, and got `fatal: Unable to create
 '<workspace>/.git/worktrees/feat-rst/index.lock': Operation not permitted`. They then stopped and
 told the user to run the commands. The cause is the sandbox limit recorded under Divergences, not
-the case or the skill, and no run asked about the prompt or quoted a skill rule. The case prompt is
-unchanged for this finding. The 2026-12 stops are the same cause by the same signature; their
-traces were not kept. The case needs a worktree commit, so under the sandbox it can pass only on
-runs that avoid the error. All eleven stay as they are.
+the case or the skill, and no run asked about the prompt or quoted a skill rule. The two longer
+vanilla runs (6 and 7 turns) also hit the error and scored 0.6 (`merged-not-copied`, `work-landed`,
+and `worktree-kept` passed). The `skill-loaded` and `used-git-merge` graders reported "Bash called
+0x" on runs that did run git; that is recorded as an open question about tool-call counting and was
+not investigated here. The probe traces live outside the repo (results under the kbeval state
+directory, traces under `/private/tmp`, both ephemeral); the stored excerpt is the one error line
+above. There is no prompt-wording change for this finding; the prompt now also writes `merges.txt`
+and `merged-not-copied` reads it (case-defect fix below), so stored scores for this case predate
+that change. The 2026-12 stops show the same signature as far as the stored outputs go. The case
+needs a worktree commit, so under the sandbox a pass needs a run that avoids or gets past the error:
+the stored Opus runs (kb 1.0, vanilla 1.0) did. All eleven stay as they are.
 
 | Case | What the runs did |
 |---|---|
 | business-analyst--effect-tracking-reset | every failing plan starts with 20 to 30 events against the reference's 10 to 15; one kb run read the rule and overrode it |
-| code-quality--effect-marker-audit | the skill loaded in 0 of 3 kb runs, and every run in both arms called the login shortcut sanctioned (`tasks/kb-asset-defects-from-eval-audit.md`) |
+| code-quality--effect-marker-audit | the skill loaded in 0 of 3 kb runs, and every Sonnet run in both arms called the login shortcut sanctioned (Opus passed 1.0 / 1.0) (`tasks/kb-asset-defects-from-eval-audit.md`) |
 | code-review-patterns--effect-receiving-comments | all 6 runs asked about the unclear comment but implemented a clear one first, including the kb run that loaded the skill; the case grades only `replies.md`, and lint's grounding rule bars a grader on the seeded `calc/ops.py`, so a run that edited the file while claiming otherwise would pass; no stored run did |
 | dependency-upgrade--effect-multi-major-plan | all 6 plans upgrade jest before express and mongoose; the skill loaded in all 3 kb runs |
 | j-devops--effect-latency-api-resources | failing runs set the memory limit equal to the request; no kb run read the reference |
@@ -755,7 +767,7 @@ Per-case rows are in `evals/baselines/<model>/<suite>.json`.
   loaded in 0 of 3 runs; Sonnet kb 0.67). They were not judged for case faults.
 - Two new cases score kb below vanilla on both models: j-docs--effect-upgrade-warning-order and
   workflow-architect--effect-hidden-entry-points. Both were checked against A3 and A4
-  after the baseline. A3 passes for both (j-docs asks for the rule the asset states; for
+  after the baseline (a manual reading, no ledger purpose). A3 passes for both (j-docs asks for the rule the asset states; for
   workflow-architect vanilla also meets the claim). A4 is `ambiguous` for both: j-docs outputs state
   the risk twice and the judge split on identical structure, so claim 1 now covers every sentence
   that says --drop-legacy deletes the table; workflow-architect claim 3 turned on the reference's
@@ -1120,7 +1132,7 @@ asset was audited; `make eval-headroom` gives the current class.
 
 ## Post-audit asset fixes (2026-11-25)
 
-Fixes for the asset defects the case audit listed. Evidence standard: a bullet whose covering case
+Fixes for the asset defects the case audit listed, except code-quality (tuned separately). Evidence standard: a bullet whose covering case
 already fails in a stored baseline cites that row; every other fix has a text pin in
 `tests/test_agent_config.py` (`test_eval_audit_asset_fixes_hold`). A bullet with no failing case is
 UNPROVEN: the fix stands on the pin, and the reason is given.
