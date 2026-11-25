@@ -17,6 +17,8 @@ from typing import Dict, List, NamedTuple, Optional, Set, Tuple
 SIDECAR = ".meta.json"
 RESULT_TYPES = frozenset({"regex", "file_exists", "llm"})
 EPS = 1e-9
+REGRESSED_DROP = 2 / 3  # a kb score drop that regresses a case on one model
+NOISE_DROP = 1 / 3  # one run in three: within run-to-run noise
 
 Cases = Dict[str, dict]
 
@@ -183,8 +185,8 @@ def regressed(
     return [
         name
         for name, by in drops.items()
-        if any(d >= 2 / 3 - EPS for d in by.values())
-        or (len(by) >= 2 and all(d >= 1 / 3 - EPS for d in by.values()))
+        if any(d >= REGRESSED_DROP - EPS for d in by.values())
+        or (len(by) >= 2 and all(d >= NOISE_DROP - EPS for d in by.values()))
     ]
 
 

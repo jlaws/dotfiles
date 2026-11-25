@@ -109,6 +109,7 @@ def _effect_cases(plugin: Path, assets: List[str]) -> List[str]:
 
 def pilot(jobs: int = 8, cli: Optional[runner.Cli] = None) -> int:
     """Run the pilot cases once on both models: triggers on kb, effects on kb and vanilla."""
+    cli = cli or runner.ClaudeCli()
     kb, vanilla = _stage("kb"), _stage("vanilla")
     assets = list(PILOT_ASSETS)
     for model in MODELS:
@@ -139,6 +140,7 @@ def _branch() -> str:
 
 def smoke(assets: List[str], jobs: int = 8, cli: Optional[runner.Cli] = None) -> int:
     """Run kb once per case on Sonnet for `assets`, then vanilla on their first effect cases."""
+    cli = cli or runner.ClaudeCli()
     budget = runner.load_budget(REPO)
     purpose = f"smoke-{_branch().replace('/', '-')}"
     kb, vanilla = _stage("kb"), _stage("vanilla")
@@ -174,6 +176,7 @@ def baseline(
     cap_usd: Optional[float] = None,
 ) -> int:
     """Run the full baseline for one model: kb at three runs per case, vanilla as configured."""
+    cli = cli or runner.ClaudeCli()
     kb = _stage("kb", exclude_tags)
     assets = sorted(repo_assets(REPO))
     state = state_root() / "results"

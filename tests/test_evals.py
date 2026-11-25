@@ -8,12 +8,14 @@ tests at the end run lint and coverage on the repo itself.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
 import subprocess
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 from typing import ClassVar
 
@@ -221,6 +223,44 @@ class TempRepoCase(unittest.TestCase):
 
 
 class StageTests(TempRepoCase):
+    def test_marker_holds_the_source_digest_outside_the_plugin(self):
+        plugin = self.stage()
+        marker = json.loads((self.tmp / "out-kb" / ".kbeval-stage").read_text())
+        self.assertRegex(marker["sourceDigest"], r"^[0-9a-f]{64}$")
+        self.assertEqual(marker["staging"], "kb")
+        self.assertFalse((plugin / ".kbeval-stage").exists())
+        self.assertIsNone(kstage.staleness(self.repo, plugin))
+
+    def test_staleness_reports_an_edit_and_a_missing_digest(self):
+        plugin = self.stage()
+        (self.repo / ".claude/references/cat/ref.md").write_text("# Changed\n")
+        self.assertRegex(
+            kstage.staleness(self.repo, plugin) or "",
+            r"^staged plugin .* is stale \(staged [0-9a-f]{8}, tree [0-9a-f]{8}\)$",
+        )
+        (self.tmp / "out-kb" / ".kbeval-stage").write_text("staged by evals.kbeval\n")
+        self.assertIn("holds no source digest", kstage.staleness(self.repo, plugin) or "")
+
+    def test_staleness_sees_an_edit_to_the_case_loader(self):
+        plugin = self.stage()
+        loader = self.repo / "evals" / "kbeval" / "cases.py"
+        loader.parent.mkdir(parents=True, exist_ok=True)
+        loader.write_text("# loader\n")
+        self.assertIsNotNone(kstage.staleness(self.repo, plugin))
+
+    def test_staleness_reports_a_missing_marker(self):
+        plugin = self.stage()
+        (self.tmp / "out-kb" / ".kbeval-stage").unlink()
+        self.assertIn("holds no source digest", kstage.staleness(self.repo, plugin) or "")
+
+    def test_a_vanilla_staging_ignores_a_claude_edit_but_sees_a_case_edit(self):
+        plugin = self.stage("vanilla")
+        (self.repo / ".claude/references/cat/ref.md").write_text("# Changed\n")
+        self.assertIsNone(kstage.staleness(self.repo, plugin))
+        case = self.repo / "evals/cases/effects/j-demo--effect-cache/prompt.md"
+        case.write_text(case.read_text() + "More.\n")
+        self.assertIn("is stale", kstage.staleness(self.repo, plugin) or "")
+
     def test_stage_refuses_unmarked_nonempty_out(self):
         out = self.tmp / "busy"
         out.mkdir()
@@ -1327,12 +1367,14 @@ API_ERROR_TEXT = re.compile(r"(?i)api error|rate.?limit")
 class FakeCli:
     """Records argv; `responder(args)` returns (doc or None, returncode, stderr)."""
 
-    def __init__(self, responder):
+    def __init__(self, responder, versions=("2.1.325 (Claude Code)",)):
         self.responder = responder
         self.calls = []
+        self.versions = list(versions)
 
     def version(self) -> str:
-        return "2.1.325 (Claude Code)"
+        """Return successive versions, repeating the last."""
+        return self.versions.pop(0) if len(self.versions) > 1 else self.versions[0]
 
     def run(self, args):
         self.calls.append(list(args))
@@ -1403,6 +1445,29 @@ class RunnerGuardTests(RunnerCase):
         with mock.patch.dict(os.environ, env, clear=True):
             with self.assertRaises(krunner.PaidCallRefusedError):
                 krunner.ClaudeCli().run(["plugin", "eval", "."])
+
+    def test_cli_keeps_the_binary_it_resolved_at_start(self):
+        bin_dir = self.tmp / "bin"
+        versions = self.tmp / "versions"
+        bin_dir.mkdir()
+        versions.mkdir()
+        for number in ("2.1.331", "2.1.332"):
+            script = versions / number
+            script.write_text(f"#!/bin/sh\necho '{number} (Claude Code)'\n")
+            script.chmod(0o755)
+        link = bin_dir / "claude"
+        link.symlink_to(versions / "2.1.331")
+        env = {**os.environ, "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            cli = krunner.ClaudeCli()
+            self.assertEqual(cli.version(), "2.1.331 (Claude Code)")
+            link.unlink()
+            link.symlink_to(versions / "2.1.332")
+            self.assertEqual(cli.version(), "2.1.331 (Claude Code)")
+
+    def test_cli_version_reads_the_leading_number(self):
+        self.assertEqual(krunner.cli_version("2.1.331 (Claude Code)"), "2.1.331")
+        self.assertEqual(krunner.cli_version(" odd \n"), "odd")
 
     def test_runner_refuses_without_api_key(self):
         cli = FakeCli(lambda args: (result_doc({}), 0, ""))
@@ -2701,9 +2766,12 @@ class ResultsLoaderTests(unittest.TestCase):
                 self.assertEqual(out.getvalue(), line)
 
 
-def summary_doc(cases: dict, model: str = OPUS) -> dict:
+def summary_doc(
+    cases: dict, model: str = OPUS, judge: str = "claude-fable-5-2", version: str = "2.1.331"
+) -> dict:
     return {
         "schema": 1, "suite": "effects", "model": model,
+        "judgeModel": judge, "claudeVersion": version,
         "aggregates": {
             "kb": {"mean": sum(c[0] for c in cases.values()) / len(cases), "ci95": [0.4, 0.9]},
             "vanilla": {"mean": 0.3, "ci95": [0.1, 0.5]},
@@ -2725,22 +2793,81 @@ class CompareTests(unittest.TestCase):
             {"a--effect-x": (1.0, True), "b--effect-y": (0.5, False), "c--effect-gone": (1.0, True)}
         )
         new = summary_doc(
-            {"a--effect-x": (0.6, False), "b--effect-y": (0.5, False), "d--effect-new": (1.0, True)}
+            {"a--effect-x": (0.3, False), "b--effect-y": (0.5, False), "d--effect-new": (1.0, True)}
         )
         report = "\n".join(kcompare.compare(old, new))
         self.assertIn("suite mean", report)
         self.assertIn("[0.40, 0.90]", report)
-        self.assertRegex(report, r"a--effect-x.*1\.00 -> 0\.60")
+        self.assertRegex(report, r"a--effect-x.*1\.00 -> 0\.30")
         self.assertRegex(report, r"a--effect-x.*pass -> fail")
         self.assertNotRegex(report, r"b--effect-y.*->")
         self.assertRegex(report, r"c--effect-gone.*not run here")
         self.assertRegex(report, r"d--effect-new.*not run here")
         self.assertNotIn("removed", report)
 
-    def test_drop_of_exactly_one_third_is_reported(self):
+    def test_a_one_run_in_three_drop_is_counted_as_noise(self):
         old = summary_doc({"a--effect-x": (1.0, True)})
-        new = summary_doc({"a--effect-x": (2 / 3, True)})
-        self.assertRegex("\n".join(kcompare.compare(old, new)), r"a--effect-x.*1\.00 -> 0\.67")
+        new = summary_doc({"a--effect-x": (0.6667, True)})
+        report = "\n".join(kcompare.compare(old, new))
+        self.assertNotRegex(report, r"a--effect-x.*->")
+        self.assertIn("regressed: none", report)
+        self.assertIn("within run-to-run noise: 1 cases", report)
+
+    def test_a_rounded_two_thirds_drop_is_listed(self):
+        old = summary_doc({"a--effect-x": (1.0, True)})
+        new = summary_doc({"a--effect-x": (0.3333, True)})
+        report = "\n".join(kcompare.compare(old, new))
+        self.assertIn("regressed (1):", report)
+        self.assertRegex(report, r"a--effect-x.*1\.00 -> 0\.33")
+
+    def test_an_unknown_passed_value_is_not_a_flip(self):
+        for old_passed, new_passed in ((None, True), (True, None), (None, None)):
+            with self.subTest(old=old_passed, new=new_passed):
+                old = summary_doc({"a--effect-x": (1.0, old_passed)})
+                new = summary_doc({"a--effect-x": (1.0, new_passed)})
+                report = "\n".join(kcompare.compare(old, new))
+                self.assertIn("within run-to-run noise: 0 cases", report)
+
+    def test_a_summary_without_judge_model_compares_with_the_other_judge(self):
+        old = summary_doc({"a--effect-x": (1.0, True)})
+        del old["judgeModel"]
+        new = summary_doc({"a--effect-x": (1.0, True)})
+        self.assertEqual(
+            kcompare.compare(old, new)[1], "judge claude-fable-5-2; Claude Code 2.1.331"
+        )
+        del new["judgeModel"]
+        self.assertEqual(kcompare.compare(old, new)[1], "judge unknown; Claude Code 2.1.331")
+
+    def test_a_drop_of_three_tenths_is_neither_regressed_nor_noise(self):
+        old = summary_doc({"a--effect-x": (1.0, True)})
+        new = summary_doc({"a--effect-x": (0.7, True)})
+        report = "\n".join(kcompare.compare(old, new))
+        self.assertIn("regressed: none", report)
+        self.assertIn("within run-to-run noise: 0 cases", report)
+        self.assertNotRegex(report, r"a--effect-x.*->")
+
+    def test_compare_refuses_different_judge_models(self):
+        old = summary_doc({"a--effect-x": (1.0, True)}, judge="j1")
+        new = summary_doc({"a--effect-x": (1.0, True)}, judge="j2")
+        with self.assertRaises(kcompare.IncomparableError):
+            kcompare.compare(old, new)
+
+    def test_compare_marks_a_claude_version_change(self):
+        old = summary_doc({"a--effect-x": (1.0, True)}, version="2.1.330")
+        new = summary_doc({"a--effect-x": (1.0, True)})
+        lines = kcompare.compare(old, new)
+        self.assertEqual(
+            lines[1],
+            "judge claude-fable-5-2; Claude Code 2.1.330 -> 2.1.331 "
+            "(differs: a change below may come from the CLI, not the KB)",
+        )
+        same = kcompare.compare(new, new)
+        self.assertEqual(same[1], "judge claude-fable-5-2; Claude Code 2.1.331")
+
+    def test_compare_allows_different_models(self):
+        old = summary_doc({"a--effect-x": (1.0, True)}, model="m1")
+        new = summary_doc({"a--effect-x": (1.0, True)}, model="m2")
+        self.assertIn("m1 -> m2", kcompare.compare(old, new)[0])
 
     def test_small_drop_is_not_a_regression(self):
         old = summary_doc({"a--effect-x": (1.0, True)})
@@ -2889,6 +3016,14 @@ class HeadroomTests(unittest.TestCase):
         )
 
 
+class FixedClock(datetime):
+    """A `datetime` whose `now` is a fixed instant, so a date check cannot cross midnight."""
+
+    @classmethod
+    def now(cls, tz=None):
+        return cls(2026, 11, 25, 12, 0, 0, tzinfo=tz)
+
+
 class RunnerSafetyTests(RunnerCase):
     def test_truncated_json_keeps_the_cap_charged(self):
         def responder(args):
@@ -2904,6 +3039,27 @@ class RunnerSafetyTests(RunnerCase):
             [(e["charged"], e["costUsd"]) for e in self.entries()], [("reserved", 60.0)]
         )
 
+    def test_paths_that_keep_the_cap_charged_print_the_settle_command(self):
+        def unreadable(args):
+            return None, 143, "killed"
+
+        def bad_cost(args):
+            return result_doc({"j-demo--effect-cache": [None]}, cost=-1.0), 0, ""
+
+        def leaked(args):
+            doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.0)
+            doc["note"] = "sk-ant-abc"
+            return doc, 0, ""
+
+        for name, responder in (("unreadable", unreadable), ("cost", bad_cost), ("leak", leaked)):
+            with self.subTest(name):
+                self.ledger_path.unlink(missing_ok=True)
+                code, err = self.run_suite(FakeCli(responder))
+                self.assertNotEqual(code, 0)
+                reserved = self.entries()[0]
+                self.assertIn("python3 -m evals.kbeval settle", err)
+                self.assertIn(f"--id {reserved['id']}", err)
+
     def test_load_error_charges_nothing(self):
         cli = FakeCli(lambda args: (None, 1, "Error: No eval cases found"))
         code, err = self.run_suite(cli)
@@ -2918,6 +3074,202 @@ class RunnerSafetyTests(RunnerCase):
         with self.assertRaises(KeyboardInterrupt):
             self.run_suite(FakeCli(responder))
         self.assertEqual([e["charged"] for e in self.entries()], ["reserved"])
+
+    def test_interrupt_names_the_settle_command(self):
+        def responder(args):
+            raise KeyboardInterrupt
+
+        messages = []
+        with (
+            mock.patch.object(krunner, "_err", messages.append),
+            self.assertRaises(KeyboardInterrupt),
+        ):
+            self.run_suite(FakeCli(responder))
+        text = "\n".join(messages)
+        self.assertIn("python3 -m evals.kbeval settle", text)
+        self.assertIn("--purpose test", text)
+        self.assertIn("--batch j-demo", text)
+        self.assertIn(f"--id {self.entries()[0]['id']}", text)
+
+    def test_settle_command_quotes_values_and_uses_a_plain_placeholder(self):
+        batches = krunner._Batches(
+            "effects", "kb", MODEL, 3, "x; rm -rf ~", 8, FakeCli(lambda a: (None, 0, "")),
+            {"plugin": self.plugin, "state": self.state, "budget": self.budget},
+        )  # fmt: skip
+        text = batches.settle_command("a b$(id)", {"id": "abc"})
+        self.assertIn("--purpose 'x; rm -rf ~'", text)
+        self.assertIn("--batch 'a b$(id)'", text)
+        self.assertIn("--actual-usd N", text)
+        self.assertNotIn("<", text)
+        self.assertIn("replace N with the billed USD", batches.charged_hint("b", 1.0, {"id": "a"}))
+
+    def test_interrupt_rerun_then_settle_by_id_succeeds(self):
+        def responder(args):
+            raise KeyboardInterrupt
+
+        self.budget["ceilingUsd"] = 1000
+        hints = []
+        for _ in range(2):
+            messages = []
+            with (
+                mock.patch.object(krunner, "_err", messages.append),
+                self.assertRaises(KeyboardInterrupt),
+            ):
+                self.run_suite(FakeCli(responder))
+            hints.append("\n".join(messages))
+        ids = [e["id"] for e in self.entries()]
+        self.assertEqual(len(ids), 2)
+        key = {k: self.entries()[0][k] for k in
+               ("period", "purpose", "staging", "model", "suite", "batch")}  # fmt: skip
+        with self.assertRaisesRegex(kledger.LedgerError, "2 open reservations"):
+            kledger.settle_open(key, 1.0, "interrupted", self.ledger_path)
+        for text, reservation_id in zip(hints, ids):
+            self.assertIn(f"--id {reservation_id}", text)
+        kledger.settle_open(key, 1.0, "interrupted", self.ledger_path, reservation_id=ids[0])
+        kledger.settle_open(key, 1.0, "interrupted", self.ledger_path, reservation_id=ids[1])
+        self.assertEqual(kledger.open_reservations("p", self.ledger_path), [])
+
+    def test_runner_does_not_settle_a_reservation_twice(self):
+        def responder(args):
+            reservation = kledger.open_reservations("p", self.ledger_path)[0]
+            kledger.settle_open(
+                {k: reservation[k] for k in
+                 ("period", "purpose", "staging", "model", "suite", "batch")},
+                7.0, "by hand", self.ledger_path,
+            )  # fmt: skip
+            return result_doc({"j-demo--effect-cache": [None]}, cost=0.5), 0, ""
+
+        code, err = self.run_suite(FakeCli(responder))
+        self.assertEqual(code, 0)
+        self.assertAlmostEqual(kledger.spent("p", self.ledger_path), 7.0)
+        self.assertEqual(len([e for e in self.entries() if e["charged"] == "settle"]), 1)
+        self.assertIn("j-demo: reservation already settled by hand; that row stands", err)
+
+    def test_a_hand_row_without_actual_usd_counts_the_cap(self):
+        batches = krunner._Batches(
+            "effects", "kb", MODEL, 3, "test", 8, FakeCli(lambda a: (None, 0, "")),
+            {"plugin": self.plugin, "state": self.state, "budget": self.budget,
+             "ledger_path": self.ledger_path},
+        )  # fmt: skip
+        reserved = kledger.reserve(
+            batches._entry("j-demo", 30.0, "reserved", capUsd=30.0), 1000, 0, self.ledger_path
+        )
+        assert reserved is not None
+        kledger.append(
+            {**batches._entry("j-demo", -25.0, "settle"), "settles": reserved["id"]},
+            self.ledger_path,
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            batches.settle("j-demo", 30.0, 1.0, reserved)
+        self.assertAlmostEqual(batches.invocation_spent, 30.0)
+
+    def test_a_hand_settled_batch_still_counts_against_the_invocation_cap(self):
+        def responder(args):
+            if case_arg(args).startswith("j-demo"):
+                reservation = kledger.open_reservations("p", self.ledger_path)[0]
+                kledger.settle_open(
+                    {k: reservation[k] for k in
+                     ("period", "purpose", "staging", "model", "suite", "batch")},
+                    7.0, "by hand", self.ledger_path,
+                )  # fmt: skip
+            return result_doc({case_arg(args).rstrip("*-"): [None]}, cost=0.5), 0, ""
+
+        code, err = self.run_suite(
+            FakeCli(responder), assets=("j-demo", "demo-skill"), cap_limit=10.0
+        )
+        self.assertEqual(code, 0, err)
+        second = [e for e in self.entries() if e["charged"] == "reserved"][1]
+        self.assertAlmostEqual(second["capUsd"], 3.0)
+
+    def test_a_version_change_between_batches_stops_the_run(self):
+        versions = ("2.1.325 (Claude Code)", "2.1.325 (Claude Code)", "2.1.326 (Claude Code)")
+        cli = FakeCli(
+            lambda args: (result_doc({case_arg(args).rstrip("*-"): [None]}), 0, ""), versions
+        )
+        code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))
+        self.assertEqual(code, 4)
+        self.assertEqual(len(cli.calls), 1)
+        self.assertIn("2.1.325", err)
+        self.assertIn("2.1.326", err)
+        self.assertEqual(len([e for e in self.entries() if e["charged"] == "reserved"]), 1)
+
+    def test_an_empty_version_reading_is_named_as_such(self):
+        versions = ("2.1.325 (Claude Code)", "2.1.325 (Claude Code)", "")
+        cli = FakeCli(
+            lambda args: (result_doc({case_arg(args).rstrip("*-"): [None]}), 0, ""), versions
+        )
+        code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))
+        self.assertEqual(code, 4)
+        self.assertEqual(len(cli.calls), 1)
+        self.assertIn("claude --version printed nothing", err)
+        self.assertNotIn("changed from 2.1.325 to ", err)
+
+    def test_an_unchanged_version_does_not_stop_the_run(self):
+        cli = FakeCli(lambda args: (result_doc({case_arg(args).rstrip("*-"): [None]}), 0, ""))
+        code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))
+        self.assertEqual(code, 0, err)
+        self.assertEqual(len(cli.calls), 2)
+
+    def test_a_result_from_another_version_is_quarantined_with_a_note(self):
+        doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
+        doc["claudeVersion"] = "2.1.326"
+        with mock.patch.object(krunner, "datetime", FixedClock):
+            code, err = self.run_suite(FakeCli(lambda args: (doc, 0, "")))
+        self.assertEqual(code, 4, err)
+        base = self.state / "test" / "kb" / MODEL / "effects"
+        self.assertFalse((base / "j-demo.json").exists())
+        self.assertFalse((base / "j-demo.key").exists())
+        settles = [e for e in self.entries() if e["charged"] == "settle"]
+        self.assertEqual([e["actualUsd"] for e in settles], [1.5])
+        folders = list((self.state.parent / "quarantine").glob("2026-11-25-cli-2.1.326"))
+        self.assertEqual(len(folders), 1)
+        rel = Path("test") / "kb" / MODEL / "effects"
+        moved = folders[0] / rel / "j-demo.json"
+        self.assertTrue(moved.is_file())
+        self.assertTrue((folders[0] / rel / "j-demo").is_dir())
+        self.assertFalse((base / "j-demo").exists())
+        note = (folders[0] / "README.txt").read_text()
+        for expected in ("j-demo", "2.1.326", "2.1.325", "1.50", "j-demo.json"):
+            self.assertIn(expected, note)
+
+    def test_a_traversal_shaped_claude_version_stays_inside_quarantine(self):
+        doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
+        doc["claudeVersion"] = "/../../../tmp/x"
+        code, err = self.run_suite(FakeCli(lambda args: (doc, 0, "")))
+        self.assertEqual(code, 4, err)
+        base = self.state.parent / "quarantine"
+        folders = [p for p in base.iterdir() if p.is_dir()]
+        self.assertEqual(len(folders), 1)
+        self.assertRegex(folders[0].name, r"^\d{4}-\d{2}-\d{2}-cli-[0-9A-Za-z._]+$")
+        self.assertTrue((folders[0] / "README.txt").is_file())
+
+    def test_a_repeat_quarantine_for_one_version_never_overwrites(self):
+        def mismatched(args):
+            doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
+            doc["claudeVersion"] = "2.1.326"
+            return doc, 0, ""
+
+        for _ in range(2):
+            code, err = self.run_suite(FakeCli(mismatched))
+            self.assertEqual(code, 4, err)
+        folders = sorted((self.state.parent / "quarantine").glob("*-cli-2.1.326*"))
+        self.assertEqual(len(folders), 2)
+        self.assertTrue(folders[1].name.endswith("-cli-2.1.326-2"))
+        rel = Path("test") / "kb" / MODEL / "effects"
+        for folder in folders:
+            self.assertTrue((folder / rel / "j-demo.json").is_file())
+            self.assertTrue((folder / rel / "j-demo" / "cli.log").is_file())
+            self.assertFalse((folder / rel / "j-demo" / "j-demo").exists())
+
+    def test_a_result_without_claude_version_is_kept_with_a_warning(self):
+        doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
+        doc.pop("claudeVersion", None)
+        code, err = self.run_suite(FakeCli(lambda args: (doc, 0, "")))
+        self.assertEqual(code, 0, err)
+        self.assertIn("carries no claudeVersion", err)
+        base = self.state / "test" / "kb" / MODEL / "effects"
+        self.assertTrue((base / "j-demo.json").exists())
+        self.assertFalse((self.state.parent / "quarantine").exists())
 
     def test_bad_cost_values_abort_with_the_cap_charged(self):
         for cost in (float("nan"), -1.0, "1.0"):
@@ -3027,6 +3379,76 @@ class LedgerSafetyTests(unittest.TestCase):
         )
         self.assertAlmostEqual(kledger.spent("p", self.path), 80.0)
 
+    KEY: ClassVar[dict] = {
+        "period": "p", "purpose": "t", "staging": "kb", "model": "m", "suite": "effects",
+        "batch": "b",
+    }  # fmt: skip
+
+    def reserve(self, cost=60.0, **extra):
+        entry = {**self.KEY, "costUsd": cost, "charged": "reserved", "capUsd": cost, **extra}
+        return kledger.reserve(entry, 1000, 0, self.path)
+
+    def test_settle_open_refunds_the_gap_to_a_stated_cost(self):
+        reserved = self.reserve(60.0)
+        row = kledger.settle_open(self.KEY, 12.5, "interrupted", self.path)
+        self.assertAlmostEqual(kledger.spent("p", self.path), 12.5)
+        self.assertEqual(row["settles"], reserved["id"])
+        self.assertEqual(kledger.open_reservations("p", self.path), [])
+
+    def test_settle_open_refuses_when_nothing_is_open(self):
+        with self.assertRaises(kledger.LedgerError):
+            kledger.settle_open(self.KEY, 1.0, "interrupted", self.path)
+
+    def test_settle_open_refuses_when_several_match(self):
+        self.reserve(10.0)
+        self.reserve(10.0)
+        with self.assertRaisesRegex(kledger.LedgerError, "2 open reservations"):
+            kledger.settle_open(self.KEY, 1.0, "interrupted", self.path)
+
+    def test_settle_open_by_id_closes_exactly_that_reservation(self):
+        first = self.reserve(10.0)
+        second = self.reserve(10.0)
+        row = kledger.settle_open(
+            self.KEY, 1.0, "interrupted", self.path, reservation_id=first["id"]
+        )
+        self.assertEqual(row["settles"], first["id"])
+        self.assertEqual(
+            [r["id"] for r in kledger.open_reservations("p", self.path)], [second["id"]]
+        )
+        with self.assertRaisesRegex(kledger.LedgerError, "not open"):
+            kledger.settle_open(self.KEY, 1.0, "x", self.path, reservation_id=first["id"])
+        with self.assertRaisesRegex(kledger.LedgerError, "not open"):
+            kledger.settle_open(self.KEY, 1.0, "x", self.path, reservation_id="nope")
+
+    def test_settle_open_by_id_refuses_a_reservation_of_another_batch(self):
+        other = self.reserve(10.0, batch="other")
+        with self.assertRaisesRegex(kledger.LedgerError, "not open"):
+            kledger.settle_open(self.KEY, 1.0, "x", self.path, reservation_id=other["id"])
+
+    def test_several_match_error_lists_each_id_and_names_the_flag(self):
+        first = self.reserve(10.0)
+        second = self.reserve(10.0)
+        with self.assertRaises(kledger.LedgerError) as raised:
+            kledger.settle_open(self.KEY, 1.0, "interrupted", self.path)
+        text = str(raised.exception)
+        self.assertIn(first["id"], text)
+        self.assertIn(second["id"], text)
+        self.assertIn("--id", text)
+
+    def test_settle_open_pairs_legacy_rows_last_in_first_out(self):
+        reserved = {**self.KEY, "costUsd": 10.0, "charged": "reserved"}
+        settle = {**self.KEY, "costUsd": -9.0, "charged": "settle"}
+        for number, row in enumerate((reserved, settle, reserved, reserved, settle)):
+            kledger.append({**row, "ts": f"t{number}"}, self.path)
+        opened = kledger.open_reservations("p", self.path)
+        self.assertEqual([e["ts"] for e in opened], ["t2"])
+
+    def test_a_rerun_reservation_names_the_row_it_replaces(self):
+        first = self.reserve()
+        second = self.reserve()
+        self.assertNotIn("replaces", first)
+        self.assertEqual(second["replaces"], first["id"])
+
     def test_torn_line_fails_closed_naming_the_line(self):
         kledger.append({"period": "p", "costUsd": 1.0}, self.path)
         with open(self.path, "a") as handle:
@@ -3111,6 +3533,138 @@ class EntryPointTests(OrchestrateTests):
         "--purpose",
         "fanout-x",
     ]
+
+    def setUp(self):
+        super().setUp()
+        patch = mock.patch.object(kmain.kstage, "staleness", return_value=None)
+        self.staleness = patch.start()
+        self.addCleanup(patch.stop)
+        marker = mock.patch.object(kmain.kstage, "marker_staging", return_value="kb")
+        self.marker_staging = marker.start()
+        self.addCleanup(marker.stop)
+
+    def test_compare_exits_1_on_incomparable_summaries(self):
+        paths = []
+        for name, judge in (("old", "j1"), ("new", "j2")):
+            path = self.tmp / f"{name}-summary.json"
+            path.write_text(json.dumps(summary_doc({"a--effect-x": (1.0, True)}, judge=judge)))
+            paths.append(str(path))
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            status = kmain.main(["compare", *paths])
+        self.assertEqual(status, 1)
+        self.assertIn(
+            "compare: judge models differ (j1 vs j2); scores are not comparable", err.getvalue()
+        )
+
+    def run_against_staged_tree(self, edit: bool, staged: str = "kb"):
+        self.staleness.side_effect = REAL_STALENESS
+        self.marker_staging.side_effect = REAL_MARKER_STAGING
+        out = self.tmp / "out-entry"
+        plugin = kstage.stage(self.repo, out, staged)
+        if edit:
+            skill = self.repo / ".claude/skills/demo-skill/SKILL.md"
+            skill.write_text(skill.read_text() + "More.\n")
+        args = [*self.RUN_ARGS[:6], str(plugin), *self.RUN_ARGS[7:]]
+        err = io.StringIO()
+        with (
+            mock.patch.object(kmain, "REPO", self.repo),
+            mock.patch.object(kmain.runner, "run", return_value=0) as run,
+            contextlib.redirect_stderr(err),
+        ):
+            status = kmain.main(args)
+        return status, run, err.getvalue()
+
+    def test_run_refuses_a_plugin_staged_with_the_other_staging(self):
+        status, run, err = self.run_against_staged_tree(edit=False, staged="vanilla")
+        self.assertEqual(status, 1)
+        run.assert_not_called()
+        self.assertIn("was staged as vanilla, not kb; rerun make eval-stage", err)
+
+    def test_run_refuses_a_plugin_staged_before_a_tree_edit(self):
+        status, run, err = self.run_against_staged_tree(edit=True)
+        self.assertEqual(status, 1)
+        run.assert_not_called()
+        self.assertIn("is stale (staged ", err)
+        self.assertIn("; rerun make eval-stage", err)
+
+    def test_run_accepts_a_freshly_staged_plugin(self):
+        status, run, _ = self.run_against_staged_tree(edit=False)
+        self.assertEqual(status, 0)
+        run.assert_called_once()
+
+    def test_settle_subcommand_appends_a_settle_row(self):
+        key = {"period": self.budget["period"], "purpose": "fanout-x", "staging": "kb",
+               "model": "claude-opus-5-5", "suite": "effects", "batch": "j-demo"}  # fmt: skip
+        kledger.reserve({**key, "costUsd": 30.0, "charged": "reserved", "capUsd": 30.0}, 1000, 0)
+        args = ["settle", "--purpose", "fanout-x", "--staging", "kb", "--model", "claude-opus-5-5",
+                "--suite", "effects", "--batch", "j-demo", "--actual-usd", "4.5"]  # fmt: skip
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(kmain.main(args), 0)
+        self.assertIn('"actualUsd": 4.5', out.getvalue())
+        self.assertAlmostEqual(kledger.spent(self.budget["period"]), 4.5)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.assertEqual(kmain.main(args), 1)
+        self.assertIn("settle: ", err.getvalue())
+
+    def test_settle_subcommand_takes_an_id_when_several_match(self):
+        key = {"period": self.budget["period"], "purpose": "fanout-x", "staging": "kb",
+               "model": "claude-opus-5-5", "suite": "effects", "batch": "j-demo"}  # fmt: skip
+        rows = [
+            kledger.reserve(
+                {**key, "costUsd": 30.0, "charged": "reserved", "capUsd": 30.0}, 1000, 0
+            )
+            for _ in range(2)
+        ]
+        rows = [row for row in rows if row is not None]
+        args = ["settle", "--purpose", "fanout-x", "--staging", "kb", "--model", "claude-opus-5-5",
+                "--suite", "effects", "--batch", "j-demo", "--actual-usd", "4.5"]  # fmt: skip
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.assertEqual(kmain.main(args), 1)
+        self.assertIn("--id", err.getvalue())
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(kmain.main([*args, "--id", rows[1]["id"]]), 0)
+        self.assertEqual(
+            [r["id"] for r in kledger.open_reservations(self.budget["period"])], [rows[0]["id"]]
+        )
+
+    def settle_args(self, usd: str) -> list:
+        return ["settle", "--purpose", "fanout-x", "--staging", "kb", "--model",
+                "claude-opus-5-5", "--suite", "effects", "--batch", "j-demo",
+                "--actual-usd", usd]  # fmt: skip
+
+    def reserve_for_settle(self):
+        key = {"period": self.budget["period"], "purpose": "fanout-x", "staging": "kb",
+               "model": "claude-opus-5-5", "suite": "effects", "batch": "j-demo"}  # fmt: skip
+        kledger.reserve({**key, "costUsd": 30.0, "charged": "reserved", "capUsd": 30.0}, 1000, 0)
+
+    def test_settle_accepts_zero_and_writes_it_as_positive_zero(self):
+        self.reserve_for_settle()
+        for zero in ("0", "-0"):
+            with self.subTest(zero=zero):
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    self.assertEqual(kmain.main(self.settle_args(zero)), 0)
+                row = json.loads(out.getvalue())
+                self.assertEqual(row["actualUsd"], 0.0)
+                self.assertEqual(math.copysign(1.0, row["actualUsd"]), 1.0)
+                self.assertNotIn("-0.0", out.getvalue())
+                self.ledger_reset()
+                self.reserve_for_settle()
+
+    def ledger_reset(self):
+        kledger.default_path().unlink()
+
+    def test_settle_rejects_a_negative_or_nan_actual(self):
+        for bad in ("-1", "nan", "inf"):
+            with self.subTest(bad=bad):
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err), self.assertRaises(SystemExit) as raised:
+                    kmain.main(self.settle_args(bad))
+                self.assertEqual(raised.exception.code, 2)
 
     def test_run_cap_is_the_purpose_remainder(self):
         kledger.append({"period": self.budget["period"], "purpose": "fanout-x", "costUsd": 2.0})
@@ -3598,6 +4152,9 @@ class RealFixtureTests(unittest.TestCase):
 
 
 from evals.kbeval import __main__ as kmain  # noqa: E402
+
+REAL_STALENESS = kstage.staleness
+REAL_MARKER_STAGING = kstage.marker_staging
 from evals.kbeval import determination as kdet  # noqa: E402
 
 
@@ -3625,7 +4182,11 @@ class RunKeepTempTests(unittest.TestCase):
             "p",
             *extra,
         ]
-        with mock.patch.object(kmain.runner, "run", fake_run):
+        with (
+            mock.patch.object(kmain.runner, "run", fake_run),
+            mock.patch.object(kmain.kstage, "staleness", return_value=None),
+            mock.patch.object(kmain.kstage, "marker_staging", return_value="kb"),
+        ):
             self.assertEqual(kmain.main(argv), 0)
         return recorded["keep_temp"]
 
