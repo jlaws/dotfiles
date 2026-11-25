@@ -13,15 +13,15 @@ Before starting, gather diagnostic context:
 
 Load the relevant references for the topic, based on the diagnostic context:
 
-Reference library at `.agents/references/devops/`:
+Reference library at `~/.agents/references/devops/`:
 - docker-patterns, github-actions-patterns, gitops-workflow
 - incident-management, incident-readiness, kubernetes-configuration, monorepo-tools
 - observability, pipeline-design, security-policies
 - sre-practices, terraform-module-library
 
-Also see `.agents/references/workflow/`:
+Also see `~/.agents/references/workflow/`:
 - release-versioning
 
-For deep DevOps guidance, you may instead delegate to the `devops-engineer` agent, passing the diagnostic findings above and the request. It loads its skills and the `.agents/references/devops/` library (plus `.agents/references/workflow/release-versioning`), then returns specific guidance. Verify its output before presenting.
+For deep DevOps guidance, you may instead delegate to the `devops-engineer` agent, passing the diagnostic findings above and the request. It loads its skills and the `~/.agents/references/devops/` library (plus `~/.agents/references/workflow/release-versioning`), then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

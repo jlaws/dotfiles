@@ -16,7 +16,7 @@ Load these skills before starting:
 - `analysis-output-patterns` - output structure
 - `verification-before-completion` - evidence hierarchy when weighing what an agent reports
 
-Read `.claude/references/workflow/existing-code-discipline.md` when the spec touches established code.
+Read `~/.claude/references/workflow/existing-code-discipline.md` when the spec touches established code.
 
 ---
 
@@ -82,12 +82,12 @@ Core lenses, dispatched on every run:
 
 | Perspective | Agent | Looks for | Loads |
 |---|---|---|---|
-| Scope | `scope-reviewer` | Is this the right thing to build? EXPAND / SELECTIVE EXPAND / HOLD / REDUCE | `.claude/references/product/` |
-| Architecture & API | `architecture-specialist` | Boundaries, contracts, trade-offs, ADR-worthy decisions | `design-first` + `.claude/references/architecture/` |
-| Execution paths | `workflow-architect` | Complete path map, failure modes, state machines, handoff contracts | `.claude/references/architecture/workflow-specification.md` |
-| Test & benchmark strategy | `test-writer` | What to test-drive, at which level, and which benchmark proves the capability | `test-driven-development`, `language-testing-patterns` + `.claude/references/testing/` |
-| Documentation | `documentation-writer` | Which docs the change obligates, and what the Phase 1 contract should say | `documentation-validation` + `.claude/references/documentation/` |
-| Observability | `devops-engineer` | What the new surface must emit - logs, metrics, traces, SLOs, alerts, tracking-plan events | `.claude/references/devops/` |
+| Scope | `scope-reviewer` | Is this the right thing to build? EXPAND / SELECTIVE EXPAND / HOLD / REDUCE | `~/.claude/references/product/` |
+| Architecture & API | `architecture-specialist` | Boundaries, contracts, trade-offs, ADR-worthy decisions | `design-first` + `~/.claude/references/architecture/` |
+| Execution paths | `workflow-architect` | Complete path map, failure modes, state machines, handoff contracts | `~/.claude/references/architecture/workflow-specification.md` |
+| Test & benchmark strategy | `test-writer` | What to test-drive, at which level, and which benchmark proves the capability | `test-driven-development`, `language-testing-patterns` + `~/.claude/references/testing/` |
+| Documentation | `documentation-writer` | Which docs the change obligates, and what the Phase 1 contract should say | `documentation-validation` + `~/.claude/references/documentation/` |
+| Observability | `devops-engineer` | What the new surface must emit - logs, metrics, traces, SLOs, alerts, tracking-plan events | `~/.claude/references/devops/` |
 
 Conditional lenses, dispatched when Step 1 shows the surface is present:
 
@@ -122,7 +122,7 @@ Before writing, run the **redesign gate**. Any of these means fix the design, no
 - Basic operations require coordination across components.
 - No clear error-handling strategy.
 - The design optimizes for hypothetical future requirements over current ones.
-- The design adds a feature, capability, or option the spec did not ask for. Do the bare minimum the spec requires; solve the original problem as concisely as possible (scope, not quality: `.claude/references/workflow/completeness-principle.md`, Where Thoroughness Stops).
+- The design adds a feature, capability, or option the spec did not ask for. Do the bare minimum the spec requires; solve the original problem as concisely as possible (scope, not quality: `~/.claude/references/workflow/completeness-principle.md`, Where Thoroughness Stops).
 - A design choice violates a cited project convention without an ADR-backed exception.
 - "It depends" answers most questions about the design.
 - Every option for a decision is weak. Redesign the mechanism until one option is clearly right
@@ -136,7 +136,7 @@ plan file.
 approach, the alternatives rejected, the trade-offs accepted, and the conditions that would reverse
 it - the four fields of an ADR. Where a decision is significant and not easily reversible, add a
 *task* to the plan that writes `docs/adr/<topic>/<slug>.md` during execution, following
-`.claude/references/architecture/architecture-decision-records.md`. The ADR is a repo artifact
+`~/.claude/references/architecture/architecture-decision-records.md`. The ADR is a repo artifact
 written at implementation time; the plan is not. Where an ADR already covers the decision, the
 task updates it in place - revise the Decision, add the previous approach to `## Ruled Out` with
 its reason and date, and bump `updated` - rather than adding a second file. Skip minor or easily

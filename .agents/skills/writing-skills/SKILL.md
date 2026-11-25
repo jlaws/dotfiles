@@ -52,7 +52,7 @@ description: Use when executing implementation plans with independent tasks in t
 ```
 
 - Word guidance to apply to the whole task, not one moment: "Run the tests after every edit", not "Run the tests".
-- A rule the agent must never skip belongs in a hook (references/workflow/hook-patterns.md), not skill prose.
+- A rule the agent must never skip belongs in a hook (~/.agents/references/workflow/hook-patterns.md), not skill prose.
 
 **Body structure:**
 ```markdown
@@ -239,7 +239,7 @@ LLMs respond to the same persuasion principles as humans (reported elsewhere, un
 3. Write evaluation scenarios with expected outcomes: tasks where the skill should load, near misses where it should not, and tasks that check its effect.
 4. Establish a baseline: score each scenario with and without the skill.
 5. Write minimal instructions that address the recorded failures.
-6. Iterate one change at a time: evaluate, compare with the baseline, refine (references/ai-ml/eval-and-benchmarking.md, Hillclimbing).
+6. Iterate one change at a time: evaluate, compare with the baseline, refine (~/.agents/references/ai-ml/eval-and-benchmarking.md, Hillclimbing).
 
 When the agent writes a superseded form although the skill states the current one, add a table near the top mapping the remembered form to the current form.
 

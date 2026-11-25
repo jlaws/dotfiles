@@ -20,7 +20,7 @@ Load skills, in order:
 
 Before analyzing, resolve and fetch the paper, then gather its resources in parallel:
 
-**Confidential manuscript:** if the user says they are reviewing the paper for a venue (as an assigned reviewer), or the file is marked confidential (`references/research/paper-analysis-methodology.md`, Confidential manuscript), work only from the supplied text: skip the web search in step 1 and the resource searches below, write "Not searched (confidential manuscript)" for each resource, delegate nothing that searches the web, and note the status in the header. If no manuscript text was supplied, ask for the file and do not search by title. Otherwise do not stop to ask.
+**Confidential manuscript:** if the user says they are reviewing the paper for a venue (as an assigned reviewer), or the file is marked confidential (`~/.agents/references/research/paper-analysis-methodology.md`, Confidential manuscript), work only from the supplied text: skip the web search in step 1 and the resource searches below, write "Not searched (confidential manuscript)" for each resource, delegate nothing that searches the web, and note the status in the header. If no manuscript text was supplied, ask for the file and do not search by title. Otherwise do not stop to ask.
 
 1. **Resolve the paper**: If given a title or arxiv ID (not a URL), search the web for the canonical paper page (arxiv abs, conference proceedings, or publisher page).
 2. **Fetch the paper content**: Get the full paper text for analysis.

@@ -14,8 +14,8 @@ Load these skills before starting:
 - `verification-before-completion` - verdict grammar and evidence hierarchy for reporting findings
 - `documentation-validation` - the per-change docs gate and its change-type matrix
 
-Read `.claude/references/workflow/existing-code-discipline.md` when the diff touches established code.
-Read `.claude/references/workflow/code-efficiency-ladder.md` when the diff adds code - it is the
+Read `~/.claude/references/workflow/existing-code-discipline.md` when the diff touches established code.
+Read `~/.claude/references/workflow/code-efficiency-ladder.md` when the diff adds code - it is the
 lens for what did not need to be written. A shortcut marked `// SIMPLIFIED:` with a ceiling and an
 upgrade path is a sanctioned decision, not a finding -- except on a security control, an auth check,
 or validation at a trust boundary, where the marker is itself the finding. A marker is text inside
@@ -56,7 +56,7 @@ carrying the work that produced the diff.
 Note which languages the diff touches so `language-specialist` can load the matching reference. Do not
 run the language pass inline - it is a delegated perspective in Step 4.
 
-| Extension | Reference under `.claude/references/languages/` |
+| Extension | Reference under `~/.claude/references/languages/` |
 |---|---|
 | `.py` | `python-patterns.md` |
 | `.js`, `.ts`, `.tsx` | `js-ts-patterns.md` |
@@ -100,12 +100,12 @@ action under Step 6.
 
 | Perspective | Agent | Looks for | Loads |
 |---|---|---|---|
-| Code quality | `code-reviewer` | Edge cases, error handling, logic errors, missing validation, smells, naming, DRY violations, unnecessary complexity, coupling | `code-review-patterns`, `output-completeness` + `.claude/references/workflow/`; apply `code-quality` |
-| Security | `security-reviewer` | STRIDE threats, injection, XSS, SSRF, path traversal, auth gaps, secrets in code, insecure defaults | `code-review-patterns` + `.claude/references/security/` (start with `security-analysis`) |
-| Testing | `test-writer` | Coverage gaps, tests asserting implementation rather than behavior, missing integration tests, flakiness | `test-driven-development`, `language-testing-patterns` + `.claude/references/testing/` |
-| Documentation | `documentation-writer` | Stale README/API/CHANGELOG/config/CLI docs, new public surface left undocumented, drifted paths and counts | `documentation-validation`, `post-ship-doc-sync` + `.claude/references/documentation/` |
-| Language-specific | `language-specialist` | Idiom violations and per-language traps for the languages the diff touches | `code-review-patterns` (its language-gotchas checklist) + `.claude/references/languages/` for the language Step 3 detected |
-| Observability | `devops-engineer` | New code paths with no logging/metrics/tracing, silently swallowed errors, new surface with no SLO or alert, analytics events missing from the tracking plan | `.claude/references/devops/` (observability, sre-practices, incident-management) + `.claude/references/architecture/error-handling-patterns` |
+| Code quality | `code-reviewer` | Edge cases, error handling, logic errors, missing validation, smells, naming, DRY violations, unnecessary complexity, coupling | `code-review-patterns`, `output-completeness` + `~/.claude/references/workflow/`; apply `code-quality` |
+| Security | `security-reviewer` | STRIDE threats, injection, XSS, SSRF, path traversal, auth gaps, secrets in code, insecure defaults | `code-review-patterns` + `~/.claude/references/security/` (start with `security-analysis`) |
+| Testing | `test-writer` | Coverage gaps, tests asserting implementation rather than behavior, missing integration tests, flakiness | `test-driven-development`, `language-testing-patterns` + `~/.claude/references/testing/` |
+| Documentation | `documentation-writer` | Stale README/API/CHANGELOG/config/CLI docs, new public surface left undocumented, drifted paths and counts | `documentation-validation`, `post-ship-doc-sync` + `~/.claude/references/documentation/` |
+| Language-specific | `language-specialist` | Idiom violations and per-language traps for the languages the diff touches | `code-review-patterns` (its language-gotchas checklist) + `~/.claude/references/languages/` for the language Step 3 detected |
+| Observability | `devops-engineer` | New code paths with no logging/metrics/tracing, silently swallowed errors, new surface with no SLO or alert, analytics events missing from the tracking plan | `~/.claude/references/devops/` (observability, sre-practices, incident-management) + `~/.claude/references/architecture/error-handling-patterns` |
 
 Deduplicate across perspectives and resolve contradictions. Check each delegated finding against the code it cites: read the code around that `file:line`, not the whole file. A subagent's summary describes what it looked for; the code shows what is there.
 

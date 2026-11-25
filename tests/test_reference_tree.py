@@ -465,6 +465,18 @@ class ReferenceCitationTests(unittest.TestCase):
     def test_a_dangling_citation_is_a_finding(self):
         self.assertEqual(len(self.findings_for("references/documentation/missing.md")), 1)
 
+    def test_the_installed_claude_forms_resolve_from_the_reference_root(self):
+        for prefix in ("~/.claude/", "${CLAUDE_SKILL_DIR}/../../"):
+            with self.subTest(prefix=prefix):
+                found = self.findings_for(f"{prefix}references/documentation/readme-template.md")
+                self.assertEqual(found, [])
+
+    def test_a_dangling_installed_claude_form_is_a_finding(self):
+        for prefix in ("~/.claude/", "${CLAUDE_SKILL_DIR}/../../"):
+            with self.subTest(prefix=prefix):
+                found = self.findings_for(f"{prefix}references/documentation/missing.md")
+                self.assertEqual(len(found), 1, found)
+
 
 class SkillSizeTests(unittest.TestCase):
     """SK-C6: a SKILL.md past the compaction re-attach window warns.
@@ -557,6 +569,14 @@ class SkillReferenceMentionTests(unittest.TestCase):
         findings = self.findings_for("references/workflow/missing.md")
         self.assertEqual(len(findings), 1, findings)
         self.assertIn("missing.md", findings[0].message)
+
+    def test_installed_directory_forms_check_the_category(self):
+        for form in ("${CLAUDE_SKILL_DIR}/../../references/", "~/.claude/references/"):
+            with self.subTest(form=form):
+                self.assertEqual(self.findings_for(f"{form}workflow/"), [])
+                findings = self.findings_for(f"{form}nowhere/")
+                self.assertEqual(len(findings), 1, findings)
+                self.assertIn("nowhere", findings[0].message)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ method: what to read before asking, what to interview for, where version numbers
 gets written.
 
 For stack idioms and project layout you may delegate to `language-specialist` via the Agent tool
-(loads `references/languages/`). Verify its output, and never take a version number from it.
+(loads `~/.claude/references/languages/`). Verify its output, and never take a version number from it.
 
 Target: $ARGUMENTS
 

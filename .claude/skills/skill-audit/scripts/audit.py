@@ -26,8 +26,16 @@ KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 FIELD = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*):[ \t]*(.*)$")
 TRIGGER = re.compile(r"\b(use when|use this when|use for|use to|when )", re.IGNORECASE)
+# Matches the tail `references/<category>/<file>.md` of every accepted citation form: the bare form
+# inside reference files, the home-anchored form in commands and agents, and the skill-folder
+# anchored `../../references/...` in skills. Each resolves against `.claude/references`.
+# REF_DIR matches the directory-only mentions in those forms too: the repo-relative
+# `.claude/references/<category>/`, the home-anchored `~/.claude/references/<category>/`, and the
+# skill-folder variable form with `../../references/<category>/`.
 REF_PATH = re.compile(r"references/[A-Za-z0-9._/-]+\.md")
-REF_DIR = re.compile(r"\.claude/references/([a-z0-9-]+)/")
+REF_DIR = re.compile(
+    r"(?:\.claude/references|\$\{CLAUDE_SKILL_DIR\}/\.\./\.\./references)/([a-z0-9-]+)/"
+)
 MD_ANCHOR = re.compile(r"\]\(([^)\s]+#[^)\s]+)\)")
 BARE_BULLET = re.compile(r"^\s*[-*]\s+(.*)$")
 SKILL_INVOCATION = re.compile(

@@ -70,7 +70,7 @@ Skill authoring conventions (frontmatter, descriptions, structure, testing) live
 
 ## Hooks
 
-See `references/workflow/hook-patterns.md` for PreToolUse and PostToolUse JSON examples.
+See `${CLAUDE_SKILL_DIR}/../../references/workflow/hook-patterns.md` for PreToolUse and PostToolUse JSON examples.
 
 Hooks run on the critical path, so a slow one makes every affected tool call painful. Keep them fast,
 scope matchers narrowly, fail loudly rather than silently, and test manually before wiring them in.
@@ -94,7 +94,7 @@ Durable lessons go into a versioned skill or reference instead.
 
 ## Permissions
 
-See `references/workflow/permission-management.md` for the settings hierarchy and JSON examples. Deny
+See `${CLAUDE_SKILL_DIR}/../../references/workflow/permission-management.md` for the settings hierarchy and JSON examples. Deny
 overrides allow; `settings.local.json` holds personal overrides that should not be committed.
 
 ## Delegation
@@ -105,7 +105,7 @@ tool calls costs more to delegate than to do.
 
 Use `run_in_background` for long builds and test runs, then collect results when notified.
 
-Further patterns: `references/workflow/context-efficiency`.
+Further patterns: `${CLAUDE_SKILL_DIR}/../../references/workflow/context-efficiency`.
 
 ## Gotchas
 

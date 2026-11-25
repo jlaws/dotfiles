@@ -21,7 +21,7 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 - subagent-report-contract
 
 Reference library at `~/.agents/references/product/`:
-- prd-templates, opportunity-and-roadmap
+- prd-templates, opportunity-and-roadmap, scope-review-methodology
 
 Read the relevant reference file(s) for the user's topic before responding.
 Provide specific, actionable guidance with templates and frameworks.

@@ -59,7 +59,7 @@ Every question carries your recommended answer.
 
 ## Phase 3: Derive the toolchain, name no tool from memory
 
-Detect the ecosystem from the manifests, load the matching file under `references/languages/` if one
+Detect the ecosystem from the manifests, load the matching file under `~/.agents/references/languages/` if one
 covers that ecosystem, and get versions from the registry rather than recall. "Latest" held in model
 weights is stale by construction; the gap is invisible and grows every day after the cutoff.
 
@@ -86,7 +86,7 @@ pinning it.
 
 Which linter, formatter, type checker, and test runner to adopt is the project's decision, not this
 skill's. Propose a toolchain drawn from the ecosystem's current consensus and the relevant
-`references/languages/` file, show the exact commands it implies, and confirm before writing.
+`~/.agents/references/languages/` file, show the exact commands it implies, and confirm before writing.
 
 `language-specialist` can help with idioms and project layout. Never take a version number from it:
 an agent's recall is subject to the same staleness as your own, and only a registry query settles it.
@@ -134,8 +134,8 @@ fact about this repo's config surface, not restated global guidance, and without
 - `.gitignore` for the detected stack, plus `.claude/settings.local.json` and the secret-bearing files
   the stack produces (`.env`, `*.pem`, `.npmrc`, credential caches). Write no git state; reading
   history to inventory the repo is fine.
-- `README.md` only if one is absent, following `references/documentation/readme-template.md`.
-- `docs/adr/` seeded with the conventions in `references/architecture/architecture-decision-records.md`:
+- `README.md` only if one is absent, following `~/.agents/references/documentation/readme-template.md`.
+- `docs/adr/` seeded with the conventions in `~/.agents/references/architecture/architecture-decision-records.md`:
   topic directories, no sequence numbers, ordering by the `created` date, `## Reversal Conditions`
   filled in on every record, and no archive directory: a changed decision is edited in place and a
   dead one is deleted, so every file present is asserted to be currently true.

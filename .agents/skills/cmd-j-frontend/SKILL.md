@@ -14,12 +14,12 @@ Before starting, gather diagnostic context:
 
 Load the relevant references for the topic, based on the diagnostic context:
 
-Reference library at `.agents/references/frontend/`:
+Reference library at `~/.agents/references/frontend/`:
 - accessibility-testing, design-audit, design-system-patterns, form-patterns
 - graphql-client-patterns, i18n-and-localization, nextjs-app-router-patterns
 - premium-design-aesthetics, react-native-architecture, react-state-management
 - responsive-web-design, svelte-patterns, tailwind-design-system, web-animation-patterns
 
-For deep frontend guidance, you may instead delegate to the `frontend-engineer` agent, passing the diagnostic findings above and the request. It loads its skills (language-testing-patterns, output-completeness) and the `.agents/references/frontend/` library, then returns specific guidance. Verify its output before presenting.
+For deep frontend guidance, you may instead delegate to the `frontend-engineer` agent, passing the diagnostic findings above and the request. It loads its skills (language-testing-patterns, output-completeness) and the `~/.agents/references/frontend/` library, then returns specific guidance. Verify its output before presenting.
 
 Help with: the user's provided input

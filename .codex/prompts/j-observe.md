@@ -13,14 +13,14 @@ Before starting, gather diagnostic context:
 5. **Get scope overview** of the target area (if $ARGUMENTS specifies a service or component, scope to that; otherwise scan for monitoring/, observability/, telemetry/, instrumentation/, or analytics/ directories and config).
 
 Load relevant references based on what the diagnostic context reveals:
-- `.agents/references/devops/observability` -- golden signals, metric design, tracing strategy, alerting, stack preferences
-- `.agents/references/devops/sre-practices` -- error budgets, SLO targets by tier, progressive deployment
-- `.agents/references/devops/incident-management` -- severity framework, runbook structure, postmortem process
-- `.agents/references/business/analytics-instrumentation` -- event taxonomy, tracking wrappers, funnel design, PII gotchas
-- `.agents/references/architecture/error-handling-patterns` -- error hierarchy, logging levels, resilience patterns
-- `.agents/references/business/kpi-dashboard-design` -- dashboard hierarchy, KPI framework
+- `~/.agents/references/devops/observability` -- golden signals, metric design, tracing strategy, alerting, stack preferences
+- `~/.agents/references/devops/sre-practices` -- error budgets, SLO targets by tier, progressive deployment
+- `~/.agents/references/devops/incident-management` -- severity framework, runbook structure, postmortem process
+- `~/.agents/references/business/analytics-instrumentation` -- event taxonomy, tracking wrappers, funnel design, PII gotchas
+- `~/.agents/references/architecture/error-handling-patterns` -- error hierarchy, logging levels, resilience patterns
+- `~/.agents/references/business/kpi-dashboard-design` -- dashboard hierarchy, KPI framework
 
-For deep observability design, you may delegate to the `devops-engineer` agent (it loads the `.agents/references/devops/` library incl. observability, sre-practices, incident-management). Verify its output before presenting.
+For deep observability design, you may delegate to the `devops-engineer` agent (it loads the `~/.agents/references/devops/` library incl. observability, sre-practices, incident-management). Verify its output before presenting.
 
 Help with: $ARGUMENTS
 

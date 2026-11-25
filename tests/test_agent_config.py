@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from macos_setup.dotfiles import EXPANDED_SUFFIXES, HOME_ANCHORS
 from tests.markdown import HEADING, heading_texts, markdown_headings
 
 REPO = Path(__file__).resolve().parents[1]
@@ -554,6 +555,36 @@ CONSULT_AGENTS = {
         "devops-engineer",
     ),
 }
+# Agents whose `Reference library at` block lists only part of its directory, and why.
+CURATED_REFERENCE_INDEXES: dict[str, str] = {
+    "workflow-architect": (
+        "single-purpose: works from workflow-specification; "
+        "architecture-specialist indexes the directory"
+    ),
+    "scope-reviewer": (
+        "single-purpose: applies scope-review-methodology; product-manager indexes the directory"
+    ),
+    "code-reviewer": "workflow/ is a mixed directory; the reviewer indexes the review files",
+}
+AGENT_INDEX_TREES = ((".claude", ".claude"), (".gemini/config", ".agents"))
+LIBRARY_BLOCK = re.compile(r"^Reference library at `?([^`\n]+?)`?:$")
+
+
+def library_gaps(agent_text: str, references: Path) -> dict[str, set[str]]:
+    """Return, per `Reference library at` directory, the files the block does not name."""
+    gaps: dict[str, set[str]] = {}
+    lines = agent_text.splitlines()
+    for index, line in enumerate(lines):
+        match = LIBRARY_BLOCK.match(line.strip())
+        if match is None:
+            continue
+        directory = match.group(1).rstrip("/").rsplit("/", 1)[-1]
+        named = reference_names("\n".join([line.strip(), *lines[index + 1 :]]))
+        listed = {name.split("/", 1)[1] for name in named if name.startswith(f"{directory}/")}
+        gaps[directory] = {p.stem for p in (references / directory).glob("*.md")} - listed
+    return gaps
+
+
 REFERENCE_BLOCK = re.compile(r"^(?:Reference library at|Also see) `?([^`\n]+?)`?:$")
 
 
@@ -581,13 +612,91 @@ def reference_names(text: str) -> set[str]:
     return names
 
 
+# The prefix each (tree, kind) cites shared references by, as written in the repo. Sync expands the
+# home-anchored `~/` forms to the absolute home path in installed copies. No form resolves against
+# the project (docs/adr/workflow/kb-reference-paths-never-resolve-against-the-project.md).
+AGENTS_REFERENCES = "~/.agents/references/"
+CLAUDE_REFERENCES = "~/.claude/references/"
+REFERENCE_FORMS: dict[tuple[str, str], str] = {
+    (".agents", "skills"): AGENTS_REFERENCES,
+    (".gemini/antigravity-cli", "skills"): AGENTS_REFERENCES,
+    (".codex", "prompts"): AGENTS_REFERENCES,
+    (".codex", "agents"): AGENTS_REFERENCES,
+    (".gemini/config", "agents"): AGENTS_REFERENCES,
+    (".claude", "skills"): "${CLAUDE_SKILL_DIR}/../../references/",
+    (".claude", "commands"): CLAUDE_REFERENCES,
+    (".claude", "agents"): CLAUDE_REFERENCES,
+}
+REFERENCE_CATEGORIES = sorted(
+    {
+        path.name
+        for tree in (".agents", ".claude")
+        for path in (REPO / tree / "references").iterdir()
+        if path.is_dir()
+    }
+)
+# One citation token: everything from the last delimiter up to and including `<category>/`.
+REFERENCE_CITATION = re.compile(
+    r"[^\s`'\"(\[*<>=,]*references/(?P<category>" + "|".join(REFERENCE_CATEGORIES) + ")/"
+)
+# A reference directory named with no category: a `Glob(`, `Scan`, or `Reference library at` read
+# instruction. The token runs back to the last delimiter, so `~/.claude/references/` is one token.
+BARE_REFERENCE_DIR = re.compile(r"[^\s`'\"(\[*<>=,]*(?:\.claude|\.agents)/references/")
+# These describe the repo layout or name project-scope surfaces on purpose, so they keep the
+# relative form. Exact tracked paths, never a suffix match.
+RELATIVE_REFERENCE_EXEMPT = (
+    ".agents/skills/config-security-audit/SKILL.md",
+    ".agents/skills/skill-audit/SKILL.md",
+    ".claude/skills/config-security-audit/SKILL.md",
+    ".claude/skills/skill-audit/scripts/audit.py",
+    ".gemini/antigravity-cli/skills/config-security-audit/SKILL.md",
+    ".gemini/antigravity-cli/skills/skill-audit/SKILL.md",
+)
+
+
+def reference_form_key(rel: str) -> tuple[str, str] | None:
+    """Return the REFERENCE_FORMS key a tracked path falls under, or None."""
+    for tree, kind in REFERENCE_FORMS:
+        if rel.startswith(f"{tree}/{kind}/"):
+            return tree, kind
+    return None
+
+
+def project_relative_citations(text: str, prefix: str) -> list[str]:
+    """Return each reference citation in `text` that is not written with `prefix`."""
+    return [
+        match.group(0)
+        for match in REFERENCE_CITATION.finditer(text)
+        if match.group(0) != f"{prefix}{match.group('category')}/"
+    ]
+
+
+def bare_prefixes(key: tuple[str, str]) -> tuple[str, ...]:
+    """The prefixes a bare reference directory may carry under one REFERENCE_FORMS key."""
+    if key == (".claude", "skills"):
+        return (CLAUDE_REFERENCES,)
+    return (REFERENCE_FORMS[key],)
+
+
+def bare_reference_dirs(text: str, prefixes: tuple[str, ...]) -> list[str]:
+    """Return each `.claude/references/` or `.agents/references/` token not written as a prefix."""
+    return [m.group(0) for m in BARE_REFERENCE_DIR.finditer(text) if m.group(0) not in prefixes]
+
+
 def command_copies(command: str) -> tuple[tuple[Path, str], ...]:
     """Return each tree's copy of a command with the reference path prefix that tree uses."""
+    agents = REFERENCE_FORMS[(".agents", "skills")]
     return (
-        (REPO / ".claude" / "commands" / f"{command}.md", "references/"),
-        (REPO / ".agents" / "skills" / f"cmd-{command}" / "SKILL.md", ".agents/references/"),
-        (REPO / ".codex" / "prompts" / f"{command}.md", ".agents/references/"),
-        (REPO / ".gemini" / "antigravity-cli" / "skills" / command / "SKILL.md", "references/"),
+        (
+            REPO / ".claude" / "commands" / f"{command}.md",
+            REFERENCE_FORMS[(".claude", "commands")],
+        ),
+        (REPO / ".agents" / "skills" / f"cmd-{command}" / "SKILL.md", agents),
+        (REPO / ".codex" / "prompts" / f"{command}.md", REFERENCE_FORMS[(".codex", "prompts")]),
+        (
+            REPO / ".gemini" / "antigravity-cli" / "skills" / command / "SKILL.md",
+            REFERENCE_FORMS[(".gemini/antigravity-cli", "skills")],
+        ),
     )
 
 
@@ -2083,8 +2192,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     path = REPO / rel
                     self.assertTrue(path.is_file(), f"{rel} is missing")
                     text = path.read_text(encoding="utf-8")
-                    tree = "claude" if rel.split("/", 1)[0] == ".claude" else "agents"
-                    pointer = f".{tree}/references/workflow/existing-code-discipline.md"
+                    key = reference_form_key(rel)
+                    self.assertIsNotNone(key, f"{rel} is outside REFERENCE_FORMS")
+                    assert key is not None
+                    prefix = REFERENCE_FORMS[key]
+                    pointer = f"{prefix}workflow/existing-code-discipline.md"
                     self.assertTrue(bullet in text, f"{rel} has no {bullet} bullet")
                     self.assertTrue(pointer in text, f"{rel} does not point at {pointer}")
         self.assertEqual(
@@ -2417,6 +2529,115 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=str(gemini.relative_to(REPO))):
                 got = reference_names(gemini.read_text(encoding="utf-8"))
                 self.assertEqual(got, agent_reference_names(agent))
+
+    def test_agent_reference_indexes_cover_their_directory(self):
+        for tree, refs in AGENT_INDEX_TREES:
+            for path in sorted((REPO / tree / "agents").glob("*.md")):
+                if path.stem in CURATED_REFERENCE_INDEXES:
+                    continue
+                gaps = library_gaps(path.read_text(encoding="utf-8"), REPO / refs / "references")
+                with self.subTest(path=str(path.relative_to(REPO))):
+                    self.assertEqual({k: v for k, v in gaps.items() if v}, {})
+
+    def test_curated_reference_indexes_are_live(self):
+        for agent in CURATED_REFERENCE_INDEXES:
+            path = REPO / ".claude" / "agents" / f"{agent}.md"
+            with self.subTest(agent=agent):
+                gaps = library_gaps(
+                    path.read_text(encoding="utf-8"), REPO / ".claude" / "references"
+                )
+                self.assertTrue(any(gaps.values()), f"{agent} indexes its whole directory")
+
+    def test_no_kb_asset_cites_a_project_relative_reference(self):
+        """A tool resolves a relative path against the user's project, where a cloned repo can
+        plant a same-named file. Each tree and kind cites references in its one chosen form."""
+        tracked = subprocess.run(
+            [
+                "git",
+                "ls-files",
+                "-z",
+                *sorted({f"{tree}/{kind}" for tree, kind in REFERENCE_FORMS}),
+            ],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split("\0")
+        scanned = 0
+        offenders = []
+        exempt_hits = set()
+        for rel in tracked:
+            key = reference_form_key(rel)
+            path = REPO / rel
+            if key is None or not path.is_file():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            scanned += 1
+            prefix = REFERENCE_FORMS[key]
+            bad = project_relative_citations(text, prefix)
+            bad += bare_reference_dirs(text, bare_prefixes(key))
+            if rel in RELATIVE_REFERENCE_EXEMPT:
+                if bad:
+                    exempt_hits.add(rel)
+                continue
+            offenders.extend(f"{rel}: {citation}" for citation in bad)
+            if path.suffix not in EXPANDED_SUFFIXES and any(a in text for a in HOME_ANCHORS):
+                offenders.append(f"{rel}: home anchor in a file sync does not expand")
+        self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
+        self.assertEqual(
+            sorted(exempt_hits),
+            sorted(RELATIVE_REFERENCE_EXEMPT),
+            "the exempt copies no longer hold the relative form",
+        )
+        self.assertEqual(offenders, [], "\n".join(offenders[:40]))
+
+    def test_project_relative_reference_scan_controls(self):
+        for (tree, kind), prefix in REFERENCE_FORMS.items():
+            with self.subTest(form=f"{tree}/{kind}"):
+                self.assertEqual(
+                    project_relative_citations(f"Read `{prefix}cloud/x.md`.", prefix), []
+                )
+        agents = AGENTS_REFERENCES
+        self.assertEqual(
+            project_relative_citations("Read `.agents/references/cloud/x.md`.", agents),
+            [".agents/references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("Read `references/cloud/x.md`.", agents),
+            ["references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("Read `./references/cloud/x.md`.", agents),
+            ["./references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("Read `../references/cloud/x.md`.", agents),
+            ["../references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("Read `~/.claude/references/cloud/x.md`.", agents),
+            ["~/.claude/references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("See [x](.agents/references/cloud/x.md).", agents),
+            [".agents/references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("Read `code-review-patterns/references/x.md`.", agents), []
+        )
+        for text, token in (
+            ('Glob(".claude/references/*/")', ".claude/references/"),
+            ("Scan .agents/references/ for patterns", ".agents/references/"),
+            ("Reference library at .claude/references/{category}/:", ".claude/references/"),
+            ("Scan `~/.claude/references/` here", "~/.claude/references/"),
+            ("Scan `~/.agents/references/` here", None),
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(bare_reference_dirs(text, (agents,)), [token] if token else [])
+        self.assertEqual(bare_reference_dirs('Glob("~/.agents/references/*/")', (agents,)), [])
 
     def test_consult_cases_measure_reference_reads(self):
         """Each consult case carries a read-refs grader on its agents' reference directories.

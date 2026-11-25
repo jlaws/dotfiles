@@ -187,4 +187,4 @@ Load these skills if the review scope requires them:
 - `languages:*-patterns`: load the language-specific skill matching the primary language in the diff
 - `workflow:documentation-validation`: if the diff changes public surface or documented behavior and docs may be stale
 
-If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `references/workflow/review-checklists` for domain-specific checklists.
+If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `~/.agents/references/workflow/review-checklists` for domain-specific checklists.

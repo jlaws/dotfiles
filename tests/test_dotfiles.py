@@ -16,6 +16,7 @@ from macos_setup.dotfiles import (
     _iter_pairs,
     apply_file,
     apply_merged_file,
+    expand_home_anchors,
     file_revert_decision,
     remove_file,
     remove_path,
@@ -890,6 +891,150 @@ class SyncAgentsTests(unittest.TestCase):
         sync_agents(self.repo, self.target, self.archive)
 
         self.assertFalse(stale.exists())
+
+
+class ExpandHomeAnchorsTests(unittest.TestCase):
+    def test_expands_both_reference_prefixes(self):
+        text = "Read `~/.agents/references/a/b.md` and `~/.claude/references/c/d.md`."
+        got = expand_home_anchors(text, Path("/Users/x"))
+        self.assertEqual(
+            got,
+            "Read `/Users/x/.agents/references/a/b.md` and `/Users/x/.claude/references/c/d.md`.",
+        )
+
+    def test_leaves_other_text_alone(self):
+        text = "Skills live in ~/.agents/skills/ and ${CLAUDE_SKILL_DIR}/../../references/a/"
+        self.assertEqual(expand_home_anchors(text, Path("/Users/x")), text)
+
+
+class ExpandedAnchorSyncTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.repo = self.tmp / "repo"
+        self.home = self.tmp / "home"
+        self.archive = Archive.create(self.tmp / "arch", "ts")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _write(self, relative: str, text: str) -> None:
+        path = self.repo / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+
+    def test_installed_assets_cite_references_by_absolute_home_path(self):
+        self._write(".agents/skills/a/SKILL.md", "See `~/.agents/references/x/y.md`.\n")
+        self._write(".codex/agents/a.toml", 'developer_instructions = "~/.agents/references/x/"\n')
+        self._write(".claude/commands/c.md", "See `~/.claude/references/x/y.md`.\n")
+        self._write(".claude/skills/s/SKILL.md", "See ${CLAUDE_SKILL_DIR}/../../references/x/\n")
+
+        sync_agents(self.repo, self.home, self.archive)
+
+        skill = (self.home / ".agents/skills/a/SKILL.md").read_text()
+        self.assertEqual(skill, f"See `{self.home}/.agents/references/x/y.md`.\n")
+        toml = (self.home / ".codex/agents/a.toml").read_text()
+        self.assertIn(f'"{self.home}/.agents/references/x/"', toml)
+        command = (self.home / ".claude/commands/c.md").read_text()
+        self.assertEqual(command, f"See `{self.home}/.claude/references/x/y.md`.\n")
+        sibling = (self.home / ".claude/skills/s/SKILL.md").read_text()
+        self.assertIn("${CLAUDE_SKILL_DIR}/../../references/x/", sibling)
+        for installed in self.home.rglob("*"):
+            if installed.is_file():
+                self.assertNotIn("~/.agents/references/", installed.read_text())
+                self.assertNotIn("~/.claude/references/", installed.read_text())
+
+    def test_uninstall_restores_a_file_whose_anchors_were_expanded(self):
+        self._write(".agents/skills/a/SKILL.md", "See `~/.agents/references/x/y.md`.\n")
+        original = self.home / ".agents/skills/a/SKILL.md"
+        original.parent.mkdir(parents=True)
+        original.write_text("user original\n")
+
+        sync_agents(self.repo, self.home, self.archive)
+        self.assertNotEqual(original.read_text(), "user original\n")
+        summary = revert_files(self.archive)
+
+        self.assertEqual(original.read_text(), "user original\n")
+        self.assertIn(str(original), summary.restored)
+
+    def test_uninstall_deletes_an_added_file_whose_anchors_were_expanded(self):
+        self._write(".claude/agents/a.md", "See `~/.claude/references/x/y.md`.\n")
+        sync_agents(self.repo, self.home, self.archive)
+        added = self.home / ".claude/agents/a.md"
+
+        summary = revert_files(self.archive)
+
+        self.assertFalse(added.exists())
+        self.assertIn(str(added), summary.deleted)
+
+    def test_a_second_sync_is_idempotent(self):
+        self._write(".agents/skills/a/SKILL.md", "See `~/.agents/references/x/y.md`.\n")
+        sync_agents(self.repo, self.home, self.archive)
+        installed = self.home / ".agents/skills/a/SKILL.md"
+        first = installed.read_bytes()
+        sync_agents(self.repo, self.home, Archive.create(self.tmp / "arch2", "ts2"))
+        self.assertEqual(installed.read_bytes(), first)
+        self.assertEqual(first.decode(), f"See `{self.home}/.agents/references/x/y.md`.\n")
+
+    def test_dry_run_writes_nothing_and_leaves_an_installed_copy_alone(self):
+        self._write(".agents/skills/a/SKILL.md", "See `~/.agents/references/x/y.md`.\n")
+        self._write(".agents/skills/b/SKILL.md", "See `~/.agents/references/x/y.md`.\n")
+        kept = self.home / ".agents/skills/a/SKILL.md"
+        kept.parent.mkdir(parents=True)
+        kept.write_text("installed\n")
+
+        sync_agents(self.repo, self.home, self.archive, dry_run=True)
+
+        self.assertEqual(kept.read_text(), "installed\n")
+        self.assertFalse((self.home / ".agents/skills/b/SKILL.md").exists())
+
+    def test_crlf_newlines_survive_expansion(self):
+        src = self.repo / ".agents/skills/a/SKILL.md"
+        src.parent.mkdir(parents=True)
+        src.write_bytes(b"See `~/.agents/references/x/y.md`.\r\nnext\r\n")
+        sync_agents(self.repo, self.home, self.archive)
+        got = (self.home / ".agents/skills/a/SKILL.md").read_bytes()
+        self.assertEqual(got, f"See `{self.home}/.agents/references/x/y.md`.\r\nnext\r\n".encode())
+
+    def test_a_file_without_anchors_is_copied_unchanged_with_its_mode(self):
+        self._write(".agents/skills/a/SKILL.md", "plain\n")
+        src = self.repo / ".agents/skills/a/SKILL.md"
+        src.chmod(0o640)
+        sync_agents(self.repo, self.home, self.archive)
+        dest = self.home / ".agents/skills/a/SKILL.md"
+        self.assertEqual(dest.read_text(), "plain\n")
+        self.assertEqual(dest.stat().st_mode & 0o777, 0o640)
+
+    def test_expansion_logs_at_debug(self):
+        self._write(".agents/skills/a/SKILL.md", "See `~/.agents/references/x/y.md`.\n")
+        self._write(".agents/skills/b/SKILL.md", "plain\n")
+        with self.assertLogs("macos_setup.dotfiles", level="DEBUG") as logs:
+            sync_agents(self.repo, self.home, self.archive)
+        expanded = [m for m in logs.output if "(home anchors expanded)" in m]
+        self.assertEqual(len(expanded), 1, logs.output)
+        self.assertIn("a/SKILL.md", expanded[0])
+
+    def test_a_home_path_that_could_break_a_toml_string_is_not_expanded(self):
+        for bad in ('/Users/we"ird', "/Users/we\\ird", "/Users/we\nird"):
+            with self.subTest(home=bad):
+                text = 'x = "~/.agents/references/a/"\n'
+                with self.assertLogs("macos_setup.dotfiles", level="WARNING"):
+                    self.assertEqual(expand_home_anchors(text, Path(bad)), text)
+
+    def test_apply_file_copies_unexpanded_for_an_unsafe_home(self):
+        self._write(".codex/agents/a.toml", 'x = "~/.agents/references/a/"\n')
+        unsafe = self.tmp / 'ho"me'
+        unsafe.mkdir()
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING"):
+            sync_agents(self.repo, unsafe, self.archive)
+        self.assertEqual(
+            (unsafe / ".codex/agents/a.toml").read_text(), 'x = "~/.agents/references/a/"\n'
+        )
+
+    def test_non_text_assets_are_copied_byte_for_byte(self):
+        self._write(".agents/skills/a/agents/openai.yaml", "path: ~/.agents/references/x/\n")
+        sync_agents(self.repo, self.home, self.archive)
+        copied = (self.home / ".agents/skills/a/agents/openai.yaml").read_text()
+        self.assertEqual(copied, "path: ~/.agents/references/x/\n")
 
 
 class RevertFilesTests(unittest.TestCase):

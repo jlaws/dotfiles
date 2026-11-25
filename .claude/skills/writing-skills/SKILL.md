@@ -122,7 +122,7 @@ re-attaches only the first 5,000 tokens of each invoked skill, within a 25,000-t
 re-attached skills, and `audit.py` SK-C6 warns when a SKILL.md passes 20,000 bytes.
 
 Word guidance to apply to the whole task, not one moment: "Run the tests after every edit", not "Run
-the tests". A rule Claude must never skip belongs in a hook (`references/workflow/hook-patterns.md`),
+the tests". A rule Claude must never skip belongs in a hook (`${CLAUDE_SKILL_DIR}/../../references/workflow/hook-patterns.md`),
 not skill prose.
 
 ## Frontmatter
@@ -200,7 +200,7 @@ words, never naming the skill; fix misses through `description`, or `disable-mod
 skill only the user should start. **Effect**: run the same tasks with and without the skill. Grade
 each task with one result grader (the produced file or answer) and one process grader (the skill
 loaded, or the expected tool ran). Change one thing per round
-(`references/ai-ml/eval-and-benchmarking.md`, Hillclimbing).
+(`${CLAUDE_SKILL_DIR}/../../references/ai-ml/eval-and-benchmarking.md`, Hillclimbing).
 
 Process graders are indicators and stay out of the score. A should-not-fire check is a Skill `tool_used` grader with `min: 0` and `max: 0`. When the skill loaded but the delta is negative, suspect the judge before the skill. Pin the model and the judge for any series you compare.
 

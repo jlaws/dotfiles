@@ -15,8 +15,8 @@ Load these before analyzing:
 - Load skill `analysis-output-patterns` for output structure rules
 - Load skill `code-agent-meta-patterns`: what belongs in CLAUDE.md, context budget rules, layering, and progressive disclosure
 - Load skill `writing-skills`: skill creation and testing methodology
-- Read `references/workflow/context-efficiency`: context management patterns
-- Read `references/workflow/task-execution-checklists`: implementation and review checklists
+- Read `~/.claude/references/workflow/context-efficiency`: context management patterns
+- Read `~/.claude/references/workflow/task-execution-checklists`: implementation and review checklists
 
 ## Review Process
 

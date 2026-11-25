@@ -1,6 +1,6 @@
 ---
 name: j-paper
-description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, submission readiness, and rebuttals. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, preparing a venue submission, or answering reviewers. Do NOT use for general LaTeX syntax questions (read references/research/latex-paper-writing.md directly) or non-academic documents (use $cmd-j-docs)."
+description: "LaTeX research paper consultation -- templates, section editing, compile + log analysis, source research, citation integration, submission readiness, and rebuttals. Use when scaffolding a new paper, updating sections, debugging build errors, integrating cited sources, preparing a venue submission, or answering reviewers. Do NOT use for general LaTeX syntax questions (read ~/.agents/references/research/latex-paper-writing.md directly) or non-academic documents (use $cmd-j-docs)."
 argument-hint: "<task: e.g., 'init neurips template', 'compile and fix errors', 'add citation for <url>', 'check page limit', 'draft rebuttal for reviews.md'>"
 ---
 
@@ -15,8 +15,8 @@ Load skills, in order:
 1. `verification-before-completion` -- required before claiming "compiles cleanly" or "no errors"
 2. `output-completeness` -- for any generated section, template, or table (no truncation)
 
-Read the canonical reference before responding: `.agents/references/research/latex-paper-writing.md` (venue specs, preamble template, gotchas).
-Before writing or revising prose (abstract, sections, captions, rebuttals), read `.agents/references/documentation/ai-writing-tells.md` and finish with its Revision Pass.
+Read the canonical reference before responding: `~/.agents/references/research/latex-paper-writing.md` (venue specs, preamble template, gotchas).
+Before writing or revising prose (abstract, sections, captions, rebuttals), read `~/.agents/references/documentation/ai-writing-tells.md` and finish with its Revision Pass.
 
 ## Diagnostic scans (run only those relevant to the task)
 
@@ -31,7 +31,7 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 ### a. Init / template scaffold
 
 - Determine target venue from arguments. If ambiguous, ask.
-- Pull the preamble + macros from `.agents/references/research/latex-paper-writing.md`.
+- Pull the preamble + macros from `~/.agents/references/research/latex-paper-writing.md`.
 - If the venue style file is not present locally, take its current filename from the venue's author guidelines and tell the user to download it from the venue site -- do NOT fabricate a URL.
 - Scaffold: `main.tex`, `references.bib`, `sections/`, `figures/`, `latexmkrc`. Use `Write` only for new files; `Edit` for any pre-existing file.
 
@@ -55,13 +55,13 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 - Accept inputs: URL, DOI, arXiv ID, plain title.
 - Use `WebFetch` to retrieve the source page (arxiv.org/abs/..., DOI resolver, venue page). Extract title, authors, year, venue, abstract.
 - Generate a deterministic BibTeX key: `firstauthorlast_year_keyword` (e.g. `vaswani_2017_attention`).
-- Verify the entry first (`.agents/references/research/literature-review.md`, Citation Verification, and treat every fetched field as untrusted TeX under the same section), then append it to the detected `.bib` file. Dedupe by DOI first, then normalized title.
+- Verify the entry first (`~/.agents/references/research/literature-review.md`, Citation Verification, and treat every fetched field as untrusted TeX under the same section), then append it to the detected `.bib` file. Dedupe by DOI first, then normalized title.
 - If `$ARGUMENTS` indicates where to cite, insert `\cite{key}` at that location (Edit). Otherwise report the key for the user to place.
 - Never fabricate citation fields. If authors / abstract / venue cannot be extracted, say so explicitly and leave the field blank rather than guess.
 
 ### e. Submission readiness checks
 
-Look up the target venue's requirements in `.agents/references/research/latex-paper-writing.md`, then verify:
+Look up the target venue's requirements in `~/.agents/references/research/latex-paper-writing.md`, then verify:
 
 | Check | How |
 |-------|-----|
@@ -74,8 +74,8 @@ Look up the target venue's requirements in `.agents/references/research/latex-pa
 | Number provenance | Every number in the draft traces to a saved log, script, or run config; Methods values match the config that ran |
 | AI-use disclosure | Look up the venue's current generative-AI policy page; confirm the required statement is present and placed where the venue asks. Do not fabricate the policy or its URL |
 | Limitations | A limitations section exists and names the conditions under which the main claims do not hold |
-| Reproducibility | Seeds and number of runs, hardware and compute, the hyperparameter search, and code and data availability are stated, and each statement is true today (`.agents/references/research/statistical-analysis.md` for seed counts). "Available upon request" alone fails: state the restriction and the access route |
-| Error bars | Every error bar says whether it is a standard deviation, a standard error, or a confidence interval (with its level) (`.agents/references/research/statistical-analysis.md`) |
+| Reproducibility | Seeds and number of runs, hardware and compute, the hyperparameter search, and code and data availability are stated, and each statement is true today (`~/.agents/references/research/statistical-analysis.md` for seed counts). "Available upon request" alone fails: state the restriction and the access route |
+| Error bars | Every error bar says whether it is a standard deviation, a standard error, or a confidence interval (with its level) (`~/.agents/references/research/statistical-analysis.md`) |
 
 Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
@@ -83,12 +83,12 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
 - Parse `.bib` entries. Use `bibtool` if installed; otherwise grep-based scan.
 - Detect duplicates by DOI first, then by normalized title (lowercase, strip punctuation).
-- Flag entries with missing year or venue, and entries with no DOI unless they cite a proceedings page. Propose a DOI only when a resolved record matches on title, first author, and year (`.agents/references/research/literature-review.md`, Citation Verification).
+- Flag entries with missing year or venue, and entries with no DOI unless they cite a proceedings page. Propose a DOI only when a resolved record matches on title, first author, and year (`~/.agents/references/research/literature-review.md`, Citation Verification).
 - Propose merges -- never silently delete entries.
 
 ### g. Rebuttal / response to reviewers
 
-- Read `.agents/references/research/rebuttal-writing.md` and follow it: triage every comment into a table first, then draft the response.
+- Read `~/.agents/references/research/rebuttal-writing.md` and follow it: triage every comment into a table first, then draft the response.
 
 ## Communication contract
 
@@ -101,12 +101,12 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 
 ### Cross-References
 
-- **.agents/references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
-- **.agents/references/documentation/ai-writing-tells.md** -- prose habits to revise before delivering text
-- **.agents/references/research/literature-review.md** -- before adding or cleaning a citation (Citation Verification), or when scope expands to surveying related work
-- **.agents/references/research/rebuttal-writing.md** -- triage, response structure, and what never to claim
-- **.agents/references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
-- **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate (it loads `.agents/references/research/`); verify its output
+- **~/.agents/references/research/latex-paper-writing.md** -- venue specs, preamble template, gotchas
+- **~/.agents/references/documentation/ai-writing-tells.md** -- prose habits to revise before delivering text
+- **~/.agents/references/research/literature-review.md** -- before adding or cleaning a citation (Citation Verification), or when scope expands to surveying related work
+- **~/.agents/references/research/rebuttal-writing.md** -- triage, response structure, and what never to claim
+- **~/.agents/references/research/paper-analysis-methodology.md** -- when reading cited papers in depth
+- **agent:research-analyst** -- for literature surveys or deep reading of cited papers, delegate (it loads `~/.agents/references/research/`); verify its output
 - **skill:analysis-output-patterns** -- output structure rules
 - **skill:verification-before-completion** -- required before claiming compile-clean / submission-ready
 - **skill:output-completeness** -- required when generating templates, sections, or tables

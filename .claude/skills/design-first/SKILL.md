@@ -58,7 +58,7 @@ matters is that the shape is agreed before it is built, not that the document is
 - Ask after each major section whether it looks right so far
 - Cover as applicable: architecture, components, data flow, error handling, testing approach
 - **State your assumptions**: numbered and falsifiable, across whichever rows the work touches
-  (`.claude/references/workflow/existing-code-discipline.md`). Written down, an assumption costs the
+  (`${CLAUDE_SKILL_DIR}/../../references/workflow/existing-code-discipline.md`). Written down, an assumption costs the
   user one line to correct; left implicit, it gets corrected after the code exists.
 - Be ready to revise if something doesn't fit
 

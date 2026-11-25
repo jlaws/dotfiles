@@ -28,10 +28,12 @@ NON_INTERACTIVE = (
     "and state it."
 )
 AGENT_NOTE = "KB agents are registered as `kb:<name>`; dispatch them with that subagent_type."
-REFS_NOTE = (
-    "KB references cited as `.claude/references/<p>` or `references/<p>` are at {where}<p>; they "
-    "are not project files."
-)
+REFS_NOTE = "KB references are at {where}<p>; they are not project files."
+# The installed forms KB assets cite references by (see docs/adr/workflow/
+# kb-reference-paths-never-resolve-against-the-project.md). A staged copy has no home tree, so
+# each becomes the workspace copy the seed script writes.
+INSTALLED_REFERENCE_PREFIXES = ("${CLAUDE_SKILL_DIR}/../../references/", "~/.claude/references/")
+WORKSPACE_REFERENCES = "./.kb-references/"
 AGENT_PREFIX = "Tell the agent: "
 GIT_SHIM_DIR = "/usr/bin"  # macOS's git shim calls xcrun, which the run's sandbox blocks
 GIT_NOTE = "In this sandbox `/usr/bin/git` fails; run git as `{git}`."
@@ -101,6 +103,13 @@ def staleness(repo: Path, plugin: Path) -> Optional[str]:
     return f"staged plugin {plugin} is stale (staged {staged[:8]}, tree {tree[:8]})"
 
 
+def _localize_references(text: str) -> str:
+    """Replace each installed reference prefix with the workspace copy's path."""
+    for prefix in INSTALLED_REFERENCE_PREFIXES:
+        text = text.replace(prefix, WORKSPACE_REFERENCES)
+    return text
+
+
 def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozenset()) -> Path:
     """Build a staged plugin under `out` and return the plugin directory.
 
@@ -139,6 +148,21 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
     if staging == "kb":
         for component in ("skills", "commands", "agents"):
             shutil.copytree(claude / component, plugin / component, ignore=IGNORE)
+            for staged in sorted((plugin / component).rglob("*.md")):
+                text = staged.read_text(encoding="utf-8")
+                localized = _localize_references(text)
+                if localized != text:
+                    if refs_mode != "workspace":
+                        raise StageError(
+                            f"{staged.relative_to(plugin)} cites installed references; "
+                            f"refsMode {refs_mode!r} has no shared path to rewrite them to"
+                        )
+                    staged.write_text(localized, encoding="utf-8")
+                left = [p for p in INSTALLED_REFERENCE_PREFIXES if p in localized]
+                if left:
+                    raise StageError(
+                        f"{staged.relative_to(plugin)} still cites installed prefix {left[0]}"
+                    )
         if command_form == "skill":
             for command in (plugin / "commands").glob("*.md"):
                 text = command.read_text(encoding="utf-8")

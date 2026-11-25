@@ -14,11 +14,11 @@ Before starting, gather diagnostic context:
 
 Load the relevant references for the topic, based on the diagnostic context:
 
-Reference library at `.agents/references/documentation/`:
+Reference library at `~/.agents/references/documentation/`:
 - ai-writing-tells, api-doc-template, changelog-automation, changelog-patterns
 - openapi-spec-generation, quickstart-template, readme-template
 - technical-writing-for-devtools
 
-For deep documentation guidance, you may instead delegate to the `documentation-writer` agent, passing the diagnostic findings above and the request. It loads its skills (post-ship-doc-sync, output-completeness) and the `.agents/references/documentation/` library, then returns specific guidance. Verify its output before presenting.
+For deep documentation guidance, you may instead delegate to the `documentation-writer` agent, passing the diagnostic findings above and the request. It loads its skills (post-ship-doc-sync, output-completeness) and the `~/.agents/references/documentation/` library, then returns specific guidance. Verify its output before presenting.
 
 Help with: the user's provided input

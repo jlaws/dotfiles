@@ -19,13 +19,13 @@ Before invoking the analysis, perform reconnaissance:
 
 ## Security Analysis
 
-Apply STRIDE threat modeling, risk scoring, SAST tool selection, and compliance mapping per `references/security/security-analysis.md` -- it covers the STRIDE categories and requirements mapping, the risk-scoring formula, the controls library, SAST tool/rule selection and CI integration, the threat model document structure, and the compliance framework quick reference. For multi-trust-boundary systems, that reference's "Comprehensive Threat Modeling" section gives the sequential-perspective breakdown (STRIDE analyst, compliance mapper, attack path analyst, mitigation planner).
+Apply STRIDE threat modeling, risk scoring, SAST tool selection, and compliance mapping per `~/.agents/references/security/security-analysis.md` -- it covers the STRIDE categories and requirements mapping, the risk-scoring formula, the controls library, SAST tool/rule selection and CI integration, the threat model document structure, and the compliance framework quick reference. For multi-trust-boundary systems, that reference's "Comprehensive Threat Modeling" section gives the sequential-perspective breakdown (STRIDE analyst, compliance mapper, attack path analyst, mitigation planner).
 
 ### References
 
-For deep code-level vulnerability review, delegate to the `security-reviewer` agent, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting. For the review protocol itself -- threat-model-before-scanning, execution-verify N/N, an independent grader, and the patch-validation gate -- follow references/security/vulnerability-review-pipeline.md.
+For deep code-level vulnerability review, delegate to the `security-reviewer` agent, passing the reconnaissance findings and scope. It loads its skills (code-review-patterns) and the `~/.agents/references/security/` library, then returns findings with severity labels and file:line. Verify its findings against the code before presenting. For the review protocol itself -- threat-model-before-scanning, execution-verify N/N, an independent grader, and the patch-validation gate -- follow ~/.agents/references/security/vulnerability-review-pipeline.md.
 
-When the target includes AI/ML components, also read `references/ai-ml/ai-safety-and-alignment` for AI-specific security and safety considerations.
+When the target includes AI/ML components, also read `~/.agents/references/ai-ml/ai-safety-and-alignment` for AI-specific security and safety considerations.
 
 ---
 
