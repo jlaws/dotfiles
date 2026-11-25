@@ -1765,6 +1765,22 @@ class SummaryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ksummary.write(doc, self.results / "out.json")
 
+    def test_write_refuses_other_key_shapes_and_home_relative_paths(self):
+        for leak in ("read ~/.config/tool/token", "key AKIAABCDEFGHIJKLMNOP",
+                     "token ghp_abcdefghijklmnopqrstuvwxyz0123", "key sk-proj-abcdefghijklmnopqrstuv"):
+            with self.subTest(leak=leak):
+                self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, leak, None]))
+                doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+                with self.assertRaises(ValueError):
+                    ksummary.write(doc, self.results / "out.json")
+
+    def test_write_accepts_the_cap_and_timeout_errors(self):
+        errors = [None, "exit 1: Reached maximum number of turns (6)", "timed out after 120s"]
+        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], errors))
+        doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
+        ksummary.write(doc, self.results / "out.json")
+        self.assertTrue((self.results / "out.json").is_file())
+
     def test_summary_from_real_doc(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, False]))
         self.put("vanilla", "j-arch", with_runs(real_doc(), [True, False, False]))
