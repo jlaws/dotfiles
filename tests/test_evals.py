@@ -248,6 +248,19 @@ class StageTests(TempRepoCase):
         loader.write_text("# loader\n")
         self.assertIsNotNone(kstage.staleness(self.repo, plugin))
 
+    def test_staleness_reports_a_missing_marker(self):
+        plugin = self.stage()
+        (self.tmp / "out-kb" / ".kbeval-stage").unlink()
+        self.assertIn("holds no source digest", kstage.staleness(self.repo, plugin) or "")
+
+    def test_a_vanilla_staging_ignores_a_claude_edit_but_sees_a_case_edit(self):
+        plugin = self.stage("vanilla")
+        (self.repo / ".claude/references/cat/ref.md").write_text("# Changed\n")
+        self.assertIsNone(kstage.staleness(self.repo, plugin))
+        case = self.repo / "evals/cases/effects/j-demo--effect-cache/prompt.md"
+        case.write_text(case.read_text() + "More.\n")
+        self.assertIn("is stale", kstage.staleness(self.repo, plugin) or "")
+
     def test_stage_refuses_unmarked_nonempty_out(self):
         out = self.tmp / "busy"
         out.mkdir()
@@ -2815,6 +2828,24 @@ class CompareTests(unittest.TestCase):
                 report = "\n".join(kcompare.compare(old, new))
                 self.assertIn("within run-to-run noise: 0 cases", report)
 
+    def test_a_summary_without_judge_model_compares_with_the_other_judge(self):
+        old = summary_doc({"a--effect-x": (1.0, True)})
+        del old["judgeModel"]
+        new = summary_doc({"a--effect-x": (1.0, True)})
+        self.assertEqual(
+            kcompare.compare(old, new)[1], "judge claude-fable-5-2; Claude Code 2.1.331"
+        )
+        del new["judgeModel"]
+        self.assertEqual(kcompare.compare(old, new)[1], "judge unknown; Claude Code 2.1.331")
+
+    def test_a_drop_of_three_tenths_is_neither_regressed_nor_noise(self):
+        old = summary_doc({"a--effect-x": (1.0, True)})
+        new = summary_doc({"a--effect-x": (0.7, True)})
+        report = "\n".join(kcompare.compare(old, new))
+        self.assertIn("regressed: none", report)
+        self.assertIn("within run-to-run noise: 0 cases", report)
+        self.assertNotRegex(report, r"a--effect-x.*->")
+
     def test_compare_refuses_different_judge_models(self):
         old = summary_doc({"a--effect-x": (1.0, True)}, judge="j1")
         new = summary_doc({"a--effect-x": (1.0, True)}, judge="j2")
@@ -2985,6 +3016,14 @@ class HeadroomTests(unittest.TestCase):
         )
 
 
+class FixedClock(datetime):
+    """A `datetime` whose `now` is a fixed instant, so a date check cannot cross midnight."""
+
+    @classmethod
+    def now(cls, tz=None):
+        return cls(2026, 11, 25, 12, 0, 0, tzinfo=tz)
+
+
 class RunnerSafetyTests(RunnerCase):
     def test_truncated_json_keeps_the_cap_charged(self):
         def responder(args):
@@ -3100,12 +3139,28 @@ class RunnerSafetyTests(RunnerCase):
             )  # fmt: skip
             return result_doc({"j-demo--effect-cache": [None]}, cost=0.5), 0, ""
 
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
-            code, _ = self.run_suite(FakeCli(responder))
+        code, err = self.run_suite(FakeCli(responder))
         self.assertEqual(code, 0)
         self.assertAlmostEqual(kledger.spent("p", self.ledger_path), 7.0)
         self.assertEqual(len([e for e in self.entries() if e["charged"] == "settle"]), 1)
+        self.assertIn("j-demo: reservation already settled by hand; that row stands", err)
+
+    def test_a_hand_row_without_actual_usd_counts_the_cap(self):
+        batches = krunner._Batches(
+            "effects", "kb", MODEL, 3, "test", 8, FakeCli(lambda a: (None, 0, "")),
+            {"plugin": self.plugin, "state": self.state, "budget": self.budget,
+             "ledger_path": self.ledger_path},
+        )  # fmt: skip
+        reserved = kledger.reserve(
+            batches._entry("j-demo", 30.0, "reserved", capUsd=30.0), 1000, 0, self.ledger_path
+        )
+        kledger.append(
+            {**batches._entry("j-demo", -25.0, "settle"), "settles": reserved["id"]},
+            self.ledger_path,
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            batches.settle("j-demo", 30.0, 1.0, reserved)
+        self.assertAlmostEqual(batches.invocation_spent, 30.0)
 
     def test_a_hand_settled_batch_still_counts_against_the_invocation_cap(self):
         def responder(args):
@@ -3157,17 +3212,16 @@ class RunnerSafetyTests(RunnerCase):
     def test_a_result_from_another_version_is_quarantined_with_a_note(self):
         doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
         doc["claudeVersion"] = "2.1.326"
-        code, err = self.run_suite(FakeCli(lambda args: (doc, 0, "")))
+        with mock.patch.object(krunner, "datetime", FixedClock):
+            code, err = self.run_suite(FakeCli(lambda args: (doc, 0, "")))
         self.assertEqual(code, 4, err)
         base = self.state / "test" / "kb" / MODEL / "effects"
         self.assertFalse((base / "j-demo.json").exists())
         self.assertFalse((base / "j-demo.key").exists())
         settles = [e for e in self.entries() if e["charged"] == "settle"]
         self.assertEqual([e["actualUsd"] for e in settles], [1.5])
-        before = self.today_utc()
-        folders = list((self.state.parent / "quarantine").glob("*-cli-2.1.326"))
+        folders = list((self.state.parent / "quarantine").glob("2026-11-25-cli-2.1.326"))
         self.assertEqual(len(folders), 1)
-        self.assertIn(folders[0].name[:10], {before, self.today_utc()})
         rel = Path("test") / "kb" / MODEL / "effects"
         moved = folders[0] / rel / "j-demo.json"
         self.assertTrue(moved.is_file())
@@ -3176,10 +3230,6 @@ class RunnerSafetyTests(RunnerCase):
         note = (folders[0] / "README.txt").read_text()
         for expected in ("j-demo", "2.1.326", "2.1.325", "1.50", "j-demo.json"):
             self.assertIn(expected, note)
-
-    @staticmethod
-    def today_utc():
-        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     def test_a_traversal_shaped_claude_version_stays_inside_quarantine(self):
         doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
@@ -4131,6 +4181,7 @@ class RunKeepTempTests(unittest.TestCase):
         with (
             mock.patch.object(kmain.runner, "run", fake_run),
             mock.patch.object(kmain.kstage, "staleness", return_value=None),
+            mock.patch.object(kmain.kstage, "marker_staging", return_value="kb"),
         ):
             self.assertEqual(kmain.main(argv), 0)
         return recorded["keep_temp"]
