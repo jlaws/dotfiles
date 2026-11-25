@@ -332,13 +332,17 @@ def sync_dotfiles(repo: Path, home: Path, archive: Archive, *, dry_run: bool = F
             _LOG.debug("sync %s", dest)
 
 
+def _behind_symlink(path: Path, target: Path) -> bool:
+    """True when a parent directory of ``path`` under ``target`` is a symlink that leaves it."""
+    parent = path.parent
+    return parent.resolve() != target.resolve() / parent.relative_to(target)
+
+
 def _agent_removal_paths(repo: Path, target: Path) -> Iterator[tuple[Path, str]]:
     """Yield ``(path, reason)`` for stale managed paths, including commands the repo dropped."""
-    for removal in AGENT_REMOVALS:
-        yield target / removal, "retired"
+    candidates: list[tuple[Path, str]] = [(target / r, "retired") for r in AGENT_REMOVALS]
     for pattern in AGENT_REMOVAL_GLOBS:
-        for match in sorted(target.glob(pattern)):
-            yield match, "retired glob"
+        candidates.extend((match, "retired glob") for match in sorted(target.glob(pattern)))
 
     for root, pattern in AGENT_ORPHAN_GLOBS:
         shipped = {path.name for path in (repo / root).glob(pattern)}
@@ -348,7 +352,13 @@ def _agent_removal_paths(repo: Path, target: Path) -> Iterator[tuple[Path, str]]
             if entry.is_symlink():
                 _LOG.warning("keeping symlinked command %s", entry)
                 continue
-            yield entry, "not shipped"
+            candidates.append((entry, "not shipped"))
+
+    for path, reason in candidates:
+        if _behind_symlink(path, target):
+            _LOG.warning("not removing %s: a parent directory is a symlink out of %s", path, target)
+            continue
+        yield path, reason
 
 
 def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = False) -> None:

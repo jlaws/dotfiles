@@ -684,6 +684,25 @@ class SyncAgentsTests(unittest.TestCase):
             captured.output,
         )
 
+    def test_removal_skips_paths_behind_a_symlinked_parent(self):
+        outside = self.tmp / "outside"
+        outside.mkdir()
+        victim = outside / "j-victim.md"
+        victim.write_text("not ours")
+        hook = outside / "guard-bash-output.sh"
+        hook.write_text("not ours")
+        self._write_repo(".claude/commands/j-keep.md")
+        (self.target / ".claude").mkdir(parents=True)
+        (self.target / ".claude/commands").symlink_to(outside, target_is_directory=True)
+        (self.target / ".claude/hooks").symlink_to(outside, target_is_directory=True)
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertTrue(victim.exists())
+        self.assertTrue(hook.exists())
+        self.assertTrue(any("symlink" in e and "commands" in e for e in captured.output))
+
 
 class RevertFilesTests(unittest.TestCase):
     def setUp(self):
