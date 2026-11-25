@@ -3036,6 +3036,18 @@ class RunnerSafetyTests(RunnerCase):
         self.assertIn("--batch j-demo", text)
         self.assertIn(f"--id {self.entries()[0]['id']}", text)
 
+    def test_settle_command_quotes_values_and_uses_a_plain_placeholder(self):
+        batches = krunner._Batches(
+            "effects", "kb", MODEL, 3, "x; rm -rf ~", 8, FakeCli(lambda a: (None, 0, "")),
+            {"plugin": self.plugin, "state": self.state, "budget": self.budget},
+        )  # fmt: skip
+        text = batches.settle_command("a b$(id)", {"id": "abc"})
+        self.assertIn("--purpose 'x; rm -rf ~'", text)
+        self.assertIn("--batch 'a b$(id)'", text)
+        self.assertIn("--actual-usd N", text)
+        self.assertNotIn("<", text)
+        self.assertIn("replace N with the billed USD", batches.charged_hint("b", 1.0, {"id": "a"}))
+
     def test_interrupt_rerun_then_settle_by_id_succeeds(self):
         def responder(args):
             raise KeyboardInterrupt

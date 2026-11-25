@@ -25,6 +25,7 @@ import json
 import math
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -309,17 +310,19 @@ class _Batches:
 
     def settle_command(self, label: str, reserved: dict) -> str:
         """Return the command that settles exactly this reservation by hand."""
+        values = (self.purpose, self.staging, self.model, self.suite, label)
+        purpose, staging, model, suite, batch = (shlex.quote(v) for v in values)
+        reservation = shlex.quote(str(reserved.get("id") or reserved.get("ts")))
         return (
-            f"python3 -m evals.kbeval settle --purpose {self.purpose} --staging {self.staging} "
-            f"--model {self.model} --suite {self.suite} --batch {label} "
-            f"--id {reserved.get('id') or reserved.get('ts')} --actual-usd <N>"
+            f"python3 -m evals.kbeval settle --purpose {purpose} --staging {staging} "
+            f"--model {model} --suite {suite} --batch {batch} --id {reservation} --actual-usd N"
         )
 
     def charged_hint(self, label: str, cap: float, reserved: dict) -> str:
         """Return the line that tells the owner how to close a reservation left at its cap."""
         return (
             f"{label}: the ${cap:.2f} reservation stays charged. Once the real cost is known, "
-            f"settle it:\n  {self.settle_command(label, reserved)}"
+            f"settle it (replace N with the billed USD):\n  {self.settle_command(label, reserved)}"
         )
 
     def quarantine(
