@@ -29,15 +29,27 @@ def _positive(value: str) -> int:
     return number
 
 
-def _usd(value: str) -> float:
-    message = f"expected a positive number of USD such as 25 or 12.50, not {value}"
+def _usd_arg(value: str, allow_zero: bool) -> float:
+    message = (
+        f"expected a number of USD of zero or more, not {value}"
+        if allow_zero
+        else f"expected a positive number of USD such as 25 or 12.50, not {value}"
+    )
     try:
         number = float(value)
     except ValueError:
         raise argparse.ArgumentTypeError(message) from None
-    if not math.isfinite(number) or number <= 0:
+    if not math.isfinite(number) or number < 0 or (number == 0 and not allow_zero):
         raise argparse.ArgumentTypeError(message)
     return number
+
+
+def _usd(value: str) -> float:
+    return _usd_arg(value, allow_zero=False)
+
+
+def _nonnegative(value: str) -> float:
+    return _usd_arg(value, allow_zero=True)
 
 
 def _stage(args: argparse.Namespace) -> int:
@@ -154,6 +166,24 @@ def _compare(args: argparse.Namespace) -> int:
         return 1
     for line in kcompare.compare(old, new):
         print(line)
+    return 0
+
+
+def _settle(args: argparse.Namespace) -> int:
+    match = {
+        "period": runner.load_budget()["period"],
+        "purpose": args.purpose,
+        "staging": args.staging,
+        "model": args.model,
+        "suite": args.suite,
+        "batch": args.batch,
+    }
+    try:
+        row = kledger.settle_open(match, args.actual_usd, args.reason)
+    except kledger.LedgerError as error:
+        print(f"settle: {error}", file=sys.stderr)
+        return 1
+    print(json.dumps(row, sort_keys=True))
     return 0
 
 
@@ -295,6 +325,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     compare.add_argument("old")
     compare.add_argument("new")
     compare.set_defaults(func=_compare)
+
+    settle = sub.add_parser("settle", help="settle one open reservation to its real cost")
+    settle.add_argument("--purpose", required=True)
+    settle.add_argument("--staging", choices=kstage.STAGINGS, required=True)
+    settle.add_argument("--model", required=True)
+    settle.add_argument("--suite", choices=("triggers", "effects", "workflows"), required=True)
+    settle.add_argument("--batch", required=True)
+    settle.add_argument("--actual-usd", type=_nonnegative, required=True)
+    settle.add_argument("--reason", default="interrupted")
+    settle.set_defaults(func=_settle)
 
     headroom = sub.add_parser("headroom", help="list cases that cannot show a change")
     headroom.add_argument("--baselines", default="evals/baselines")

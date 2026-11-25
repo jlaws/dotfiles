@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import ClassVar
 
@@ -1327,12 +1328,14 @@ API_ERROR_TEXT = re.compile(r"(?i)api error|rate.?limit")
 class FakeCli:
     """Records argv; `responder(args)` returns (doc or None, returncode, stderr)."""
 
-    def __init__(self, responder):
+    def __init__(self, responder, versions=("2.1.325 (Claude Code)",)):
         self.responder = responder
         self.calls = []
+        self.versions = list(versions)
 
     def version(self) -> str:
-        return "2.1.325 (Claude Code)"
+        """Return successive versions, repeating the last."""
+        return self.versions.pop(0) if len(self.versions) > 1 else self.versions[0]
 
     def run(self, args):
         self.calls.append(list(args))
@@ -1403,6 +1406,29 @@ class RunnerGuardTests(RunnerCase):
         with mock.patch.dict(os.environ, env, clear=True):
             with self.assertRaises(krunner.PaidCallRefusedError):
                 krunner.ClaudeCli().run(["plugin", "eval", "."])
+
+    def test_cli_keeps_the_binary_it_resolved_at_start(self):
+        bin_dir = self.tmp / "bin"
+        versions = self.tmp / "versions"
+        bin_dir.mkdir()
+        versions.mkdir()
+        for number in ("2.1.331", "2.1.332"):
+            script = versions / number
+            script.write_text(f"#!/bin/sh\necho '{number} (Claude Code)'\n")
+            script.chmod(0o755)
+        link = bin_dir / "claude"
+        link.symlink_to(versions / "2.1.331")
+        env = {**os.environ, "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            cli = krunner.ClaudeCli()
+            self.assertEqual(cli.version(), "2.1.331 (Claude Code)")
+            link.unlink()
+            link.symlink_to(versions / "2.1.332")
+            self.assertEqual(cli.version(), "2.1.331 (Claude Code)")
+
+    def test_cli_version_reads_the_leading_number(self):
+        self.assertEqual(krunner.cli_version("2.1.331 (Claude Code)"), "2.1.331")
+        self.assertEqual(krunner.cli_version(" odd \n"), "odd")
 
     def test_runner_refuses_without_api_key(self):
         cli = FakeCli(lambda args: (result_doc({}), 0, ""))
@@ -2919,6 +2945,129 @@ class RunnerSafetyTests(RunnerCase):
             self.run_suite(FakeCli(responder))
         self.assertEqual([e["charged"] for e in self.entries()], ["reserved"])
 
+    def test_interrupt_names_the_settle_command(self):
+        def responder(args):
+            raise KeyboardInterrupt
+
+        messages = []
+        with (
+            mock.patch.object(krunner, "_err", messages.append),
+            self.assertRaises(KeyboardInterrupt),
+        ):
+            self.run_suite(FakeCli(responder))
+        text = "\n".join(messages)
+        self.assertIn("python3 -m evals.kbeval settle", text)
+        self.assertIn("--purpose test", text)
+        self.assertIn("--batch j-demo", text)
+
+    def test_runner_does_not_settle_a_reservation_twice(self):
+        def responder(args):
+            reservation = kledger.open_reservations("p", self.ledger_path)[0]
+            kledger.settle_open(
+                {k: reservation[k] for k in
+                 ("period", "purpose", "staging", "model", "suite", "batch")},
+                7.0, "by hand", self.ledger_path,
+            )  # fmt: skip
+            return result_doc({"j-demo--effect-cache": [None]}, cost=0.5), 0, ""
+
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code, _ = self.run_suite(FakeCli(responder))
+        self.assertEqual(code, 0)
+        self.assertAlmostEqual(kledger.spent("p", self.ledger_path), 7.0)
+        self.assertEqual(len([e for e in self.entries() if e["charged"] == "settle"]), 1)
+
+    def test_a_hand_settled_batch_still_counts_against_the_invocation_cap(self):
+        def responder(args):
+            if case_arg(args).startswith("j-demo"):
+                reservation = kledger.open_reservations("p", self.ledger_path)[0]
+                kledger.settle_open(
+                    {k: reservation[k] for k in
+                     ("period", "purpose", "staging", "model", "suite", "batch")},
+                    7.0, "by hand", self.ledger_path,
+                )  # fmt: skip
+            return result_doc({case_arg(args).rstrip("*-"): [None]}, cost=0.5), 0, ""
+
+        code, err = self.run_suite(
+            FakeCli(responder), assets=("j-demo", "demo-skill"), cap_limit=10.0
+        )
+        self.assertEqual(code, 0, err)
+        second = [e for e in self.entries() if e["charged"] == "reserved"][1]
+        self.assertAlmostEqual(second["capUsd"], 3.0)
+
+    def test_a_version_change_between_batches_stops_the_run(self):
+        versions = ("2.1.325 (Claude Code)", "2.1.325 (Claude Code)", "2.1.326 (Claude Code)")
+        cli = FakeCli(
+            lambda args: (result_doc({case_arg(args).rstrip("*-"): [None]}), 0, ""), versions
+        )
+        code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))
+        self.assertEqual(code, 4)
+        self.assertEqual(len(cli.calls), 1)
+        self.assertIn("2.1.325", err)
+        self.assertIn("2.1.326", err)
+        self.assertEqual(len([e for e in self.entries() if e["charged"] == "reserved"]), 1)
+
+    def test_an_unchanged_version_does_not_stop_the_run(self):
+        cli = FakeCli(lambda args: (result_doc({case_arg(args).rstrip("*-"): [None]}), 0, ""))
+        code, err = self.run_suite(cli, assets=("j-demo", "demo-skill"))
+        self.assertEqual(code, 0, err)
+        self.assertEqual(len(cli.calls), 2)
+
+    def test_a_result_from_another_version_is_quarantined_with_a_note(self):
+        doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
+        doc["claudeVersion"] = "2.1.326"
+        code, err = self.run_suite(FakeCli(lambda args: (doc, 0, "")))
+        self.assertEqual(code, 4, err)
+        base = self.state / "test" / "kb" / MODEL / "effects"
+        self.assertFalse((base / "j-demo.json").exists())
+        self.assertFalse((base / "j-demo.key").exists())
+        settles = [e for e in self.entries() if e["charged"] == "settle"]
+        self.assertEqual([e["actualUsd"] for e in settles], [1.5])
+        before = self.today_utc()
+        folders = list((self.state.parent / "quarantine").glob("*-cli-2.1.326"))
+        self.assertEqual(len(folders), 1)
+        self.assertIn(folders[0].name[:10], {before, self.today_utc()})
+        rel = Path("test") / "kb" / MODEL / "effects"
+        moved = folders[0] / rel / "j-demo.json"
+        self.assertTrue(moved.is_file())
+        self.assertTrue((folders[0] / rel / "j-demo").is_dir())
+        self.assertFalse((base / "j-demo").exists())
+        note = (folders[0] / "README.txt").read_text()
+        for expected in ("j-demo", "2.1.326", "2.1.325", "1.50", "j-demo.json"):
+            self.assertIn(expected, note)
+
+    @staticmethod
+    def today_utc():
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    def test_a_repeat_quarantine_for_one_version_never_overwrites(self):
+        def mismatched(args):
+            doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
+            doc["claudeVersion"] = "2.1.326"
+            return doc, 0, ""
+
+        for _ in range(2):
+            code, err = self.run_suite(FakeCli(mismatched))
+            self.assertEqual(code, 4, err)
+        folders = sorted((self.state.parent / "quarantine").glob("*-cli-2.1.326*"))
+        self.assertEqual(len(folders), 2)
+        self.assertTrue(folders[1].name.endswith("-cli-2.1.326-2"))
+        rel = Path("test") / "kb" / MODEL / "effects"
+        for folder in folders:
+            self.assertTrue((folder / rel / "j-demo.json").is_file())
+            self.assertTrue((folder / rel / "j-demo" / "cli.log").is_file())
+            self.assertFalse((folder / rel / "j-demo" / "j-demo").exists())
+
+    def test_a_result_without_claude_version_is_kept_with_a_warning(self):
+        doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
+        doc.pop("claudeVersion", None)
+        code, err = self.run_suite(FakeCli(lambda args: (doc, 0, "")))
+        self.assertEqual(code, 0, err)
+        self.assertIn("carries no claudeVersion", err)
+        base = self.state / "test" / "kb" / MODEL / "effects"
+        self.assertTrue((base / "j-demo.json").exists())
+        self.assertFalse((self.state.parent / "quarantine").exists())
+
     def test_bad_cost_values_abort_with_the_cap_charged(self):
         for cost in (float("nan"), -1.0, "1.0"):
             with self.subTest(cost=cost):
@@ -3027,6 +3176,46 @@ class LedgerSafetyTests(unittest.TestCase):
         )
         self.assertAlmostEqual(kledger.spent("p", self.path), 80.0)
 
+    KEY: ClassVar[dict] = {
+        "period": "p", "purpose": "t", "staging": "kb", "model": "m", "suite": "effects",
+        "batch": "b",
+    }  # fmt: skip
+
+    def reserve(self, cost=60.0, **extra):
+        entry = {**self.KEY, "costUsd": cost, "charged": "reserved", "capUsd": cost, **extra}
+        return kledger.reserve(entry, 1000, 0, self.path)
+
+    def test_settle_open_refunds_the_gap_to_a_stated_cost(self):
+        reserved = self.reserve(60.0)
+        row = kledger.settle_open(self.KEY, 12.5, "interrupted", self.path)
+        self.assertAlmostEqual(kledger.spent("p", self.path), 12.5)
+        self.assertEqual(row["settles"], reserved["id"])
+        self.assertEqual(kledger.open_reservations("p", self.path), [])
+
+    def test_settle_open_refuses_when_nothing_is_open(self):
+        with self.assertRaises(kledger.LedgerError):
+            kledger.settle_open(self.KEY, 1.0, "interrupted", self.path)
+
+    def test_settle_open_refuses_when_several_match(self):
+        self.reserve(10.0)
+        self.reserve(10.0)
+        with self.assertRaisesRegex(kledger.LedgerError, "2 open reservations"):
+            kledger.settle_open(self.KEY, 1.0, "interrupted", self.path)
+
+    def test_settle_open_pairs_legacy_rows_last_in_first_out(self):
+        reserved = {**self.KEY, "costUsd": 10.0, "charged": "reserved"}
+        settle = {**self.KEY, "costUsd": -9.0, "charged": "settle"}
+        for number, row in enumerate((reserved, settle, reserved, reserved, settle)):
+            kledger.append({**row, "ts": f"t{number}"}, self.path)
+        opened = kledger.open_reservations("p", self.path)
+        self.assertEqual([e["ts"] for e in opened], ["t2"])
+
+    def test_a_rerun_reservation_names_the_row_it_replaces(self):
+        first = self.reserve()
+        second = self.reserve()
+        self.assertNotIn("replaces", first)
+        self.assertEqual(second["replaces"], first["id"])
+
     def test_torn_line_fails_closed_naming_the_line(self):
         kledger.append({"period": "p", "costUsd": 1.0}, self.path)
         with open(self.path, "a") as handle:
@@ -3111,6 +3300,22 @@ class EntryPointTests(OrchestrateTests):
         "--purpose",
         "fanout-x",
     ]
+
+    def test_settle_subcommand_appends_a_settle_row(self):
+        key = {"period": self.budget["period"], "purpose": "fanout-x", "staging": "kb",
+               "model": "claude-opus-5-5", "suite": "effects", "batch": "j-demo"}  # fmt: skip
+        kledger.reserve({**key, "costUsd": 30.0, "charged": "reserved", "capUsd": 30.0}, 1000, 0)
+        args = ["settle", "--purpose", "fanout-x", "--staging", "kb", "--model", "claude-opus-5-5",
+                "--suite", "effects", "--batch", "j-demo", "--actual-usd", "4.5"]  # fmt: skip
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(kmain.main(args), 0)
+        self.assertIn('"actualUsd": 4.5', out.getvalue())
+        self.assertAlmostEqual(kledger.spent(self.budget["period"]), 4.5)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.assertEqual(kmain.main(args), 1)
+        self.assertIn("settle: ", err.getvalue())
 
     def test_run_cap_is_the_purpose_remainder(self):
         kledger.append({"period": self.budget["period"], "purpose": "fanout-x", "costUsd": 2.0})

@@ -9,6 +9,12 @@ Spend: each batch's cap is the smallest of the remaining budget minus a reserve 
 a per-batch allowance (cases x runs x a per-run allowance), and any invocation cap. The cap is
 reserved in the ledger before the paid call and settled to the actual cost after it, so a crash or
 interrupt leaves the cap charged and concurrent runners cannot spend the same headroom.
+
+One CLI per invocation: `ClaudeCli` resolves `claude` to its real path once and runs that binary
+throughout, and each batch checks the version before its paid call. A change stops the run with
+exit 4; a result whose own `claudeVersion` differs from the step's is settled, then moved to
+`quarantine/` beside the results with a README.txt note. An interrupt prints the `settle` command
+that closes its reservation once the real cost is known; nothing releases it automatically.
 """
 
 from __future__ import annotations
@@ -18,6 +24,7 @@ import json
 import math
 import os
 import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -42,6 +49,7 @@ TURN_CAP = re.compile(r"Reached maximum number of turns")
 TIMEOUT = re.compile(r"timed out after")
 LOAD_ERROR = re.compile(r"(?i)no eval cases found|invalid case|failed to load|not a trusted plugin")
 WRITE_TOOLS = ["Bash", "Write", "Edit"]
+VERSION_STOP = 4
 
 
 class PaidCallRefusedError(Exception):
@@ -61,7 +69,21 @@ class Cli(Protocol):
 
 
 class ClaudeCli:
-    """The subprocess seam around the `claude` binary."""
+    """The subprocess seam around the `claude` binary, pinned to one real path per instance."""
+
+    def __init__(self, binary: Optional[str] = None):
+        """Pin `binary`, or resolve `claude` from PATH on first use."""
+        self._binary = binary
+
+    @property
+    def binary(self) -> str:
+        """Return the real path of `claude`, resolved on first use and then kept."""
+        if self._binary is None:
+            found = shutil.which("claude")
+            if found is None:
+                raise FileNotFoundError("claude not found on PATH")
+            self._binary = os.path.realpath(found)
+        return self._binary
 
     def run(self, args: List[str]) -> subprocess.CompletedProcess:
         """Run `claude <args>`; refuses unless KBEVAL_ALLOW_PAID is exactly "1"."""
@@ -70,19 +92,29 @@ class ClaudeCli:
                 "paid eval calls need KBEVAL_ALLOW_PAID=1 (set by the make targets)"
             )
         return subprocess.run(
-            ["claude", *args], capture_output=True, text=True, stdin=subprocess.DEVNULL, check=False
+            [self.binary, *args],
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            check=False,
         )
 
     def version(self) -> str:
         """Return `claude --version` (free)."""
         result = subprocess.run(
-            ["claude", "--version"],
+            [self.binary, "--version"],
             capture_output=True,
             text=True,
             stdin=subprocess.DEVNULL,
             check=False,
         )
         return result.stdout.strip()
+
+
+def cli_version(raw: str) -> str:
+    """Return the leading dotted number of `claude --version` output, else the stripped text."""
+    match = re.match(r"\s*(\d+(?:\.\d+)+)", raw)
+    return match.group(1) if match else raw.strip()
 
 
 def load_budget(repo: Optional[Path] = None) -> dict:
@@ -214,6 +246,7 @@ class _Batches:
         self.keep_temp: bool = bool(options.get("keep_temp"))
         self.invocation_spent = 0.0
         self.version = cli.version()
+        self.version_number = cli_version(self.version)
         self.eval_dir = f"evals-{suite}"
         # Everything staged outside the eval dirs: skills, commands, agents, references, fixtures,
         # CLAUDE.md, and harness.json.
@@ -254,11 +287,64 @@ class _Batches:
             **extra,
         }
 
-    def settle(self, label: str, cap: float, actual: float, **extra) -> None:
-        """Replace a reserved cap with the actual cost (a negative settle refunds the difference)."""
-        self.invocation_spent += actual
-        entry = self._entry(label, actual - cap, "settle", actualUsd=round(actual, 4), **extra)
-        ledger.append(entry, self.ledger_path)
+    def settle(self, label: str, cap: float, actual: float, reserved: dict, **extra) -> None:
+        """Replace a reserved cap with the actual cost (a negative settle refunds the difference).
+
+        Skipped, with a note, when a row already settles this reservation.
+        """
+        entry = self._entry(
+            label, actual - cap, "settle", actualUsd=round(actual, 4),
+            settles=reserved.get("id") or reserved.get("ts"), **extra,
+        )  # fmt: skip
+        if ledger.settle_id(entry, self.ledger_path):
+            self.invocation_spent += actual
+        else:
+            held = entry["settles"]
+            by_hand = next(
+                (e for e in ledger.entries(self.ledger_path) if e.get("settles") == held), {}
+            )
+            self.invocation_spent += float(by_hand.get("actualUsd", cap))
+            _err(f"{label}: reservation already settled by hand; that row stands")
+
+    def settle_command(self, label: str) -> str:
+        """Return the command that settles one of this run's reservations by hand."""
+        return (
+            f"python3 -m evals.kbeval settle --purpose {self.purpose} --staging {self.staging} "
+            f"--model {self.model} --suite {self.suite} --batch {label} --actual-usd <N>"
+        )
+
+    def quarantine(
+        self, label: str, json_path: Path, out_dir: Path, found: str, actual: float
+    ) -> Path:
+        """Move a result written by another CLI version aside with a README.txt note."""
+        stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        rel = json_path.parent.relative_to(self.state)
+        base = self.state.parent / "quarantine"
+        folder = base / f"{stamp}-cli-{found}"
+        number = 2
+        while (folder / rel / json_path.name).exists() or (folder / rel / out_dir.name).exists():
+            folder = base / f"{stamp}-cli-{found}-{number}"
+            number += 1
+        target = folder / rel
+        target.mkdir(parents=True, exist_ok=True)
+        moved = []
+        if json_path.exists():
+            shutil.move(str(json_path), str(target / json_path.name))
+            moved.append(json_path.name)
+        if out_dir.exists():
+            shutil.move(str(out_dir), str(target / out_dir.name))
+            moved.append(f"{out_dir.name}/")
+        binary = getattr(self.cli, "binary", "claude")
+        with open(folder / "README.txt", "a", encoding="utf-8") as note:
+            note.write(
+                f"batch: {self.purpose}/{self.staging}/{self.model}/{self.suite}/{label}\n"
+                f"step claude version: {self.version_number}\n"
+                f"result claude version: {found}\n"
+                f"binary: {binary}\n"
+                f"moved files: {', '.join(moved)}\n"
+                f"settled: ${actual:.2f}\n\n"
+            )
+        return target
 
     def execute(
         self,
@@ -287,6 +373,13 @@ class _Batches:
             _say(f"{label}: complete, skipped")
             _write_sidecar(json_path, self.kb_digest)
             return 0, doc
+        now = cli_version(self.cli.version())
+        if now != self.version_number:
+            _err(
+                f"{label}: claude version changed from {self.version_number} to {now}; "
+                "stopping before the paid call"
+            )
+            return VERSION_STOP, None
         cap, bound = self.cap(len(case_dirs))
         if cap < MIN_CAP_USD:
             _err(f"budget: batch {label} not started; cap ${cap:.2f} is bound by {bound}")
@@ -319,7 +412,11 @@ class _Batches:
         try:
             result = self.cli.run(args)
         except KeyboardInterrupt:
-            _err(f"{label}: interrupted; its ${cap:.2f} reservation stays charged")
+            _err(
+                f"{label}: interrupted; its ${cap:.2f} reservation stays charged. Once the real "
+                f"cost is known, settle it:\n"
+                f"  {self.settle_command(label)}"
+            )
             raise
         log = out_dir / "cli.log"
         log.write_text(
@@ -339,7 +436,9 @@ class _Batches:
         stderr_tail = "\n".join((result.stderr or "").strip().splitlines()[-5:])
         if doc is None:
             if LOAD_ERROR.search(result.stderr or ""):
-                self.settle(label, cap, 0.0, exitCode=result.returncode, reason="load error")
+                self.settle(
+                    label, cap, 0.0, reserved, exitCode=result.returncode, reason="load error"
+                )
                 _err(
                     f"{label}: the eval did not load (exit {result.returncode}); charged $0. Log: {log}"
                 )
@@ -363,11 +462,21 @@ class _Batches:
             return 1, None
         reason = doc.get("partialReason") if doc.get("partial") else None
         self.settle(
-            label, cap, cost, exitCode=result.returncode, runCount=len(_runs(doc)),
+            label, cap, cost, reserved, exitCode=result.returncode, runCount=len(_runs(doc)),
             partial=bool(doc.get("partial")), reason=reason, overCap=cost > cap,
         )  # fmt: skip
         spent = ledger.spent(self.budget["period"], self.ledger_path)
         _say(f"{label}: done, ${cost:.2f}; period spent ${spent:.2f}")
+        found = doc.get("claudeVersion")
+        if not found:
+            _err(f"{label}: result carries no claudeVersion; kept, but its version is unchecked")
+        elif cli_version(str(found)) != self.version_number:
+            target = self.quarantine(label, json_path, out_dir, cli_version(str(found)), cost)
+            _err(
+                f"{label}: result written by claude {found}, not {self.version_number}; "
+                f"settled ${cost:.2f} and moved to {target}"
+            )
+            return VERSION_STOP, None
         if doc.get("partial"):
             _err(f"{label}: partial result ({reason}); stopping. Log: {log}")
             return (130 if reason == "interrupted" else 2), None
@@ -436,7 +545,9 @@ def run(
     if jobs < 1 or runs < 1:
         _err(f"jobs and runs must be at least 1 (got jobs={jobs}, runs={runs})")
         return 1
-    batches = _Batches(suite, staging, model, runs, purpose, jobs, cli or ClaudeCli(), options)
+    cli = cli or ClaudeCli()
+    batches = _Batches(suite, staging, model, runs, purpose, jobs, cli, options)
+    _say(f"claude: {getattr(cli, 'binary', 'claude')} ({batches.version})")
     base = batches.state / purpose / staging / model / suite
     for label, case_glob, case_dirs in _batches(batches.plugin, suite, assets):
         status, doc = batches.execute(label, case_glob, case_dirs, base / f"{label}.json")

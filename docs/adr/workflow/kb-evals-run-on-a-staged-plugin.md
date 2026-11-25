@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-11-15
-updated: 2026-11-24
+updated: 2026-11-25
 ---
 # KB evals run on a staged plugin
 
@@ -31,7 +31,12 @@ Delta is kb minus vanilla, computed on result graders only. There are three suit
 effects, workflows), each in its own eval dir; triggers run on kb only. Models are Opus 5.5 and
 Sonnet 5.5, with Fable 5.2 as the sole judge. Each case runs three times. Spend is checked against
 a machine-local, locked ledger and a committed per-period budget. Compact summaries are committed;
-raw results stay machine-local. Runs bill an API key.
+raw results stay machine-local. Runs bill an API key. One invocation holds one CLI version:
+- The runner pins `claude` to its real path once and runs that binary throughout.
+- It checks the version before each batch's paid call; a change stops the run with exit 4.
+- A result written by another version is settled, then quarantined with a note.
+- An interrupted reservation stays charged, because in-flight spend is unknown; the `settle`
+  command closes it at a cost the owner states.
 
 ## Rationale
 
@@ -64,6 +69,9 @@ older results is refused until that staging is rerun or the older results are mo
 | Evaluating in the real `~/.claude` | Personal settings, memory, and hooks would confound every score | 2026-11-15 |
 | Cross-judging with each model under test | Confounds the cross-model comparison | 2026-11-15 |
 | Drop capped runs from the score | 41 of 46 capped trigger runs had already fired, so dropping them lowers should-fire recall by 3.6 points on Opus and 4.4 on Sonnet | 2026-11-23 |
+| Stage per invocation into a new directory | Re-keys every cached batch: `seed.sh` holds the staged path | 2026-11-25 |
+| Read the CLI version once per step | A symlink repointed mid-step lets later batches run on another version | 2026-11-25 |
+| Release an interrupted reservation automatically | The cost of runs in flight is unknown, so any release can undercount | 2026-11-25 |
 
 ## Enforcement
 - Owner: `evals/`

@@ -154,6 +154,26 @@ cap charged; a run that never loaded (`No eval cases found`, an untrusted plugin
 result whose cost is missing, negative, or not a number aborts the run with the cap charged. A
 ledger line that cannot be read stops every run until it is fixed by hand.
 
+An interrupt leaves the cap charged because the cost of runs in flight is unknown, and nothing
+releases it for you. The runner prints the command that closes it once you know the real cost:
+
+```bash
+python3 -m evals.kbeval settle --purpose P --staging S --model M --suite X --batch B --actual-usd N
+```
+
+A reserve row carries an `id`, and a `replaces` field when it reruns a batch the ledger already
+holds; a settle row carries `settles`, the `id` it closes. `settle` closes exactly one open
+reservation and refuses when none or several match. If the runner and `settle` both close the
+same reservation, the first row stands.
+
+One CLI version holds for a whole invocation. The runner resolves `claude` once to its real path
+and runs that binary throughout, so a symlink repointed mid-run changes nothing. Before each
+batch's paid call it reads the version again; a change stops the run with exit 4 and no new
+charge. A result written by another version (its `claudeVersion` differs from the step's) is
+settled to its cost, then moved to `quarantine/<UTC date>-cli-<version>/` beside the results,
+with a `README.txt` that names the batch, both versions, the binary, the moved files, and the
+settled cost. A result with no `claudeVersion` is kept, with a warning.
+
 Each batch writes `cli.log` (exit code, stdout, stderr) beside its result. Every result, log, and
 kept trace is scanned for `sk-ant-`; a hit quarantines the result and aborts the run.
 
@@ -575,8 +595,7 @@ what and why. The run was then resumed with the old binary
 `PATH`. All 468 accepted result files (234 per model) record 2.1.331. Of the $79.10 between the
 Opus ledger spend and its accepted runs, $19.10 is the eight quarantined batches and $60.00 is the
 interrupted batch's reservation, which an interrupt leaves at the full batch allowance (Budget);
-its real cost is unknown and at most that. The harness gaps this exposed are in
-`tasks/kbeval-run-integrity.md`.
+its real cost is unknown and at most that. The harness gaps this exposed are closed: see Budget.
 
 **Cases that failed in both arms (Sonnet).** After the first pass, 14 effect cases scored below
 2/3 in both arms. Each was judged from its stored run outputs by checks A2 to A4. Three were
