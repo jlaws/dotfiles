@@ -7,6 +7,18 @@
 - **Always** rotate secrets on a schedule and immediately after any suspected compromise
 - **Never** pass secrets via build args (`ARG`) -- they persist in image layers; use runtime env or mounted secrets
 - **Always** encrypt secrets at rest and use dedicated secret stores (Vault, AWS SM), not env files in production
+## Testing Redaction
+
+Grade a new redaction walker with structured plants. Each plant is one checkable case:
+- A credential-keyed rule: scrub key and value together, not as separate leaves.
+- Text that is parsed into structure before scrubbing: assert the scrubber still sees the parsed content.
+- A value reached through an abstract sequence type: assert its bytes are scrubbed, not passed through.
+- Two keys that scrub to the same name: assert no entry is dropped.
+
+Test a helper that renders a command line without the home directory the same way.
+- Use real arguments under a root whose path contains `=`, a space, a colon, and a parenthesis.
+- Oracle: zero outputs still contain the home directory.
+- The leak is the pass-through branch for arguments the helper does not classify, so make sure the cases reach it.
 
 ## HashiCorp Vault
 

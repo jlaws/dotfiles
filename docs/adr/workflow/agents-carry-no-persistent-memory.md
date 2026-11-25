@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-11-14
-updated: 2026-11-14
+updated: 2026-11-25
 ---
 # Agents carry no persistent memory
 
@@ -31,8 +31,9 @@ carries the same lessons through review, with no write path from the reviewed co
 
 ## Consequences
 **Gained**: reviewers stay read-only; no uncurated text enters their prompt.
-**Accepted**: the existing notes stop loading. `tasks/harvest-agent-memory-into-references.md`
-generalizes them into references. Audit `AG-F9` guards other repos and future agents that do enable
+**Accepted**: the existing notes stop loading; their general lessons were folded into
+`references/security/`, `references/testing/`, and the `code-review-patterns` skill on 2026-11-25;
+the stores stay in place. Audit `AG-F9` guards other repos and future agents that do enable
 memory.
 
 ## Ruled Out
@@ -42,6 +43,7 @@ memory.
 | `disallowedTools` on the agent | Its precedence over the memory auto-grant is undocumented | 2026-11-14 |
 | Prose-only rules in the agent body | Advisory; nothing enforces them | 2026-11-14 |
 | `project` or `local` memory scope | Committable or plantable by the reviewed repo | 2026-11-14 |
+| Leave the stores unharvested | The stores no longer load, so the general lessons would stay unloaded and unreviewed | 2026-11-25 |
 
 ## Enforcement
 - Owner: `.claude/agents/*.md` frontmatter
