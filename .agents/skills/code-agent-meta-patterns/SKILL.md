@@ -160,7 +160,7 @@ If no arguments provided, review all staged/unstaged changes.
 
 ## Hook Patterns
 
-See `references/workflow/hook-patterns.md` for full examples (PreToolUse, PostToolUse JSON configs).
+See `~/.agents/references/workflow/hook-patterns.md` for full examples (PreToolUse, PostToolUse JSON configs).
 
 **Key principles:** hooks should be fast (<5s), fail loudly, use narrow matchers, test manually first.
 
@@ -184,7 +184,7 @@ See `references/workflow/hook-patterns.md` for full examples (PreToolUse, PostTo
 - If a skill needs >350 lines, it's trying to do too much
 - Prefer tables and code over prose (higher information density)
 - Avoid volatile content in CLAUDE.md (timestamps, changing metrics): breaks KV cache prefix
-- See `references/workflow/context-efficiency` for full patterns
+- See `~/.agents/references/workflow/context-efficiency` for full patterns
 
 ## Task Decomposition
 
@@ -214,7 +214,7 @@ When tackling complex tasks, analyze sequentially from different roles:
 
 ## Permission Management
 
-See `references/workflow/permission-management.md` for full settings hierarchy and JSON examples.
+See `~/.agents/references/workflow/permission-management.md` for full settings hierarchy and JSON examples.
 
 **Key rules:** minimal permissions by default, deny overrides allow, use glob patterns, `settings.local.json` for personal overrides.
 

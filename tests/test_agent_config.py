@@ -581,13 +581,54 @@ def reference_names(text: str) -> set[str]:
     return names
 
 
+# The prefix each (tree, kind) cites shared references by, as written in the repo. Sync expands the
+# home-anchored `~/` forms to the absolute home path in installed copies. No form resolves against
+# the project (docs/adr/workflow/kb-reference-paths-never-resolve-against-the-project.md).
+AGENTS_REFERENCES = "~/.agents/references/"
+REFERENCE_FORMS: dict[tuple[str, str], str] = {
+    (".agents", "skills"): AGENTS_REFERENCES,
+    (".gemini/antigravity-cli", "skills"): AGENTS_REFERENCES,
+    (".codex", "prompts"): AGENTS_REFERENCES,
+    (".codex", "agents"): AGENTS_REFERENCES,
+    (".gemini/config", "agents"): AGENTS_REFERENCES,
+}
+REFERENCE_CATEGORIES = sorted(path.name for path in (REPO / ".agents" / "references").iterdir())
+# One citation token: everything from the last delimiter up to and including `<category>/`.
+REFERENCE_CITATION = re.compile(
+    r"[^\s`'\"(\[*<>=,]*references/(?P<category>" + "|".join(REFERENCE_CATEGORIES) + ")/"
+)
+# These name project-scope surfaces on purpose, so they keep the relative form.
+RELATIVE_REFERENCE_EXEMPT = ("config-security-audit/SKILL.md",)
+
+
+def reference_form_key(rel: str) -> tuple[str, str] | None:
+    """Return the REFERENCE_FORMS key a tracked path falls under, or None."""
+    for tree, kind in REFERENCE_FORMS:
+        if rel.startswith(f"{tree}/{kind}/"):
+            return tree, kind
+    return None
+
+
+def project_relative_citations(text: str, prefix: str) -> list[str]:
+    """Return each reference citation in `text` that is not written with `prefix`."""
+    return [
+        match.group(0)
+        for match in REFERENCE_CITATION.finditer(text)
+        if match.group(0) != f"{prefix}{match.group('category')}/"
+    ]
+
+
 def command_copies(command: str) -> tuple[tuple[Path, str], ...]:
     """Return each tree's copy of a command with the reference path prefix that tree uses."""
+    agents = REFERENCE_FORMS[(".agents", "skills")]
     return (
         (REPO / ".claude" / "commands" / f"{command}.md", "references/"),
-        (REPO / ".agents" / "skills" / f"cmd-{command}" / "SKILL.md", ".agents/references/"),
-        (REPO / ".codex" / "prompts" / f"{command}.md", ".agents/references/"),
-        (REPO / ".gemini" / "antigravity-cli" / "skills" / command / "SKILL.md", "references/"),
+        (REPO / ".agents" / "skills" / f"cmd-{command}" / "SKILL.md", agents),
+        (REPO / ".codex" / "prompts" / f"{command}.md", REFERENCE_FORMS[(".codex", "prompts")]),
+        (
+            REPO / ".gemini" / "antigravity-cli" / "skills" / command / "SKILL.md",
+            REFERENCE_FORMS[(".gemini/antigravity-cli", "skills")],
+        ),
     )
 
 
@@ -2417,6 +2458,62 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=str(gemini.relative_to(REPO))):
                 got = reference_names(gemini.read_text(encoding="utf-8"))
                 self.assertEqual(got, agent_reference_names(agent))
+
+    def test_no_kb_asset_cites_a_project_relative_reference(self):
+        """A tool resolves a relative path against the user's project, where a cloned repo can
+        plant a same-named file. Each tree and kind cites references in its one chosen form."""
+        tracked = subprocess.run(
+            [
+                "git",
+                "ls-files",
+                "-z",
+                *sorted({f"{tree}/{kind}" for tree, kind in REFERENCE_FORMS}),
+            ],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split("\0")
+        scanned = 0
+        offenders = []
+        exempt_hits = 0
+        for rel in tracked:
+            key = reference_form_key(rel)
+            path = REPO / rel
+            if key is None or not path.is_file():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            scanned += 1
+            bad = project_relative_citations(text, REFERENCE_FORMS[key])
+            if rel.endswith(RELATIVE_REFERENCE_EXEMPT):
+                exempt_hits += len(bad)
+                continue
+            offenders.extend(f"{rel}: {citation}" for citation in bad)
+        self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
+        self.assertGreaterEqual(
+            exempt_hits, 2, "the exempt copies no longer hold the relative form"
+        )
+        self.assertEqual(offenders, [], "\n".join(offenders[:40]))
+
+    def test_project_relative_reference_scan_controls(self):
+        prefix = AGENTS_REFERENCES
+        self.assertEqual(
+            project_relative_citations("Read `.agents/references/cloud/x.md`.", prefix),
+            [".agents/references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("Read `references/cloud/x.md`.", prefix),
+            ["references/cloud/"],
+        )
+        self.assertEqual(
+            project_relative_citations("Read `~/.agents/references/cloud/x.md`.", prefix), []
+        )
+        self.assertEqual(
+            project_relative_citations("Read `code-review-patterns/references/x.md`.", prefix), []
+        )
 
     def test_consult_cases_measure_reference_reads(self):
         """Each consult case carries a read-refs grader on its agents' reference directories.

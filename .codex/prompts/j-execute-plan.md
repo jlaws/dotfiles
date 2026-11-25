@@ -10,7 +10,7 @@ which states the choice and logs it. Load `executing-plans` for inline batches o
 `subagent-driven-development` for a fresh subagent per task, then follow that skill exactly
 (maintain the plan's living-document ledger, verify each step, stop and ask on blockers).
 
-Do the bare minimum the plan requires, no more: build no feature, capability, or option it did not ask for (`.agents/references/workflow/completeness-principle.md`, Where Thoroughness Stops).
+Do the bare minimum the plan requires, no more: build no feature, capability, or option it did not ask for (`~/.agents/references/workflow/completeness-principle.md`, Where Thoroughness Stops).
 
 Run without pausing between batches, tasks, or phases. Stop only for a blocking question (`executing-plans`, When to Stop and Ask), to confirm a discovered plan path, or when `$cmd-j-diff-review` has reported the PR URL.
 

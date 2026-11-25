@@ -13,7 +13,7 @@ Before starting, gather diagnostic context:
 
 Load the relevant references for the topic, based on the diagnostic context:
 
-Reference library at `.agents/references/languages/`:
+Reference library at `~/.agents/references/languages/`:
 - async-deep-dive, async-patterns, bash-defensive-patterns
 - browser-extension-development, cli-tool-development, cuda-gpu-programming
 - fastapi-templates, go-concurrency-patterns, js-ts-patterns
@@ -22,6 +22,6 @@ Reference library at `.agents/references/languages/`:
 - rust-project-patterns, swift-patterns, swift-performance
 - testing-and-errors, uv-workflows
 
-For deep language guidance, you may instead delegate to the `language-specialist` agent, passing the detected language/tooling and the request. It loads its skills (language-testing-patterns, test-driven-development) and the `.agents/references/languages/` library, then returns idiomatic guidance. Verify its output before presenting.
+For deep language guidance, you may instead delegate to the `language-specialist` agent, passing the detected language/tooling and the request. It loads its skills (language-testing-patterns, test-driven-development) and the `~/.agents/references/languages/` library, then returns idiomatic guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

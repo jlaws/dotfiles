@@ -14,8 +14,8 @@ Load these before analyzing:
 - Load skill `code-agent-meta-patterns`: CLAUDE.md design patterns, context budget rules
 - Load skill `verification-before-completion`: evidence-before-claims methodology
 - Load skill `writing-skills`: skill creation and testing methodology
-- Read `.agents/references/workflow/context-efficiency`: context management patterns
-- Read `.agents/references/workflow/task-execution-checklists`: implementation and review checklists
+- Read `~/.agents/references/workflow/context-efficiency`: context management patterns
+- Read `~/.agents/references/workflow/task-execution-checklists`: implementation and review checklists
 
 ## Review Process
 

@@ -238,13 +238,13 @@ git commit -m "feat: add specific feature"
 - **Bare minimum scope** - do the bare minimum the spec requires, no more. Plan no feature, capability,
   option, or abstraction it did not ask for; solve the original problem as concisely as possible. This
   limits scope, never quality: docs, tests, and the validation gate stay
-  (`.agents/references/workflow/completeness-principle.md`, Where Thoroughness Stops). Fixing defects a
+  (`~/.agents/references/workflow/completeness-principle.md`, Where Thoroughness Stops). Fixing defects a
   review finds is not new scope.
 - **Risk-first vertical slices** - hardest or least-certain phase first; each phase testable end to end rather than a horizontal layer.
 - **Wide mechanical changes** - a change whose blast radius spans the codebase is the exception to vertical slicing. Sequence it expand-contract: add the new form beside the old, migrate in batches that each keep the suite green, then delete the old form. The old form lives only until the last batch; it is never a compatibility shim.
-- **Decisions persisted** - every significant, not-easily-reversible decision has an ADR task (`docs/adr/<topic>/<slug>.md`), updating an existing record in place rather than adding a second file; minor ones are noted inline. See `.agents/references/architecture/architecture-decision-records.md`.
+- **Decisions persisted** - every significant, not-easily-reversible decision has an ADR task (`docs/adr/<topic>/<slug>.md`), updating an existing record in place rather than adding a second file; minor ones are noted inline. See `~/.agents/references/architecture/architecture-decision-records.md`.
 - **Assumptions stated** - the plan names its assumptions, numbered and falsifiable, across
-  whichever rows apply. See `.agents/references/workflow/existing-code-discipline.md`.
+  whichever rows apply. See `~/.agents/references/workflow/existing-code-discipline.md`.
 
 ## Self-Review (before handoff)
 

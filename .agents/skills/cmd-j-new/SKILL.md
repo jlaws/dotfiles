@@ -202,7 +202,7 @@ sandbox_mode = "{sandbox}" # only if narrowed
 developer_instructions = """
 You are a {role description}. {One sentence about approach.}
 Load these shared skills when relevant: {skill names}.
-Read relevant files under `.agents/references/{category}/`.
+Read relevant files under `~/.agents/references/{category}/`.
 {Additional role-specific instructions.}
 """
 ```

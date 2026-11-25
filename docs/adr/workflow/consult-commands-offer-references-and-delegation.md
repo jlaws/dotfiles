@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-11-16
-updated: 2026-11-16
+updated: 2026-11-25
 ---
 # Consult commands offer references and delegation
 
@@ -27,7 +27,11 @@ and 4 of 12 j-system-design runs. So the library was named only on a path the mo
 We will have each consult command carry **its agent's full reference index beside optional
 delegation**, and let the model choose. The command says "Load the relevant references for the
 topic, based on the diagnostic context:" followed by the agent's `Reference library at` and
-`Also see` blocks, names verbatim, in that tree's path form; the delegation sentence reads "you may
+`Also see` blocks, names verbatim, in that tree's path form (`~/.agents/references/<category>/`
+in `.agents`, `.codex`, and `.gemini`, `~/.claude/references/<category>/` in `.claude/commands` and
+`.claude/agents`, and `${CLAUDE_SKILL_DIR}/../../references/<category>/` in `.claude/skills`;
+sync expands the `~` forms to the absolute home path, see
+[KB reference paths never resolve against the project](kb-reference-paths-never-resolve-against-the-project.md)); the delegation sentence reads "you may
 instead delegate to". j-system-design carries each perspective agent's index the same way. The full
 index, not a curated j-observe-style shortlist: it carries everything the agent would load and can
 be tested for equality. It inherits the agent index's own gaps (some agents omit files in their

@@ -22,4 +22,4 @@ Invoke the `test-driven-development` skill before coding. Then follow this execu
 
 Do not move to step 4 until ALL tests from step 2 are written. Do not skip running tests between implementations in step 4.
 
-For a large feature, you may delegate test authoring (steps 2-3) to the `test-writer` agent -- it loads test-driven-development + language-testing-patterns + `references/testing/`. Always verify RED/GREEN yourself; a subagent's "tests pass" is not proof.
+For a large feature, you may delegate test authoring (steps 2-3) to the `test-writer` agent -- it loads test-driven-development + language-testing-patterns + `~/.agents/references/testing/`. Always verify RED/GREEN yourself; a subagent's "tests pass" is not proof.

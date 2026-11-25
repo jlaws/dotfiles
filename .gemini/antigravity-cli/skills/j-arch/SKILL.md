@@ -16,7 +16,7 @@ Before starting, gather diagnostic context:
 
 Load the relevant references for the topic, based on the diagnostic context:
 
-Reference library at `references/architecture/`:
+Reference library at `~/.agents/references/architecture/`:
 - api-design-checklist, api-design-principles, architecture-decision-records
 - architecture-patterns, background-job-processing, caching-strategies
 - distributed-communication-patterns, error-management
@@ -27,10 +27,10 @@ Reference library at `references/architecture/`:
 - rest-best-practices, retry-patterns, saas-multi-tenancy
 - server-examples, testing-and-integration, testing-strategies
 
-Also see `references/workflow/`:
+Also see `~/.agents/references/workflow/`:
 - existing-code-discipline
 
-For deep architecture guidance, you may instead delegate to the `architecture-specialist` agent, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `references/architecture/` library, then returns specific guidance. Verify its output against the codebase before presenting.
+For deep architecture guidance, you may instead delegate to the `architecture-specialist` agent, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `~/.agents/references/architecture/` library, then returns specific guidance. Verify its output against the codebase before presenting.
 
 If the consultation reaches a significant architecture decision, offer to capture it as an ADR (see the `architecture-decision-records` reference) in `docs/adr/<topic>/<slug>.md`. If an ADR already covers the decision, update it in place -- revise the Decision, add the previous approach to `## Ruled Out` with its reason and date, and bump `updated` -- rather than writing a second file. Skip minor or easily reversible changes.
 

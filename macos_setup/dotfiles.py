@@ -215,8 +215,26 @@ def _archive_dest(archive: Archive, dest: Path) -> Path:
     return archive.files_dir / str(dest).lstrip("/")
 
 
-def apply_file(src: Path, dest: Path, archive: Archive) -> None:
-    """Copy ``src`` to ``dest``, archiving any replaced original and recording the change."""
+# Home-anchored reference prefixes the repo text uses. Sync writes the absolute home path into
+# installed copies, so no tool resolves a reference against the project (ADR
+# kb-reference-paths-never-resolve-against-the-project).
+HOME_ANCHORS = ("~/.agents/references/", "~/.claude/references/")
+EXPANDED_SUFFIXES = (".md", ".toml")
+
+
+def expand_home_anchors(text: str, home: Path) -> str:
+    """Rewrite the ``~/.agents/references/`` and ``~/.claude/references/`` prefixes under ``home``."""
+    for anchor in HOME_ANCHORS:
+        text = text.replace(anchor, f"{home}/{anchor[2:]}")
+    return text
+
+
+def apply_file(src: Path, dest: Path, archive: Archive, *, home: Path | None = None) -> None:
+    """Copy ``src`` to ``dest``, archiving any replaced original and recording the change.
+
+    With ``home`` set, ``.md`` and ``.toml`` files get their home-anchored reference prefixes
+    expanded, and the recorded sha is that of the file written, so a guarded revert still matches.
+    """
     if dest.exists():
         backup = _archive_dest(archive, dest)
         backup.parent.mkdir(parents=True, exist_ok=True)
@@ -226,7 +244,12 @@ def apply_file(src: Path, dest: Path, archive: Archive) -> None:
         action = "added"
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dest)
-    archive.record_file(str(dest), action, sha256_file(src))
+    if home is not None and dest.suffix in EXPANDED_SUFFIXES:
+        text = src.read_text(encoding="utf-8")
+        expanded = expand_home_anchors(text, home)
+        if expanded != text:
+            dest.write_text(expanded, encoding="utf-8")
+    archive.record_file(str(dest), action, sha256_file(dest))
 
 
 def _retired_for(dest: Path) -> tuple[str, ...]:
@@ -483,7 +506,7 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
                     _LOG.info("would sync %s", dest_file)
                     would_sync += 1
                     continue
-                apply_file(src_file, dest_file, archive)
+                apply_file(src_file, dest_file, archive, home=target)
                 _LOG.debug("sync %s", dest_file)
                 synced += 1
 
