@@ -43,6 +43,11 @@ here, so the fix can come with an eval case that fails before it.
   for greenfield work; `.claude/agents/scope-reviewer.md` defines it as "the proposed scope is
   missing capabilities required for the stated goal". The agent reads the reference, so the two
   definitions meet in one run.
+- `references/cloud/file-storage-patterns.md` gives the presigned-expiry rule for a whole-file
+  URL only ("set generous expiry (1h+) for large files") and says nothing about multipart part
+  URLs. In the 2026-12 baseline most runs signed short-lived part URLs on demand, and one kb run
+  read the rule and set it aside as not applying to parts. The reference should say what it wants
+  for part URLs.
 
 ## Scope
 1. Fix each asset with an eval case that fails before the fix.
