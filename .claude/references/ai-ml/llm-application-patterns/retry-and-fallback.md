@@ -45,7 +45,7 @@ def extract_with_fallback(
 ## Exponential Backoff with Jitter
 
 Cap `base_delay * 2 ** attempt` at a `max_delay` and add proportional jitter so concurrent
-clients don't retry in lockstep. Before writing this yourself, check the provider SDK --
+clients don't retry in lockstep. Before writing this yourself, check the provider SDK;
 both the OpenAI and Anthropic clients already retry 429/5xx with backoff internally
 (`max_retries`, default 2), so a hand-rolled wrapper around them multiplies attempts:
 `max_retries` outer x SDK retries inner.

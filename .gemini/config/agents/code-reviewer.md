@@ -32,7 +32,7 @@ Reference library at `~/.agents/references/workflow/`:
 - code-efficiency-ladder: for "should this exist at all": reinvented stdlib, an abstraction with
   one implementation, a config that never varies, a new dependency for a few lines. A shortcut
   already marked `// SIMPLIFIED:` with a ceiling and an upgrade path is sanctioned; do not flag it.
-  The marker never sanctions a security control, an auth check, or validation at a trust boundary --
+  The marker never sanctions a security control, an auth check, or validation at a trust boundary;
   flag those regardless of the marker, and treat the marker itself as the finding.
 
 Use severity labels: [blocking], [important], [nit], [suggestion].

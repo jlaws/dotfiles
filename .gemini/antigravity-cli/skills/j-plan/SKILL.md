@@ -79,7 +79,7 @@ an agent's own definition to supply the contract: `test-writer` and `documentati
 `Edit`/`Write`.
 
 > Report only. Return findings and design input; edit nothing. Cite `file:line` for anything you
-> assert about the existing code. If your lens does not apply to this spec, return "no findings --
+> assert about the existing code. If your lens does not apply to this spec, return "no findings -
 > surface not present" rather than manufacturing material.
 > Flag any design input that conflicts with a listed convention; cite its ID.
 > Report as `subagent-report-contract` specifies: a verdict line, then findings as `file:line`

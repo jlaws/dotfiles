@@ -108,7 +108,7 @@ loses work silently.
 4. **Integrate with `git merge`, never by copying files.** `cp` or `rsync` out of a worktree loses
    history and silently overwrites concurrent work in the destination.
 5. **Leave the worktree in place.** The caller owns `git merge` and `git worktree remove`, and cannot
-   integrate a tree you already deleted. For the same reason, do not invoke `finishing-branch` --
+   integrate a tree you already deleted. For the same reason, do not invoke `finishing-branch`;
    return the work on its branch.
 
 ## Quick Reference

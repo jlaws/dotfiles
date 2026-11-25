@@ -49,7 +49,7 @@ SKILL_DIR_SCRIPT_PATH = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+\.(?:py|sh|
 TREE_ROOTS = (".claude", ".codex", ".agents", ".gemini")
 CODE_SPAN = re.compile(r"(`+).+?\1")
 TABLE_PLACEHOLDER = re.compile(r"\|\s*--\s*(?=\|)")
-PROSE_DOUBLE_HYPHEN = re.compile(r"(?<=\S) -- (?=\S)")
+PROSE_DOUBLE_HYPHEN = re.compile(r"(?<=\S)\s+--(?=\s|$)")
 EM_DASH = "\u2014"
 
 # Side-effect commands nothing invokes; user-only in Claude and Codex
@@ -1699,6 +1699,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             "A prose dash -- here",
             "## Phase 1 -- Scope",
             "run `git log -- path` -- then",
+            "text --",
+            "a  --  b",
         ):
             self.assertTrue(flagged(bad), f"control not rejected: {bad!r}")
         for good in (
@@ -1706,6 +1708,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             "| Right | -- | x |",
             "```\na -- b\n```",
             "a --flag",
+            "-- list item",
         ):
             self.assertFalse(flagged(good), f"control wrongly rejected: {good!r}")
         tracked = subprocess.run(
