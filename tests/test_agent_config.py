@@ -1098,6 +1098,20 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertGreater(text.index("collapse its phases"), text.index("git checkout -b"))
 
+    def test_create_pr_agents_use_the_branch_convention_and_remote_base(self):
+        agents = (
+            REPO / ".claude" / "agents" / "create-pr.md",
+            REPO / ".gemini" / "config" / "agents" / "create-pr.md",
+            REPO / ".codex" / "agents" / "create-pr.toml",
+        )
+        for path in agents:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertIn("type/short-description", text)
+                self.assertIn("origin/main..", text)
+                self.assertNotIn("<username>", text)
+                self.assertIsNone(re.search(r"(?<![\w/])main\.\.", text))
+
     def test_plans_size_prs_for_review(self):
         self.assertEqual(len(WRITING_PLANS_SKILLS), 3)
         for path in WRITING_PLANS_SKILLS:
