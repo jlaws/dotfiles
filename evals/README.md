@@ -178,7 +178,8 @@ One CLI version holds for a whole invocation. The runner resolves `claude` once 
 and runs that binary throughout, so a symlink repointed mid-run changes nothing. Before each
 batch's paid call it reads the version again; a change stops the run with exit 4 and no new
 charge. A result written by another version (its `claudeVersion` differs from the step's) is
-settled to its cost, then moved to `quarantine/<UTC date>-cli-<version>/` beside the results,
+settled to its cost, then moved to `quarantine/<UTC date>-cli-<version>/` beside the results (any character in the version other
+than a letter, digit, or dot becomes `_`),
 with a `README.txt` that names the batch, both versions, the binary, the moved files, and the
 settled cost. A result with no `claudeVersion` is kept, with a warning.
 

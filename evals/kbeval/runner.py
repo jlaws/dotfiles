@@ -332,6 +332,7 @@ class _Batches:
         stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         rel = json_path.parent.relative_to(self.state)
         base = self.state.parent / "quarantine"
+        found = re.sub(r"[^0-9A-Za-z.]", "_", found)
         folder = base / f"{stamp}-cli-{found}"
         number = 2
         while (folder / rel / json_path.name).exists() or (folder / rel / out_dir.name).exists():

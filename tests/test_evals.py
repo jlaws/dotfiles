@@ -3154,6 +3154,17 @@ class RunnerSafetyTests(RunnerCase):
     def today_utc():
         return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
+    def test_a_traversal_shaped_claude_version_stays_inside_quarantine(self):
+        doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
+        doc["claudeVersion"] = "/../../../tmp/x"
+        code, err = self.run_suite(FakeCli(lambda args: (doc, 0, "")))
+        self.assertEqual(code, 4, err)
+        base = self.state.parent / "quarantine"
+        folders = [p for p in base.iterdir() if p.is_dir()]
+        self.assertEqual(len(folders), 1)
+        self.assertRegex(folders[0].name, r"^\d{4}-\d{2}-\d{2}-cli-[0-9A-Za-z._]+$")
+        self.assertTrue((folders[0] / "README.txt").is_file())
+
     def test_a_repeat_quarantine_for_one_version_never_overwrites(self):
         def mismatched(args):
             doc = result_doc({"j-demo--effect-cache": [None]}, cost=1.5)
