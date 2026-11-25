@@ -2279,6 +2279,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                             other, grader, "a grounded case grades one directory alone"
                         )
 
+    def test_j_plan_states_an_outside_plan_mode_path(self):
+        text = CLAUDE_J_PLAN_COMMAND.read_text(encoding="utf-8")
+        self.assertGreaterEqual(text.count("Outside plan mode"), 2)
+        self.assertIn("~/.claude/plans/<repo-name>-", text)
+
 
 if __name__ == "__main__":
     unittest.main()
