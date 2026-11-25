@@ -874,20 +874,29 @@ re-measured under the `-sdd` purposes (held-out 10 of 12, existing 6 of 6, no ne
 cases existed.
 
 **Trigger tuning, code-quality (2026-11-25, Claude Code 2.1.332).** Same columns and counts as the
-table above. `code-quality` loaded in none of the stored kb runs of `code-quality--effect-marker-audit`.
+2026-11-23 trigger tuning table; every run here, base included, is on 2.1.332. `code-quality` loaded in none of the stored kb runs of `code-quality--effect-marker-audit`.
 New cases: `code-quality--trigger-should-tune-marked-shortcuts` (written by the tuner) and
 `code-quality--trigger-should-held-health-audit` / `code-quality--trigger-near-held-split-function`
 (written by a separate author given only the description and these rules). The held-out base fired 6
 of 12 (Opus 6/6, Sonnet 0/6), below the 9-of-12 "restored by rule" bar, so tuning ran. Three
-candidates were tried on the tune cases; the best, "Use when reviewing a module's quality: smells,
-style, shortcuts, or TODOs.", moved the tuning case from 0/6 to 4/6 at round 3 (3/6 at final).
+candidates were tried on the tune cases, one round each: r1 "Use when judging existing code: smells,
+style, or which shortcuts to fix." and r2 "Use when deciding which smells, TODOs, or shortcuts in
+code need fixing." left the tuning case at 0/6; r3 "Use when reviewing a module's quality: smells,
+style, shortcuts, or TODOs." moved it to 4/6. The final steps re-ran r3 unchanged: the tuning case
+fired 3/6, and the held-out should case fired 4/12 (Opus 4/6, Sonnet 0/6) against 6/12 at base (Opus
+6/6, Sonnet 0/6). A two-run drop on one model sits within run-to-run noise at this sample size; the
+rule restores on any gain below +4.
 
 | Skill | Class | Existing should | Held-out should | Near fires | Outcome |
 |---|---|---|---|---|---|
 | code-quality | MISS | 6 -> 6 | 6 -> 4 | 0 -> 0 | restored: held-out gain -2 |
 
 `hillclimb adopt` printed `ADOPT code-quality restore`; the effects criterion was skipped because a
-trigger criterion failed, and the neighbour line reported 0 assets checked. The description stays
+trigger criterion failed, and the neighbour line reported 0 assets checked. The plan's sequence runs
+the effects and neighbour steps before the verdict, so their 34.89 USD bought runs the restore left
+unused. The defect stays open: `code-quality` still does not load in
+`code-quality--effect-marker-audit`, and a description rewrite did not fix it on this evidence; the
+next full baseline measures it again. The description stays
 "Use when assessing code smells, health, or style." Purposes and spend: `cq-tune-base` 1.67,
 `cq-tune-held-base` 2.50, `cq-tune-r1` to `-r3` 5.09, `cq-tune-final` 1.79, `cq-tune-held-final`
 2.47, `cq-tune-effects` 2.90, `cq-tune-neighbours` 31.99 (48.41 USD in total).
