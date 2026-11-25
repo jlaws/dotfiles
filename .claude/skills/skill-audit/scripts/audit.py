@@ -282,9 +282,7 @@ class Audit:
         extras = [
             p
             for p in sorted(folder.rglob("*"))
-            if p.is_file()
-            and p != skill
-            and not _is_generated(p)
+            if p.is_file() and p != skill and not _is_generated(p)
         ]
         reachable = {skill}
         frontier = [text]
@@ -372,7 +370,10 @@ class Audit:
                     # Without this the remedy names a value that looks identical to what was
                     # written, and the actual fix -- lowercase it -- is nowhere in the message.
                     self.add(
-                        FAIL, "AG-F8", agent, f"`model: {model}` must be lowercase `{model.lower()}`"
+                        FAIL,
+                        "AG-F8",
+                        agent,
+                        f"`model: {model}` must be lowercase `{model.lower()}`",
                     )
                 else:
                     self.add(
@@ -567,9 +568,7 @@ class Audit:
                 f"`description` is {len(description)} chars (limit {DESCRIPTION_LIMIT})",
             )
 
-    def _check_declared_skills(
-        self, path: Path, text: str, skills: Set[str], check: str
-    ) -> None:
+    def _check_declared_skills(self, path: Path, text: str, skills: Set[str], check: str) -> None:
         """Resolve both `skills:` frontmatter entries and prose skill invocations."""
         fields = self.frontmatter(text) or {}
         declared: List[str] = []

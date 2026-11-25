@@ -25,20 +25,20 @@ class MergeTomlTests(unittest.TestCase):
         self.assertNotIn('model = "gpt-5"', res)
 
     def test_merges_tables_and_preserves_target_table_keys(self) -> None:
-        target = '[agents]\nmax_threads = 8\nlocal_agent_flag = true\n'
+        target = "[agents]\nmax_threads = 8\nlocal_agent_flag = true\n"
         repo = '[agents]\ndefault_subagent_model = "gpt-6-sol"\nmax_threads = 6\n'
         res = merge_toml(repo, target)
-        self.assertIn('[agents]', res)
+        self.assertIn("[agents]", res)
         self.assertIn('default_subagent_model = "gpt-6-sol"', res)
-        self.assertIn('max_threads = 6', res)
-        self.assertIn('local_agent_flag = true', res)
-        self.assertNotIn('max_threads = 8', res)
+        self.assertIn("max_threads = 6", res)
+        self.assertIn("local_agent_flag = true", res)
+        self.assertNotIn("max_threads = 8", res)
 
     def test_preserves_target_only_sections(self) -> None:
         target = '[mcp_servers.local]\ncommand = "my-mcp"\n'
         repo = 'model = "gpt-6-astra"\n'
         res = merge_toml(repo, target)
-        self.assertIn('[mcp_servers.local]', res)
+        self.assertIn("[mcp_servers.local]", res)
         self.assertIn('command = "my-mcp"', res)
         self.assertIn('model = "gpt-6-astra"', res)
 
@@ -46,33 +46,29 @@ class MergeTomlTests(unittest.TestCase):
         target = 'model = "gpt-5"\n'
         repo = 'model = "gpt-6-astra"\n[agents]\nmax_threads = 4\n'
         res = merge_toml(repo, target)
-        self.assertIn('[agents]', res)
-        self.assertIn('max_threads = 4', res)
+        self.assertIn("[agents]", res)
+        self.assertIn("max_threads = 4", res)
 
     def test_preserves_comments_and_blank_lines(self) -> None:
         target = '# Machine specific comment\nmodel = "gpt-5"\n'
         repo = '# Repo hook comment\nmodel = "gpt-6-astra"\n'
         res = merge_toml(repo, target)
-        self.assertIn('# Machine specific comment', res)
+        self.assertIn("# Machine specific comment", res)
         self.assertIn('model = "gpt-6-astra"', res)
 
     def test_handles_section_headers_with_inline_comments(self) -> None:
-        target = '[agents] # host settings\nmax_threads = 8\n'
+        target = "[agents] # host settings\nmax_threads = 8\n"
         repo = '[agents]\ndefault_subagent_model = "gpt-6-sol"\nmax_threads = 4\n'
         res = merge_toml(repo, target)
-        self.assertIn('[agents]', res)
-        self.assertIn('max_threads = 4', res)
+        self.assertIn("[agents]", res)
+        self.assertIn("max_threads = 4", res)
         self.assertIn('default_subagent_model = "gpt-6-sol"', res)
         # Should not duplicate table header
-        self.assertEqual(res.count('[agents]'), 1)
+        self.assertEqual(res.count("[agents]"), 1)
 
     def test_multiline_array_with_quotes_and_comments(self) -> None:
         target = (
-            'patterns = [\n'
-            '  "[a-z]", # comment with ] bracket\n'
-            '  "normal",\n'
-            ']\n'
-            'model = "gpt-5"\n'
+            'patterns = [\n  "[a-z]", # comment with ] bracket\n  "normal",\n]\nmodel = "gpt-5"\n'
         )
         repo = 'model = "gpt-6-astra"\n'
         res = merge_toml(repo, target)
@@ -83,34 +79,31 @@ class MergeTomlTests(unittest.TestCase):
         target = 'prompt = """\nhello [\nworld\n"""\nmodel = "gpt-5"\n'
         repo = 'model = "gpt-6-astra"\n'
         res = merge_toml(repo, target)
-        self.assertIn('hello [', res)
+        self.assertIn("hello [", res)
         self.assertIn('model = "gpt-6-astra"', res)
 
     def test_array_of_tables_hooks_replaced_without_duplication(self) -> None:
         target = (
-            '[[hooks.UserPromptSubmit]]\n\n'
-            '[[hooks.UserPromptSubmit.hooks]]\n'
+            "[[hooks.UserPromptSubmit]]\n\n"
+            "[[hooks.UserPromptSubmit.hooks]]\n"
             'type = "command"\n'
             'command = "bash ~/.codex/hooks/old.sh"\n'
         )
         repo = (
-            '[[hooks.UserPromptSubmit]]\n\n'
-            '[[hooks.UserPromptSubmit.hooks]]\n'
+            "[[hooks.UserPromptSubmit]]\n\n"
+            "[[hooks.UserPromptSubmit.hooks]]\n"
             'type = "command"\n'
             'command = "bash ~/.codex/hooks/log-prompt.sh"\n'
         )
         res = merge_toml(repo, target)
-        self.assertIn('bash ~/.codex/hooks/log-prompt.sh', res)
-        self.assertNotIn('bash ~/.codex/hooks/old.sh', res)
+        self.assertIn("bash ~/.codex/hooks/log-prompt.sh", res)
+        self.assertNotIn("bash ~/.codex/hooks/old.sh", res)
 
     def test_preserves_target_only_array_of_tables(self) -> None:
-        target = (
-            '[[custom_plugin.servers]]\n'
-            'name = "local"\n'
-        )
+        target = '[[custom_plugin.servers]]\nname = "local"\n'
         repo = 'model = "gpt-6-astra"\n'
         res = merge_toml(repo, target)
-        self.assertIn('[[custom_plugin.servers]]', res)
+        self.assertIn("[[custom_plugin.servers]]", res)
         self.assertIn('name = "local"', res)
         self.assertIn('model = "gpt-6-astra"', res)
 
@@ -140,52 +133,52 @@ class MergeTomlTests(unittest.TestCase):
         repo = (
             'project_doc_fallback_filenames = ["CLAUDE.md", ".agents.md"]\n'
             'model = "gpt-6-astra"\n'
-            '[agents]\n'
+            "[agents]\n"
             'default_subagent_model = "gpt-6-sol"\n'
             'default_subagent_reasoning_effort = "high"\n'
-            'max_threads = 6\n'
-            '[[hooks.UserPromptSubmit]]\n'
-            '[[hooks.UserPromptSubmit.hooks]]\n'
+            "max_threads = 6\n"
+            "[[hooks.UserPromptSubmit]]\n"
+            "[[hooks.UserPromptSubmit.hooks]]\n"
             'type = "command"\n'
             'command = "bash ~/.codex/hooks/log-prompt.sh"\n'
         )
         target = (
             'project_doc_fallback_filenames = ["CLAUDE.md", ".agents.md"]\n'
             'model = "gpt-5"\n'
-            '[agents]\n'
-            'max_threads = 8\n'
-            '# Hook registration comment\n'
-            '[[hooks.UserPromptSubmit]]\n'
-            '[[hooks.UserPromptSubmit.hooks]]\n'
+            "[agents]\n"
+            "max_threads = 8\n"
+            "# Hook registration comment\n"
+            "[[hooks.UserPromptSubmit]]\n"
+            "[[hooks.UserPromptSubmit.hooks]]\n"
             'type = "command"\n'
             'command = "bash ~/.codex/hooks/old.sh"\n'
             '[hooks.state."/path/to/config.toml:0:0"]\n'
             'trusted_hash = "sha256:123"\n'
-            '[tui]\n'
-            'screen_reader_detection_done = true\n'
+            "[tui]\n"
+            "screen_reader_detection_done = true\n"
         )
         res = merge_toml(repo, target)
         self.assertIn('model = "gpt-6-astra"', res)
-        self.assertIn('max_threads = 6', res)
+        self.assertIn("max_threads = 6", res)
         self.assertIn('default_subagent_model = "gpt-6-sol"', res)
-        self.assertIn('bash ~/.codex/hooks/log-prompt.sh', res)
-        self.assertNotIn('bash ~/.codex/hooks/old.sh', res)
+        self.assertIn("bash ~/.codex/hooks/log-prompt.sh", res)
+        self.assertNotIn("bash ~/.codex/hooks/old.sh", res)
         self.assertIn('[hooks.state."/path/to/config.toml:0:0"]', res)
         self.assertIn('trusted_hash = "sha256:123"', res)
-        self.assertIn('[tui]', res)
-        self.assertIn('screen_reader_detection_done = true', res)
+        self.assertIn("[tui]", res)
+        self.assertIn("screen_reader_detection_done = true", res)
 
     def test_raises_on_malformed_section_header(self) -> None:
         with self.assertRaises(ConfigMergeError):
-            merge_toml('model = "a"\n', '[unclosed table header\nkey = 1\n')
+            merge_toml('model = "a"\n', "[unclosed table header\nkey = 1\n")
         with self.assertRaises(ConfigMergeError):
             merge_toml('model = "a"\n', '[table."unclosed quote]\nkey = 1\n')
         with self.assertRaises(ConfigMergeError):
-            merge_toml('model = "a"\n', '[table..empty_segment]\nkey = 1\n')
+            merge_toml('model = "a"\n', "[table..empty_segment]\nkey = 1\n")
         with self.assertRaises(ConfigMergeError):
-            merge_toml('model = "a"\n', '[table.]\nkey = 1\n')
+            merge_toml('model = "a"\n', "[table.]\nkey = 1\n")
         with self.assertRaises(ConfigMergeError):
-            merge_toml('model = "a"\n', '[]\nkey = 1\n')
+            merge_toml('model = "a"\n', "[]\nkey = 1\n")
 
     def test_raises_on_unclosed_multiline_string(self) -> None:
         with self.assertRaises(ConfigMergeError):
@@ -193,7 +186,7 @@ class MergeTomlTests(unittest.TestCase):
 
     def test_raises_on_duplicate_standard_table(self) -> None:
         with self.assertRaises(ConfigMergeError):
-            merge_toml('model = "a"\n', '[agents]\nx = 1\n[agents]\ny = 2\n')
+            merge_toml('model = "a"\n', "[agents]\nx = 1\n[agents]\ny = 2\n")
 
 
 class MergeJsonTests(unittest.TestCase):
@@ -240,9 +233,7 @@ class MergeJsonTests(unittest.TestCase):
         target = '{"hooks": {"UserPromptSubmit": [{"command": "old.sh"}]}}'
         repo = '{"hooks": {"UserPromptSubmit": [{"command": "log-prompt.sh"}]}}'
         data = json.loads(merge_json(repo, target))
-        self.assertEqual(
-            data["hooks"]["UserPromptSubmit"], [{"command": "log-prompt.sh"}]
-        )
+        self.assertEqual(data["hooks"]["UserPromptSubmit"], [{"command": "log-prompt.sh"}])
 
     def test_raises_on_malformed_target(self) -> None:
         target = '{"unclosed": '

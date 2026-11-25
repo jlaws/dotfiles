@@ -196,7 +196,9 @@ def apply_system(archive: Archive, runner: Runner, home: Path, *, dry_run: bool 
         archive.save()
 
 
-def apply_user_system(archive: Archive, runner: Runner, home: Path, *, dry_run: bool = False) -> None:
+def apply_user_system(
+    archive: Archive, runner: Runner, home: Path, *, dry_run: bool = False
+) -> None:
     """Apply the system-level settings a standard user can change: reveal ``~/Library``."""
     if dry_run:
         _LOG.info("would reveal ~/Library")
@@ -251,7 +253,9 @@ def _apply_chflags_volumes(archive: Archive, runner: Runner, *, dry_run: bool) -
     _LOG.info("revealed /Volumes")
 
 
-def revert_user_system(archive: Archive, runner: Runner, home: Path, *, dry_run: bool = False) -> None:
+def revert_user_system(
+    archive: Archive, runner: Runner, home: Path, *, dry_run: bool = False
+) -> None:
     """Re-hide ``~/Library`` if setup revealed it (no administrator privileges needed)."""
     names = {record["name"] for record in archive.manifest.get("system", [])}
     if "chflags:library" in names and not dry_run:
@@ -314,4 +318,6 @@ def _revert_pmset(record: dict[str, Any], runner: Runner, *, dry_run: bool) -> N
     for key, default in _PMSET_DEFAULTS.items():
         if not dry_run:
             runner.run(["pmset", "-a", key, default], sudo=True)
-        _LOG.warning("reset pmset %s to documented default %s (not precisely restorable)", key, default)
+        _LOG.warning(
+            "reset pmset %s to documented default %s (not precisely restorable)", key, default
+        )

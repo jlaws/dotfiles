@@ -66,7 +66,9 @@ class ClaudeCli:
     def run(self, args: List[str]) -> subprocess.CompletedProcess:
         """Run `claude <args>`; refuses unless KBEVAL_ALLOW_PAID is exactly "1"."""
         if os.environ.get("KBEVAL_ALLOW_PAID") != "1":
-            raise PaidCallRefusedError("paid eval calls need KBEVAL_ALLOW_PAID=1 (set by the make targets)")
+            raise PaidCallRefusedError(
+                "paid eval calls need KBEVAL_ALLOW_PAID=1 (set by the make targets)"
+            )
         return subprocess.run(
             ["claude", *args], capture_output=True, text=True, stdin=subprocess.DEVNULL, check=False
         )
@@ -74,7 +76,10 @@ class ClaudeCli:
     def version(self) -> str:
         """Return `claude --version` (free)."""
         result = subprocess.run(
-            ["claude", "--version"], capture_output=True, text=True, stdin=subprocess.DEVNULL,
+            ["claude", "--version"],
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
             check=False,
         )
         return result.stdout.strip()
@@ -175,7 +180,9 @@ def _scan_for_key(paths: List[Path]) -> Optional[Path]:
 
 
 def _write_sidecar(json_path: Path, kb_digest: str) -> None:
-    json_path.with_suffix(SIDECAR).write_text(json.dumps({"kbDigest": kb_digest}) + "\n", encoding="utf-8")
+    json_path.with_suffix(SIDECAR).write_text(
+        json.dumps({"kbDigest": kb_digest}) + "\n", encoding="utf-8"
+    )
 
 
 def _discard(json_path: Path) -> None:
@@ -200,7 +207,9 @@ class _Batches:
         self.ledger_path: Optional[Path] = options.get("ledger_path")
         self.budget: dict = options.get("budget") or load_budget()
         p95 = options.get("p95")
-        self.p95: float = float(p95 if p95 is not None else self.budget.get("p95RunUsd", DEFAULT_P95_USD))
+        self.p95: float = float(
+            p95 if p95 is not None else self.budget.get("p95RunUsd", DEFAULT_P95_USD)
+        )
         self.cap_limit: Optional[float] = options.get("cap_limit")
         self.keep_temp: bool = bool(options.get("keep_temp"))
         self.invocation_spent = 0.0
@@ -225,7 +234,9 @@ class _Batches:
             (allowance, f"batch allowance ({cases} cases x {self.runs} runs)"),
         ]  # fmt: skip
         if self.cap_limit is not None:
-            limits.append((self.cap_limit - self.invocation_spent, f"invocation cap ${self.cap_limit:.2f}"))
+            limits.append(
+                (self.cap_limit - self.invocation_spent, f"invocation cap ${self.cap_limit:.2f}")
+            )
         return min(limits, key=lambda item: item[0])
 
     def _entry(self, label: str, cost: float, charged: str, **extra) -> dict:
@@ -250,14 +261,26 @@ class _Batches:
         ledger.append(entry, self.ledger_path)
 
     def execute(
-        self, label: str, case_glob: str, case_dirs: List[Path], json_path: Path, rerun: bool = False
+        self,
+        label: str,
+        case_glob: str,
+        case_dirs: List[Path],
+        json_path: Path,
+        rerun: bool = False,
     ) -> Tuple[int, Optional[dict]]:
         """Run one batch; return (status, doc). Status 0 means continue.
 
         A rerun batch whose stored result still ended on an API error is run again. A main batch
         that runs again discards its old per-case rerun results.
         """
-        parts = [self.staging, self.model, JUDGE_MODEL, str(self.runs), self.version, self.kb_digest]
+        parts = [
+            self.staging,
+            self.model,
+            JUDGE_MODEL,
+            str(self.runs),
+            self.version,
+            self.kb_digest,
+        ]
         key = _content_key(case_dirs, parts)
         doc = _complete(json_path, key)
         if doc is not None and not (rerun and _api_error_cases(doc)):
@@ -309,13 +332,17 @@ class _Batches:
         if leaked is not None:
             if json_path.exists():
                 json_path.rename(json_path.with_suffix(".quarantined"))
-            _err(f"{label}: sk-ant- found in {leaked}; result quarantined; aborting: rotate the key.")
+            _err(
+                f"{label}: sk-ant- found in {leaked}; result quarantined; aborting: rotate the key."
+            )
             return 3, None
         stderr_tail = "\n".join((result.stderr or "").strip().splitlines()[-5:])
         if doc is None:
             if LOAD_ERROR.search(result.stderr or ""):
                 self.settle(label, cap, 0.0, exitCode=result.returncode, reason="load error")
-                _err(f"{label}: the eval did not load (exit {result.returncode}); charged $0. Log: {log}")
+                _err(
+                    f"{label}: the eval did not load (exit {result.returncode}); charged $0. Log: {log}"
+                )
                 _err(stderr_tail)
                 return 1, None
             _err(
@@ -326,9 +353,13 @@ class _Batches:
                 _err(stderr_tail)
             return (result.returncode or 1), None
         raw = doc.get("costUsd")
-        cost = float(raw) if isinstance(raw, (int, float)) and not isinstance(raw, bool) else math.nan
+        cost = (
+            float(raw) if isinstance(raw, (int, float)) and not isinstance(raw, bool) else math.nan
+        )
         if not math.isfinite(cost) or cost < 0 or (_runs(doc) and not cost):
-            _err(f"{label}: result reports cost {raw!r}; aborting; the ${cap:.2f} cap stays charged")
+            _err(
+                f"{label}: result reports cost {raw!r}; aborting; the ${cap:.2f} cap stays charged"
+            )
             return 1, None
         reason = doc.get("partialReason") if doc.get("partial") else None
         self.settle(
@@ -342,7 +373,9 @@ class _Batches:
             return (130 if reason == "interrupted" else 2), None
         api_errors = _api_error_cases(doc)
         if result.returncode not in (0, 1) or (result.returncode == 1 and not api_errors):
-            _err(f"{label}: exit {result.returncode} without an API-error run; stopping. Log: {log}")
+            _err(
+                f"{label}: exit {result.returncode} without an API-error run; stopping. Log: {log}"
+            )
             if stderr_tail:
                 _err(stderr_tail)
             return result.returncode, None
@@ -393,7 +426,9 @@ def run(
         _err("evals bill an API key; export ANTHROPIC_API_KEY")
         return 1
     if not re.match(r"^claude-[a-z]+-", model):
-        _err(f"model {model} is not a full model id (claude-<family>-...); the judge-family guard cannot read it")
+        _err(
+            f"model {model} is not a full model id (claude-<family>-...); the judge-family guard cannot read it"
+        )
         return 1
     if judge_family(model) == judge_family(JUDGE_MODEL):
         _err(f"model {model} is in the judge's family ({JUDGE_MODEL}); a run cannot grade itself")

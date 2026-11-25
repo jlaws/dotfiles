@@ -40,8 +40,12 @@ class InstallPackagesTests(unittest.TestCase):
             self.assertFalse(install_packages(runner))
         self.assertTrue(any("admin" in line for line in cm.output))
         argvs = runner.argv_list()
-        self.assertFalse(any(argv[:2] in (["brew", "install"], ["brew", "update"]) for argv in argvs))
-        self.assertNotIn(["npm", "install", "-g", "typescript-language-server", "typescript"], argvs)
+        self.assertFalse(
+            any(argv[:2] in (["brew", "install"], ["brew", "update"]) for argv in argvs)
+        )
+        self.assertNotIn(
+            ["npm", "install", "-g", "typescript-language-server", "typescript"], argvs
+        )
 
     def test_brew_writable_true_for_admin(self):
         self.assertTrue(brew_writable(FakeRunner(_brew_ok)))
@@ -59,8 +63,12 @@ class InstallPackagesTests(unittest.TestCase):
         self.assertIn(["brew", "update"], argvs)
         self.assertIn(["brew", "install", "coreutils"], argvs)
         self.assertIn(["brew", "cleanup"], argvs)
-        self.assertLess(argvs.index(["brew", "update"]), argvs.index(["brew", "install", "coreutils"]))
-        self.assertLess(argvs.index(["brew", "install", "coreutils"]), argvs.index(["brew", "cleanup"]))
+        self.assertLess(
+            argvs.index(["brew", "update"]), argvs.index(["brew", "install", "coreutils"])
+        )
+        self.assertLess(
+            argvs.index(["brew", "install", "coreutils"]), argvs.index(["brew", "cleanup"])
+        )
 
     def test_installs_fetch_tool_clis(self):
         """The always-loaded configs name a fetch-tool ladder -- WebFetch, then the agent-browser

@@ -2,7 +2,7 @@ VENV := .venv
 BIN := $(VENV)/bin
 PY_FILES := $(shell find . -name '*.py' -not -path './.venv/*' -not -path './.claude/references/*' -not -path './evals/fixtures/*')
 
-.PHONY: venv lint format fix typecheck check test verify eval-stage eval-lint eval-pilot \
+.PHONY: venv lint format format-check fix typecheck check test verify eval-stage eval-lint eval-pilot \
 	eval-smoke eval-baseline eval-spend eval-compare eval-headroom eval-affected
 
 venv: $(VENV)/.installed
@@ -17,6 +17,9 @@ lint: venv
 format: venv
 	$(BIN)/ruff format .
 
+format-check: venv
+	$(BIN)/ruff format --check .
+
 fix: venv
 	$(BIN)/ruff check --fix . && $(BIN)/ruff format .
 
@@ -26,7 +29,7 @@ typecheck: venv
 test: venv
 	$(BIN)/python -m unittest discover -s tests -t .
 
-check: lint typecheck
+check: format-check lint typecheck
 
 verify: check test
 

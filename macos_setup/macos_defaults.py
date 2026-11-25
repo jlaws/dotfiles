@@ -103,6 +103,7 @@ def merge_revert(
 
 def version_gte(current: str, required: str) -> bool:
     """Return True when macOS version ``current`` is >= ``required`` (dotted numeric)."""
+
     def parts(v: str) -> tuple[int, ...]:
         return tuple(int(p) for p in v.split("."))
 
@@ -112,9 +113,7 @@ def version_gte(current: str, required: str) -> bool:
 def applicable(settings: list[Setting], macos_version: str) -> list[Setting]:
     """Filter settings to those whose ``min_version`` is satisfied by ``macos_version``."""
     return [
-        s
-        for s in settings
-        if s.min_version is None or version_gte(macos_version, s.min_version)
+        s for s in settings if s.min_version is None or version_gte(macos_version, s.min_version)
     ]
 
 
@@ -203,9 +202,7 @@ def apply_defaults(
                 check=False,
             )
             if not result.ok:
-                _LOG.warning(
-                    "could not set %s %s: %s", domain, setting.key, result.stderr.strip()
-                )
+                _LOG.warning("could not set %s %s: %s", domain, setting.key, result.stderr.strip())
                 failed.append(f"{domain} {setting.key}")
                 continue
             written.append(setting)
@@ -274,7 +271,9 @@ def revert_defaults(
             with tempfile.TemporaryDirectory() as tmpdir:
                 path = Path(tmpdir) / "restore.plist"
                 path.write_bytes(plistlib.dumps(result.restore))
-                runner.run(_defaults_argv(scope, ["import", domain, str(path)]), sudo=(scope == "sudo"))
+                runner.run(
+                    _defaults_argv(scope, ["import", domain, str(path)]), sudo=(scope == "sudo")
+                )
         for key in result.delete:
             runner.run(_defaults_argv(scope, ["delete", domain, key]), sudo=(scope == "sudo"))
     return summary
@@ -344,7 +343,9 @@ SETTINGS: list[Setting] = [
         "int",
         2,
     ),
-    Setting("com.apple.driver.AppleBluetoothMultitouch.trackpad", "TrackpadRightClick", "bool", True),
+    Setting(
+        "com.apple.driver.AppleBluetoothMultitouch.trackpad", "TrackpadRightClick", "bool", True
+    ),
     Setting(
         "NSGlobalDomain",
         "com.apple.trackpad.trackpadCornerClickBehavior",
@@ -352,7 +353,9 @@ SETTINGS: list[Setting] = [
         1,
         scope="host",
     ),
-    Setting("NSGlobalDomain", "com.apple.trackpad.enableSecondaryClick", "bool", True, scope="host"),
+    Setting(
+        "NSGlobalDomain", "com.apple.trackpad.enableSecondaryClick", "bool", True, scope="host"
+    ),
     Setting("NSGlobalDomain", "com.apple.swipescrolldirection", "bool", True),
     Setting("com.apple.BluetoothAudioAgent", "Apple Bitpool Min (editable)", "int", 40),
     Setting("NSGlobalDomain", "AppleKeyboardUIMode", "int", 3),
@@ -420,9 +423,15 @@ SETTINGS: list[Setting] = [
         "raw",
         [
             "-dict",
-            "General", "-bool", "true",
-            "OpenWith", "-bool", "true",
-            "Privileges", "-bool", "true",
+            "General",
+            "-bool",
+            "true",
+            "OpenWith",
+            "-bool",
+            "true",
+            "Privileges",
+            "-bool",
+            "true",
         ],
     ),
     # --- Spotlight ---

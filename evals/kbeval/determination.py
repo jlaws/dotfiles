@@ -326,7 +326,7 @@ def _trigger_kind(name: str) -> Tuple[str, str]:
     rest = name.split("--", 1)[1] if "--" in name else ""
     for kind in TRIGGER_KINDS:
         if rest.startswith(kind + "-"):
-            return kind, rest[len(kind) + 1:]
+            return kind, rest[len(kind) + 1 :]
     return "", ""
 
 
@@ -372,7 +372,9 @@ def triggers(purpose: str, assets: List[str], split: Optional[str]) -> int:
     for name, kind, model, fired, graded in rows:
         print(f"TRIGGER {name} {kind} {model} {fired}/{graded}")
     if not rows:
-        print(f"no trigger results for purpose={purpose} assets={' '.join(assets)}", file=sys.stderr)
+        print(
+            f"no trigger results for purpose={purpose} assets={' '.join(assets)}", file=sys.stderr
+        )
         return 1
     return 0
 

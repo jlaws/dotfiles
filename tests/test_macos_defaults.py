@@ -36,7 +36,9 @@ class BuildWriteArgsTests(unittest.TestCase):
         self.assertEqual(build_write_args(s), ["-string", "scale"])
 
     def test_raw_passes_value_through(self):
-        s = Setting("com.apple.finder", "FXInfoPanesExpanded", "raw", ["-dict", "General", "-bool", "true"])
+        s = Setting(
+            "com.apple.finder", "FXInfoPanesExpanded", "raw", ["-dict", "General", "-bool", "true"]
+        )
         self.assertEqual(build_write_args(s), ["-dict", "General", "-bool", "true"])
 
 

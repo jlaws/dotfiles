@@ -50,21 +50,21 @@ def skill_fired(name: str, minimum: int = 1, maximum: int | None = None) -> str:
     bound = f"min: {minimum}\n" + (f"max: {maximum}\n" if maximum is not None else "")
     return (
         "---\ntype: tool_used\ntool: Skill\n"
-        f"input_match: '\"skill\"\\s*:\\s*\"(?:kb:)?{name}\"'\n{bound}---\n"
+        f'input_match: \'"skill"\\s*:\\s*"(?:kb:)?{name}"\'\n{bound}---\n'
     )
 
 
 def agent_dispatched(name: str) -> str:
     return (
         "---\ntype: tool_used\ntool: Agent\n"
-        f"input_match: '\"subagent_type\"\\s*:\\s*\"kb:{name}\"'\n---\n"
+        f'input_match: \'"subagent_type"\\s*:\\s*"kb:{name}"\'\n---\n'
     )
 
 
 def make_repo(root: Path) -> Path:
     """Build a minimal repo: one skill, two commands (one user-only), one agent, one reference."""
     files = {
-        ".claude/CLAUDE.md": "# KB rules\n\nSay \"hi\" and use \\n literally.\n",
+        ".claude/CLAUDE.md": '# KB rules\n\nSay "hi" and use \\n literally.\n',
         ".claude/skills/demo-skill/SKILL.md": "---\nname: demo-skill\ndescription: Use when demoing.\n---\n\nBody.\n",
         ".claude/skills/demo-skill/scripts/run.py": "print('x')\n",
         ".claude/commands/j-demo.md": "---\nname: j-demo\ndescription: Demo. Use when demoing.\n---\n\nDo the demo.\n",
@@ -89,10 +89,20 @@ def make_repo(root: Path) -> Path:
 def case_description(root: Path, suite: str, name: str) -> str:
     """A valid `description` for a case in the temp repo, with the ending its kind needs."""
     asset = name.split("--")[0]
-    paths = [".claude/skills/%s/SKILL.md" % asset, ".claude/commands/%s.md" % asset, ".claude/agents/%s.md" % asset]
+    paths = [
+        ".claude/skills/%s/SKILL.md" % asset,
+        ".claude/commands/%s.md" % asset,
+        ".claude/agents/%s.md" % asset,
+    ]
     path = next((p for p in paths if (root / p).is_file()), ".claude/commands/j-demo.md")
     if suite == "triggers":
-        ending = "near: none" if "trigger-near" in name else "noauto" if "trigger-noauto" in name else "should"
+        ending = (
+            "near: none"
+            if "trigger-near" in name
+            else "noauto"
+            if "trigger-noauto" in name
+            else "should"
+        )
     else:
         ending = "hard because a capable model without the asset would miss it"
     return f"the demo rule, as a clause; {path}; {ending}"
@@ -125,36 +135,60 @@ def write_case(
 def valid_cases(root: Path) -> None:
     """One lint-clean case of each shape."""
     write_case(
-        root, "triggers", "demo-skill--trigger-should-rate", TRIGGER_FM.format(kind="trigger-should"),
-        "Help me design a rate limiter for my API.", {"fired": skill_fired("demo-skill")},
+        root,
+        "triggers",
+        "demo-skill--trigger-should-rate",
+        TRIGGER_FM.format(kind="trigger-should"),
+        "Help me design a rate limiter for my API.",
+        {"fired": skill_fired("demo-skill")},
     )
     write_case(
-        root, "triggers", "demo-skill--trigger-near-typo", TRIGGER_FM.format(kind="trigger-near"),
-        "Fix the typo in README.", {"fired": skill_fired("demo-skill", 0, 0)},
+        root,
+        "triggers",
+        "demo-skill--trigger-near-typo",
+        TRIGGER_FM.format(kind="trigger-near"),
+        "Fix the typo in README.",
+        {"fired": skill_fired("demo-skill", 0, 0)},
     )
     write_case(
-        root, "triggers", "j-quiet--trigger-noauto-ask", TRIGGER_FM.format(kind="trigger-noauto"),
-        "Do the quiet thing for me.", {"fired": skill_fired("j-quiet", 0, 0)},
+        root,
+        "triggers",
+        "j-quiet--trigger-noauto-ask",
+        TRIGGER_FM.format(kind="trigger-noauto"),
+        "Do the quiet thing for me.",
+        {"fired": skill_fired("j-quiet", 0, 0)},
     )
     write_case(
-        root, "effects", "j-demo--effect-cache", EFFECT_FM,
+        root,
+        "effects",
+        "j-demo--effect-cache",
+        EFFECT_FM,
         "/kb:j-demo design a cache layer and save it to ./design.md.",
         {"result": LLM_RESULT, "fired": skill_fired("j-demo")},
         fixture='set -euo pipefail\ncp -R "$1/py-calc/." .\ngit init -q -b main\nmkdir -p plans\n',
         case_yaml="context:\n  add_dirs: [resources]\n",
     )
     write_case(
-        root, "effects", "demo-agent--effect-review", EFFECT_FM,
+        root,
+        "effects",
+        "demo-agent--effect-review",
+        EFFECT_FM,
         "Use the kb:demo-agent agent to review the cache design and save it to ./design.md.",
         {"result": LLM_RESULT, "dispatched": agent_dispatched("demo-agent")},
     )
     write_case(
-        root, "effects", "demo-skill--effect-limiter", EFFECT_FM,
+        root,
+        "effects",
+        "demo-skill--effect-limiter",
+        EFFECT_FM,
         "Design a rate limiter and save the design to ./design.md.",
         {"result": LLM_RESULT, "fired": skill_fired("demo-skill")},
     )
     write_case(
-        root, "workflows", "wf--demo-chain", WORKFLOW_FM,
+        root,
+        "workflows",
+        "wf--demo-chain",
+        WORKFLOW_FM,
         "/kb:j-demo run the whole chain and save the design to ./design.md.",
         {"result": LLM_RESULT, "fired": skill_fired("j-demo")},
     )
@@ -218,10 +252,12 @@ class StageTests(TempRepoCase):
     def test_kb_staging_copies_claude_md_and_harness_into_kb(self):
         plugin = self.stage()
         self.assertEqual(
-            (plugin / "_kb" / "CLAUDE.md").read_text(), (self.repo / ".claude" / "CLAUDE.md").read_text()
+            (plugin / "_kb" / "CLAUDE.md").read_text(),
+            (self.repo / ".claude" / "CLAUDE.md").read_text(),
         )
         self.assertEqual(
-            (plugin / "_kb" / "harness.json").read_text(), (self.repo / "evals" / "harness.json").read_text()
+            (plugin / "_kb" / "harness.json").read_text(),
+            (self.repo / "evals" / "harness.json").read_text(),
         )
         vanilla = self.stage("vanilla")
         self.assertFalse((vanilla / "_kb" / "CLAUDE.md").exists())
@@ -249,10 +285,11 @@ class StageTests(TempRepoCase):
         for suite in ("triggers", "effects", "workflows"):
             for prompt in (plugin / f"evals-{suite}").glob("*/prompt.md"):
                 line = next(
-                    ln for ln in frontmatter_of(prompt).splitlines()
+                    ln
+                    for ln in frontmatter_of(prompt).splitlines()
                     if ln.startswith("append_system_prompt: ")
                 )
-                text = json.loads(line[len("append_system_prompt: "):])
+                text = json.loads(line[len("append_system_prompt: ") :])
                 self.assertTrue(text.startswith((self.repo / ".claude/CLAUDE.md").read_text()))
                 self.assertIn(
                     "KB references cited as `.claude/references/<p>` or `references/<p>` are at "
@@ -294,8 +331,13 @@ class StageTests(TempRepoCase):
         home.mkdir()
         env = {"PATH": os.environ["PATH"], "HOME": str(home), "TMPDIR": str(self.tmp)}
         result = subprocess.run(
-            ["bash", str(case / "seed.sh")], cwd=work, env=env, capture_output=True, text=True,
-            stdin=subprocess.DEVNULL, timeout=60,
+            ["bash", str(case / "seed.sh")],
+            cwd=work,
+            env=env,
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=60,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue((work / "calc" / "ops.py").is_file())
@@ -303,7 +345,9 @@ class StageTests(TempRepoCase):
         self.assertIn(".kb-references", (work / ".git" / "info" / "exclude").read_text())
         self.assertIn("__pycache__/", (work / ".git" / "info" / "exclude").read_text())
         self.assertLess(seed.index("fixture.sh"), seed.index(".kb-references"))
-        vanilla = (self.stage("vanilla") / "evals-effects" / "j-demo--effect-cache" / "seed.sh").read_text()
+        vanilla = (
+            self.stage("vanilla") / "evals-effects" / "j-demo--effect-cache" / "seed.sh"
+        ).read_text()
         self.assertIn("__pycache__/", vanilla)
 
     def test_case_yaml_has_schema_name_and_scaffold(self):
@@ -314,7 +358,7 @@ class StageTests(TempRepoCase):
         self.assertIn("  scaffold_script: seed.sh\n", text)
         self.assertIn("  add_dirs: [resources]\n", text)
         self.assertEqual(text.count("context:"), 1)
-        trigger = (plugin / "evals-triggers" / "demo-skill--trigger-should-rate" / "case.yaml")
+        trigger = plugin / "evals-triggers" / "demo-skill--trigger-should-rate" / "case.yaml"
         self.assertIn("name: demo-skill--trigger-should-rate\n", trigger.read_text())
 
     def test_stage_appends_non_interactive_line(self):
@@ -333,8 +377,12 @@ class StageTests(TempRepoCase):
             for staging in ("kb", "vanilla"):
                 plugin = self.stage(staging)
                 git_case = body_of(plugin / "evals-effects" / "j-demo--effect-cache" / "prompt.md")
-                self.assertTrue(git_case.endswith(note + "\n\n" + NON_INTERACTIVE), (staging, git_case))
-                plain = body_of(plugin / "evals-effects" / "demo-skill--effect-limiter" / "prompt.md")
+                self.assertTrue(
+                    git_case.endswith(note + "\n\n" + NON_INTERACTIVE), (staging, git_case)
+                )
+                plain = body_of(
+                    plugin / "evals-effects" / "demo-skill--effect-limiter" / "prompt.md"
+                )
                 self.assertNotIn(note, plain)
         with mock.patch.object(kstage, "working_git", return_value=None):
             plugin = self.stage()
@@ -363,7 +411,9 @@ class StageTests(TempRepoCase):
         plugin = self.stage()
         body = body_of(plugin / "evals-effects" / "j-demo--effect-cache" / "prompt.md")
         self.assertTrue(body.startswith("Use the kb:j-demo command to: design a cache layer"), body)
-        self.assertNotIn("disable-model-invocation", (plugin / "commands" / "j-quiet.md").read_text())
+        self.assertNotIn(
+            "disable-model-invocation", (plugin / "commands" / "j-quiet.md").read_text()
+        )
         self.assertFalse((plugin / "evals-triggers" / "j-quiet--trigger-noauto-ask").exists())
         self.assertTrue((plugin / "evals-triggers" / "demo-skill--trigger-near-typo").exists())
 
@@ -376,10 +426,11 @@ class StageTests(TempRepoCase):
         merged = (plugin / "evals-effects" / "j-demo--effect-cache" / "case.yaml").read_text()
         self.assertIn("  add_dirs: [resources, _refs]\n", merged)
         line = next(
-            ln for ln in frontmatter_of(case / "prompt.md").splitlines()
+            ln
+            for ln in frontmatter_of(case / "prompt.md").splitlines()
             if ln.startswith("append_system_prompt: ")
         )
-        self.assertIn(str(case / "_refs"), json.loads(line[len("append_system_prompt: "):]))
+        self.assertIn(str(case / "_refs"), json.loads(line[len("append_system_prompt: ") :]))
         self.assertNotIn(".kb-references", (case / "seed.sh").read_text())
 
     def test_agent_note_uses_the_refs_path_in_add_dirs_mode(self):
@@ -411,7 +462,8 @@ class StageTests(TempRepoCase):
 
         def outside_cases(plugin: Path) -> dict:
             return {
-                p.relative_to(plugin): p.read_bytes() for p in plugin.rglob("*")
+                p.relative_to(plugin): p.read_bytes()
+                for p in plugin.rglob("*")
                 if p.is_file() and not p.relative_to(plugin).parts[0].startswith("evals-")
             }
 
@@ -425,7 +477,9 @@ class StageTests(TempRepoCase):
 
     def test_stage_exclude_tags(self):
         folder = write_case(
-            self.repo, "effects", "demo-skill--effect-second-mode",
+            self.repo,
+            "effects",
+            "demo-skill--effect-second-mode",
             EFFECT_FM.replace("[effects, effect]", "[effects, effect, extended]"),
             "Review a rate limiter and save notes to ./design.md.",
             {"result": LLM_RESULT, "fired": skill_fired("demo-skill")},
@@ -442,7 +496,8 @@ class LintTests(TempRepoCase):
     def assert_problem(self, pattern: str) -> None:
         problems = self.problems()
         self.assertTrue(
-            any(re.search(pattern, p) for p in problems), f"no problem matching {pattern!r} in {problems}"
+            any(re.search(pattern, p) for p in problems),
+            f"no problem matching {pattern!r} in {problems}",
         )
 
     def edit(self, rel: str, old: str, new: str) -> None:
@@ -461,9 +516,9 @@ class LintTests(TempRepoCase):
         self.assertEqual((effect.suite, effect.asset, effect.kind), ("effects", "j-demo", "effect"))
 
     def test_lint_trigger_needs_exactly_one_skill_grader(self):
-        (self.repo / "evals/cases/triggers/demo-skill--trigger-should-rate/graders/extra.md").write_text(
-            LLM_RESULT
-        )
+        (
+            self.repo / "evals/cases/triggers/demo-skill--trigger-should-rate/graders/extra.md"
+        ).write_text(LLM_RESULT)
         self.assert_problem(r"demo-skill--trigger-should-rate: .*exactly one grader")
 
     def test_lint_trigger_bounds_follow_kind(self):
@@ -471,7 +526,9 @@ class LintTests(TempRepoCase):
         self.assert_problem(r"demo-skill--trigger-near-typo: .*min: 0.*max: 0")
 
     def test_lint_trigger_input_match_names_asset(self):
-        self.edit("triggers/demo-skill--trigger-should-rate/graders/fired.md", "demo-skill", "other")
+        self.edit(
+            "triggers/demo-skill--trigger-should-rate/graders/fired.md", "demo-skill", "other"
+        )
         self.assert_problem(r"demo-skill--trigger-should-rate: .*input_match")
 
     def test_lint_effect_needs_result_grader(self):
@@ -483,11 +540,19 @@ class LintTests(TempRepoCase):
         self.assert_problem(r"j-demo--effect-cache: .*process grader")
 
     def test_lint_result_grader_never_mentions_kb(self):
-        self.edit("effects/j-demo--effect-cache/graders/result.md", "names a cache", "uses kb:j-demo and names a cache")
+        self.edit(
+            "effects/j-demo--effect-cache/graders/result.md",
+            "names a cache",
+            "uses kb:j-demo and names a cache",
+        )
         self.assert_problem(r"j-demo--effect-cache: .*kb:")
 
     def test_lint_unknown_frontmatter_key(self):
-        self.edit("effects/j-demo--effect-cache/prompt.md", "max_turns: 40\n", "max_turns: 40\nmodel: opus\n")
+        self.edit(
+            "effects/j-demo--effect-cache/prompt.md",
+            "max_turns: 40\n",
+            "max_turns: 40\nmodel: opus\n",
+        )
         self.assert_problem(r"j-demo--effect-cache: .*model")
 
     def test_lint_suite_limits(self):
@@ -495,31 +560,60 @@ class LintTests(TempRepoCase):
         self.assert_problem(r"j-demo--effect-cache: .*max_turns")
 
     def test_lint_absolute_limits(self):
-        self.edit("effects/j-demo--effect-cache/prompt.md", "max_turns: 40\n", "max_turns: 40\nruns: 51\n")
+        self.edit(
+            "effects/j-demo--effect-cache/prompt.md", "max_turns: 40\n", "max_turns: 40\nruns: 51\n"
+        )
         self.assert_problem(r"j-demo--effect-cache: .*runs")
 
     def test_lint_env_keys(self):
-        self.edit("effects/j-demo--effect-cache/prompt.md", "max_turns: 40\n", "max_turns: 40\nenv: {HOME: /x}\n")
+        self.edit(
+            "effects/j-demo--effect-cache/prompt.md",
+            "max_turns: 40\n",
+            "max_turns: 40\nenv: {HOME: /x}\n",
+        )
         self.assert_problem(r"j-demo--effect-cache: .*EVAL_")
 
     def test_lint_forbidden_fixture_commands(self):
-        for command in ("curl https://example.com", "git clone x", "pip install y",
-                        "rm -rf build", "rm -fR x", "rm --recursive x", "rm -f -r x", "node -e 1", "perl -e 1",
-                        "python3 -Ic 1", "git config --global user.name x", "git config --system x",
-                        "git push --force", "git push -f origin", "git push origin +main",
-                        "git push --force-with-lease", "ssh-keyscan host", "ncat host 80", "wget2 x",
-                        "zsh -c 'x'", "git remote add origin git@host:x/y.git", "bash -c 'x'", "echo '#'; curl x"):
+        for command in (
+            "curl https://example.com",
+            "git clone x",
+            "pip install y",
+            "rm -rf build",
+            "rm -fR x",
+            "rm --recursive x",
+            "rm -f -r x",
+            "node -e 1",
+            "perl -e 1",
+            "python3 -Ic 1",
+            "git config --global user.name x",
+            "git config --system x",
+            "git push --force",
+            "git push -f origin",
+            "git push origin +main",
+            "git push --force-with-lease",
+            "ssh-keyscan host",
+            "ncat host 80",
+            "wget2 x",
+            "zsh -c 'x'",
+            "git remote add origin git@host:x/y.git",
+            "bash -c 'x'",
+            "echo '#'; curl x",
+        ):
             with self.subTest(command=command):
                 path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
                 path.write_text(f'set -euo pipefail\ncp -R "$1/py-calc/." .\n{command}\n')
-                self.assert_problem(r"j-demo--effect-cache: .*fixture\.sh:\d+ runs a forbidden command")
+                self.assert_problem(
+                    r"j-demo--effect-cache: .*fixture\.sh:\d+ runs a forbidden command"
+                )
 
     def test_lint_fixture_paths_outside_workspace(self):
         for command in ("cp /etc/hosts .", 'cp -R "$1/../.." .'):
             with self.subTest(command=command):
                 path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
                 path.write_text(f'set -euo pipefail\ncp -R "$1/py-calc/." .\n{command}\n')
-                self.assert_problem(r"j-demo--effect-cache: .*fixture\.sh:\d+ (?:uses a \.\. path|touches a path)")
+                self.assert_problem(
+                    r"j-demo--effect-cache: .*fixture\.sh:\d+ (?:uses a \.\. path|touches a path)"
+                )
 
     def test_lint_heredoc_payload_is_not_a_command(self):
         path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
@@ -533,12 +627,20 @@ class LintTests(TempRepoCase):
         (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/no-foo.md").write_text(
             "---\ntype: regex\npattern: 'foo'\nmatch: not_contains\ntarget: { source: file, path: notes.md }\n---\n"
         )
-        self.edit("effects/j-demo--effect-cache/prompt.md", "./design.md.", "./design.md and notes to ./notes.md.")
-        self.assert_problem(r"j-demo--effect-cache: .*no-foo: needs a positive regex or llm grader on notes\.md")
+        self.edit(
+            "effects/j-demo--effect-cache/prompt.md",
+            "./design.md.",
+            "./design.md and notes to ./notes.md.",
+        )
+        self.assert_problem(
+            r"j-demo--effect-cache: .*no-foo: needs a positive regex or llm grader on notes\.md"
+        )
 
     def test_lint_forbidden_words_match_whole_commands(self):
         path = self.repo / "evals/cases/effects/j-demo--effect-cache/fixture.sh"
-        path.write_text('set -euo pipefail\ncp -R "$1/py-calc/." .\nprintf "agent evals and ncurses\\n" > notes.txt\n')
+        path.write_text(
+            'set -euo pipefail\ncp -R "$1/py-calc/." .\nprintf "agent evals and ncurses\\n" > notes.txt\n'
+        )
         problems = [p for p in self.problems() if "fixture.sh" in p]
         self.assertEqual(problems, [])
 
@@ -548,17 +650,28 @@ class LintTests(TempRepoCase):
         self.assert_problem(r"j-demo--effect-cache: .*set -euo pipefail")
 
     def test_lint_case_yaml_context_shape(self):
-        for body in ("context:\n  add_dirs:\n    - resources\n", "context:\n  env:\n    FOO: bar\n"):
+        for body in (
+            "context:\n  add_dirs:\n    - resources\n",
+            "context:\n  env:\n    FOO: bar\n",
+        ):
             with self.subTest(body=body):
                 (self.repo / "evals/cases/effects/j-demo--effect-cache/case.yaml").write_text(body)
                 self.assert_problem(r"j-demo--effect-cache: .*case\.yaml")
 
     def test_lint_secret_shaped_string(self):
-        self.edit("effects/j-demo--effect-cache/prompt.md", "design a cache", "use sk-ant-abc to design a cache")
+        self.edit(
+            "effects/j-demo--effect-cache/prompt.md",
+            "design a cache",
+            "use sk-ant-abc to design a cache",
+        )
         self.assert_problem(r"j-demo--effect-cache: .*sk-ant-")
 
     def test_lint_author_scaffold_script(self):
-        self.edit("effects/j-demo--effect-cache/case.yaml", "context:\n", "context:\n  scaffold_script: mine.sh\n")
+        self.edit(
+            "effects/j-demo--effect-cache/case.yaml",
+            "context:\n",
+            "context:\n  scaffold_script: mine.sh\n",
+        )
         self.assert_problem(r"j-demo--effect-cache: .*scaffold_script")
 
     def test_lint_name_prefix_names_a_real_asset(self):
@@ -575,17 +688,27 @@ class LintTests(TempRepoCase):
         self.assert_problem(r"j-demo--effect-cache: .*/kb:j-demo ")
 
     def test_lint_agent_effect_prefix(self):
-        self.edit("effects/demo-agent--effect-review/prompt.md", "Use the kb:demo-agent agent to review", "Review")
+        self.edit(
+            "effects/demo-agent--effect-review/prompt.md",
+            "Use the kb:demo-agent agent to review",
+            "Review",
+        )
         self.assert_problem(r"demo-agent--effect-review: .*Use the kb:demo-agent agent to ")
 
     def test_lint_skill_prompt_never_names_skill(self):
-        self.edit("effects/demo-skill--effect-limiter/prompt.md", "Design a rate", "Use demo-skill to design a rate")
+        self.edit(
+            "effects/demo-skill--effect-limiter/prompt.md",
+            "Design a rate",
+            "Use demo-skill to design a rate",
+        )
         self.assert_problem(r"demo-skill--effect-limiter: .*names the skill")
 
     def test_lint_at_most_one_extended_case_per_asset(self):
         for slug in ("second", "third"):
             write_case(
-                self.repo, "effects", f"demo-skill--effect-{slug}",
+                self.repo,
+                "effects",
+                f"demo-skill--effect-{slug}",
                 EFFECT_FM.replace("[effects, effect]", "[effects, effect, extended]"),
                 "Review a rate limiter and save notes to ./design.md.",
                 {"result": LLM_RESULT, "fired": skill_fired("demo-skill")},
@@ -593,7 +716,9 @@ class LintTests(TempRepoCase):
         self.assert_problem(r"demo-skill: .*extended")
 
     def test_lint_malformed_quoted_scalar(self):
-        self.edit("effects/j-demo--effect-cache/graders/fired.md", "input_match: '", "input_match: 'it's ")
+        self.edit(
+            "effects/j-demo--effect-cache/graders/fired.md", "input_match: '", "input_match: 'it's "
+        )
         self.assert_problem(r"j-demo--effect-cache: .*malformed quoted YAML")
 
     def test_lint_js_incompatible_regex(self):
@@ -606,7 +731,9 @@ class LintTests(TempRepoCase):
 
     def test_lint_mid_file_heading_anchor_needs_multiline(self):
         grader = self.repo / "evals/cases/effects/j-demo--effect-cache/graders/re.md"
-        grader.write_text("---\ntype: regex\npattern: '^## Risks'\ntarget: { source: file, path: design.md }\n---\n")
+        grader.write_text(
+            "---\ntype: regex\npattern: '^## Risks'\ntarget: { source: file, path: design.md }\n---\n"
+        )
         self.assert_problem(r"j-demo--effect-cache: grader re: .*`flags: m`")
         grader.write_text(
             "---\ntype: regex\npattern: '^## Risks'\nflags: m\ntarget: { source: file, path: design.md }\n---\n"
@@ -614,11 +741,20 @@ class LintTests(TempRepoCase):
         self.assertEqual([p for p in self.problems() if "flags: m" in p], [])
 
     def test_lint_graded_file_under_dot_claude(self):
-        self.edit("effects/j-demo--effect-cache/graders/result.md", "path: design.md", "path: .claude/settings.json")
+        self.edit(
+            "effects/j-demo--effect-cache/graders/result.md",
+            "path: design.md",
+            "path: .claude/settings.json",
+        )
         self.assert_problem(r"j-demo--effect-cache: .*under \.claude/")
 
     def test_lint_valid_quoted_scalars_pass(self):
-        for value in ('"Merge branch \'feat/rst\'"', "'a''b'", '"tab\\tend"', "{ source: file, path: 'x.md' }"):
+        for value in (
+            "\"Merge branch 'feat/rst'\"",
+            "'a''b'",
+            '"tab\\tend"',
+            "{ source: file, path: 'x.md' }",
+        ):
             with self.subTest(value=value):
                 self.assertFalse(kcases.malformed_scalar(value))
 
@@ -628,7 +764,11 @@ class LintTests(TempRepoCase):
                 self.assertTrue(kcases.malformed_scalar(value))
 
     def test_lint_js_regex_in_input_match_and_flags(self):
-        self.edit("effects/j-demo--effect-cache/graders/fired.md", "input_match: '", "input_match: '(?P<n>x)")
+        self.edit(
+            "effects/j-demo--effect-cache/graders/fired.md",
+            "input_match: '",
+            "input_match: '(?P<n>x)",
+        )
         self.assert_problem(r"j-demo--effect-cache: .*inline flags, \(\?P<")
         self.edit("effects/j-demo--effect-cache/graders/fired.md", "(?P<n>x)", "")
         (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/re.md").write_text(
@@ -651,7 +791,9 @@ class LintTests(TempRepoCase):
     def test_lint_llm_claim_count(self):
         claims = "".join(f"PASS if claim {i}.\n" for i in range(6))
         (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/result.md").write_text(
-            "---\ntype: llm\nfocus: { source: file, path: design.md }\n---\n\n" + claims + "FAIL if nothing.\n"
+            "---\ntype: llm\nfocus: { source: file, path: design.md }\n---\n\n"
+            + claims
+            + "FAIL if nothing.\n"
         )
         self.assert_problem(r"j-demo--effect-cache: .*7 claims; use 2-5")
 
@@ -668,11 +810,15 @@ class LintTests(TempRepoCase):
         self.assert_problem(r"j-demo--effect-cache: .*exists: false")
 
     def test_lint_graded_path_must_be_named_or_seeded(self):
-        self.edit("effects/j-demo--effect-cache/graders/result.md", "path: design.md", "path: notes.md")
+        self.edit(
+            "effects/j-demo--effect-cache/graders/result.md", "path: design.md", "path: notes.md"
+        )
         self.assert_problem(r"j-demo--effect-cache: .*'notes\.md' is neither named")
 
     def test_lint_non_md_grader_file(self):
-        (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/extra.yml").write_text("type: llm\n")
+        (self.repo / "evals/cases/effects/j-demo--effect-cache/graders/extra.yml").write_text(
+            "type: llm\n"
+        )
         self.assert_problem(r"j-demo--effect-cache: .*extra\.yml is not a \.md grader")
 
     def test_lint_double_md_extension(self):
@@ -685,14 +831,20 @@ class LintTests(TempRepoCase):
     def set_description(self, rel: str, line: str | None) -> None:
         """Replace (or with None, drop) the description line of a case's prompt.md."""
         path = self.repo / "evals" / "cases" / rel / "prompt.md"
-        lines = [ln for ln in path.read_text().splitlines(keepends=True) if not ln.startswith(self.DESCRIPTION)]
+        lines = [
+            ln
+            for ln in path.read_text().splitlines(keepends=True)
+            if not ln.startswith(self.DESCRIPTION)
+        ]
         if line is not None:
             lines.insert(1, line + "\n")
         path.write_text("".join(lines))
 
     def test_case_without_description_is_a_problem(self):
         self.set_description("effects/j-demo--effect-cache", None)
-        self.assert_problem(r"j-demo--effect-cache: description must be <text>; <asset path>; <ending>")
+        self.assert_problem(
+            r"j-demo--effect-cache: description must be <text>; <asset path>; <ending>"
+        )
 
     def test_empty_quoted_description_is_a_problem(self):
         self.set_description("effects/j-demo--effect-cache", 'description: ""')
@@ -703,18 +855,26 @@ class LintTests(TempRepoCase):
     def test_description_with_an_invalid_escape_is_malformed(self):
         text = self.BASE.replace("rule", "ru\\le")
         self.set_description("effects/j-demo--effect-cache", f'description: "{text}"')
-        self.assert_problem(r"j-demo--effect-cache: `description` is a malformed quoted YAML scalar")
+        self.assert_problem(
+            r"j-demo--effect-cache: `description` is a malformed quoted YAML scalar"
+        )
 
     def test_description_with_an_escaped_quote_or_backslash_is_a_problem(self):
         for text in (self.BASE.replace("rule", 'ru\\"le'), self.BASE.replace("rule", "ru\\\\le")):
             with self.subTest(text=text):
                 self.set_description("effects/j-demo--effect-cache", f'description: "{text}"')
-                self.assert_problem(r"j-demo--effect-cache: description must be <text>; <asset path>; <ending>")
+                self.assert_problem(
+                    r"j-demo--effect-cache: description must be <text>; <asset path>; <ending>"
+                )
 
-    def assert_description_problem(self, line: str, pattern: str, rel: str = "effects/j-demo--effect-cache") -> None:
+    def assert_description_problem(
+        self, line: str, pattern: str, rel: str = "effects/j-demo--effect-cache"
+    ) -> None:
         self.set_description(rel, line)
         problems = [p for p in self.problems() if p.startswith(rel.split("/")[1] + ":")]
-        self.assertTrue(any(re.search(pattern, p) for p in problems), f"no {pattern!r} in {problems}")
+        self.assertTrue(
+            any(re.search(pattern, p) for p in problems), f"no {pattern!r} in {problems}"
+        )
 
     def test_unquoted_description_is_a_problem(self):
         self.assert_description_problem(
@@ -727,34 +887,44 @@ class LintTests(TempRepoCase):
         )
 
     def test_description_with_an_absolute_path_is_a_problem(self):
-        self.assert_description_problem('description: "x; /etc/hosts; hard because y"', r"description must be")
+        self.assert_description_problem(
+            'description: "x; /etc/hosts; hard because y"', r"description must be"
+        )
 
     def test_description_with_a_parent_segment_is_a_problem(self):
         (self.tmp / "dotfiles").mkdir()
         (self.tmp / "dotfiles" / "README.md").write_text("# outside\n")
-        self.assert_description_problem('description: "x; ../dotfiles/README.md; hard because y"', r"description must be")
         self.assert_description_problem(
-            'description: "x; .claude/../.claude/agents/demo-agent.md; hard because y"', r"description must be"
+            'description: "x; ../dotfiles/README.md; hard because y"', r"description must be"
+        )
+        self.assert_description_problem(
+            'description: "x; .claude/../.claude/agents/demo-agent.md; hard because y"',
+            r"description must be",
         )
 
     def test_description_path_outside_claude_is_a_problem(self):
         (self.repo / "evals" / "README.md").write_text("# evals\n")
-        self.assert_description_problem('description: "x; evals/README.md; hard because y"', r"description must be")
+        self.assert_description_problem(
+            'description: "x; evals/README.md; hard because y"', r"description must be"
+        )
 
     def test_description_path_that_is_a_directory_is_a_problem(self):
         self.assert_description_problem(
-            'description: "x; .claude/agents; hard because y"', r"description names a path that does not exist"
+            'description: "x; .claude/agents; hard because y"',
+            r"description names a path that does not exist",
         )
 
     def test_description_path_with_a_semicolon_is_a_problem(self):
         (self.repo / ".claude/references/cat/a;b.md").write_text("# odd\n")
         self.assert_description_problem(
-            'description: "x; .claude/references/cat/a;b.md; hard because y"', r"description must be"
+            'description: "x; .claude/references/cat/a;b.md; hard because y"',
+            r"description must be",
         )
 
     def test_description_with_a_trailing_newline_is_a_problem(self):
         self.assert_description_problem(
-            'description: "x; .claude/agents/demo-agent.md; hard because y\n  "', r"description must be"
+            'description: "x; .claude/agents/demo-agent.md; hard because y\n  "',
+            r"description must be",
         )
         self.assert_description_problem(
             'description: "x; .claude/skills/demo-skill/SKILL.md; should\n  "',
@@ -775,20 +945,36 @@ class LintTests(TempRepoCase):
 
     def test_trigger_near_description_needs_a_near_ending(self):
         rel = "triggers/demo-skill--trigger-near-typo"
-        self.assert_description_problem('description: "x; .claude/skills/demo-skill/SKILL.md; should"', r"description must be", rel)
-        self.assert_description_problem('description: "x; .claude/skills/demo-skill/SKILL.md; near:"', r"description must be", rel)
-        self.set_description(rel, 'description: "x; .claude/skills/demo-skill/SKILL.md; near: j-demo"')
-        self.assertFalse(any(p.startswith("demo-skill--trigger-near-typo:") for p in self.problems()))
+        self.assert_description_problem(
+            'description: "x; .claude/skills/demo-skill/SKILL.md; should"',
+            r"description must be",
+            rel,
+        )
+        self.assert_description_problem(
+            'description: "x; .claude/skills/demo-skill/SKILL.md; near:"',
+            r"description must be",
+            rel,
+        )
+        self.set_description(
+            rel, 'description: "x; .claude/skills/demo-skill/SKILL.md; near: j-demo"'
+        )
+        self.assertFalse(
+            any(p.startswith("demo-skill--trigger-near-typo:") for p in self.problems())
+        )
 
     def test_trigger_noauto_description_needs_noauto(self):
         rel = "triggers/j-quiet--trigger-noauto-ask"
-        self.assert_description_problem('description: "x; .claude/commands/j-quiet.md; should"', r"description must be", rel)
+        self.assert_description_problem(
+            'description: "x; .claude/commands/j-quiet.md; should"', r"description must be", rel
+        )
         self.set_description(rel, 'description: "x; .claude/commands/j-quiet.md; noauto"')
         self.assertFalse(any(p.startswith("j-quiet--trigger-noauto-ask:") for p in self.problems()))
 
     def test_workflow_description_needs_hard_because(self):
         rel = "workflows/wf--demo-chain"
-        self.assert_description_problem('description: "x; .claude/commands/j-demo.md; should"', r"description must be", rel)
+        self.assert_description_problem(
+            'description: "x; .claude/commands/j-demo.md; should"', r"description must be", rel
+        )
         self.set_description(rel, 'description: "x; .claude/commands/j-demo.md; hard because y"')
         self.assertFalse(any(p.startswith("wf--demo-chain:") for p in self.problems()))
 
@@ -801,11 +987,17 @@ class LintTests(TempRepoCase):
 
     def test_trigger_description_needs_a_trigger_ending(self):
         name = "triggers/demo-skill--trigger-should-rate"
-        self.set_description(name, 'description: "a rule; .claude/skills/demo-skill/SKILL.md; hard because x"')
+        self.set_description(
+            name, 'description: "a rule; .claude/skills/demo-skill/SKILL.md; hard because x"'
+        )
         self.assert_problem(r"demo-skill--trigger-should-rate: description must be")
-        self.set_description(name, 'description: "a rule; .claude/skills/demo-skill/SKILL.md; near: none"')
+        self.set_description(
+            name, 'description: "a rule; .claude/skills/demo-skill/SKILL.md; near: none"'
+        )
         self.assert_problem(r"demo-skill--trigger-should-rate: description must be")
-        self.set_description(name, 'description: "a rule; .claude/skills/demo-skill/SKILL.md; should"')
+        self.set_description(
+            name, 'description: "a rule; .claude/skills/demo-skill/SKILL.md; should"'
+        )
         self.assertFalse(any("demo-skill--trigger-should-rate" in p for p in self.problems()))
 
     def add_indexing_agent(self, categories: str = "cat") -> None:
@@ -817,7 +1009,10 @@ class LintTests(TempRepoCase):
 
     def add_reading_case(self, input_match: str) -> None:
         write_case(
-            self.repo, "effects", "indexer--effect-reads", EFFECT_FM,
+            self.repo,
+            "effects",
+            "indexer--effect-reads",
+            EFFECT_FM,
             "Use the kb:indexer agent to review the cache design and save it to ./design.md.",
             {
                 "result": LLM_RESULT,
@@ -841,9 +1036,17 @@ class LintTests(TempRepoCase):
         self.assertFalse(any(p.startswith("indexer:") for p in self.problems()), self.problems())
 
     def add_agent_case(self, suite: str, name: str, grader: str, prompt: str | None = None) -> None:
-        frontmatter = {"triggers": TRIGGER_FM.format(kind="trigger-should"), "effects": EFFECT_FM}.get(suite, WORKFLOW_FM)
-        body = prompt or "Use the kb:indexer agent to review the cache design and save it to ./design.md."
-        graders = {"read": grader} if suite == "triggers" else {"result": LLM_RESULT, "read": grader}
+        frontmatter = {
+            "triggers": TRIGGER_FM.format(kind="trigger-should"),
+            "effects": EFFECT_FM,
+        }.get(suite, WORKFLOW_FM)
+        body = (
+            prompt
+            or "Use the kb:indexer agent to review the cache design and save it to ./design.md."
+        )
+        graders = (
+            {"read": grader} if suite == "triggers" else {"result": LLM_RESULT, "read": grader}
+        )
         write_case(self.repo, suite, name, frontmatter, body, graders)
 
     def indexer_problems(self) -> list:
@@ -857,18 +1060,26 @@ class LintTests(TempRepoCase):
     READ = "---\ntype: tool_used\ntool: Read\n{extra}---\n"
 
     def test_read_grader_without_input_match_is_not_a_reading_case(self):
-        self.assert_not_a_reading_case("effects", "indexer--effect-reads", self.READ.format(extra=""))
+        self.assert_not_a_reading_case(
+            "effects", "indexer--effect-reads", self.READ.format(extra="")
+        )
 
     def test_read_grader_with_an_empty_input_match_is_not_a_reading_case(self):
-        self.assert_not_a_reading_case("effects", "indexer--effect-reads", self.READ.format(extra="input_match: ''\n"))
+        self.assert_not_a_reading_case(
+            "effects", "indexer--effect-reads", self.READ.format(extra="input_match: ''\n")
+        )
 
     def test_read_grader_with_max_0_is_not_a_reading_case(self):
         extra = "input_match: '\\.kb-references/cat/'\nmin: 0\nmax: 0\n"
-        self.assert_not_a_reading_case("effects", "indexer--effect-reads", self.READ.format(extra=extra))
+        self.assert_not_a_reading_case(
+            "effects", "indexer--effect-reads", self.READ.format(extra=extra)
+        )
 
     def test_read_grader_on_another_category_is_not_a_reading_case(self):
         extra = "input_match: '\\.kb-references/other/'\n"
-        self.assert_not_a_reading_case("effects", "indexer--effect-reads", self.READ.format(extra=extra))
+        self.assert_not_a_reading_case(
+            "effects", "indexer--effect-reads", self.READ.format(extra=extra)
+        )
 
     def test_non_read_grader_is_not_a_reading_case(self):
         grep = "---\ntype: tool_used\ntool: Grep\ninput_match: '\\.kb-references/cat/'\n---\n"
@@ -880,17 +1091,23 @@ class LintTests(TempRepoCase):
 
     def test_trigger_case_of_the_agent_is_not_a_reading_case(self):
         extra = "input_match: '\\.kb-references/cat/'\n"
-        self.assert_not_a_reading_case("triggers", "indexer--trigger-should-reads", self.READ.format(extra=extra))
+        self.assert_not_a_reading_case(
+            "triggers", "indexer--trigger-should-reads", self.READ.format(extra=extra)
+        )
 
     def test_workflow_case_is_not_a_reading_case(self):
         extra = "input_match: '\\.kb-references/cat/'\n"
-        self.assert_not_a_reading_case("workflows", "wf--indexer-reads", self.READ.format(extra=extra))
+        self.assert_not_a_reading_case(
+            "workflows", "wf--indexer-reads", self.READ.format(extra=extra)
+        )
 
     def test_another_agents_effect_case_is_not_a_reading_case(self):
         extra = "input_match: '\\.kb-references/cat/'\n"
         self.add_indexing_agent()
         self.add_agent_case(
-            "effects", "demo-agent--effect-reads", self.READ.format(extra=extra),
+            "effects",
+            "demo-agent--effect-reads",
+            self.READ.format(extra=extra),
             "Use the kb:demo-agent agent to review the cache design and save it to ./design.md.",
         )
         self.assertEqual(len(self.indexer_problems()), 1, self.problems())
@@ -918,7 +1135,9 @@ class LintTests(TempRepoCase):
         self.assertEqual(kcases._lint_agent_references(found, self.repo), [])
 
     def test_lint_tags_name_suite_and_kind(self):
-        self.edit("effects/j-demo--effect-cache/prompt.md", "tags: [effects, effect]", "tags: [effect]")
+        self.edit(
+            "effects/j-demo--effect-cache/prompt.md", "tags: [effects, effect]", "tags: [effect]"
+        )
         self.assert_problem(r"j-demo--effect-cache: .*tags")
 
     def test_lint_no_web_tools(self):
@@ -1067,7 +1286,6 @@ class RealTreeTests(unittest.TestCase):
         )
 
 
-
 # --- runner and ledger -------------------------------------------------------------------------
 
 import contextlib  # noqa: E402
@@ -1084,7 +1302,9 @@ MODEL = "claude-sonnet-5-5"
 
 def result_doc(cases: dict, cost=0.5, partial=False, reason=None) -> dict:
     """A result document in the captured CLI shape: {case name: [run error or None, ...]}."""
-    captured = json.loads((REPO / "tests" / "fixtures" / "kbeval" / "aggregate-result.json").read_text())
+    captured = json.loads(
+        (REPO / "tests" / "fixtures" / "kbeval" / "aggregate-result.json").read_text()
+    )
     template_case = captured["cases"][0]
     template_run = template_case["arms"]["with"][0]
     doc = {**captured, "partial": partial, "costUsd": cost, "cases": []}
@@ -1141,14 +1361,22 @@ class RunnerCase(TempRepoCase):
         os.environ.pop("KBEVAL_ALLOW_PAID", None)
         if getattr(self, "real_cli", False):
             return
-        refuse = mock.patch.object(krunner.ClaudeCli, "run", side_effect=AssertionError("real claude called"))
+        refuse = mock.patch.object(
+            krunner.ClaudeCli, "run", side_effect=AssertionError("real claude called")
+        )
         refuse.start()
         self.addCleanup(refuse.stop)
 
     def run_suite(self, cli, suite="effects", assets=("j-demo",), staging="kb", **extra):
         err = io.StringIO()
-        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
-                   "budget": self.budget, "p95": 5.0, **extra}
+        options = {
+            "plugin": self.plugin,
+            "state": self.state,
+            "ledger_path": self.ledger_path,
+            "budget": self.budget,
+            "p95": 5.0,
+            **extra,
+        }
         with contextlib.redirect_stderr(err):
             code = krunner.run(suite, staging, MODEL, 3, "test", list(assets), 8, cli, **options)
         return code, err.getvalue()
@@ -1187,10 +1415,17 @@ class RunnerGuardTests(RunnerCase):
     def test_runner_refuses_a_model_in_the_judge_family(self):
         cli = FakeCli(lambda args: (result_doc({}), 0, ""))
         err = io.StringIO()
-        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
-                   "budget": self.budget, "p95": 5.0}
+        options = {
+            "plugin": self.plugin,
+            "state": self.state,
+            "ledger_path": self.ledger_path,
+            "budget": self.budget,
+            "p95": 5.0,
+        }
         with contextlib.redirect_stderr(err):
-            code = krunner.run("effects", "kb", "claude-fable-5-3", 3, "test", ["j-demo"], 8, cli, **options)
+            code = krunner.run(
+                "effects", "kb", "claude-fable-5-3", 3, "test", ["j-demo"], 8, cli, **options
+            )
         self.assertNotEqual(code, 0)
         self.assertIn("claude-fable-5-3", err.getvalue())
         self.assertIn(krunner.JUDGE_MODEL, err.getvalue())
@@ -1206,21 +1441,41 @@ class RunnerGuardTests(RunnerCase):
     def test_missing_api_key_message_wins_over_the_judge_guard(self):
         cli = FakeCli(lambda args: (result_doc({}), 0, ""))
         err = io.StringIO()
-        with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": ""}), contextlib.redirect_stderr(err):
-            code = krunner.run("effects", "kb", "claude-fable-5-3", 3, "test", ["j-demo"], 8, cli, plugin=self.plugin)
+        with (
+            mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": ""}),
+            contextlib.redirect_stderr(err),
+        ):
+            code = krunner.run(
+                "effects",
+                "kb",
+                "claude-fable-5-3",
+                3,
+                "test",
+                ["j-demo"],
+                8,
+                cli,
+                plugin=self.plugin,
+            )
         self.assertNotEqual(code, 0)
         self.assertIn("export ANTHROPIC_API_KEY", err.getvalue())
         self.assertNotIn("judge's family", err.getvalue())
 
     def test_runner_refuses_a_model_id_the_guard_cannot_parse(self):
-        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
-                   "budget": self.budget, "p95": 5.0}
+        options = {
+            "plugin": self.plugin,
+            "state": self.state,
+            "ledger_path": self.ledger_path,
+            "budget": self.budget,
+            "p95": 5.0,
+        }
         for model in ("fable", "us.anthropic.claude-fable-5-2"):
             with self.subTest(model=model):
                 cli = FakeCli(lambda args: (result_doc({}), 0, ""))
                 err = io.StringIO()
                 with contextlib.redirect_stderr(err):
-                    code = krunner.run("effects", "kb", model, 3, "test", ["j-demo"], 8, cli, **options)
+                    code = krunner.run(
+                        "effects", "kb", model, 3, "test", ["j-demo"], 8, cli, **options
+                    )
                 self.assertNotEqual(code, 0)
                 self.assertEqual(cli.calls, [])
                 self.assertIn(f"model {model} is not a full model id", err.getvalue())
@@ -1228,8 +1483,13 @@ class RunnerGuardTests(RunnerCase):
     def test_missing_api_key_message_wins_over_the_model_id_guard(self):
         cli = FakeCli(lambda args: (result_doc({}), 0, ""))
         err = io.StringIO()
-        with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": ""}), contextlib.redirect_stderr(err):
-            code = krunner.run("effects", "kb", "fable", 3, "test", ["j-demo"], 8, cli, plugin=self.plugin)
+        with (
+            mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": ""}),
+            contextlib.redirect_stderr(err),
+        ):
+            code = krunner.run(
+                "effects", "kb", "fable", 3, "test", ["j-demo"], 8, cli, plugin=self.plugin
+            )
         self.assertNotEqual(code, 0)
         self.assertIn("export ANTHROPIC_API_KEY", err.getvalue())
         self.assertNotIn("not a full model id", err.getvalue())
@@ -1247,17 +1507,51 @@ class RunnerBatchTests(RunnerCase):
         out = self.state / "test" / "kb" / MODEL / "effects" / "j-demo"
         self.assertEqual(
             cli.calls[0],
-            ["plugin", "eval", str(self.plugin), "--eval-dir", "evals-effects", "--case", "j-demo--*",
-             "--runs", "3", "--model", MODEL, "--judge-model", JUDGE, "--ablation", "none",
-             "--threshold", "0", "--trust-plugin", "--scaffold", "--no-publish", "-j", "8",
-             "--json", f"{out}.json", "--output-dir", str(out), "--max-cost-usd", "60.00",
-             "--allow-tools", "Bash", "Write", "Edit"],
+            [
+                "plugin",
+                "eval",
+                str(self.plugin),
+                "--eval-dir",
+                "evals-effects",
+                "--case",
+                "j-demo--*",
+                "--runs",
+                "3",
+                "--model",
+                MODEL,
+                "--judge-model",
+                JUDGE,
+                "--ablation",
+                "none",
+                "--threshold",
+                "0",
+                "--trust-plugin",
+                "--scaffold",
+                "--no-publish",
+                "-j",
+                "8",
+                "--json",
+                f"{out}.json",
+                "--output-dir",
+                str(out),
+                "--max-cost-usd",
+                "60.00",
+                "--allow-tools",
+                "Bash",
+                "Write",
+                "Edit",
+            ],
         )
 
     def test_kb_digest_changes_when_claude_md_changes(self):
         cli = FakeCli(lambda args: (result_doc({}), 0, ""))
-        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
-                   "budget": self.budget, "p95": 5.0}
+        options = {
+            "plugin": self.plugin,
+            "state": self.state,
+            "ledger_path": self.ledger_path,
+            "budget": self.budget,
+            "p95": 5.0,
+        }
         before = krunner._Batches("effects", "kb", MODEL, 3, "test", 8, cli, options).kb_digest
         claude_md = self.repo / ".claude" / "CLAUDE.md"
         claude_md.write_text(claude_md.read_text() + "\nNew rule.\n")
@@ -1270,7 +1564,9 @@ class RunnerBatchTests(RunnerCase):
         self.run_suite(cli)
         out = self.state / "test" / "kb" / MODEL / "effects" / "j-demo"
         digest = krunner._tree_digest(self.plugin, skip_prefix="evals-")
-        self.assertEqual(json.loads(out.with_suffix(".meta.json").read_text()), {"kbDigest": digest})
+        self.assertEqual(
+            json.loads(out.with_suffix(".meta.json").read_text()), {"kbDigest": digest}
+        )
 
     def test_keep_temp_traces_are_scanned_for_key(self):
         trace = self.tmp / "kept" / "out" / "trace.jsonl"
@@ -1328,7 +1624,9 @@ class RunnerBatchTests(RunnerCase):
         cli = FakeCli(lambda args: (None, 143, "terminated"))
         code, _ = self.run_suite(cli)
         self.assertNotEqual(code, 0)
-        self.assertEqual([(e["costUsd"], e["charged"]) for e in self.entries()], [(60.0, "reserved")])
+        self.assertEqual(
+            [(e["costUsd"], e["charged"]) for e in self.entries()], [(60.0, "reserved")]
+        )
 
     def test_null_cost_with_runs_aborts(self):
         cli = FakeCli(lambda args: (result_doc({"x": [None]}, cost=None), 0, ""))
@@ -1348,7 +1646,9 @@ class LedgerTests(unittest.TestCase):
             "for i in range(200): ledger.append({'period': 'p', 'costUsd': 0.01, 'i': i}, Path(sys.argv[1]))\n"
         )
         procs = [
-            subprocess.Popen([sys.executable, "-c", script, str(path)], cwd=REPO, stdin=subprocess.DEVNULL)
+            subprocess.Popen(
+                [sys.executable, "-c", script, str(path)], cwd=REPO, stdin=subprocess.DEVNULL
+            )
             for _ in range(2)
         ]
         for proc in procs:
@@ -1375,7 +1675,13 @@ class LedgerTests(unittest.TestCase):
 
 class RunnerResumeTests(RunnerCase):
     def test_runner_reruns_only_api_errors(self):
-        main = {"j-demo--effect-cache": ["API error: 429 rate_limit_error", None, "timed out after 900s"]}
+        main = {
+            "j-demo--effect-cache": [
+                "API error: 429 rate_limit_error",
+                None,
+                "timed out after 900s",
+            ]
+        }
 
         def responder(args):
             if case_arg(args) == "j-demo--*":
@@ -1393,7 +1699,9 @@ class RunnerResumeTests(RunnerCase):
     def test_skipped_complete_batch_gets_a_sidecar(self):
         cli = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
         self.run_suite(cli)
-        sidecar = (self.state / "test" / "kb" / MODEL / "effects" / "j-demo").with_suffix(".meta.json")
+        sidecar = (self.state / "test" / "kb" / MODEL / "effects" / "j-demo").with_suffix(
+            ".meta.json"
+        )
         expected = sidecar.read_text()
         sidecar.unlink()
         again = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
@@ -1404,7 +1712,9 @@ class RunnerResumeTests(RunnerCase):
     def test_rerun_discards_the_stale_sidecar_before_the_cli_runs(self):
         cli = FakeCli(lambda args: (result_doc({"j-demo--effect-cache": [None]}), 0, ""))
         self.run_suite(cli)
-        sidecar = (self.state / "test" / "kb" / MODEL / "effects" / "j-demo").with_suffix(".meta.json")
+        sidecar = (self.state / "test" / "kb" / MODEL / "effects" / "j-demo").with_suffix(
+            ".meta.json"
+        )
         self.assertTrue(sidecar.exists())
         prompt = self.plugin / "evals-effects" / "j-demo--effect-cache" / "prompt.md"
         prompt.write_text(prompt.read_text() + "\nMore.\n")
@@ -1483,7 +1793,10 @@ class OrchestrateTests(RunnerCase):
     def test_smoke_samples_the_first_vanilla_effect_cases(self):
         for slug in ("b", "c", "d", "e"):
             write_case(
-                self.repo, "effects", f"demo-skill--effect-{slug}", EFFECT_FM,
+                self.repo,
+                "effects",
+                f"demo-skill--effect-{slug}",
+                EFFECT_FM,
                 "Design a rate limiter and save the design to ./design.md.",
                 {"result": LLM_RESULT, "fired": skill_fired("demo-skill")},
             )
@@ -1493,8 +1806,13 @@ class OrchestrateTests(RunnerCase):
         vanilla = [case_arg(c) for c in self.calls_for(cli, "vanilla")]
         self.assertEqual(
             vanilla,
-            ["demo-agent--effect-review", "demo-skill--effect-b", "demo-skill--effect-c",
-             "demo-skill--effect-d", "demo-skill--effect-e"],
+            [
+                "demo-agent--effect-review",
+                "demo-skill--effect-b",
+                "demo-skill--effect-c",
+                "demo-skill--effect-d",
+                "demo-skill--effect-e",
+            ],
         )
         kb_runs = {c[c.index("--runs") + 1] for c in self.calls_for(cli, "kb")}
         self.assertEqual(kb_runs, {"1"})
@@ -1506,7 +1824,9 @@ class OrchestrateTests(RunnerCase):
         self.assertEqual(self.calls_for(cli, "vanilla"), [])
         self.assertEqual({c[c.index("--runs") + 1] for c in self.calls_for(cli, "kb")}, {"3"})
         cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=0.1), 0, ""))
-        korch.baseline("claude-opus-5-5", vanilla_runs=1, vanilla_models=["claude-opus-5-5"], cli=cli)
+        korch.baseline(
+            "claude-opus-5-5", vanilla_runs=1, vanilla_models=["claude-opus-5-5"], cli=cli
+        )
         vanilla = self.calls_for(cli, "vanilla")
         self.assertTrue(vanilla)
         self.assertEqual({c[c.index("--runs") + 1] for c in vanilla}, {"1"})
@@ -1518,7 +1838,9 @@ class OrchestrateTests(RunnerCase):
 
         kledger.append({"period": self.budget["period"], "purpose": "other", "costUsd": 7.0})
         with mock.patch.object(korch.runner, "run", side_effect=spend) as run:
-            self.assertEqual(korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=50.0), 0)
+            self.assertEqual(
+                korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=50.0), 0
+            )
         self.assertEqual([c.kwargs["cap_limit"] for c in run.call_args_list], [50.0, 49.0, 48.0])
 
     def test_baseline_stops_with_two_when_the_cap_is_spent(self):
@@ -1537,7 +1859,10 @@ class OrchestrateTests(RunnerCase):
     def test_remainder_below_the_runner_minimum_counts_as_spent(self):
         kledger.append({"period": self.budget["period"], "purpose": "baseline", "costUsd": 4.999})
         err = io.StringIO()
-        with mock.patch.object(korch.runner, "run", return_value=0) as run, contextlib.redirect_stderr(err):
+        with (
+            mock.patch.object(korch.runner, "run", return_value=0) as run,
+            contextlib.redirect_stderr(err),
+        ):
             status = korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0)
         self.assertEqual(status, 2)
         run.assert_not_called()
@@ -1551,7 +1876,10 @@ class OrchestrateTests(RunnerCase):
             self.assertIn("baseline: purpose cap $5.00, spent $1.00, left $4.00\n", err.getvalue())
             return 0
 
-        with mock.patch.object(korch.runner, "run", side_effect=step), contextlib.redirect_stderr(err):
+        with (
+            mock.patch.object(korch.runner, "run", side_effect=step),
+            contextlib.redirect_stderr(err),
+        ):
             self.assertEqual(korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0), 0)
         self.assertEqual(err.getvalue().count("purpose cap $5.00, spent"), 1)
         self.assertIn("baseline: spent $1.00 of cap $5.00\n", err.getvalue())
@@ -1562,7 +1890,10 @@ class OrchestrateTests(RunnerCase):
             return 0
 
         err = io.StringIO()
-        with mock.patch.object(korch.runner, "run", side_effect=spend), contextlib.redirect_stderr(err):
+        with (
+            mock.patch.object(korch.runner, "run", side_effect=spend),
+            contextlib.redirect_stderr(err),
+        ):
             korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0)
         self.assertIn(
             "baseline: spent $6.50 of cap $5.00 (over the cap by $1.50: runs in flight finished past it)\n",
@@ -1581,7 +1912,10 @@ class OrchestrateTests(RunnerCase):
             return 0
 
         err = io.StringIO()
-        with mock.patch.object(korch.runner, "run", side_effect=spend) as run, contextlib.redirect_stderr(err):
+        with (
+            mock.patch.object(korch.runner, "run", side_effect=spend) as run,
+            contextlib.redirect_stderr(err),
+        ):
             status = korch.baseline("claude-sonnet-5-5", vanilla_models=[], cap_usd=5.0)
         self.assertEqual(status, 2)
         self.assertEqual(run.call_count, 1)
@@ -1634,7 +1968,12 @@ class SummaryTests(unittest.TestCase):
         self.results = Path(tmp.name)
 
     def put(
-        self, staging: str, label: str, doc: dict, suite: str = "effects", keyed: bool = True,
+        self,
+        staging: str,
+        label: str,
+        doc: dict,
+        suite: str = "effects",
+        keyed: bool = True,
         digest: str | None = None,
     ) -> None:
         path = self.results / staging / OPUS / suite / f"{label}.json"
@@ -1650,7 +1989,12 @@ class SummaryTests(unittest.TestCase):
 
     def test_unkeyed_and_partial_results_are_ignored(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
-        self.put("kb", "j-arch@j-arch--effect-cache-layer", with_runs(real_doc(), [False] * 3), keyed=False)
+        self.put(
+            "kb",
+            "j-arch@j-arch--effect-cache-layer",
+            with_runs(real_doc(), [False] * 3),
+            keyed=False,
+        )
         partial = with_runs(real_doc(), [False] * 3)
         partial["partial"] = True
         self.put("vanilla", "j-arch", partial)
@@ -1660,9 +2004,13 @@ class SummaryTests(unittest.TestCase):
 
     def test_pass_boundary_is_two_thirds(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, False]))
-        self.assertTrue(ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"][0]["passed"])
+        self.assertTrue(
+            ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"][0]["passed"]
+        )
         self.put("kb", "j-arch", with_runs(real_doc(), [True, False, False]))
-        self.assertFalse(ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"][0]["passed"])
+        self.assertFalse(
+            ksummary.summarize(self.results, OPUS, "effects", SETTINGS)["cases"][0]["passed"]
+        )
 
     def test_trigger_suite_scores_its_process_grader(self):
         doc = copy.deepcopy(real_doc())
@@ -1675,10 +2023,14 @@ class SummaryTests(unittest.TestCase):
         self.put("kb", "design-first", doc, suite="triggers")
         summary = ksummary.summarize(self.results, OPUS, "triggers", SETTINGS)
         (row,) = summary["cases"]
-        self.assertEqual((row["kind"], row["kbScore"], row["vanillaScore"]), ("trigger-should", 1.0, None))
+        self.assertEqual(
+            (row["kind"], row["kbScore"], row["vanillaScore"]), ("trigger-should", 1.0, None)
+        )
         self.assertEqual(ksummary.check(summary), [])
 
-    def two_process(self, loaded: list, delegated: list, errors: list | None = None, max_zero: bool = False) -> dict:
+    def two_process(
+        self, loaded: list, delegated: list, errors: list | None = None, max_zero: bool = False
+    ) -> dict:
         """Return the two-process fixture with one run per entry, each grader passing as given."""
         doc = with_runs(json.loads(TWO_PROCESS.read_text()), [True] * len(loaded), errors)
         case = doc["cases"][0]
@@ -1726,7 +2078,11 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual((row["cappedRuns"], row["censoredRuns"]), (1, 1))
 
     def test_capped_vanilla_run_is_capped_and_never_censored(self):
-        self.put("vanilla", "j-arch", with_runs(real_doc(), [True] * 3, [None, None, "timed out after 120s"]))
+        self.put(
+            "vanilla",
+            "j-arch",
+            with_runs(real_doc(), [True] * 3, [None, None, "timed out after 120s"]),
+        )
         row = self.row(self.two_process([True] * 3, [True] * 3))
         self.assertEqual((row["cappedRuns"], row["censoredRuns"]), (1, 0))
 
@@ -1750,26 +2106,42 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(row["errorRuns"], 2)
 
     def test_write_refuses_local_paths_and_request_ids(self):
-        for leak in ("open /Users/someone/x", "/home/someone/x", "/var/folders/ab/T/x",
-                     "open /private/tmp/x", "open /tmp/x",
-                     "Request ID: req_011abc", "Message ID: msg_011abc"):
+        for leak in (
+            "open /Users/someone/x",
+            "/home/someone/x",
+            "/var/folders/ab/T/x",
+            "open /private/tmp/x",
+            "open /tmp/x",
+            "Request ID: req_011abc",
+            "Message ID: msg_011abc",
+        ):
             with self.subTest(leak=leak):
-                self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, leak, None]))
+                self.put(
+                    "kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, leak, None])
+                )
                 doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
                 with self.assertRaises(ValueError):
                     ksummary.write(doc, self.results / "out.json")
 
     def test_write_refuses_secret_shaped_text(self):
-        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, "sk-ant-leak", None]))
+        self.put(
+            "kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, "sk-ant-leak", None])
+        )
         doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
         with self.assertRaises(ValueError):
             ksummary.write(doc, self.results / "out.json")
 
     def test_write_refuses_other_key_shapes_and_home_relative_paths(self):
-        for leak in ("read ~/.config/tool/token", "key AKIAABCDEFGHIJKLMNOP",
-                     "token ghp_abcdefghijklmnopqrstuvwxyz0123", "key sk-proj-abcdefghijklmnopqrstuv"):
+        for leak in (
+            "read ~/.config/tool/token",
+            "key AKIAABCDEFGHIJKLMNOP",
+            "token ghp_abcdefghijklmnopqrstuvwxyz0123",
+            "key sk-proj-abcdefghijklmnopqrstuv",
+        ):
             with self.subTest(leak=leak):
-                self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, leak, None]))
+                self.put(
+                    "kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, leak, None])
+                )
                 doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
                 with self.assertRaises(ValueError):
                     ksummary.write(doc, self.results / "out.json")
@@ -1785,9 +2157,20 @@ class SummaryTests(unittest.TestCase):
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, False]))
         self.put("vanilla", "j-arch", with_runs(real_doc(), [True, False, False]))
         doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
-        for key in ("schema", "suite", "model", "judgeModel", "claudeVersion", "date", "runs", "costUsd"):
+        for key in (
+            "schema",
+            "suite",
+            "model",
+            "judgeModel",
+            "claudeVersion",
+            "date",
+            "runs",
+            "costUsd",
+        ):
             self.assertIn(key, doc)
-        self.assertEqual((doc["suite"], doc["model"], doc["judgeModel"]), ("effects", OPUS, "claude-fable-5-2"))
+        self.assertEqual(
+            (doc["suite"], doc["model"], doc["judgeModel"]), ("effects", OPUS, "claude-fable-5-2")
+        )
         self.assertEqual(doc["claudeVersion"], "2.1.325")
         self.assertEqual(doc["runs"], SETTINGS)
         (case,) = doc["cases"]
@@ -1813,11 +2196,19 @@ class SummaryTests(unittest.TestCase):
         ksummary.write(ksummary.summarize(self.results, OPUS, "effects", SETTINGS), out)
         self.assertEqual(first, out.read_text())
         self.assertEqual(json.loads(first)["cases"][0]["asset"], "j-arch")
-        self.assertTrue(any(line.lstrip().startswith('{"asset": "j-arch"') for line in first.splitlines()))
+        self.assertTrue(
+            any(line.lstrip().startswith('{"asset": "j-arch"') for line in first.splitlines())
+        )
 
     def test_rerun_result_replaces_the_api_error_case(self):
-        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, "API error: 429", None]))
-        self.put("kb", "j-arch@j-arch--effect-cache-layer", with_runs(real_doc(), [True, True, True]))
+        self.put(
+            "kb",
+            "j-arch",
+            with_runs(real_doc(), [True, True, True], [None, "API error: 429", None]),
+        )
+        self.put(
+            "kb", "j-arch@j-arch--effect-cache-layer", with_runs(real_doc(), [True, True, True])
+        )
         doc = ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
         self.assertEqual(doc["cases"][0]["kbRuns"], 3)
         self.assertEqual(doc["cases"][0]["errors"], [])
@@ -1827,11 +2218,17 @@ class SummaryTests(unittest.TestCase):
         self.put("vanilla", "j-arch", with_runs(real_doc(), [True, True, True]))
         problems = ksummary.check(ksummary.summarize(self.results, OPUS, "effects", SETTINGS))
         self.assertTrue(any("kbRuns" in p for p in problems), problems)
-        self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True], [None, None, "API error: 529"]))
+        self.put(
+            "kb",
+            "j-arch",
+            with_runs(real_doc(), [True, True, True], [None, None, "API error: 529"]),
+        )
         problems = ksummary.check(ksummary.summarize(self.results, OPUS, "effects", SETTINGS))
         self.assertTrue(any("API" in p for p in problems), problems)
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
-        self.assertEqual(ksummary.check(ksummary.summarize(self.results, OPUS, "effects", SETTINGS)), [])
+        self.assertEqual(
+            ksummary.check(ksummary.summarize(self.results, OPUS, "effects", SETTINGS)), []
+        )
 
     def test_check_rejects_a_self_judged_summary(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
@@ -1846,7 +2243,9 @@ class SummaryTests(unittest.TestCase):
     def test_check_skips_vanilla_for_unlisted_models(self):
         self.put("kb", "j-arch", with_runs(real_doc(), [True, True, True]))
         settings = {**SETTINGS, "vanillaModels": ["claude-sonnet-5-5"]}
-        self.assertEqual(ksummary.check(ksummary.summarize(self.results, OPUS, "effects", settings)), [])
+        self.assertEqual(
+            ksummary.check(ksummary.summarize(self.results, OPUS, "effects", settings)), []
+        )
 
     def test_mixed_claude_versions_are_refused(self):
         other = real_doc()
@@ -1866,7 +2265,8 @@ class SummaryTests(unittest.TestCase):
         self.put("kb", "j-arch", with_runs(real_doc(), [True] * 3), digest="aaa")
         self.put("kb", "j-arch--other", self.renamed("j-arch--effect-other"), digest="bbb")
         with self.assertRaisesRegex(
-            ValueError, "results mix KB digests: aaa, bbb; rerun that staging or move the older results aside$"
+            ValueError,
+            "results mix KB digests: aaa, bbb; rerun that staging or move the older results aside$",
         ):
             ksummary.summarize(self.results, OPUS, "effects", SETTINGS)
 
@@ -1942,10 +2342,13 @@ class SummaryTests(unittest.TestCase):
         notes: list = []
         ksummary.summarize(self.results, OPUS, "effects", SETTINGS, live={CASE}, notes=notes)
         late = self.results / "kb" / OPUS / "effects" / "j-arch--late.json"
-        self.assertEqual(notes, [
-            f"kb/{OPUS}/effects: skipped {late} (no .key)",
-            f"kb/{OPUS}/effects: dropped results for 1 cases no longer under evals/cases: j-arch--effect-gone",
-        ])
+        self.assertEqual(
+            notes,
+            [
+                f"kb/{OPUS}/effects: skipped {late} (no .key)",
+                f"kb/{OPUS}/effects: dropped results for 1 cases no longer under evals/cases: j-arch--effect-gone",
+            ],
+        )
 
     def test_determination_load_sees_exact_case_files(self):
         old = with_runs(real_doc(), [False] * 3)
@@ -1959,7 +2362,10 @@ class SummaryTests(unittest.TestCase):
             cases = kdet.load(purpose, OPUS, "j-arch") or {}
             self.assertIsNone(kdet.load(purpose, OPUS, "ghost"))
         self.assertEqual(list(cases), ["j-arch--effect-cache-layer"])
-        self.assertEqual([kdet.passed(r, "design") for r in kdet.runs(cases["j-arch--effect-cache-layer"])], [True] * 3)
+        self.assertEqual(
+            [kdet.passed(r, "design") for r in kdet.runs(cases["j-arch--effect-cache-layer"])],
+            [True] * 3,
+        )
 
 
 from evals.kbeval import results as kresults  # noqa: E402
@@ -1993,7 +2399,9 @@ class ResultsLoaderTests(unittest.TestCase):
         self.put("j-arch", with_runs(real_doc(), [False] * 3), "2026-11-15T10:00:00.000Z")
         self.put(CASE, with_runs(real_doc(), [True] * 3), "2026-11-16T10:00:00.000Z")
         self.assertEqual(self.design_passes(kresults.load_cases(self.root)), [True] * 3)
-        self.assertEqual(self.design_passes(kresults.load_cases(self.root, asset="j-arch")), [True] * 3)
+        self.assertEqual(
+            self.design_passes(kresults.load_cases(self.root, asset="j-arch")), [True] * 3
+        )
 
     def test_newer_asset_batch_wins_over_older_exact_case_file(self):
         self.put("j-arch", with_runs(real_doc(), [False] * 3), "2026-11-16T10:00:00.000Z")
@@ -2022,10 +2430,13 @@ class ResultsLoaderTests(unittest.TestCase):
         loaded = kresults.load_cases(self.root)
         self.assertEqual(self.design_passes(loaded), [True] * 3)
         self.assertEqual(len(loaded.docs), 1)
-        self.assertEqual(loaded.skipped, [
-            f"{self.root / CASE}.json (no .key)",
-            f"{self.root / f'j-arch@{CASE}'}.json (partial)",
-        ])
+        self.assertEqual(
+            loaded.skipped,
+            [
+                f"{self.root / CASE}.json (no .key)",
+                f"{self.root / f'j-arch@{CASE}'}.json (partial)",
+            ],
+        )
 
     def test_sidecar_is_neither_skipped_nor_read_as_a_document(self):
         self.put("j-arch", with_runs(real_doc(), [True] * 3), digest="aaa")
@@ -2103,31 +2514,65 @@ class ResultsLoaderTests(unittest.TestCase):
             kresults.load_cases(self.root)
 
     def test_own_load_grader_matches_skill_and_agent_tools(self):
-        case = {"graders": [
-            {"name": "other", "config": {"tool": "Agent", "input_match": '"subagent_type"\\s*:\\s*"kb:code-reviewer"'}},
-            {"name": "dispatched", "config": {
-                "tool": "Agent", "input_match": '"subagent_type"\\s*:\\s*"kb:security-reviewer"'}},
-            {"name": "skill", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"(?:kb:)?j-arch"'}},
-        ]}
+        case = {
+            "graders": [
+                {
+                    "name": "other",
+                    "config": {
+                        "tool": "Agent",
+                        "input_match": '"subagent_type"\\s*:\\s*"kb:code-reviewer"',
+                    },
+                },
+                {
+                    "name": "dispatched",
+                    "config": {
+                        "tool": "Agent",
+                        "input_match": '"subagent_type"\\s*:\\s*"kb:security-reviewer"',
+                    },
+                },
+                {
+                    "name": "skill",
+                    "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"(?:kb:)?j-arch"'},
+                },
+            ]
+        }
         self.assertEqual(kresults.own_load_grader(case, "security-reviewer"), "dispatched")
         self.assertEqual(kresults.own_load_grader(case, "j-arch"), "skill")
         self.assertIsNone(kresults.own_load_grader(case, "j-plan"))
 
     def test_own_load_grader_does_not_match_a_hyphen_suffix_asset(self):
-        prefixed = {"graders": [
-            {"name": "skill", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"(?:kb:)?j-create-pr"'}},
-        ]}
+        prefixed = {
+            "graders": [
+                {
+                    "name": "skill",
+                    "config": {
+                        "tool": "Skill",
+                        "input_match": '"skill"\\s*:\\s*"(?:kb:)?j-create-pr"',
+                    },
+                },
+            ]
+        }
         self.assertIsNone(kresults.own_load_grader(prefixed, "create-pr"))
-        exact = {"graders": [
-            {"name": "skill", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"kb:create-pr"'}},
-        ]}
+        exact = {
+            "graders": [
+                {
+                    "name": "skill",
+                    "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"kb:create-pr"'},
+                },
+            ]
+        }
         self.assertEqual(kresults.own_load_grader(exact, "create-pr"), "skill")
 
     @staticmethod
     def scored(passes):
-        return {CASE: {"graders": [{"name": "design", "type": "llm"}], "arms": {"with": [
-            {"graders": [{"name": "design", "passed": ok}]} for ok in passes
-        ]}}}
+        return {
+            CASE: {
+                "graders": [{"name": "design", "type": "llm"}],
+                "arms": {
+                    "with": [{"graders": [{"name": "design", "passed": ok}]} for ok in passes]
+                },
+            }
+        }
 
     def test_drop_of_two_thirds_on_one_model_regresses(self):
         before = {OPUS: self.scored([True] * 3), kdet.SONNET: self.scored([True] * 3)}
@@ -2146,8 +2591,12 @@ class ResultsLoaderTests(unittest.TestCase):
 
     def test_one_third_rule_needs_two_models(self):
         before = {OPUS: self.scored([True] * 3)}
-        self.assertEqual(kresults.regressed(before, {OPUS: self.scored([True, True, False])}, {}), [])
-        self.assertEqual(kresults.regressed(before, {OPUS: self.scored([True, False, False])}, {}), [CASE])
+        self.assertEqual(
+            kresults.regressed(before, {OPUS: self.scored([True, True, False])}, {}), []
+        )
+        self.assertEqual(
+            kresults.regressed(before, {OPUS: self.scored([True, False, False])}, {}), [CASE]
+        )
 
     def test_skipped_grader_does_not_regress(self):
         before = {OPUS: self.scored([True] * 3), kdet.SONNET: self.scored([True] * 3)}
@@ -2166,9 +2615,17 @@ class ResultsLoaderTests(unittest.TestCase):
     def three_graders(passes):
         """Return a case whose runs pass the first n of three result graders, n per run."""
         names = ("g1", "g2", "g3")
-        return {CASE: {"graders": [{"name": n, "type": "llm"} for n in names], "arms": {"with": [
-            {"graders": [{"name": n, "passed": i < count} for i, n in enumerate(names)]} for count in passes
-        ]}}}
+        return {
+            CASE: {
+                "graders": [{"name": n, "type": "llm"} for n in names],
+                "arms": {
+                    "with": [
+                        {"graders": [{"name": n, "passed": i < count} for i, n in enumerate(names)]}
+                        for count in passes
+                    ]
+                },
+            }
+        }
 
     def test_exact_third_drops_from_three_run_means_regress(self):
         # (1+1+2/3)/3 - (0+0+1/3)/3 and (0+2/3+1)/3 - (0+0+2/3)/3 fall a hair short of 2/3 and 1/3 in floats.
@@ -2194,12 +2651,19 @@ class ResultsLoaderTests(unittest.TestCase):
         for model in (OPUS, kdet.SONNET):
             root = tmp / "baseline" / "kb" / model / "effects"
             root.mkdir(parents=True)
-            (root / "j-data.json").write_text(json.dumps({"partial": False, "cases": [case(True)]}), encoding="utf-8")
+            (root / "j-data.json").write_text(
+                json.dumps({"partial": False, "cases": [case(True)]}), encoding="utf-8"
+            )
             (root / "j-data.key").write_text("k", encoding="utf-8")
         data = {m: {name: case(False)} for m in (OPUS, kdet.SONNET)}
-        with mock.patch.object(kdet, "RESULTS", tmp), contextlib.redirect_stdout(io.StringIO()) as out:
+        with (
+            mock.patch.object(kdet, "RESULTS", tmp),
+            contextlib.redirect_stdout(io.StringIO()) as out,
+        ):
             kdet.Checker("p").no_regression("j-data", data)
-        self.assertTrue(out.getvalue().startswith("CHECK no-regression j-data PASS "), out.getvalue())
+        self.assertTrue(
+            out.getvalue().startswith("CHECK no-regression j-data PASS "), out.getvalue()
+        )
 
     def test_no_regression_line_is_unchanged(self):
         tmp = Path(tempfile.mkdtemp())
@@ -2209,7 +2673,9 @@ class ResultsLoaderTests(unittest.TestCase):
             root = tmp / purpose / "kb" / model / "effects"
             root.mkdir(parents=True, exist_ok=True)
             (root / "j-arch.json").write_text(
-                json.dumps({"partial": False, "cases": [{"name": CASE, **self.scored(passes)[CASE]}]}),
+                json.dumps(
+                    {"partial": False, "cases": [{"name": CASE, **self.scored(passes)[CASE]}]}
+                ),
                 encoding="utf-8",
             )
             (root / "j-arch.key").write_text("k", encoding="utf-8")
@@ -2255,8 +2721,12 @@ def summary_doc(cases: dict, model: str = OPUS) -> dict:
 
 class CompareTests(unittest.TestCase):
     def test_compare_overlap_only(self):
-        old = summary_doc({"a--effect-x": (1.0, True), "b--effect-y": (0.5, False), "c--effect-gone": (1.0, True)})
-        new = summary_doc({"a--effect-x": (0.6, False), "b--effect-y": (0.5, False), "d--effect-new": (1.0, True)})
+        old = summary_doc(
+            {"a--effect-x": (1.0, True), "b--effect-y": (0.5, False), "c--effect-gone": (1.0, True)}
+        )
+        new = summary_doc(
+            {"a--effect-x": (0.6, False), "b--effect-y": (0.5, False), "d--effect-new": (1.0, True)}
+        )
         report = "\n".join(kcompare.compare(old, new))
         self.assertIn("suite mean", report)
         self.assertIn("[0.40, 0.90]", report)
@@ -2301,8 +2771,12 @@ class HeadroomTests(unittest.TestCase):
         self.assertEqual(got, {"a--effect-x": "discriminating"})
 
     def test_one_arm_below_one_is_discriminating(self):
-        self.assertEqual(self.classify({"a--effect-x": (1.0, 2 / 3)}), {"a--effect-x": "discriminating"})
-        self.assertEqual(self.classify({"a--effect-x": (2 / 3, 1.0)}), {"a--effect-x": "kb-below-vanilla"})
+        self.assertEqual(
+            self.classify({"a--effect-x": (1.0, 2 / 3)}), {"a--effect-x": "discriminating"}
+        )
+        self.assertEqual(
+            self.classify({"a--effect-x": (2 / 3, 1.0)}), {"a--effect-x": "kb-below-vanilla"}
+        )
 
     def test_dead_is_below_the_pass_line_everywhere(self):
         got = self.classify({"a--effect-x": (0.0, 0.0)}, {"a--effect-x": (1 / 3, 0.0)})
@@ -2323,7 +2797,9 @@ class HeadroomTests(unittest.TestCase):
         self.assertEqual(got, {"a--effect-x": "unmeasured"})
 
     def test_precedence_saturated_then_dead_then_kb_below_vanilla(self):
-        got = self.classify({"s--effect-x": (1.0, 1.0), "d--effect-x": (0.0, 0.0), "k--effect-x": (0.0, 0.5)})
+        got = self.classify(
+            {"s--effect-x": (1.0, 1.0), "d--effect-x": (0.0, 0.0), "k--effect-x": (0.0, 0.5)}
+        )
         self.assertEqual(got["s--effect-x"], "saturated")
         self.assertEqual(got["d--effect-x"], "dead")
         self.assertEqual(got["k--effect-x"], "dead")  # dead outranks kb-below-vanilla
@@ -2343,21 +2819,38 @@ class HeadroomTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = self.write_baselines(
                 Path(tmp),
-                {OPUS: {"effects": {
-                    "a--effect-x": (1.0, True, 1.0), "a--effect-y": (1.0, True, 1.0),
-                    "b--effect-x": (1.0, True, 1.0), "b--effect-y": (1.0, True, 0.0),
-                }}},
+                {
+                    OPUS: {
+                        "effects": {
+                            "a--effect-x": (1.0, True, 1.0),
+                            "a--effect-y": (1.0, True, 1.0),
+                            "b--effect-x": (1.0, True, 1.0),
+                            "b--effect-y": (1.0, True, 0.0),
+                        }
+                    }
+                },
             )
             lines = kheadroom.report(root, {})
         self.assertIn("ASSET a no discriminating case", lines)
         self.assertNotIn("ASSET b no discriminating case", lines)
         self.assertIn(f"HEADROOM saturated a--effect-x {OPUS}=1.00/1.00", lines)
-        self.assertIn("4 cases: 3 saturated, 0 dead, 0 kb-below-vanilla, 1 discriminating, 0 unmeasured", lines)
+        self.assertIn(
+            "4 cases: 3 saturated, 0 dead, 0 kb-below-vanilla, 1 discriminating, 0 unmeasured",
+            lines,
+        )
 
     def test_discriminating_case_sorted_before_a_saturated_one_keeps_the_asset(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = self.write_baselines(
-                Path(tmp), {OPUS: {"effects": {"a--effect-a": (1.0, True, 0.0), "a--effect-b": (1.0, True, 1.0)}}}
+                Path(tmp),
+                {
+                    OPUS: {
+                        "effects": {
+                            "a--effect-a": (1.0, True, 0.0),
+                            "a--effect-b": (1.0, True, 1.0),
+                        }
+                    }
+                },
             )
             lines = kheadroom.report(root, {})
         self.assertNotIn("ASSET a no discriminating case", lines)
@@ -2371,10 +2864,12 @@ class HeadroomTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = self.write_baselines(
                 Path(tmp),
-                {OPUS: {
-                    "effects": {"e--effect-x": (1.0, True, 0.0)},
-                    "workflows": {"wf--plan-to-review": (1.0, True, 1.0)},
-                }},
+                {
+                    OPUS: {
+                        "effects": {"e--effect-x": (1.0, True, 0.0)},
+                        "workflows": {"wf--plan-to-review": (1.0, True, 1.0)},
+                    }
+                },
             )
             lines = kheadroom.report(root, {})
         self.assertIn(f"HEADROOM saturated wf--plan-to-review {OPUS}=1.00/1.00", lines)
@@ -2382,11 +2877,16 @@ class HeadroomTests(unittest.TestCase):
 
     def test_missing_live_case_is_listed_and_not_counted(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = self.write_baselines(Path(tmp), {OPUS: {"effects": {"a--effect-x": (1.0, True, 0.0)}}})
+            root = self.write_baselines(
+                Path(tmp), {OPUS: {"effects": {"a--effect-x": (1.0, True, 0.0)}}}
+            )
             lines = kheadroom.report(root, {"effects": {"a--effect-x", "a--effect-gone"}})
         self.assertIn("MISSING a--effect-gone", lines)
         self.assertNotIn("MISSING a--effect-x", lines)
-        self.assertIn("1 cases: 0 saturated, 0 dead, 0 kb-below-vanilla, 1 discriminating, 0 unmeasured", lines)
+        self.assertIn(
+            "1 cases: 0 saturated, 0 dead, 0 kb-below-vanilla, 1 discriminating, 0 unmeasured",
+            lines,
+        )
 
 
 class RunnerSafetyTests(RunnerCase):
@@ -2400,7 +2900,9 @@ class RunnerSafetyTests(RunnerCase):
         code, err = self.run_suite(FakeCli(responder))
         self.assertNotEqual(code, 0)
         self.assertIn("no readable JSON", err)
-        self.assertEqual([(e["charged"], e["costUsd"]) for e in self.entries()], [("reserved", 60.0)])
+        self.assertEqual(
+            [(e["charged"], e["costUsd"]) for e in self.entries()], [("reserved", 60.0)]
+        )
 
     def test_load_error_charges_nothing(self):
         cli = FakeCli(lambda args: (None, 1, "Error: No eval cases found"))
@@ -2474,16 +2976,31 @@ class RunnerSafetyTests(RunnerCase):
         self.assertEqual(cli.calls[0][cli.calls[0].index("--max-cost-usd") + 1], "150.00")
 
     def test_api_error_pattern(self):
-        for text in ("API error: 429", "rate_limit_error", "status 529", "ECONNRESET", "Overloaded"):
+        for text in (
+            "API error: 429",
+            "rate_limit_error",
+            "status 529",
+            "ECONNRESET",
+            "Overloaded",
+        ):
             self.assertRegex(text, krunner.API_ERROR)
-        for text in ("timed out after 500 ms", "hit max_turns (40)", "exit 1: Reached maximum number of turns (3)"):
+        for text in (
+            "timed out after 500 ms",
+            "hit max_turns (40)",
+            "exit 1: Reached maximum number of turns (3)",
+        ):
             self.assertNotRegex(text, krunner.API_ERROR)
 
     def test_jobs_below_one_is_refused(self):
         cli = FakeCli(lambda args: (result_doc({"x": [None]}), 0, ""))
         err = io.StringIO()
-        options = {"plugin": self.plugin, "state": self.state, "ledger_path": self.ledger_path,
-                   "budget": self.budget, "p95": 5.0}
+        options = {
+            "plugin": self.plugin,
+            "state": self.state,
+            "ledger_path": self.ledger_path,
+            "budget": self.budget,
+            "p95": 5.0,
+        }
         with contextlib.redirect_stderr(err):
             code = krunner.run("effects", "kb", MODEL, 3, "test", ["j-demo"], 0, cli, **options)
         self.assertEqual(code, 1)
@@ -2498,8 +3015,16 @@ class LedgerSafetyTests(unittest.TestCase):
 
     def test_reserve_refuses_past_the_ceiling(self):
         kledger.append({"period": "p", "costUsd": 50.0}, self.path)
-        self.assertTrue(kledger.reserve({"period": "p", "costUsd": 30.0, "charged": "reserved"}, 100, 20, self.path))
-        self.assertFalse(kledger.reserve({"period": "p", "costUsd": 0.5, "charged": "reserved"}, 100, 20, self.path))
+        self.assertTrue(
+            kledger.reserve(
+                {"period": "p", "costUsd": 30.0, "charged": "reserved"}, 100, 20, self.path
+            )
+        )
+        self.assertFalse(
+            kledger.reserve(
+                {"period": "p", "costUsd": 0.5, "charged": "reserved"}, 100, 20, self.path
+            )
+        )
         self.assertAlmostEqual(kledger.spent("p", self.path), 80.0)
 
     def test_torn_line_fails_closed_naming_the_line(self):
@@ -2526,7 +3051,9 @@ class LedgerSafetyTests(unittest.TestCase):
         )
         with open(self.path, "a") as handle:
             fcntl.flock(handle, fcntl.LOCK_EX)
-            proc = subprocess.Popen([sys.executable, "-c", script, str(self.path)], cwd=REPO, stdin=subprocess.DEVNULL)
+            proc = subprocess.Popen(
+                [sys.executable, "-c", script, str(self.path)], cwd=REPO, stdin=subprocess.DEVNULL
+            )
             time.sleep(0.5)
             self.assertEqual(self.path.read_text(), "")
             fcntl.flock(handle, fcntl.LOCK_UN)
@@ -2542,9 +3069,16 @@ class OrchestratePlanTests(OrchestrateTests):
         models = {c[c.index("--model") + 1] for c in cli.calls}
         self.assertEqual(models, set(korch.MODELS))
         self.assertEqual({c[c.index("--runs") + 1] for c in cli.calls}, {"1"})
-        self.assertTrue(all(float(c[c.index("--max-cost-usd") + 1]) <= korch.PILOT_CAP_USD for c in cli.calls))
+        self.assertTrue(
+            all(float(c[c.index("--max-cost-usd") + 1]) <= korch.PILOT_CAP_USD for c in cli.calls)
+        )
         self.assertTrue(self.calls_for(cli, "vanilla"))
-        self.assertFalse(any(c[c.index("--eval-dir") + 1] == "evals-triggers" for c in self.calls_for(cli, "vanilla")))
+        self.assertFalse(
+            any(
+                c[c.index("--eval-dir") + 1] == "evals-triggers"
+                for c in self.calls_for(cli, "vanilla")
+            )
+        )
 
     def test_smoke_caps_follow_the_smoke_budget(self):
         cli = FakeCli(lambda args: (result_doc({case_arg(args): [None]}, cost=15.0), 0, ""))
@@ -2565,8 +3099,17 @@ class OrchestratePlanTests(OrchestrateTests):
 
 class EntryPointTests(OrchestrateTests):
     RUN_ARGS: ClassVar[list] = [
-        "run", "--suite", "effects", "--staging", "kb", "--plugin", "/p", "--model", "claude-opus-5-5",
-        "--purpose", "fanout-x",
+        "run",
+        "--suite",
+        "effects",
+        "--staging",
+        "kb",
+        "--plugin",
+        "/p",
+        "--model",
+        "claude-opus-5-5",
+        "--purpose",
+        "fanout-x",
     ]
 
     def test_run_cap_is_the_purpose_remainder(self):
@@ -2581,9 +3124,14 @@ class EntryPointTests(OrchestrateTests):
             purpose = f"fanout-s{int(spent)}"
             args = [*self.RUN_ARGS[:-1], purpose]
             with self.subTest(spent=spent):
-                kledger.append({"period": self.budget["period"], "purpose": purpose, "costUsd": spent})
+                kledger.append(
+                    {"period": self.budget["period"], "purpose": purpose, "costUsd": spent}
+                )
                 err = io.StringIO()
-                with mock.patch.object(kmain.runner, "run", return_value=0) as run, contextlib.redirect_stderr(err):
+                with (
+                    mock.patch.object(kmain.runner, "run", return_value=0) as run,
+                    contextlib.redirect_stderr(err),
+                ):
                     self.assertEqual(kmain.main([*args, "--cap-usd", "5"]), 2)
                 run.assert_not_called()
                 self.assertIn(
@@ -2594,20 +3142,27 @@ class EntryPointTests(OrchestrateTests):
 
     def test_run_cap_must_be_a_positive_finite_amount(self):
         for value in ("nan", "inf", "0", "-3"):
-            with self.subTest(value=value), mock.patch.object(kmain.runner, "run", return_value=0) as run:
+            with (
+                self.subTest(value=value),
+                mock.patch.object(kmain.runner, "run", return_value=0) as run,
+            ):
                 with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
                     kmain.main([*self.RUN_ARGS, "--cap-usd", value])
                 run.assert_not_called()
 
     def test_bad_cap_values_say_what_is_accepted(self):
         for value in ("5o", "$5", "nan", "0"):
-            with self.subTest(value=value), mock.patch.object(kmain.runner, "run", return_value=0) as run:
+            with (
+                self.subTest(value=value),
+                mock.patch.object(kmain.runner, "run", return_value=0) as run,
+            ):
                 err = io.StringIO()
                 with contextlib.redirect_stderr(err), self.assertRaises(SystemExit):
                     kmain.main([*self.RUN_ARGS, "--cap-usd", value])
                 run.assert_not_called()
                 self.assertIn(
-                    f"expected a positive number of USD such as 25 or 12.50, not {value}", err.getvalue()
+                    f"expected a positive number of USD such as 25 or 12.50, not {value}",
+                    err.getvalue(),
                 )
 
     BASELINE_ARGS: ClassVar[list] = ["baseline", "--model", "claude-sonnet-5-5"]
@@ -2619,7 +3174,10 @@ class EntryPointTests(OrchestrateTests):
 
     def test_baseline_rejects_a_bad_cap_before_running(self):
         for value in ("0", "nan"):
-            with self.subTest(value=value), mock.patch.object(kmain.orchestrate, "baseline", return_value=0) as baseline:
+            with (
+                self.subTest(value=value),
+                mock.patch.object(kmain.orchestrate, "baseline", return_value=0) as baseline,
+            ):
                 with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
                     kmain.main([*self.BASELINE_ARGS, "--cap-usd", value])
                 baseline.assert_not_called()
@@ -2642,7 +3200,10 @@ class EntryPointTests(OrchestrateTests):
             code = kmain.main(["headroom"])
         self.assertEqual(code, 0)
         lines = out.getvalue().splitlines()
-        self.assertIn("1 cases: 1 saturated, 0 dead, 0 kb-below-vanilla, 0 discriminating, 0 unmeasured", lines)
+        self.assertIn(
+            "1 cases: 1 saturated, 0 dead, 0 kb-below-vanilla, 0 discriminating, 0 unmeasured",
+            lines,
+        )
 
     def test_headroom_exits_one_on_an_unreadable_baseline(self):
         from evals.kbeval import __main__ as kmain
@@ -2659,7 +3220,9 @@ class EntryPointTests(OrchestrateTests):
         for suite in kheadroom.SUITES:
             path = root / OPUS / f"{suite}.json"
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(summary_doc({"demo-skill--effect-limiter": (1.0, True, 1.0)})))
+            path.write_text(
+                json.dumps(summary_doc({"demo-skill--effect-limiter": (1.0, True, 1.0)}))
+            )
         out = io.StringIO()
         with mock.patch.object(kmain, "REPO", self.repo), contextlib.redirect_stdout(out):
             self.assertEqual(kmain.main(["headroom"]), 0)
@@ -2686,8 +3249,20 @@ class EntryPointTests(OrchestrateTests):
 
         def run(*args):
             subprocess.run(
-                [git, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", *args],
-                cwd=work, check=True, capture_output=True, stdin=subprocess.DEVNULL,
+                [
+                    git,
+                    "-c",
+                    "user.name=t",
+                    "-c",
+                    "user.email=t@example.com",
+                    "-c",
+                    "commit.gpgsign=false",
+                    *args,
+                ],
+                cwd=work,
+                check=True,
+                capture_output=True,
+                stdin=subprocess.DEVNULL,
             )
 
         run("init", "-q", "-b", "main")
@@ -2714,7 +3289,10 @@ class EntryPointTests(OrchestrateTests):
             return subprocess.CompletedProcess(args, 0, out, "")
 
         out, err = io.StringIO(), io.StringIO()
-        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.subprocess, "run", fake_git):
+        with (
+            mock.patch.object(kmain, "REPO", self.repo),
+            mock.patch.object(kmain.subprocess, "run", fake_git),
+        ):
             with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
                 code = kmain.main(["affected"])
         self.assertEqual(code, 2)
@@ -2724,11 +3302,16 @@ class EntryPointTests(OrchestrateTests):
         def fake_git(args, **kwargs):
             if fail:
                 return subprocess.CompletedProcess(args, 128, "", "fatal: no merge base")
-            out = {"merge-base": "abc\n", "diff": diff, "status": status, "rev-parse": "feat/x\n"}[args[1]]
+            out = {"merge-base": "abc\n", "diff": diff, "status": status, "rev-parse": "feat/x\n"}[
+                args[1]
+            ]
             return subprocess.CompletedProcess(args, 0, out, "")
 
         out, err = io.StringIO(), io.StringIO()
-        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.subprocess, "run", fake_git):
+        with (
+            mock.patch.object(kmain, "REPO", self.repo),
+            mock.patch.object(kmain.subprocess, "run", fake_git),
+        ):
             with mock.patch.object(kmain.orchestrate, "_capped", lambda purpose, cap: cap):
                 with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
                     code = kmain.main(["affected"])
@@ -2739,12 +3322,20 @@ class EntryPointTests(OrchestrateTests):
 
         def fake_git(args, **kwargs):
             calls.append(args)
-            out = {"merge-base": "abc\n", "diff": "", "status": "", "rev-parse": "feat/x\n"}[args[1]]
+            out = {"merge-base": "abc\n", "diff": "", "status": "", "rev-parse": "feat/x\n"}[
+                args[1]
+            ]
             return subprocess.CompletedProcess(args, 0, out, "")
 
-        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.subprocess, "run", fake_git):
+        with (
+            mock.patch.object(kmain, "REPO", self.repo),
+            mock.patch.object(kmain.subprocess, "run", fake_git),
+        ):
             with mock.patch.object(kmain.orchestrate, "_capped", lambda purpose, cap: cap):
-                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                with (
+                    contextlib.redirect_stdout(io.StringIO()),
+                    contextlib.redirect_stderr(io.StringIO()),
+                ):
                     kmain.main(["affected", "--base=-x"])
         self.assertEqual(calls[0], ["git", "merge-base", "--end-of-options", "-x", "HEAD"])
 
@@ -2755,7 +3346,10 @@ class EntryPointTests(OrchestrateTests):
         lines = err.splitlines()
         self.assertEqual(lines[:-1], ["nothing to run"])
         self.assertTrue(
-            lines[-1].startswith("ESTIMATE 0 kb runs + 0 vanilla runs, about $0.00; smoke cap left $"), err
+            lines[-1].startswith(
+                "ESTIMATE 0 kb runs + 0 vanilla runs, about $0.00; smoke cap left $"
+            ),
+            err,
         )
 
     def test_affected_prints_sorted_names_on_one_line_and_notes_before_the_estimate(self):
@@ -2771,7 +3365,10 @@ class EntryPointTests(OrchestrateTests):
         self.assertEqual(estimate, [len(lines) - 1])
         self.assertEqual(
             lines[:-1],
-            ["HARNESS evals/kbeval/results.py: covered by make test", "UNMEASURED .codex/AGENTS.md"],
+            [
+                "HARNESS evals/kbeval/results.py: covered by make test",
+                "UNMEASURED .codex/AGENTS.md",
+            ],
         )
 
     def test_affected_prints_unpriced_names_before_the_estimate(self):
@@ -2793,11 +3390,16 @@ class EntryPointTests(OrchestrateTests):
             raise kmain.kledger.LedgerError("ledger.jsonl:1: unreadable ledger line")
 
         def fake_git(args, **kwargs):
-            out = {"merge-base": "abc\n", "diff": "", "status": "", "rev-parse": "feat/x\n"}[args[1]]
+            out = {"merge-base": "abc\n", "diff": "", "status": "", "rev-parse": "feat/x\n"}[
+                args[1]
+            ]
             return subprocess.CompletedProcess(args, 0, out, "")
 
         out, err = io.StringIO(), io.StringIO()
-        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.subprocess, "run", fake_git):
+        with (
+            mock.patch.object(kmain, "REPO", self.repo),
+            mock.patch.object(kmain.subprocess, "run", fake_git),
+        ):
             with mock.patch.object(kmain.orchestrate, "_capped", bad_ledger):
                 with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
                     code = kmain.main(["affected"])
@@ -2843,7 +3445,10 @@ class EntryPointTests(OrchestrateTests):
             seen.append(live)
             return {"suite": suite, "model": model, "cases": [], "runs": settings}
 
-        with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.ksummary, "summarize", fake):
+        with (
+            mock.patch.object(kmain, "REPO", self.repo),
+            mock.patch.object(kmain.ksummary, "summarize", fake),
+        ):
             with contextlib.redirect_stderr(io.StringIO()):
                 kmain.main(["summarize", "--model", OPUS])
         live = {c.name for c in kmain.kcases.discover(self.repo / "evals" / "cases")}
@@ -2860,7 +3465,10 @@ class EntryPointTests(OrchestrateTests):
                 return {"suite": suite, "model": model, "cases": [row], "runs": settings}
 
             err = io.StringIO()
-            with mock.patch.object(kmain, "REPO", self.repo), mock.patch.object(kmain.ksummary, "summarize", fake):
+            with (
+                mock.patch.object(kmain, "REPO", self.repo),
+                mock.patch.object(kmain.ksummary, "summarize", fake),
+            ):
                 with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
                     code = kmain.main(["summarize", "--model", OPUS])
             return code, err.getvalue()
@@ -2901,8 +3509,13 @@ class RealFixtureTests(unittest.TestCase):
                 work.mkdir(parents=True)
                 env = {"PATH": os.environ["PATH"], "HOME": str(root), "TMPDIR": str(root)}
                 result = subprocess.run(
-                    ["bash", str(seed)], cwd=work, env=env, capture_output=True, text=True,
-                    stdin=subprocess.DEVNULL, timeout=120,
+                    ["bash", str(seed)],
+                    cwd=work,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    stdin=subprocess.DEVNULL,
+                    timeout=120,
                 )
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertTrue((work / ".kb-references").is_dir())
@@ -2912,7 +3525,8 @@ class RealFixtureTests(unittest.TestCase):
 
         def files(root: Path) -> dict:
             return {
-                p.relative_to(root): p.read_bytes() for p in root.rglob("*")
+                p.relative_to(root): p.read_bytes()
+                for p in root.rglob("*")
                 if p.is_file() and "__pycache__" not in p.parts
             }
 
@@ -2925,14 +3539,24 @@ class RealFixtureTests(unittest.TestCase):
         fixture = REPO / "evals" / "fixtures" / "py-calc"
         env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
         bug = subprocess.run(
-            [sys.executable, "-c", "from calc.ops import mean; mean([])"], cwd=fixture, env=env,
-            capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=60,
+            [sys.executable, "-c", "from calc.ops import mean; mean([])"],
+            cwd=fixture,
+            env=env,
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=60,
         )
         self.assertIn("ZeroDivisionError", bug.stderr)
         self.assertIn("0.0", (fixture / "calc" / "ops.py").read_text())
         suite = subprocess.run(
-            [sys.executable, "-m", "unittest"], cwd=fixture, env=env, capture_output=True, text=True,
-            stdin=subprocess.DEVNULL, timeout=60,
+            [sys.executable, "-m", "unittest"],
+            cwd=fixture,
+            env=env,
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=60,
         )
         self.assertEqual(suite.returncode, 0, suite.stderr)
 
@@ -2940,8 +3564,13 @@ class RealFixtureTests(unittest.TestCase):
         fixture = REPO / "evals" / "fixtures" / "py-calc-red"
         env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
         suite = subprocess.run(
-            [sys.executable, "-m", "unittest"], cwd=fixture, env=env, capture_output=True, text=True,
-            stdin=subprocess.DEVNULL, timeout=60,
+            [sys.executable, "-m", "unittest"],
+            cwd=fixture,
+            env=env,
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=60,
         )
         self.assertNotEqual(suite.returncode, 0)
         self.assertIn("test_mean_of_empty_list_is_zero", suite.stderr)
@@ -2955,13 +3584,17 @@ class RealFixtureTests(unittest.TestCase):
         (work / "data.csv").write_text("a,b\n1,2\n")
         env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
         old = subprocess.run(
-            [sys.executable, "tool.py", "--input", "data.csv", "--out", "x.jsonl"], cwd=work, env=env,
-            capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=60,
+            [sys.executable, "tool.py", "--input", "data.csv", "--out", "x.jsonl"],
+            cwd=work,
+            env=env,
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=60,
         )
         self.assertEqual(old.returncode, 2)
         self.assertIn("unrecognized arguments: --out", old.stderr)
         self.assertIn("--out", (work / "README.md").read_text())
-
 
 
 from evals.kbeval import __main__ as kmain  # noqa: E402
@@ -2978,8 +3611,20 @@ class RunKeepTempTests(unittest.TestCase):
             recorded.update(kwargs)
             return 0
 
-        argv = ["run", "--suite", "triggers", "--staging", "kb", "--plugin", "/tmp/p",
-                "--model", "m", "--purpose", "p", *extra]
+        argv = [
+            "run",
+            "--suite",
+            "triggers",
+            "--staging",
+            "kb",
+            "--plugin",
+            "/tmp/p",
+            "--model",
+            "m",
+            "--purpose",
+            "p",
+            *extra,
+        ]
         with mock.patch.object(kmain.runner, "run", fake_run):
             self.assertEqual(kmain.main(argv), 0)
         return recorded["keep_temp"]
@@ -2999,19 +3644,37 @@ class TriggerReportTests(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def _write(self, model, stem, cases, partial=False, key=True, started=None, grader_name="fired"):
+    def _write(
+        self, model, stem, cases, partial=False, key=True, started=None, grader_name="fired"
+    ):
         root = self.tmp / "p" / "kb" / model / "triggers"
         root.mkdir(parents=True, exist_ok=True)
         # Like the real trigger cases, a near or noauto case's load grader carries `max: 0`.
-        doc = {"partial": partial, "cases": [
-            {"name": name, "graders": [{"name": grader_name, "type": "tool_used", "config": {
-                "tool": "Skill", "input_match": f'"skill"\\s*:\\s*"(?:kb:)?{name.split("--")[0]}"',
-                **({} if "--trigger-should-" in name else {"max": 0})}}],
-             "arms": {"with": [
-                {"graders": [{"name": grader_name, "passed": ok}]} for ok in outcomes
-            ]}}
-            for name, outcomes in cases.items()
-        ]}
+        doc = {
+            "partial": partial,
+            "cases": [
+                {
+                    "name": name,
+                    "graders": [
+                        {
+                            "name": grader_name,
+                            "type": "tool_used",
+                            "config": {
+                                "tool": "Skill",
+                                "input_match": f'"skill"\\s*:\\s*"(?:kb:)?{name.split("--")[0]}"',
+                                **({} if "--trigger-should-" in name else {"max": 0}),
+                            },
+                        }
+                    ],
+                    "arms": {
+                        "with": [
+                            {"graders": [{"name": grader_name, "passed": ok}]} for ok in outcomes
+                        ]
+                    },
+                }
+                for name, outcomes in cases.items()
+            ],
+        }
         if started is not None:
             doc["startedAt"] = started
         (root / f"{stem}.json").write_text(json.dumps(doc), encoding="utf-8")
@@ -3031,11 +3694,15 @@ class TriggerReportTests(unittest.TestCase):
         )
 
     def test_trigger_rows_filters_by_split(self):
-        self._write("m", "a", {
-            "a--trigger-should-held-x": [True],
-            "a--trigger-should-tune-y": [True],
-            "a--trigger-should-z": [False],
-        })
+        self._write(
+            "m",
+            "a",
+            {
+                "a--trigger-should-held-x": [True],
+                "a--trigger-should-tune-y": [True],
+                "a--trigger-should-z": [False],
+            },
+        )
         held = [row[0] for row in kdet.trigger_rows("p", ["a"], split="held")]
         tune = [row[0] for row in kdet.trigger_rows("p", ["a"], split="tune")]
         self.assertEqual(held, ["a--trigger-should-held-x"])
@@ -3048,14 +3715,21 @@ class TriggerReportTests(unittest.TestCase):
         )
 
     def test_trigger_rows_inverts_noauto_and_mixed_near_cases(self):
-        self._write("m", "a", {
-            "a--trigger-noauto-x": [True, False],
-            "a--trigger-near-y": [True, False, False],
-        })
-        self.assertEqual(kdet.trigger_rows("p", ["a"]), [
-            ("a--trigger-near-y", "trigger-near", "m", 2, 3),
-            ("a--trigger-noauto-x", "trigger-noauto", "m", 1, 2),
-        ])
+        self._write(
+            "m",
+            "a",
+            {
+                "a--trigger-noauto-x": [True, False],
+                "a--trigger-near-y": [True, False, False],
+            },
+        )
+        self.assertEqual(
+            kdet.trigger_rows("p", ["a"]),
+            [
+                ("a--trigger-near-y", "trigger-near", "m", 2, 3),
+                ("a--trigger-noauto-x", "trigger-noauto", "m", 1, 2),
+            ],
+        )
 
     def test_trigger_rows_skips_partial_and_keyless_batches(self):
         self._write("m", "a", {"a--trigger-should-x": [True]}, partial=True)
@@ -3066,9 +3740,15 @@ class TriggerReportTests(unittest.TestCase):
         self.assertIn("(no .key)", err.getvalue())
 
     def test_trigger_rows_newest_startedat_wins(self):
-        self._write("m", "a--trigger-should-x", {"a--trigger-should-x": [False, False]},
-                    started="2026-11-16T10:00:00.000Z")
-        self._write("m", "a@2", {"a--trigger-should-x": [True, True]}, started="2026-11-15T10:00:00.000Z")
+        self._write(
+            "m",
+            "a--trigger-should-x",
+            {"a--trigger-should-x": [False, False]},
+            started="2026-11-16T10:00:00.000Z",
+        )
+        self._write(
+            "m", "a@2", {"a--trigger-should-x": [True, True]}, started="2026-11-15T10:00:00.000Z"
+        )
         self.assertEqual(
             kdet.trigger_rows("p", ["a"]), [("a--trigger-should-x", "trigger-should", "m", 0, 2)]
         )
@@ -3080,26 +3760,46 @@ class TriggerReportTests(unittest.TestCase):
         )
 
     def test_trigger_rows_keeps_assets_apart_and_drops_non_trigger_cases(self):
-        self._write("m", "a", {
-            "a--trigger-should-x": [True],
-            "a-b--trigger-should-y": [True],
-            "a--effect-z": [True],
-        })
-        self._write("m", "a-b--trigger-should-w", {"a-b--trigger-should-w": [True]})
-        self.assertEqual(
-            [row[0] for row in kdet.trigger_rows("p", ["a"])], ["a--trigger-should-x"]
+        self._write(
+            "m",
+            "a",
+            {
+                "a--trigger-should-x": [True],
+                "a-b--trigger-should-y": [True],
+                "a--effect-z": [True],
+            },
         )
+        self._write("m", "a-b--trigger-should-w", {"a-b--trigger-should-w": [True]})
+        self.assertEqual([row[0] for row in kdet.trigger_rows("p", ["a"])], ["a--trigger-should-x"])
 
     def test_trigger_rows_ignores_runs_without_the_fired_grader(self):
         root = self.tmp / "p" / "kb" / "m" / "triggers"
         root.mkdir(parents=True)
-        doc = {"partial": False, "cases": [{"name": "a--trigger-near-x", "graders": [
-            {"name": "fired", "type": "tool_used",
-             "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"a"', "max": 0}},
-        ], "arms": {"with": [
-            {"graders": [{"name": "fired", "passed": True}]},
-            {"graders": [{"name": "other", "passed": False}]},
-        ]}}]}
+        doc = {
+            "partial": False,
+            "cases": [
+                {
+                    "name": "a--trigger-near-x",
+                    "graders": [
+                        {
+                            "name": "fired",
+                            "type": "tool_used",
+                            "config": {
+                                "tool": "Skill",
+                                "input_match": '"skill"\\s*:\\s*"a"',
+                                "max": 0,
+                            },
+                        },
+                    ],
+                    "arms": {
+                        "with": [
+                            {"graders": [{"name": "fired", "passed": True}]},
+                            {"graders": [{"name": "other", "passed": False}]},
+                        ]
+                    },
+                }
+            ],
+        }
         (root / "a.json").write_text(json.dumps(doc), encoding="utf-8")
         (root / "a.key").write_text("k", encoding="utf-8")
         self.assertEqual(
@@ -3109,9 +3809,22 @@ class TriggerReportTests(unittest.TestCase):
     def test_trigger_rows_reports_a_case_with_no_load_grader(self):
         root = self.tmp / "p" / "kb" / "m" / "triggers"
         root.mkdir(parents=True)
-        doc = {"partial": False, "cases": [{"name": "a--trigger-should-x", "graders": [
-            {"name": "fired", "type": "tool_used", "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"b"'}},
-        ], "arms": {"with": [{"graders": [{"name": "fired", "passed": True}]}]}}]}
+        doc = {
+            "partial": False,
+            "cases": [
+                {
+                    "name": "a--trigger-should-x",
+                    "graders": [
+                        {
+                            "name": "fired",
+                            "type": "tool_used",
+                            "config": {"tool": "Skill", "input_match": '"skill"\\s*:\\s*"b"'},
+                        },
+                    ],
+                    "arms": {"with": [{"graders": [{"name": "fired", "passed": True}]}]},
+                }
+            ],
+        }
         (root / "a.json").write_text(json.dumps(doc), encoding="utf-8")
         (root / "a.key").write_text("k", encoding="utf-8")
         with contextlib.redirect_stderr(io.StringIO()) as err:
@@ -3122,10 +3835,25 @@ class TriggerReportTests(unittest.TestCase):
     def test_figures_counts_an_agent_tool_load_grader(self):
         root = self.tmp / "baseline" / "kb" / OPUS / "triggers"
         root.mkdir(parents=True)
-        doc = {"partial": False, "cases": [{"name": "security-reviewer--trigger-should-x", "graders": [
-            {"name": "dispatched", "type": "tool_used", "config": {
-                "tool": "Agent", "input_match": '"subagent_type"\\s*:\\s*"kb:security-reviewer"'}},
-        ], "arms": {"with": [{"graders": [{"name": "dispatched", "passed": False}]}] * 3}}]}
+        doc = {
+            "partial": False,
+            "cases": [
+                {
+                    "name": "security-reviewer--trigger-should-x",
+                    "graders": [
+                        {
+                            "name": "dispatched",
+                            "type": "tool_used",
+                            "config": {
+                                "tool": "Agent",
+                                "input_match": '"subagent_type"\\s*:\\s*"kb:security-reviewer"',
+                            },
+                        },
+                    ],
+                    "arms": {"with": [{"graders": [{"name": "dispatched", "passed": False}]}] * 3},
+                }
+            ],
+        }
         (root / "security-reviewer.json").write_text(json.dumps(doc), encoding="utf-8")
         (root / "security-reviewer.key").write_text("k", encoding="utf-8")
         with mock.patch.object(kdet, "skill_assets", lambda: ["security-reviewer"]):
@@ -3134,7 +3862,10 @@ class TriggerReportTests(unittest.TestCase):
         self.assertIn("\n  security-reviewer: 0/3\n", out.getvalue())
 
     def test_triggers_exits_one_when_nothing_matched(self):
-        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()) as err:
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()) as err,
+        ):
             self.assertEqual(kdet.triggers("missing", ["a"], None), 1)
         self.assertIn("no trigger results", err.getvalue())
 
@@ -3155,31 +3886,68 @@ class HillclimbAdoptTests(unittest.TestCase):
     def _put(self, purpose, model, suite, stem, cases):
         root = self.tmp / purpose / "kb" / model / suite
         root.mkdir(parents=True, exist_ok=True)
-        (root / f"{stem}.json").write_text(json.dumps({"partial": False, "cases": cases}), encoding="utf-8")
+        (root / f"{stem}.json").write_text(
+            json.dumps({"partial": False, "cases": cases}), encoding="utf-8"
+        )
         (root / f"{stem}.key").write_text("k", encoding="utf-8")
 
     def _trigger(self, purpose, model, name, fired, graded):
         """Store a trigger case with `fired` of `graded` runs loading the skill."""
         near = "--trigger-should-" not in name
-        self._put(purpose, model, "triggers", name, [{
-            "name": name,
-            "graders": [{"name": "skill", "type": "tool_used", "config": {
-                "tool": "Skill", "input_match": f'"skill"\\s*:\\s*"(?:kb:)?{name.split("--")[0]}"',
-                **({"max": 0} if near else {})}}],
-            "arms": {"with": [
-                {"graders": [{"name": "skill", "passed": (i < fired) != near}]} for i in range(graded)
-            ]},
-        }])
+        self._put(
+            purpose,
+            model,
+            "triggers",
+            name,
+            [
+                {
+                    "name": name,
+                    "graders": [
+                        {
+                            "name": "skill",
+                            "type": "tool_used",
+                            "config": {
+                                "tool": "Skill",
+                                "input_match": f'"skill"\\s*:\\s*"(?:kb:)?{name.split("--")[0]}"',
+                                **({"max": 0} if near else {}),
+                            },
+                        }
+                    ],
+                    "arms": {
+                        "with": [
+                            {"graders": [{"name": "skill", "passed": (i < fired) != near}]}
+                            for i in range(graded)
+                        ]
+                    },
+                }
+            ],
+        )
 
     def _effects(self, purpose, model, passes, asset="a"):
-        self._put(purpose, model, "effects", asset, [{
-            "name": f"{asset}--effect-x",
-            "graders": [{"name": "design", "type": "llm"}],
-            "arms": {"with": [{"graders": [{"name": "design", "passed": ok}]} for ok in passes]},
-        }])
+        self._put(
+            purpose,
+            model,
+            "effects",
+            asset,
+            [
+                {
+                    "name": f"{asset}--effect-x",
+                    "graders": [{"name": "design", "type": "llm"}],
+                    "arms": {
+                        "with": [{"graders": [{"name": "design", "passed": ok}]} for ok in passes]
+                    },
+                }
+            ],
+        )
 
     def _asset(
-        self, held=(0, 4), existing=(3, 3), near=0, held_graded=(6, 6), effects=True, held_before=(6, 6)
+        self,
+        held=(0, 4),
+        existing=(3, 3),
+        near=0,
+        held_graded=(6, 6),
+        effects=True,
+        held_before=(6, 6),
     ):
         """Store asset `a` before and after: fired counts across both models, split evenly."""
         for model, part in ((OPUS, 0), (kdet.SONNET, 1)):
@@ -3198,7 +3966,10 @@ class HillclimbAdoptTests(unittest.TestCase):
                 self._effects("e", model, [True] * 3)
 
     def _adopt(self, before=("b", "hb"), after=("f", "hf")):
-        with contextlib.redirect_stdout(io.StringIO()) as out, contextlib.redirect_stderr(io.StringIO()) as err:
+        with (
+            contextlib.redirect_stdout(io.StringIO()) as out,
+            contextlib.redirect_stderr(io.StringIO()) as err,
+        ):
             code = khill.adopt(["a"], list(before), list(after), "e")
         self.err = err.getvalue()
         return code, out.getvalue()
@@ -3277,11 +4048,14 @@ class HillclimbAdoptTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("ADOPT a adopt\n", out)
         lines = out.splitlines()
-        neighbour = lines[lines.index("ADOPT a adopt") + 1:]
-        self.assertEqual([" ".join(line.split()[:3]) for line in neighbour], [
-            "CRITERION neighbours n--trigger-near-y",
-            "REVIEW n--trigger-should-x should",
-        ])
+        neighbour = lines[lines.index("ADOPT a adopt") + 1 :]
+        self.assertEqual(
+            [" ".join(line.split()[:3]) for line in neighbour],
+            [
+                "CRITERION neighbours n--trigger-near-y",
+                "REVIEW n--trigger-should-x should",
+            ],
+        )
         self.assertTrue(neighbour[0].startswith("CRITERION neighbours n--trigger-near-y FAIL "))
 
     def test_missing_effects_baseline_blocks(self):
@@ -3290,7 +4064,9 @@ class HillclimbAdoptTests(unittest.TestCase):
             self._effects("e", model, [True] * 3)
         code, out = self._adopt()
         self.assertEqual(code, 1)
-        self.assertIn(f"CRITERION a effects BLOCKED no baseline results for {OPUS} {kdet.SONNET}\n", out)
+        self.assertIn(
+            f"CRITERION a effects BLOCKED no baseline results for {OPUS} {kdet.SONNET}\n", out
+        )
         self.assertIn("ADOPT a blocked\n", out)
 
     def test_effects_missing_on_one_model_block(self):
@@ -3359,7 +4135,9 @@ class HillclimbAdoptTests(unittest.TestCase):
         self._asset(held=(0, 4))
         code, out = self._adopt(after=("hf",))
         self.assertEqual(code, 1)
-        self.assertIn("CRITERION a existing-should BLOCKED existing 3/6 -> 0/0; 0 graded after\n", out)
+        self.assertIn(
+            "CRITERION a existing-should BLOCKED existing 3/6 -> 0/0; 0 graded after\n", out
+        )
         self.assertIn("CRITERION a near-fires BLOCKED near 0/0 fired; 0 graded after\n", out)
         self.assertIn("ADOPT a blocked\n", out)
 
@@ -3369,17 +4147,28 @@ class HillclimbAdoptTests(unittest.TestCase):
             self._trigger("b", model, "a--trigger-should-x", 1, 1)
         code, out = self._adopt()
         self.assertEqual(code, 1)
-        self.assertIn("CRITERION a existing-should BLOCKED existing 2/2 -> 3/6; graded 2 before, 6 after\n", out)
+        self.assertIn(
+            "CRITERION a existing-should BLOCKED existing 2/2 -> 3/6; graded 2 before, 6 after\n",
+            out,
+        )
         self.assertIn("ADOPT a blocked\n", out)
 
     def test_effects_with_no_shared_case_block(self):
         self._asset(held=(0, 4), effects=False)
         for model in (OPUS, kdet.SONNET):
-            self._put("baseline", model, "effects", "a", [{
-                "name": "a--effect-old",
-                "graders": [{"name": "design", "type": "llm"}],
-                "arms": {"with": [{"graders": [{"name": "design", "passed": True}]}]},
-            }])
+            self._put(
+                "baseline",
+                model,
+                "effects",
+                "a",
+                [
+                    {
+                        "name": "a--effect-old",
+                        "graders": [{"name": "design", "type": "llm"}],
+                        "arms": {"with": [{"graders": [{"name": "design", "passed": True}]}]},
+                    }
+                ],
+            )
             self._effects("e", model, [True] * 3)
         code, out = self._adopt()
         self.assertEqual(code, 1)
@@ -3413,7 +4202,10 @@ class HillclimbAdoptTests(unittest.TestCase):
     def test_purpose_names_that_are_not_plain_are_refused(self):
         for bad in ("../x", "/abs", "a*"):
             argv = ["adopt", "--asset", "a", "--before", bad, "--after", "f", "--effects", "e"]
-            with contextlib.redirect_stderr(io.StringIO()) as err, self.assertRaises(SystemExit) as raised:
+            with (
+                contextlib.redirect_stderr(io.StringIO()) as err,
+                self.assertRaises(SystemExit) as raised,
+            ):
                 khill.main(argv)
             self.assertEqual(raised.exception.code, 2, bad)
             self.assertIn("--before", err.getvalue(), bad)
@@ -3422,11 +4214,19 @@ class HillclimbAdoptTests(unittest.TestCase):
         self._asset(held=(0, 4), effects=False)
         for model in (OPUS, kdet.SONNET):
             self._effects("baseline", model, [True] * 3)
-            self._put("e", model, "effects", "a", [{
-                "name": "a--effect-x",
-                "graders": [{"name": "design", "type": "llm"}],
-                "arms": {"with": [{"graders": [{"passed": True}]}]},
-            }])
+            self._put(
+                "e",
+                model,
+                "effects",
+                "a",
+                [
+                    {
+                        "name": "a--effect-x",
+                        "graders": [{"name": "design", "type": "llm"}],
+                        "arms": {"with": [{"graders": [{"passed": True}]}]},
+                    }
+                ],
+            )
         code, out = self._adopt()
         self.assertEqual(code, 1)
         self.assertIn("ADOPT a blocked\n", out)
@@ -3436,8 +4236,21 @@ class HillclimbAdoptTests(unittest.TestCase):
         self._asset(held=(0, 4))
 
         def main(before, after):
-            argv = ["adopt", "--asset", "a", "--before", *before, "--after", *after, "--effects", "e"]
-            with contextlib.redirect_stdout(io.StringIO()) as out, contextlib.redirect_stderr(io.StringIO()):
+            argv = [
+                "adopt",
+                "--asset",
+                "a",
+                "--before",
+                *before,
+                "--after",
+                *after,
+                "--effects",
+                "e",
+            ]
+            with (
+                contextlib.redirect_stdout(io.StringIO()) as out,
+                contextlib.redirect_stderr(io.StringIO()),
+            ):
                 code = khill.main(argv)
             return code, out.getvalue().splitlines()[-1]
 
@@ -3469,7 +4282,8 @@ class HillclimbAdoptTests(unittest.TestCase):
         code, out = self._adopt()
         self.assertEqual(code, 0)
         self.assertIn(
-            f"REVIEW n--trigger-should-x should 3/3 -> 2/2 on {kdet.SONNET} vs baseline (graded counts differ)\n", out
+            f"REVIEW n--trigger-should-x should 3/3 -> 2/2 on {kdet.SONNET} vs baseline (graded counts differ)\n",
+            out,
         )
 
 
@@ -3490,8 +4304,13 @@ class AffectedTests(TempRepoCase):
             ".claude/agents/loader.md",
             "---\nname: loader\nskills:\n  - other\n  - demo-skill\n---\n\nBody.\n",
         )
-        self.put(".claude/agents/bystander.md", "---\nname: bystander\nskills:\n  - other\n---\n\nBody.\n")
-        self.put(".claude/commands/j-names.md", "---\nname: j-names\n---\n\nUse `demo-skill` first.\n")
+        self.put(
+            ".claude/agents/bystander.md",
+            "---\nname: bystander\nskills:\n  - other\n---\n\nBody.\n",
+        )
+        self.put(
+            ".claude/commands/j-names.md", "---\nname: j-names\n---\n\nUse `demo-skill` first.\n"
+        )
         self.put(".claude/commands/j-bare.md", "---\nname: j-bare\n---\n\nUse demo-skill first.\n")
         plan = self.plan(("M", ".claude/skills/demo-skill/scripts/run.py"))
         self.assertEqual(plan.names, ["demo-skill", "j-names", "loader"])
@@ -3502,15 +4321,22 @@ class AffectedTests(TempRepoCase):
         self.assertEqual(plan.names, ["j-demo", "wf--demo-chain"])
 
     def test_agent_edit_maps_to_agent_and_naming_commands(self):
-        self.put(".claude/commands/j-names.md", "---\nname: j-names\n---\n\nDispatch `demo-agent`.\n")
+        self.put(
+            ".claude/commands/j-names.md", "---\nname: j-names\n---\n\nDispatch `demo-agent`.\n"
+        )
         plan = self.plan(("M", ".claude/agents/demo-agent.md"))
         self.assertEqual(plan.names, ["demo-agent", "j-names"])
 
     def test_reference_maps_to_citing_assets_with_reason(self):
-        self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n")
+        self.put(
+            ".claude/skills/demo-skill/SKILL.md",
+            "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n",
+        )
         self.put(".claude/references/cat/mid.md", "# Mid\n\nBuilds on ref for details.\n")
         self.put(".claude/commands/j-deep.md", "---\nname: j-deep\n---\n\nRead mid first.\n")
-        self.put(".claude/commands/j-prefix.md", "---\nname: j-prefix\n---\n\nRead reference or ref-x.\n")
+        self.put(
+            ".claude/commands/j-prefix.md", "---\nname: j-prefix\n---\n\nRead reference or ref-x.\n"
+        )
         plan = self.plan(("M", ".claude/references/cat/ref.md"))
         self.assertEqual(plan.names, ["demo-skill", "j-deep"])
         self.assertIn(
@@ -3569,7 +4395,12 @@ class AffectedTests(TempRepoCase):
         self.assertEqual(plan.names, ["demo-skill", "j-demo", "wf--demo-chain"])
 
     def test_estimate_prices_each_suite_from_smoke_usd(self):
-        names = ["demo-skill--trigger-should-rate", "j-demo--effect-cache", "demo-agent--effect-review", "wf--demo-chain"]
+        names = [
+            "demo-skill--trigger-should-rate",
+            "j-demo--effect-cache",
+            "demo-agent--effect-review",
+            "wf--demo-chain",
+        ]
         kb, vanilla, cost, _ = kaffected.estimate(self.repo, names)
         self.assertEqual((kb, vanilla), (4, 0))
         self.assertAlmostEqual(cost, 0.07 + 0.29 + 0.29 + 1.00)
@@ -3582,14 +4413,21 @@ class AffectedTests(TempRepoCase):
     def test_estimate_samples_at_most_five_vanilla_effect_cases(self):
         for number in range(6):
             write_case(
-                self.repo, "effects", f"demo-agent--effect-more{number}", EFFECT_FM, "Do it.", {"result": LLM_RESULT}
+                self.repo,
+                "effects",
+                f"demo-agent--effect-more{number}",
+                EFFECT_FM,
+                "Do it.",
+                {"result": LLM_RESULT},
             )
         kb, vanilla, cost, _ = kaffected.estimate(self.repo, ["demo-agent"])
         self.assertEqual((kb, vanilla), (7, 5))
         self.assertAlmostEqual(cost, 7 * 0.29 + 5 * 0.19)
 
     def test_estimate_counts_a_case_named_by_asset_and_by_name_once(self):
-        kb, vanilla, cost, _ = kaffected.estimate(self.repo, ["demo-agent", "demo-agent--effect-review"])
+        kb, vanilla, cost, _ = kaffected.estimate(
+            self.repo, ["demo-agent", "demo-agent--effect-review"]
+        )
         self.assertEqual((kb, vanilla), (1, 1))
         self.assertAlmostEqual(cost, 0.29 + 0.19)
 
@@ -3604,7 +4442,10 @@ class AffectedTests(TempRepoCase):
         self.assertEqual(plan.names, [])
 
     def test_inline_skills_list_in_agent_frontmatter_is_read(self):
-        self.put(".claude/agents/inline.md", "---\nname: inline\nskills: [other, demo-skill]\n---\n\nBody.\n")
+        self.put(
+            ".claude/agents/inline.md",
+            "---\nname: inline\nskills: [other, demo-skill]\n---\n\nBody.\n",
+        )
         plan = self.plan(("M", ".claude/skills/demo-skill/SKILL.md"))
         self.assertEqual(plan.names, ["demo-skill", "inline"])
 
@@ -3614,11 +4455,21 @@ class AffectedTests(TempRepoCase):
 
     def test_edited_command_with_no_such_command_is_unmapped(self):
         plan = self.plan(("M", ".claude/commands/j-ghost.md"))
-        self.assertEqual(plan, kaffected.Plan([], ["UNMAPPED .claude/commands/j-ghost.md: no eval case names it"], False))
+        self.assertEqual(
+            plan,
+            kaffected.Plan(
+                [], ["UNMAPPED .claude/commands/j-ghost.md: no eval case names it"], False
+            ),
+        )
 
     def test_reference_nothing_cites_is_unmapped(self):
         plan = self.plan(("M", ".claude/references/cat/ref.md"))
-        self.assertEqual(plan, kaffected.Plan([], ["UNMAPPED .claude/references/cat/ref.md: no eval case names it"], False))
+        self.assertEqual(
+            plan,
+            kaffected.Plan(
+                [], ["UNMAPPED .claude/references/cat/ref.md: no eval case names it"], False
+            ),
+        )
 
     def test_estimate_returns_names_with_no_case(self):
         _, _, _, unpriced = kaffected.estimate(self.repo, ["demo-skill", "demo-ghost"])
@@ -3626,12 +4477,17 @@ class AffectedTests(TempRepoCase):
 
     def test_same_stem_references_in_two_categories_where_one_is_cited(self):
         self.put(".claude/references/other/ref.md", "# Other ref\n\nUncited.\n")
-        self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n")
+        self.put(
+            ".claude/skills/demo-skill/SKILL.md",
+            "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n",
+        )
         plan = self.plan(("M", ".claude/references/cat/ref.md"))
         self.assertEqual(plan.names, ["demo-skill"])
         self.assertEqual(
             plan.notes,
-            ["AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:6"],
+            [
+                "AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:6"
+            ],
         )
 
     def test_affected_reads_each_kb_file_once(self):
@@ -3646,7 +4502,9 @@ class AffectedTests(TempRepoCase):
             return real(path, *args, **kwargs)
 
         with mock.patch.object(Path, "read_text", counting):
-            self.plan(("M", ".claude/references/cat/ref.md"), ("M", ".claude/skills/demo-skill/SKILL.md"))
+            self.plan(
+                ("M", ".claude/references/cat/ref.md"), ("M", ".claude/skills/demo-skill/SKILL.md")
+            )
         self.assertTrue(reads)
         self.assertEqual(len(reads), len(set(reads)), sorted(map(str, reads)))
 
@@ -3675,21 +4533,31 @@ class AffectedTests(TempRepoCase):
     def test_asset_reached_through_two_references_is_named_once(self):
         self.put(".claude/references/cat/one.md", "# One\n\nSee ref.\n")
         self.put(".claude/references/cat/two.md", "# Two\n\nSee ref.\n")
-        self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nRead one.\nRead two.\n")
+        self.put(
+            ".claude/skills/demo-skill/SKILL.md",
+            "---\nname: demo-skill\n---\n\nRead one.\nRead two.\n",
+        )
         plan = self.plan(("M", ".claude/references/cat/ref.md"))
         self.assertEqual(plan.names, ["demo-skill"])
         self.assertEqual(
             plan.notes,
-            ["AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:5"],
+            [
+                "AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:5"
+            ],
         )
 
     def test_deleted_reference_still_names_its_citers(self):
-        self.put(".claude/skills/demo-skill/SKILL.md", "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n")
+        self.put(
+            ".claude/skills/demo-skill/SKILL.md",
+            "---\nname: demo-skill\n---\n\nBody.\nSee cat/ref.md.\n",
+        )
         plan = self.plan(("D", ".claude/references/cat/ref.md"))
         self.assertEqual(plan.names, ["demo-skill"])
         self.assertEqual(
             plan.notes,
-            ["AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:6"],
+            [
+                "AFFECTED demo-skill <- .claude/references/cat/ref.md via .claude/skills/demo-skill/SKILL.md:6"
+            ],
         )
 
 

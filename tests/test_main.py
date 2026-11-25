@@ -166,7 +166,6 @@ class MainSmokeTests(unittest.TestCase):
         self.assertTrue(any("Reverted" in line for line in cm.output))
 
 
-
 def _admin_mac(argv):
     """A Mac where Homebrew is installed and writable and macOS reports a version."""
     if argv == ["sw_vers", "-productVersion"]:
@@ -298,10 +297,15 @@ class PrivilegeOrderTests(unittest.TestCase):
         def handler(argv):
             if argv[:2] == ["defaults", "export"]:
                 domain = argv[2]
-                value = {"com.apple.dock": "<integer>36</integer>", "com.apple.Safari": "<string>x</string>"}[domain]
+                value = {
+                    "com.apple.dock": "<integer>36</integer>",
+                    "com.apple.Safari": "<string>x</string>",
+                }[domain]
                 key = "tilesize" if domain == "com.apple.dock" else "HomePage"
                 return CompletedResult(
-                    0, f'<?xml version="1.0"?><plist version="1.0"><dict><key>{key}</key>{value}</dict></plist>', ""
+                    0,
+                    f'<?xml version="1.0"?><plist version="1.0"><dict><key>{key}</key>{value}</dict></plist>',
+                    "",
                 )
             return None
 
@@ -313,7 +317,10 @@ class PrivilegeOrderTests(unittest.TestCase):
         self.assertEqual(code, 0)
         user_delete = argvs.index(["defaults", "delete", "com.apple.dock", "tilesize"])
         self.assertLess(user_delete, argvs.index(["sudo", "-v"]))
-        self.assertLess(argvs.index(["sudo", "-v"]), argvs.index(["defaults", "delete", "com.apple.Safari", "HomePage"]))
+        self.assertLess(
+            argvs.index(["sudo", "-v"]),
+            argvs.index(["defaults", "delete", "com.apple.Safari", "HomePage"]),
+        )
 
 
 if __name__ == "__main__":

@@ -251,7 +251,11 @@ def discover(cases_root: Path) -> List[Case]:
             continue
         for folder in sorted(p for p in root.iterdir() if p.is_dir()):
             prompt = folder / "prompt.md"
-            fields, body = split_frontmatter(prompt.read_text(encoding="utf-8")) if prompt.is_file() else ({}, "")
+            fields, body = (
+                split_frontmatter(prompt.read_text(encoding="utf-8"))
+                if prompt.is_file()
+                else ({}, "")
+            )
             match = CASE_NAME.match(folder.name)
             graders = []
             for grader in sorted((folder / "graders").glob("*.md")):
@@ -271,7 +275,9 @@ def discover(cases_root: Path) -> List[Case]:
                     body=body,
                     graders=graders,
                     fixture=fixture.read_text(encoding="utf-8") if fixture.is_file() else None,
-                    case_yaml=case_yaml.read_text(encoding="utf-8") if case_yaml.is_file() else None,
+                    case_yaml=case_yaml.read_text(encoding="utf-8")
+                    if case_yaml.is_file()
+                    else None,
                 )
             )
     return found
@@ -304,7 +310,9 @@ def _lint_agent_references(cases: List[Case], repo: Path) -> List[str]:
     """
     problems: List[str] = []
     for agent in sorted((repo / ".claude" / "agents").glob("*.md")):
-        categories = sorted(set(re.findall(r"references/([\w-]+)/", agent.read_text(encoding="utf-8"))))
+        categories = sorted(
+            set(re.findall(r"references/([\w-]+)/", agent.read_text(encoding="utf-8")))
+        )
         if not categories:
             continue
         probes = [f".kb-references/{c}/x.md" for c in categories]
@@ -314,7 +322,10 @@ def _lint_agent_references(cases: List[Case], repo: Path) -> List[str]:
             if case.asset != agent.stem or case.kind != "effect":
                 continue
             for grader in case.graders:
-                if unquote(grader.fields.get("type", "")) != "tool_used" or unquote(grader.fields.get("tool", "")) != "Read":
+                if (
+                    unquote(grader.fields.get("type", "")) != "tool_used"
+                    or unquote(grader.fields.get("tool", "")) != "Read"
+                ):
                     continue
                 pattern = unquote(grader.fields.get("input_match", ""))
                 if not pattern or parse_int(grader.fields.get("max")) == 0:
@@ -322,7 +333,9 @@ def _lint_agent_references(cases: List[Case], repo: Path) -> List[str]:
                 try:
                     rx = re.compile(pattern)
                 except re.error:
-                    skipped.append(f"skipped {case.name} grader {grader.name}: input_match does not compile in Python")
+                    skipped.append(
+                        f"skipped {case.name} grader {grader.name}: input_match does not compile in Python"
+                    )
                     continue
                 reads = reads or any(rx.search(probe) for probe in probes)
         if not reads:
@@ -349,7 +362,9 @@ def _lint_case(case: Case, known: Dict[str, str], repo: Path) -> List[str]:
     problems.extend(_lint_graders(case, known))
     problems.extend(_lint_files(case))
     problems.extend(_lint_grounding(case, repo))
-    for stray in sorted(p.name for p in (case.path / "graders").glob("*") if p.is_file() and p.suffix != ".md"):
+    for stray in sorted(
+        p.name for p in (case.path / "graders").glob("*") if p.is_file() and p.suffix != ".md"
+    ):
         problems.append(f"graders/{stray} is not a .md grader and would be ignored")
     return problems
 
@@ -443,9 +458,16 @@ def _lint_graders(case: Case, known: Dict[str, str]) -> List[str]:
         for key, value in grader.fields.items():
             if malformed_scalar(value):
                 problems.append(f"grader {grader.name}: `{key}` is a malformed quoted YAML scalar")
-        regexes = [unquote(grader.fields.get("pattern", "")), unquote(grader.fields.get("input_match", ""))]
+        regexes = [
+            unquote(grader.fields.get("pattern", "")),
+            unquote(grader.fields.get("input_match", "")),
+        ]
         for key in ("before", "after"):
-            regexes += [unquote(raw) for k, raw in _flow_items(grader.fields.get(key, "{}") or "{}") if k == "input_match"]
+            regexes += [
+                unquote(raw)
+                for k, raw in _flow_items(grader.fields.get(key, "{}") or "{}")
+                if k == "input_match"
+            ]
         if any(JS_UNSUPPORTED.search(rx) for rx in regexes if rx):
             problems.append(
                 f"grader {grader.name}: regex uses inline flags, (?P<, POSIX classes, or \\A/\\Z/\\z; "
@@ -458,11 +480,15 @@ def _lint_graders(case: Case, known: Dict[str, str]) -> List[str]:
             )
         bad_flags = set(unquote(grader.fields.get("flags", ""))) - JS_FLAGS
         if bad_flags:
-            problems.append(f"grader {grader.name}: flags {''.join(sorted(bad_flags))!r} are not JS regex flags")
+            problems.append(
+                f"grader {grader.name}: flags {''.join(sorted(bad_flags))!r} are not JS regex flags"
+            )
         for path in _grader_paths(grader):
             clean = path[2:] if path.startswith("./") else path
             if clean == ".claude" or clean.startswith(".claude/"):
-                problems.append(f"grader {grader.name}: grades a file under .claude/, which runs cannot write")
+                problems.append(
+                    f"grader {grader.name}: grades a file under .claude/, which runs cannot write"
+                )
         if grader.name.endswith(".md"):
             problems.append(f"grader {grader.name}.md: file name has a double .md extension")
         gtype = unquote(grader.fields.get("type", ""))
@@ -475,14 +501,22 @@ def _lint_graders(case: Case, known: Dict[str, str]) -> List[str]:
         for key in REQUIRED_KEYS[gtype]:
             if not unquote(grader.fields.get(key, "")):
                 problems.append(f"grader {grader.name}: {gtype} needs `{key}`")
-        if gtype == "regex" and unquote(grader.fields.get("pattern", "x")) in ("", ".*", ".+", "^", "$"):
+        if gtype == "regex" and unquote(grader.fields.get("pattern", "x")) in (
+            "",
+            ".*",
+            ".+",
+            "^",
+            "$",
+        ):
             problems.append(f"grader {grader.name}: pattern matches everything")
         if gtype in RESULT_TYPES and "kb:" in grader.text:
             problems.append(f"grader {grader.name}: result graders never mention kb:")
         if gtype == "llm":
             criteria = grader.body or unquote(grader.fields.get("criteria", ""))
             if "PASS if" not in criteria or "FAIL if" not in criteria:
-                problems.append(f"grader {grader.name}: llm criteria need PASS if and FAIL if claims")
+                problems.append(
+                    f"grader {grader.name}: llm criteria need PASS if and FAIL if claims"
+                )
             claims = len(CLAIM.findall(criteria))
             if not 2 <= claims <= 5:
                 problems.append(f"grader {grader.name}: llm criteria hold {claims} claims; use 2-5")
@@ -535,15 +569,23 @@ def _lint_grounding(case: Case, repo: Path) -> List[str]:
         gtype = unquote(grader.fields.get("type", ""))
         for path in _grader_paths(grader):
             if path not in case.body and _initial_file(case, repo, path) is None:
-                problems.append(f"grader {grader.name}: graded path {path!r} is neither named in the prompt nor seeded")
+                problems.append(
+                    f"grader {grader.name}: graded path {path!r} is neither named in the prompt nor seeded"
+                )
         if gtype == "file_exists" and unquote(grader.fields.get("exists", "true")) == "false":
-            problems.append(f"grader {grader.name}: `exists: false` passes on a run that does nothing")
-        positive_needed = gtype == "file_exists" or unquote(grader.fields.get("match", "")) == "not_contains"
+            problems.append(
+                f"grader {grader.name}: `exists: false` passes on a run that does nothing"
+            )
+        positive_needed = (
+            gtype == "file_exists" or unquote(grader.fields.get("match", "")) == "not_contains"
+        )
         if positive_needed:
             path = _grader_paths(grader)[0] if _grader_paths(grader) else None
             others = [
-                g for g in case.graders
-                if g is not grader and path in _grader_paths(g)
+                g
+                for g in case.graders
+                if g is not grader
+                and path in _grader_paths(g)
                 and unquote(g.fields.get("type", "")) in ("regex", "llm")
                 and unquote(g.fields.get("match", "")) != "not_contains"
             ]
@@ -560,13 +602,18 @@ def _lint_grounding(case: Case, repo: Path) -> List[str]:
             if initial is None:
                 continue
             try:
-                found = re.search(unquote(grader.fields.get("pattern", "")), initial,
-                                  _python_flags(unquote(grader.fields.get("flags", ""))))
+                found = re.search(
+                    unquote(grader.fields.get("pattern", "")),
+                    initial,
+                    _python_flags(unquote(grader.fields.get("flags", ""))),
+                )
             except re.error:
                 continue
             inverted = unquote(grader.fields.get("match", "")) == "not_contains"
             if bool(found) != inverted:
-                problems.append(f"grader {grader.name}: already passes on the seeded {path}; it scores a run that does nothing")
+                problems.append(
+                    f"grader {grader.name}: already passes on the seeded {path}; it scores a run that does nothing"
+                )
     return problems
 
 
@@ -601,10 +648,20 @@ def _lint_files(case: Case) -> List[str]:
         if "scaffold_script" in case.case_yaml:
             problems.append("case.yaml must not set scaffold_script; the builder owns it")
         lines = [ln for ln in case.case_yaml.splitlines() if ln.strip()]
-        if not lines or lines[0] != "context:" or not all(CONTEXT_LINE.match(ln) for ln in lines[1:]):
-            problems.append("case.yaml holds only `context:` with `  add_dirs: [..]` or `  history_file: x`")
+        if (
+            not lines
+            or lines[0] != "context:"
+            or not all(CONTEXT_LINE.match(ln) for ln in lines[1:])
+        ):
+            problems.append(
+                "case.yaml holds only `context:` with `  add_dirs: [..]` or `  history_file: x`"
+            )
     if case.fixture is not None:
-        code_lines = [ln.strip() for ln in case.fixture.splitlines() if ln.strip() and not ln.strip().startswith("#")]
+        code_lines = [
+            ln.strip()
+            for ln in case.fixture.splitlines()
+            if ln.strip() and not ln.strip().startswith("#")
+        ]
         if not code_lines or code_lines[0] != "set -euo pipefail":
             problems.append("fixture.sh must start with `set -euo pipefail`")
         heredoc_end: Optional[str] = None
@@ -646,5 +703,7 @@ def coverage(cases: List[Case], repo: Path) -> List[str]:
             need = {"effect": 2}
         for case_kind, minimum in need.items():
             if have.get(case_kind, 0) < minimum:
-                gaps.append(f"{asset}: needs {minimum} {case_kind} case(s), has {have.get(case_kind, 0)}")
+                gaps.append(
+                    f"{asset}: needs {minimum} {case_kind} case(s), has {have.get(case_kind, 0)}"
+                )
     return gaps

@@ -57,7 +57,11 @@ def _preloaded_skills(text: str) -> List[str]:
 
 
 def _referencing(
-    repo: Path, changed: str, files: Dict[str, Path], texts: Dict[str, str], references: Dict[str, str]
+    repo: Path,
+    changed: str,
+    files: Dict[str, Path],
+    texts: Dict[str, str],
+    references: Dict[str, str],
 ) -> Tuple[List[str], List[str]]:
     """Return assets citing the `changed` reference directly or through references that cite it, with notes.
 
@@ -154,10 +158,14 @@ def affected(repo: Path, changes: List[Tuple[str, str]]) -> Plan:
 
 def estimate(repo: Path, names: List[str]) -> Tuple[int, int, float, List[str]]:
     """Return (kb runs, vanilla runs, dollars, `UNPRICED` notes) for a one-run smoke of `names`."""
-    found = [c for c in kcases.discover(repo / "evals" / "cases") if c.name in names or c.asset in names]
+    found = [
+        c for c in kcases.discover(repo / "evals" / "cases") if c.name in names or c.asset in names
+    ]
     plain = [n for n in names if not n.startswith("wf--")]
     vanilla = sorted(
-        c.name for c in found if c.suite == "effects" and any(c.name.startswith(f"{a}--") for a in plain)
+        c.name
+        for c in found
+        if c.suite == "effects" and any(c.name.startswith(f"{a}--") for a in plain)
     )[:VANILLA_SAMPLE]
     cost = sum(SMOKE_USD[c.suite] for c in found) + VANILLA_EFFECT_USD * len(vanilla)
     priced = {c.name for c in found} | {c.asset for c in found}

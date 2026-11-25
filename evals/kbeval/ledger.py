@@ -43,7 +43,9 @@ def _parse(lines: List[str], path: Path) -> List[dict]:
             entry = json.loads(line)
             _validate(entry)
         except (ValueError, LedgerError) as error:
-            raise LedgerError(f"{path}:{number}: unreadable ledger line ({error}); fix it by hand") from error
+            raise LedgerError(
+                f"{path}:{number}: unreadable ledger line ({error}); fix it by hand"
+            ) from error
         parsed.append(entry)
     return parsed
 

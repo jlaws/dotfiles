@@ -111,7 +111,12 @@ class ApplySystemTests(unittest.TestCase):
 
         self.assertNotIn(["chflags", "nohidden", str(self.tmp / "Library")], runner.argv_list())
         self.assertIn(
-            {"argv": ["chflags", "nohidden", "/Volumes"], "sudo": True, "capture": False, "check": False},
+            {
+                "argv": ["chflags", "nohidden", "/Volumes"],
+                "sudo": True,
+                "capture": False,
+                "check": False,
+            },
             runner.calls,
         )
 
@@ -136,7 +141,9 @@ class ApplyUserSystemTests(unittest.TestCase):
 
     def test_revert_rehides_library_without_sudo(self):
         archive = Archive.create(self.tmp, "ts")
-        archive.record_system("chflags:library", present=True, original="hidden", applied="nohidden")
+        archive.record_system(
+            "chflags:library", present=True, original="hidden", applied="nohidden"
+        )
         runner = FakeRunner()
 
         revert_user_system(archive, runner, self.tmp)
@@ -154,9 +161,7 @@ class RevertSystemTests(unittest.TestCase):
 
     def test_restores_nvram_when_guard_passes(self):
         archive = Archive.create(self.tmp, "ts")
-        archive.record_system(
-            "nvram:SystemAudioVolume", present=True, original="%80", applied=" "
-        )
+        archive.record_system("nvram:SystemAudioVolume", present=True, original="%80", applied=" ")
         archive.save()
 
         # current value equals applied (" "), so the guard passes.
@@ -167,9 +172,7 @@ class RevertSystemTests(unittest.TestCase):
 
     def test_skips_nvram_when_user_modified(self):
         archive = Archive.create(self.tmp, "ts")
-        archive.record_system(
-            "nvram:SystemAudioVolume", present=True, original="%80", applied=" "
-        )
+        archive.record_system("nvram:SystemAudioVolume", present=True, original="%80", applied=" ")
         archive.save()
 
         # current value differs from applied, so leave it alone.
@@ -180,9 +183,7 @@ class RevertSystemTests(unittest.TestCase):
 
     def test_user_modified_logs_warning(self):
         archive = Archive.create(self.tmp, "ts")
-        archive.record_system(
-            "nvram:SystemAudioVolume", present=True, original="%80", applied=" "
-        )
+        archive.record_system("nvram:SystemAudioVolume", present=True, original="%80", applied=" ")
         archive.save()
         runner = FakeRunner(lambda argv: CompletedResult(0, "SystemAudioVolume\t%50\n", ""))
 
@@ -192,14 +193,20 @@ class RevertSystemTests(unittest.TestCase):
 
     def test_has_system_wide_for_sudo_records(self):
         archive = Archive.create(self.tmp, "ts")
-        archive.record_system("chflags:volumes", present=True, original="hidden", applied="nohidden")
+        archive.record_system(
+            "chflags:volumes", present=True, original="hidden", applied="nohidden"
+        )
         self.assertTrue(has_system_wide(archive))
 
     def test_legacy_archive_rehides_volumes_with_sudo(self):
         """Archives from before the split record both chflags keys; /Volumes still reverts."""
         archive = Archive.create(self.tmp, "ts")
-        archive.record_system("chflags:library", present=True, original="hidden", applied="nohidden")
-        archive.record_system("chflags:volumes", present=True, original="hidden", applied="nohidden")
+        archive.record_system(
+            "chflags:library", present=True, original="hidden", applied="nohidden"
+        )
+        archive.record_system(
+            "chflags:volumes", present=True, original="hidden", applied="nohidden"
+        )
         runner = FakeRunner()
 
         revert_system(archive, runner)
@@ -209,9 +216,7 @@ class RevertSystemTests(unittest.TestCase):
 
     def test_restore_logs_info(self):
         archive = Archive.create(self.tmp, "ts")
-        archive.record_system(
-            "nvram:SystemAudioVolume", present=True, original="%80", applied=" "
-        )
+        archive.record_system("nvram:SystemAudioVolume", present=True, original="%80", applied=" ")
         archive.save()
         runner = FakeRunner(lambda argv: CompletedResult(0, "SystemAudioVolume\t \n", ""))
 

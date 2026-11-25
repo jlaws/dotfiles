@@ -48,9 +48,7 @@ def _merge_dict(
         and isinstance(merged["allow"], list)
         and isinstance(merged["deny"], list)
     ):
-        if (path and path[-1] == "permissions") or (
-            not path and "permissions" in merged
-        ):
+        if (path and path[-1] == "permissions") or (not path and "permissions" in merged):
             deny_set = set(merged["deny"])
             merged["allow"] = [item for item in merged["allow"] if item not in deny_set]
 
@@ -146,7 +144,9 @@ def _validate_toml_table_name(name: str) -> None:
 
         if idx < n:
             if name[idx] != ".":
-                raise ConfigMergeError(f"Expected '.' separating keys in TOML section header: {name}")
+                raise ConfigMergeError(
+                    f"Expected '.' separating keys in TOML section header: {name}"
+                )
             idx += 1
             if idx >= n or not name[idx:].strip():
                 raise ConfigMergeError(f"Trailing dot in TOML section header: {name}")
@@ -206,7 +206,7 @@ def _extract_header(line: str) -> tuple[str | None, str | None, str | None]:
     if end_idx == -1 or in_double or in_single:
         raise ConfigMergeError(f"Malformed TOML section header: {stripped}")
 
-    after_header = stripped[end_idx + bracket_len:].strip()
+    after_header = stripped[end_idx + bracket_len :].strip()
     if after_header and not after_header.startswith("#"):
         raise ConfigMergeError(f"Malformed TOML section header: {stripped}")
 
@@ -216,7 +216,7 @@ def _extract_header(line: str) -> tuple[str | None, str | None, str | None]:
 
     _validate_toml_table_name(name)
 
-    remainder = stripped[end_idx + bracket_len:]
+    remainder = stripped[end_idx + bracket_len :]
     header_str = f"[[{name}]]{remainder}" if is_array else f"[{name}]{remainder}"
     header_type = "array" if is_array else "table"
     return header_str, header_type, name
@@ -406,9 +406,7 @@ def merge_toml(repo_content: str, target_content: str) -> str:
             if name in repo_tables:
                 repo_table = repo_tables[name]
                 repo_kv = {
-                    k: raw
-                    for is_kv, k, raw in repo_table["lines"]
-                    if is_kv and k is not None
+                    k: raw for is_kv, k, raw in repo_table["lines"] if is_kv and k is not None
                 }
                 trailing_comments: list[tuple[bool, str | None, str]] = []
                 while sec["lines"] and not sec["lines"][-1][0]:
