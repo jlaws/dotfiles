@@ -1905,6 +1905,25 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             codex_gh.update(f"{first} {verb}" for verb in verbs)
         self.assertEqual(codex_gh, self.GH_ALLOWED)
 
+    def test_codex_git_allow_rules_cover_the_claude_git_subcommands(self):
+        claude = json.loads((REPO / ".claude" / "settings.json").read_text())
+        claude_git = {
+            rule[len("Bash(git ") : -1].removesuffix(" *")
+            for rule in claude["permissions"]["allow"]
+            if rule.startswith("Bash(git ")
+        }
+        rules = (REPO / ".codex" / "rules" / "default.rules").read_text()
+        codex_git: set[str] = set()
+        for block in re.split(r"(?m)^(?=prefix_rule\()", rules):
+            if not re.search(r'decision\s*=\s*"allow"', block):
+                continue
+            match = re.search(
+                r'pattern\s*=\s*\[\s*["\']git["\']\s*,\s*(.+?)\],\s*\n\s*decision', block, re.S
+            )
+            if match:
+                codex_git.update(re.findall(r'["\']([\w-]+)["\']', match.group(1)))
+        self.assertEqual(codex_git, claude_git)
+
     def test_npm_audit_fix_is_denied_or_prompted_in_every_tree(self):
         """`npm audit *` also matches `npm audit fix`, which runs an install and its scripts."""
         claude = json.loads((REPO / ".claude" / "settings.json").read_text())

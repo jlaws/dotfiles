@@ -1,5 +1,6 @@
 # =============================================================================
-# Git - all operations allowed (matches Claude Code: Bash(git <subcmd> *))
+# Git - the same subcommands as the Claude Code allow list (Bash(git <subcmd> *));
+# clone and clean are in neither
 # =============================================================================
 
 prefix_rule(
@@ -278,7 +279,8 @@ prefix_rule(
 )
 
 # =============================================================================
-# Denied - dangerous commands (matches Claude Code deny list)
+# Denied - sudo, as in the Claude Code Bash deny list. The Claude Read(...) denies have no
+# Codex equivalent here; npm audit fix prompts instead of denying (see the npm section)
 # =============================================================================
 
 prefix_rule(
