@@ -1092,6 +1092,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             left = git("for-each-ref", "--format=%(refname:short)", "refs/heads/", cwd=tmp).split()
         self.assertEqual(set(left), {"main", "feat/open"})
 
+    def test_j_next_edits_the_plan_after_the_new_branch_exists(self):
+        for path in J_NEXT_COMMANDS:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(REPO)):
+                self.assertGreater(text.index("collapse its phases"), text.index("git checkout -b"))
+
     def test_plans_size_prs_for_review(self):
         self.assertEqual(len(WRITING_PLANS_SKILLS), 3)
         for path in WRITING_PLANS_SKILLS:

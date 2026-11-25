@@ -24,10 +24,6 @@ here, so the fix can come with an eval case that fails before it.
   it calls `EnterPlanMode` and `ExitPlanMode`, and the plan may go only in plan mode's file.
   `writing-plans`, `j-execute-plan`, and `j-next` each state an "Outside plan mode" fallback. The
   eval harness has no plan mode, so the j-plan cases now name a git-ignored plan file.
-- `.claude/commands/j-next.md`: Phase 2 step 6 edits the plan file, then Phase 3 runs
-  `git reset --hard origin/main`. When the plan file is tracked in the repo, the reset discards
-  that edit. Low severity: plans normally live under `~/.claude/plans/`. Seen in
-  j-next--effect-second-part.
 - `references/languages/uv-workflows.md` teaches `uv sync --frozen` as the CI flag that fails on a
   stale lockfile (its "MUST use --frozen in CI" block and its "`--frozen` in CI" bullet). In uv
   0.13.8, `--frozen` syncs without updating `uv.lock` and `--locked` is the flag that asserts the
