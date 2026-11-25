@@ -116,7 +116,7 @@
 
 ### Event Store Guardrails
 
-- **Immutability**: Never UPDATE/DELETE events: add compensating events
+- **Immutability**: Never UPDATE/DELETE events; add compensating events
 - **Optimistic concurrency**: Check `expected_version` on append
 - **Event size**: Keep <10KB; reference large payloads via URL/S3 key
 - **Idempotency**: Use `event_id` for deduplication
@@ -157,7 +157,7 @@
 
 ### Workflow Engine Constraints (Temporal-style)
 
-- **Workflow code**: Deterministic only: no `datetime.now()`, `random()`, I/O
+- **Workflow code**: Deterministic only; no `datetime.now()`, `random()`, I/O
 - **Activity code**: Idempotent, always has timeout, heartbeat if >30s
 - **Error classification**: Retryable (network) vs non-retryable (validation)
 - **Versioning**: Never modify running workflow logic; use version gates

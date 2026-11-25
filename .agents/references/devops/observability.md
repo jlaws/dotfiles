@@ -89,7 +89,7 @@ Start at 99.0% for 1 month baseline, then tighten: 99.5% (2 months) -> 99.9% (3 
 - **Alert on symptoms, not causes**: alert on error rate, not "pod restarted"
 - Severity levels: `critical` (pages), `warning` (tickets), `info` (dashboard only)
 - Every alert must have a runbook link in annotations
-- `for:` duration: critical >= 2m, warning >= 5m, info >= 15m: prevents flapping
+- `for:` duration: critical >= 2m, warning >= 5m, info >= 15m (prevents flapping)
 - Route critical to PagerDuty, warning to Slack channel, info to dashboard only
 
 ## Stack Preferences
@@ -110,4 +110,4 @@ Start at 99.0% for 1 month baseline, then tighten: 99.5% (2 months) -> 99.9% (3 
 - OTel Collector `batch` processor default timeout is 200ms: increase to 5-10s for production to reduce export overhead
 - Grafana dashboards without variables become unmaintainable past 3 services
 - Never scrape intervals faster than 10s in production: it causes storage and CPU issues
-- Alertmanager grouping: group by `alertname, namespace, service`: too broad silences everything, too narrow floods on-call
+- Alertmanager grouping: group by `alertname, namespace, service`; too broad silences everything, too narrow floods on-call

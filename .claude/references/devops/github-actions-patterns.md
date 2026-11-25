@@ -93,9 +93,9 @@ concurrency:
 
 - **256 matrix limit**: use `include` to add specific combos rather than full cartesian product
 - **Reusable workflow nesting**: max 4 levels; composite actions don't count toward this
-- **`actions/checkout` fetch-depth**: defaults to 1 (shallow): use `fetch-depth: 0` for changelogs, version bumps, git history
+- **`actions/checkout` fetch-depth**: defaults to 1 (shallow); use `fetch-depth: 0` for changelogs, version bumps, git history
 - **Concurrency `cancel-in-progress`**: never use for deployment jobs (cancels mid-deploy)
-- **`secrets: inherit`**: passes ALL org/repo secrets: prefer explicit mapping in production
+- **`secrets: inherit`**: passes ALL org/repo secrets; prefer explicit mapping in production
 - **`if:` expressions**: always wrap in `${{ }}` for string comparisons; bare `if: github.ref == 'refs/heads/main'` can fail silently
 - **Workflow permissions**: fork PRs get read-only `GITHUB_TOKEN` regardless of settings
 

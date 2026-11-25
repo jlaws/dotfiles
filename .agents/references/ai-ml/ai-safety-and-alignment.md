@@ -211,7 +211,7 @@ def _score_hallucination(text: str) -> float:
 
 - **Keyword blocklists are trivially bypassed**: They catch low-effort attacks only. Always pair with model-based classifiers for production
 - **Self-critique loops degrade quality**: More than 2 rounds makes responses overly cautious or generic. Cap revisions at 2
-- **PII regex misses context**: Pattern matching catches formatted PII but misses "my social is three two one...": use NER models for thorough detection
+- **PII regex misses context**: Pattern matching catches formatted PII but misses "my social is three two one..."; use NER models for thorough detection
 - **Toxicity classifiers have bias**: Tools like Perspective API flag AAVE at higher rates. Validate across demographics before deploying
 - **Red-teaming is never complete**: Automated probes cover known vectors. Budget for human red-teamers who find novel exploits
 - **Guardrails add latency**: Order filters cheapest-first (regex before model calls) and run independent checks in parallel

@@ -146,7 +146,7 @@ ci_pipeline:
 ## Forcing Functions
 
 - **Canonical run scripts**: Provide scripts for running services locally. If setup is broken, someone finds out immediately
-- **Encode standards in tooling**: Linters, formatters, pre-commit hooks, coding agent prompts: not just wikis
+- **Encode standards in tooling**: Linters, formatters, pre-commit hooks, coding agent prompts, not just wikis
 - **Tickets over TODOs**: File tickets with deadlines rather than adding `// TODO` comments that rot
 - **Continuous releases**: If deployment is painful, that pain surfaces immediately and gets fixed
 

@@ -74,9 +74,9 @@ GOOD: await page.waitForResponse(resp => resp.url().includes('/api/users'))
 
 ## Debugging Failed Tests
 
-1. **Trace viewer**: `npx playwright show-trace trace.zip`: step through every action
-2. **Headed mode**: `npx playwright test --headed`: watch it happen
-3. **Debug mode**: `npx playwright test --debug`: step with inspector
+1. **Trace viewer**: `npx playwright show-trace trace.zip`; step through every action
+2. **Headed mode**: `npx playwright test --headed`; watch it happen
+3. **Debug mode**: `npx playwright test --debug`; step with inspector
 4. **`page.pause()`**: Insert in test to pause at that point
 5. **`test.step()`**: Break test into named steps for better reporting
 

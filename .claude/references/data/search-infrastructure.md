@@ -190,7 +190,7 @@ results = index.search("wireless headphones", {
 
 ## Gotchas
 
-- **Shard sizing**: 20-50GB per shard; too many small shards waste overhead, too few large shards slow queries: reindex to resize
+- **Shard sizing**: 20-50GB per shard; too many small shards waste overhead, too few large shards slow queries; reindex to resize
 - **Mapping explosion**: Dynamic mappings on nested JSON create thousands of fields; always set `"dynamic": "strict"` in production
 - **Analyzer at index vs query time**: Use `edge_ngram` at index time only; applying at query time doubles partial matches and kills precision
 - **Vector dimension mismatch**: Embedding model change requires full reindex; pin model version and validate dimension on ingest

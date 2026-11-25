@@ -133,12 +133,12 @@ const tabs = await browser.tabs.query({ active: true, currentWindow: true });
 
 ## Gotchas
 
-- **Service worker termination**: Dies after ~30s idle. Never store state in global variables: use `chrome.storage`. Use `chrome.alarms` not `setInterval`/`setTimeout` for recurring tasks
+- **Service worker termination**: Dies after ~30s idle. Never store state in global variables; use `chrome.storage`. Use `chrome.alarms` not `setInterval`/`setTimeout` for recurring tasks
 - **CSP restrictions**: MV3 bans inline scripts in extension pages, `eval()`, and remote code. Bundle everything
-- **Host permissions in V3**: Moved out of `permissions` into `host_permissions`: users can selectively revoke per-site access
+- **Host permissions in V3**: Moved out of `permissions` into `host_permissions`; users can selectively revoke per-site access
 - **CORS in content scripts**: Requests from content scripts are subject to page's CORS policy. Route through service worker for cross-origin fetches
 - **`return true` in onMessage**: Required to keep `sendResponse` channel open for async work; forgetting it causes "message port closed" errors
-- **Popup lifecycle**: Popup HTML/JS reloads every time it opens: persist state in storage, not popup variables
+- **Popup lifecycle**: Popup HTML/JS reloads every time it opens; persist state in storage, not popup variables
 - **`web_accessible_resources`**: Must explicitly declare files accessible to web pages (V3 requires `matches` array to scope access)
 
 ## Cross-References

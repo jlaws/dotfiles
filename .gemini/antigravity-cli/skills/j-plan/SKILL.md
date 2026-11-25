@@ -1,6 +1,6 @@
 ---
 name: j-plan
-description: "Research-orchestrated implementation planning - parallel specialist lenses, then a phase-skeletoned TDD plan with exact paths, verification commands, and PR boundaries. Use when you have requirements and need a plan before coding. Do NOT use for executing an existing plan (use /j-execute-plan) or exploring what to build (use /j-brainstorm)."
+description: "Research-orchestrated implementation planning: parallel specialist lenses, then a phase-skeletoned TDD plan with exact paths, verification commands, and PR boundaries. Use when you have requirements and need a plan before coding. Do NOT use for executing an existing plan (use /j-execute-plan) or exploring what to build (use /j-brainstorm)."
 ---
 
 # Plan
@@ -11,11 +11,11 @@ If no arguments provided, ask for the spec or point to the design doc from /j-br
 
 Load these skills before starting:
 
-- `writing-plans` - plan structure, the mandatory phase skeleton, task granularity, self-review
-- `dispatching-parallel-agents` - frozen packet, one-message parallelism, post-run integration
-- `design-first` - clarifying-question discipline for Step 5
-- `analysis-output-patterns` - output structure
-- `verification-before-completion` - evidence hierarchy when weighing what an agent reports
+- `writing-plans`: plan structure, the mandatory phase skeleton, task granularity, self-review
+- `dispatching-parallel-agents`: frozen packet, one-message parallelism, post-run integration
+- `design-first`: clarifying-question discipline for Step 5
+- `analysis-output-patterns`: output structure
+- `verification-before-completion`: evidence hierarchy when weighing what an agent reports
 
 Read `~/.agents/references/workflow/existing-code-discipline.md` when the spec touches established code.
 
@@ -42,7 +42,7 @@ Never use the tracked `planning/` artifact tier for this working plan, and never
 unless the user asks.
 
 The spec is freeform and may carry paths inline (commonly a design doc from `/j-brainstorm`). The
-whole string is the spec - do not strip paths from it. Scan for path-like tokens (containing `/`, or
+whole string is the spec: do not strip paths from it. Scan for path-like tokens (containing `/`, or
 ending `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`) and treat each as an explicit
 read target in Step 1.
 
@@ -51,17 +51,17 @@ read target in Step 1.
 Dispatch one `Explore` agent to build the packet every later agent receives. Everything downstream
 depends on it, so this does not run in parallel with Step 2.
 
-- **Build/test shape** - entry points, key modules, test runner and its exact invocation,
+- **Build/test shape**: entry points, key modules, test runner and its exact invocation,
   benchmark/gate harness (or its absence), config, languages present.
-- **Architecture diagnostics** - project shape from config files and directory structure (monolith,
+- **Architecture diagnostics**: project shape from config files and directory structure (monolith,
   services, serverless); API patterns from route definitions, `openapi.yaml`, `swagger`, or GraphQL
   schemas.
-- **Prior art** - Glob `docs/`, `doc/`, `design/`, `adr/`, `adrs/`, `architecture/`, root `*.md`, and
+- **Prior art**: Glob `docs/`, `doc/`, `design/`, `adr/`, `adrs/`, `architecture/`, root `*.md`, and
   `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`. Filter in two passes: by filename and path first,
   then by grepping contents for spec keywords for the ambiguous ones. Discard the clearly unrelated.
   Planning against a spec whose decisions were already settled in an ADR is the failure this prevents.
-- **Docs surface** - README, API docs, CHANGELOG, usage docs the change would obligate.
-- **Reusable patterns** - existing functions, utilities, and conventions the spec should reuse instead
+- **Docs surface**: README, API docs, CHANGELOG, usage docs the change would obligate.
+- **Reusable patterns**: existing functions, utilities, and conventions the spec should reuse instead
   of reimplementing.
 - **Project conventions** - read the root instruction file (CLAUDE.md / AGENTS.md / GEMINI.md). Treat
   every doc it names for coding conventions, principles, or architecture rules as a mandatory read,
@@ -74,7 +74,7 @@ Write the frozen recon packet into the plan file under `## Planning Notes` befor
 
 ## Step 2: Fan out the research
 
-Dispatch the lenses in parallel, in a single message. Freeze one packet - the spec, the Step 1 recon output, the conventions digest, and the report-only contract below - and give it to every agent **verbatim**. Do not rely on
+Dispatch the lenses in parallel, in a single message. Freeze one packet (the spec, the Step 1 recon output, the conventions digest, and the report-only contract below) and give it to every agent **verbatim**. Do not rely on
 an agent's own definition to supply the contract: `test-writer` and `documentation-writer` hold
 `Edit`/`Write`.
 
@@ -83,7 +83,7 @@ an agent's own definition to supply the contract: `test-writer` and `documentati
 > surface not present" rather than manufacturing material.
 > Flag any design input that conflicts with a listed convention; cite its ID.
 > Report as `subagent-report-contract` specifies: a verdict line, then findings as `file:line`
-> rows. Cut narration, preamble, and restatement. Do **not** cut findings - there is no length
+> rows. Cut narration, preamble, and restatement. Do **not** cut findings; there is no length
 > limit and nothing is archived, so anything you leave out is lost. Quote failures, errors, and
 > command output byte-for-byte; never paraphrase evidence.
 
@@ -116,7 +116,7 @@ Conditional lenses, dispatched when Step 1 shows the surface is present:
 | Prior art, papers, or methodology worth surveying | `research-analyst` |
 
 **These tables are a floor, not a ceiling.** Any agent in `~/.gemini/config/agents/` whose lens applies is fair
-game - dispatch it with the same frozen packet. Report which agents ran and why, and which you
+game: dispatch it with the same frozen packet. Report which agents ran and why, and which you
 deliberately skipped.
 
 Persist each returned lens result in `## Planning Notes` before synthesis. Do not leave research that
@@ -124,7 +124,7 @@ the final plan depends on only in conversation context.
 
 ## Step 3: Synthesize and draft
 
-Deduplicate across lenses and resolve contradictions. Check each delegated claim against the code - a
+Deduplicate across lenses and resolve contradictions. Check each delegated claim against the code; a
 subagent's summary describes what it looked for, the code shows what is there. Where two lenses
 disagree on a design decision, decide and record the trade-off; an unresolved disagreement is an
 unresolved plan.
@@ -149,12 +149,12 @@ plan file.
 
 **Persist significant decisions as ADRs.** For each decision the plan settles, record the chosen
 approach, the alternatives rejected, the trade-offs accepted, and the conditions that would reverse
-it - the four fields of an ADR. Where a decision is significant and not easily reversible, add a
+it: the four fields of an ADR. Where a decision is significant and not easily reversible, add a
 *task* to the plan that writes `docs/adr/<topic>/<slug>.md` during execution, following
 `~/.agents/references/architecture/architecture-decision-records.md`. The ADR is a repo artifact
 written at implementation time; the plan is not. Where an ADR already covers the decision, the
-task updates it in place - revise the Decision, add the previous approach to `## Ruled Out` with
-its reason and date, and bump `updated` - rather than adding a second file. Skip minor or easily
+task updates it in place (revise the Decision, add the previous approach to `## Ruled Out` with
+its reason and date, and bump `updated`) rather than adding a second file. Skip minor or easily
 reversible choices and note them inline instead.
 
 ## Step 4: Red-team the draft
@@ -176,7 +176,7 @@ git fetch origin main
 git log --oneline HEAD..origin/main
 ```
 
-Re-check the plan against anything that landed - a plan written against a stale tree names paths that
+Re-check the plan against anything that landed; a plan written against a stale tree names paths that
 moved. Then research every open question the codebase can answer; per `design-first`, only ask what
 the code cannot tell you. Ask the rest with `ask_question`, each carrying a recommended answer,
 ordered so the ones that unlock others come first. Fold the answers into the plan file. **The

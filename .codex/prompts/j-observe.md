@@ -247,7 +247,7 @@ Reconcile client/server counts weekly. Expect 10-30% client-side drop from ad bl
 
 - **PII leakage**: allowlist permitted properties per event; middleware strips non-allowed fields
 - **Cardinality explosion**: never group by UUIDs or free text; bucket continuous values
-- **Over-tracking**: every click tracked, 500 event types, nobody queries 450: storage bill explodes
+- **Over-tracking**: every click tracked, 500 event types, nobody queries 450; storage bill explodes
 - **Naming drift**: enforce typed schema + CI checks; "Button Clicked" vs "button_clicked" vs "btn_click" is tech debt
 
 ## Dashboard Design

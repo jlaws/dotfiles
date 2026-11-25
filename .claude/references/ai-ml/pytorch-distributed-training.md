@@ -161,14 +161,14 @@ Use `SHARDED_STATE_DICT` during training. `FULL_STATE_DICT` only for final expor
 
 ## Gotchas
 
-- **ZeRO-3 + gradient accumulation**: Must use `model.no_sync()` or let DeepSpeed handle it internally: mixing manual and DS accumulation double-counts
+- **ZeRO-3 + gradient accumulation**: Must use `model.no_sync()` or let DeepSpeed handle it internally; mixing manual and DS accumulation double-counts
 - **FSDP + torch.compile**: Requires `use_orig_params=True`; without it, compile silently falls back to eager
-- **TP across nodes**: Tensor parallelism across nodes (non-NVLink) kills throughput: keep TP intra-node only
+- **TP across nodes**: Tensor parallelism across nodes (non-NVLink) kills throughput; keep TP intra-node only
 - **NCCL timeouts**: Default 30min masks errors; set `TORCH_NCCL_BLOCKING_WAIT=1` and lower to 5-10min
-- **Batch size scaling**: Effective batch = micro_batch * accumulation_steps * dp_world_size; changing GPU count changes effective batch: adjust LR (linear scaling rule)
+- **Batch size scaling**: Effective batch = micro_batch * accumulation_steps * dp_world_size; changing GPU count changes effective batch; adjust LR (linear scaling rule)
 - **Mixed precision with ZeRO-3**: `bf16` strongly preferred; `fp16` with ZeRO-3 offload can diverge
 - **Checkpoint compatibility**: ZeRO-3 sharded checkpoints require same world size to reload; convert to consolidated for portability
 - **Pipeline parallelism bubble**: Minimize with micro-batch count >> PP stages (4x PP degree minimum)
-- **DDP unused params**: Unused parameters cause hangs: `find_unused_parameters=True` or fix the model
-- **FSDP auto_wrap_policy**: Must match model's layer class: wrong wrapping = OOM or no sharding
+- **DDP unused params**: Unused parameters cause hangs; `find_unused_parameters=True` or fix the model
+- **FSDP auto_wrap_policy**: Must match model's layer class; wrong wrapping = OOM or no sharding
 - **FSDP cpu_offload**: Saves GPU memory but 5-10x slower; last resort only

@@ -69,7 +69,7 @@ const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').mat
 ## Gotchas
 
 - **Layout thrashing**: batch reads before writes; never interleave `getBoundingClientRect()` with DOM mutations
-- **Compositor-only**: only `transform` and `opacity` avoid layout/paint: animating `width`, `height`, `top`, `left` is expensive
+- **Compositor-only**: only `transform` and `opacity` avoid layout/paint; animating `width`, `height`, `top`, `left` is expensive
 - **`will-change`**: add before animation, remove after; permanent `will-change` wastes GPU memory
 - **Framer Motion bundle**: ~30KB min+gz; use `LazyMotion` + `domAnimation` feature for code splitting
 - **AnimatePresence**: requires direct children with stable `key` props; fragments break exit animations

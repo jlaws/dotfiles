@@ -284,9 +284,9 @@ class PromptExperiment:
 ## Gotchas
 
 - **Log prompts, not in hot path**: Write logs asynchronously (queue + background worker); synchronous logging adds 5-20ms per call
-- **Token count != cost**: Cached tokens, batch API discounts, and prompt caching change effective pricing: track actual billed amounts
+- **Token count != cost**: Cached tokens, batch API discounts, and prompt caching change effective pricing; track actual billed amounts
 - **Drift detection cold start**: Need 500+ baseline samples for stable centroid; small baselines produce false positives
 - **Guardrail ordering matters**: Run injection detection before PII scrubbing; blocked requests should not be partially processed
 - **A/B test duration**: LLM output variance is high; need 1000+ samples per variant for statistical significance
-- **tiktoken is OpenAI-only, not a generic estimator**: `cl100k_base` is a reasonable fallback across OpenAI models (may miscount by 5-10%), but it is the wrong tokenizer for other providers: it undercounts Claude tokens by ~15-20% on prose and far more on code. Use each provider's own count-tokens endpoint rather than a single cross-provider approximation
-- **Prometheus cardinality**: Do not use prompt_hash as a label; high-cardinality labels kill Prometheus: aggregate by template name
+- **tiktoken is OpenAI-only, not a generic estimator**: `cl100k_base` is a reasonable fallback across OpenAI models (may miscount by 5-10%), but it is the wrong tokenizer for other providers; it undercounts Claude tokens by ~15-20% on prose and far more on code. Use each provider's own count-tokens endpoint rather than a single cross-provider approximation
+- **Prometheus cardinality**: Do not use prompt_hash as a label (high-cardinality labels kill Prometheus); aggregate by template name

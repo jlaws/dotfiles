@@ -73,7 +73,7 @@ type Error { field: String; message: String! }
 
 **Federation**: Apollo Federation composes subgraphs via `@key` directives. Gateway handles query planning across services.
 
-**Error conventions**: Use union return types for business errors (`union CreateUserResult = User | ValidationError | NotFoundError`). Never throw from resolvers for business logic: reserve exceptions for unexpected failures.
+**Error conventions**: Use union return types for business errors (`union CreateUserResult = User | ValidationError | NotFoundError`). Never throw from resolvers for business logic; reserve exceptions for unexpected failures.
 
 ## SDK Architecture
 

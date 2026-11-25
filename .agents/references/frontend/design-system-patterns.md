@@ -114,8 +114,8 @@ export function Badge({ className, variant, size, ...props }: BadgeProps) {
 - **Style encapsulation**: CSS Modules or Tailwind scoping avoid global class collisions; CSS-in-JS adds runtime cost
 - **SSR + CSS-in-JS**: Libraries like styled-components need server-side style extraction; prefer CSS variables for zero-JS theming
 - **Accessibility defaults**: Headless libraries handle ARIA; never override `role` or `aria-*` attributes they set
-- **Prop API bloat**: Prefer compound components over deeply nested config objects: easier to extend and tree-shake
-- **Token naming**: Use semantic names (`--color-primary`) not visual (`--color-blue`): enables theming
+- **Prop API bloat**: Prefer compound components over deeply nested config objects; easier to extend and tree-shake
+- **Token naming**: Use semantic names (`--color-primary`) not visual (`--color-blue`), which enables theming
 - **Inter is generic**: Inter/Roboto are AI-default fingerprints in premium UIs on Persuade and Experience surfaces; choose a face from the subject's world and name the reason (see premium-design-aesthetics, Scope)
 
 ## Cross-References

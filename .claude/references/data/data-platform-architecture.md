@@ -29,7 +29,7 @@
 Key points:
 - **Hidden partitioning**: users write `timestamp`, Iceberg partitions by day automatically
 - **Partition evolution**: change strategy without rewriting existing data
-- **Schema evolution**: add, drop, rename, reorder columns: no data rewrite needed
+- **Schema evolution**: add, drop, rename, reorder columns; no data rewrite needed
 
 ```python
 # iceberg_setup.py -- PyIceberg catalog, schema, and table creation
@@ -469,7 +469,7 @@ class DataQualityPipeline:
 | Point-in-time joins | Built-in | Built-in | Must implement |
 | Team size sweet spot | 2-15 | 15-100+ | 5-20 (eng-heavy) |
 
-**Recommendation**: Feast for most teams: covers 80% of use cases with minimal operational burden.
+**Recommendation**: Feast for most teams (covers 80% of use cases with minimal operational burden).
 
 ### Feast Patterns
 

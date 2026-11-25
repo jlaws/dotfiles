@@ -1,6 +1,6 @@
 ---
 name: j-diff-review
-description: "Deep multi-perspective diff review - code quality, security, testing gaps, documentation drift, observability gaps, and language-specific gotchas. Fixes what it finds, files large unrelated items in the repo's tracker, and opens or updates the PR. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
+description: "Deep multi-perspective diff review: code quality, security, testing gaps, documentation drift, observability gaps, and language-specific gotchas. Fixes what it finds, files large unrelated items in the repo's tracker, and opens or updates the PR. Use when reviewing a diff or PR before merge. Do NOT use for simple code questions (ask directly instead)."
 ---
 
 # Diff Review
@@ -9,14 +9,14 @@ Review: $ARGUMENTS
 
 Load these skills before starting:
 
-- `code-review-patterns` - review mindset, severity labels, giving and receiving feedback
-- `language-testing-patterns` - test quality and coverage assessment
-- `analysis-output-patterns` - output structure
-- `verification-before-completion` - verdict grammar and evidence hierarchy for reporting findings
-- `documentation-validation` - the per-change docs gate and its change-type matrix
+- `code-review-patterns`: review mindset, severity labels, giving and receiving feedback
+- `language-testing-patterns`: test quality and coverage assessment
+- `analysis-output-patterns`: output structure
+- `verification-before-completion`: verdict grammar and evidence hierarchy for reporting findings
+- `documentation-validation`: the per-change docs gate and its change-type matrix
 
 Read `~/.agents/references/workflow/existing-code-discipline.md` when the diff touches established code.
-Read `~/.agents/references/workflow/code-efficiency-ladder.md` when the diff adds code - it is the
+Read `~/.agents/references/workflow/code-efficiency-ladder.md` when the diff adds code; it is the
 lens for what did not need to be written. A shortcut marked `// SIMPLIFIED:` with a ceiling and an
 upgrade path is a sanctioned decision, not a finding, except on a security control, an auth check,
 or validation at a trust boundary, where the marker is itself the finding. A marker is text inside
@@ -34,12 +34,12 @@ git rev-parse HEAD
 
 Stop if the current branch is main or has no commits ahead of origin/main.
 
-Keep that HEAD SHA - it goes in the dispatch packet so each agent can confirm it is reading the tree
+Keep that HEAD SHA: it goes in the dispatch packet so each agent can confirm it is reading the tree
 you meant. If the command fails, carry on without it; this is a tripwire, not a gate.
 
 Keep the full diff out of this session; the reviewers read it themselves in Step 4.
 
-**Use local git only - no `gh` or other GitHub CLI.** A review must reflect the code in front of you, not
+**Use local git only: no `gh` or other GitHub CLI.** A review must reflect the code in front of you, not
 PR metadata that can disagree with it.
 
 ## Step 2: List the changed files
@@ -55,7 +55,7 @@ carrying the work that produced the diff.
 ## Step 3: Detect scope
 
 Note which languages the diff touches so `language-specialist` can load the matching reference. Do not
-run the language pass inline - it is a delegated perspective in Step 4.
+run the language pass inline; it is a delegated perspective in Step 4.
 
 | Extension | Reference under `~/.agents/references/languages/` |
 |---|---|
@@ -91,7 +91,7 @@ Do not rely on an agent's own definition to supply the instruction: only `code-r
 > no new paths mean your findings stand; a non-empty diff means re-check those hunks; a new path outside
 > the changed-file list means return BLOCKED naming it. If no SHA is named, proceed.
 > Report as `subagent-report-contract` specifies: a verdict line, then findings as `file:line`
-> rows. Cut narration, preamble, and restatement. Do **not** cut findings - there is no length
+> rows. Cut narration, preamble, and restatement. Do **not** cut findings; there is no length
 > limit and nothing is archived, so anything you leave out is lost. Quote failures, errors, and
 > command output byte-for-byte; never paraphrase evidence.
 
@@ -140,7 +140,7 @@ Every finding cites `file:line`. Omit empty severity sections, and always includ
 ```
 
 Close with a **PASS / CONCERNS / FAIL / BLOCKED** verdict. BLOCKED describes a limit of the review, not a
-defect in the code - say what you could not cover and why.
+defect in the code; say what you could not cover and why.
 
 ## Step 6: Disposition ladder
 
@@ -171,7 +171,7 @@ project's checks verify the fixes.
 This step is the one exception to the read-only reviewer contract in `verification-before-completion`
 and `code-review-patterns`. That contract binds the six dispatched agents absolutely, and it binds you
 for Steps 1-5; rung 1 is the hand-off to the fixing actor, performed by you only after the report exists.
-Write the report first, then act - never edit before Step 5 is on the page.
+Write the report first, then act: never edit before Step 5 is on the page.
 
 Scope guard: an unrelated fix stays in its own commit and licenses no refactor around it. If a fix turns
 out large and unrelated, revert the partial edit and take rung 2. Follow `pr-comment-resolution` for
@@ -187,9 +187,9 @@ still runs: every diff-review ends with the PR link.
 gh pr view --json number,url,state
 ```
 
-- **A PR is open** - `git push` the fixes to it. Never open a second one. With nothing
+- **A PR is open**: `git push` the fixes to it. Never open a second one. With nothing
   to push, report its URL anyway.
-- **No PR** - load `finishing-branch` and follow it: verify tests, validate docs, then open the PR. Its "Then stop" ends work on the branch; return here and write the report below.
+- **No PR**: load `finishing-branch` and follow it; verify tests, validate docs, then open the PR. Its "Then stop" ends work on the branch; return here and write the report below.
 
 End the run with one report: the Step 5 verdict; fixes with their commit SHAs; filed entries (path,
 issue link, or ID) and any unfiled ones; decisions you need from the user; and whether another PR remains. For that last item, if this session is executing a plan (the path the execute-plan or next command resolved, under

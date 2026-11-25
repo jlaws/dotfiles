@@ -124,7 +124,7 @@ See `references/devops/security-policies.md` for NetworkPolicy YAML examples.
 | CI/CD deployer | deployments, services, configmaps | get, list, create, update, patch |
 | Secret reader (scoped) | secrets (by resourceNames) | get |
 
-**Key opinion**: CI/CD service accounts should NOT have `delete` on pods: let the deployment controller handle pod lifecycle.
+**Key opinion**: CI/CD service accounts should NOT have `delete` on pods; let the deployment controller handle pod lifecycle.
 
 ## Labels (Standard K8s Labels)
 

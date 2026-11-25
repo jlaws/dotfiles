@@ -59,7 +59,7 @@ def test_api_call(monkeypatch):
 ## When to Use `MagicMock` vs `Mock`
 - `MagicMock`: when code uses dunder methods (`__len__`, `__iter__`)
 - `Mock`: default choice, simpler, fewer implicit behaviors
-- `spec=True`: always set when mocking classes: catches typos in attribute access
+- `spec=True`: always set when mocking classes; catches typos in attribute access
 
 ## Parametrize Decisions
 - **Use when**: Same logic, different inputs (validation rules, edge cases, matrix testing)

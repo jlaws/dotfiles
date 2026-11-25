@@ -115,7 +115,7 @@ for result in read_file_fast("large.txt"):
 ```
 
 - Use `yield` for large datasets or streaming.
-- Pipelines: `gen1 | map(f) | filter(g)`: each item processed once.
+- Pipelines: `gen1 | map(f) | filter(g)`; each item processed once.
 
 ## Data Structure Selection
 
@@ -158,7 +158,7 @@ most_common = count.most_common(10)
 | Async | `aiocache` or manual dict + asyncio.Lock |
 | Cross-process | Redis or memcached |
 
-**Gotcha**: `@lru_cache` requires hashable args: use `tuple` not `dict`.
+**Gotcha**: `@lru_cache` requires hashable args; use `tuple` not `dict`.
 
 ## __slots__ for Many Instances
 

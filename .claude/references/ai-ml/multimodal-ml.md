@@ -244,7 +244,7 @@ optimizer = torch.optim.AdamW(
 ### Modality Imbalance
 - Vision encoders produce 256-576 tokens per image vs 20-200 text tokens. LLM attention cost is O(n^2)
 - Use pooling/resampling (Perceiver, Q-Former) to reduce visual tokens to 32-128 for efficiency
-- **Anti-pattern**: feeding raw ViT patches (576 tokens) into a 7B LLM for every image: prohibitive for multi-image
+- **Anti-pattern**: feeding raw ViT patches (576 tokens) into a 7B LLM for every image (prohibitive for multi-image)
 
 ### Resolution vs Compute
 - ViT-L/14@336px: 576 patches. ViT-L/14@224px: 196 patches. 3x tokens for 1.5x resolution

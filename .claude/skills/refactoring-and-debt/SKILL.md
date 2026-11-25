@@ -147,8 +147,8 @@ ci_pipeline:
 ## Forcing Functions
 
 - **Canonical run scripts**: Provide scripts for running services locally. If setup is broken, someone finds out immediately
-- **Encode standards in tooling**: Linters, formatters, pre-commit hooks, coding agent prompts: not just wikis
-- **Tickets over bare TODOs**: Prefer filing a ticket with a deadline. A `// TODO` that stays in code must carry a ticket reference: see `code-quality`'s TODO policy
+- **Encode standards in tooling**: Linters, formatters, pre-commit hooks, coding agent prompts, not just wikis
+- **Tickets over bare TODOs**: Prefer filing a ticket with a deadline. A `// TODO` that stays in code must carry a ticket reference; see `code-quality`'s TODO policy
 - **Continuous releases**: If deployment is painful, that pain surfaces immediately and gets fixed
 
 ## Boy Scout Rule

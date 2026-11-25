@@ -157,7 +157,7 @@ most_common = count.most_common(10)
 | Async | `aiocache` or manual dict + asyncio.Lock |
 | Cross-process | Redis or memcached |
 
-**Gotcha**: `@lru_cache` requires hashable args: use `tuple` not `dict`.
+**Gotcha**: `@lru_cache` requires hashable args; use `tuple` not `dict`.
 
 ## __slots__ for Many Instances
 

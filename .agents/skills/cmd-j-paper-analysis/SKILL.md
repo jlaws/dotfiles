@@ -25,7 +25,7 @@ Before analyzing, resolve and fetch the paper, then gather its resources in para
    | Videos, talks, blog posts, explainers | `research-analyst` | Conference/author talk URLs, blog/Distill/explainer URLs |
    | Supplementary materials, BibTeX citation | `research-analyst` | Project page, appendix, and dataset URLs; BibTeX from arxiv, Semantic Scholar, or publisher |
 
-**Integrate**: collect the subagent results, dedupe, and populate the Resources & Links section. A subagent reporting "found it" is not proof: confirm each link resolves before you write it (see `verification-before-completion`). Use "Not available" for expected resources such as official code, and "None found" for optional ones such as blogs or videos.
+**Integrate**: collect the subagent results, dedupe, and populate the Resources & Links section. A subagent reporting "found it" is not proof; confirm each link resolves before you write it (see `verification-before-completion`). Use "Not available" for expected resources such as official code, and "None found" for optional ones such as blogs or videos.
 
 For small or well-known papers, run these searches inline instead of delegating.
 

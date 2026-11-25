@@ -260,7 +260,7 @@ trainer = CPOTrainer(model=model, config=cpo_config)  # plus dataset, tokenizer,
 - KL ~ 0: model isn't learning, increase LR or decrease beta
 
 ### Reference Model Management
-- DPO with LoRA: set `ref_model=None` in TRL: it uses the frozen base weights automatically
+- DPO with LoRA: set `ref_model=None` in TRL; it uses the frozen base weights automatically
 - PPO: reference model must be a separate copy, kept frozen. Don't share weights
 - Memory trick: load ref model in 8-bit quantization if GPU-constrained
 

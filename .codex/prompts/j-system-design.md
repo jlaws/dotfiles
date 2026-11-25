@@ -24,7 +24,7 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 4. Include any file or directory paths found inline in `$ARGUMENTS`
 
 **Step 2: Filter by relevance to the system description:**
-1. First pass: filter candidates by file/directory names and paths: keep files whose names relate to the described system
+1. First pass: filter candidates by file/directory names and paths; keep files whose names relate to the described system
 2. Second pass: for ambiguous candidates, use Grep to search file contents for keywords from the system description
 3. Discard files that are clearly unrelated (e.g. skip `docs/billing.md` when designing an auth system)
 

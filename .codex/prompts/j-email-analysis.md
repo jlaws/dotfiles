@@ -17,7 +17,7 @@ Load skills, in order:
 ## Pre-processing (before producing output)
 
 1. **Parse arguments**: The argument is the file path to the email body (read the file to extract content).
-2. **Load seen links**: First check if the email body file contains a `<!-- SEEN LINKS (already processed, skip these):` header block: if present, parse URLs from that block (these are pre-filtered by the caller and only contain links relevant to this email). Only if NO embedded header is found, fall back to reading `.seen-links` from the current working directory. All seen URLs will be skipped during processing.
+2. **Load seen links**: First check if the email body file contains a `<!-- SEEN LINKS (already processed, skip these):` header block; if present, parse URLs from that block (these are pre-filtered by the caller and only contain links relevant to this email). Only if NO embedded header is found, fall back to reading `.seen-links` from the current working directory. All seen URLs will be skipped during processing.
 3. **Extract all links** from the email body. De-duplicate within this run.
 4. **Filter**: Remove any URLs present in the seen-links file. This applies to ALL URLs encountered during processing, including redirect/resolved URLs discovered when fetching. If a redirect target is already in seen-links, skip that link entirely and exclude it from the report.
 5. **Exclude dangerous/administrative URLs**: discard, never navigate to or fetch:
@@ -140,7 +140,7 @@ The downloaded-PDF status cell in the Research Papers table is plain text (`down
 - **Never emit bare URLs in the report**: every URL in the rendered output MUST be wrapped as `[text](url)` per the Link Format Convention above. This applies to all tables, `## Summary`, `## Topic Overview`, and any other prose.
 - **Every item must include its source URL**: no entry should lack a clickable link
 - **Inline-link every prose claim that references a specific item**: every mention of a paper, repo, product, or article in `## Summary` and `## Topic Overview` MUST include an inline markdown `[text](url)` pointing to the external URL that the email cited. Prose without links is not acceptable when a specific item is being discussed.
-- **Never substitute placeholder text for a URL**: phrases like `(beehiiv tracking link)`, `(tracking link)`, `(see email)`, or `(link omitted)` are not acceptable substitutes. If you reference a specific item, the actual URL must appear inline. If the URL is a click-tracking redirector, include the redirector URL verbatim: it is still the link.
+- **Never substitute placeholder text for a URL**: phrases like `(beehiiv tracking link)`, `(tracking link)`, `(see email)`, or `(link omitted)` are not acceptable substitutes. If you reference a specific item, the actual URL must appear inline. If the URL is a click-tracking redirector, include the redirector URL verbatim; it is still the link.
 - **No redundant links in table description cells**: tables (Research Papers, Open Source Repositories, Products & Tools, Blog Posts & Articles) already have a URL column. Do not embed a second link inside the same row's description/summary cell. Every *other* cell or prose sentence needs a link.
 - **Omit empty sections**: if no repos found, skip that section entirely
 - **Practitioner-focused**: descriptions should answer "why should I care?"

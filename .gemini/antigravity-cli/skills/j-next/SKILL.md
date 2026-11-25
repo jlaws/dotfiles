@@ -1,6 +1,6 @@
 ---
 name: j-next
-description: "Advance a multi-PR plan to its next part - confirm the last part landed in origin/main, branch fresh off main, execute the next phases, and open the PR. Use after an earlier PR from the plan was merged. Do NOT use for a plan's first PR (use /j-execute-plan) or to refresh an already-open PR (use /j-rebase)."
+description: "Advance a multi-PR plan to its next part: confirm the last part landed in origin/main, branch fresh off main, execute the next phases, and open the PR. Use after an earlier PR from the plan was merged. Do NOT use for a plan's first PR (use /j-execute-plan) or to refresh an already-open PR (use /j-rebase)."
 ---
 
 # Next
@@ -19,7 +19,7 @@ Conversation context is not a plan-file substitute.
 
 ## Phase 1: Read the plan, find the next part
 
-The plan file is the record of what is done - not this conversation, which predates the merge and may describe a tree that no longer exists.
+The plan file is the record of what is done: not this conversation, which predates the merge and may describe a tree that no longer exists.
 
 1. Read the plan file end to end.
 2. From its **PR Boundaries** section and its `## Progress` ledger, identify the last completed part and the phases belonging to the next one. If the plan declares no PR boundaries, treat every remaining unchecked phase as this part's scope and say so.
@@ -27,25 +27,25 @@ The plan file is the record of what is done - not this conversation, which preda
 
 ## Phase 2: Confirm the previous part landed
 
-Do not ask GitHub - the API is slow, and a squash merge severs ancestry, so `git merge-base --is-ancestor` reports a false negative on a part that did merge. Verify by content.
+Do not ask GitHub; the API is slow, and a squash merge severs ancestry, so `git merge-base --is-ancestor` reports a false negative on a part that did merge. Verify by content.
 
-1. `git status --porcelain` - require a clean tree. If anything is uncommitted or staged, STOP and tell the user to commit or discard first. Do NOT auto-stash.
+1. `git status --porcelain`: require a clean tree. If anything is uncommitted or staged, STOP and tell the user to commit or discard first. Do NOT auto-stash.
 2. `git fetch origin main`.
 3. Get the file set the previous part touched:
    ```bash
    git diff --name-only $(git merge-base HEAD origin/main)..HEAD
    ```
-   If HEAD is already a reset `main`, that set is empty - fall back to the files named by the plan's completed phases.
+   If HEAD is already a reset `main`, that set is empty: fall back to the files named by the plan's completed phases.
 4. Confirm that content is in the trunk:
    ```bash
    git diff origin/main HEAD -- <those files>
    ```
    An empty diff means the previous part is merged.
-5. A non-empty diff is not automatically a failure - `origin/main` may carry later edits to the same files. Read it and judge whether the previous part's behavior is present. STOP and show the diff if you cannot tell, or if the part is plainly absent. Building the next part on top of unmerged work produces a PR that silently re-lands or reverts it.
+5. A non-empty diff is not automatically a failure; `origin/main` may carry later edits to the same files. Read it and judge whether the previous part's behavior is present. STOP and show the diff if you cannot tell, or if the part is plainly absent. Building the next part on top of unmerged work produces a PR that silently re-lands or reverts it.
 
 ## Phase 3: Clean slate off main
 
-The `writing-plans` between-PRs sequence - run each as a separate command so a failure points at one thing:
+The `writing-plans` between-PRs sequence; run each as a separate command so a failure points at one thing:
 
 ```bash
 git checkout main
@@ -80,14 +80,14 @@ First, on the new branch: once the previous part is confirmed merged, collapse i
 
 Load the skills these phases actually need, then execute:
 
-- `executing-plans` (inline batches) or `subagent-driven-development` (fresh subagent per task) - same choice as /j-execute-plan, made without asking by `subagent-driven-development`, Execution Mode, which states the choice and logs it.
+- `executing-plans` (inline batches) or `subagent-driven-development` (fresh subagent per task): same choice as /j-execute-plan, made without asking by `subagent-driven-development`, Execution Mode, which states the choice and logs it.
 - `test-driven-development` for each TDD phase.
 - `documentation-validation` for the per-phase doc deltas.
 - Whatever domain skill the phases name.
 
 Scope stops at this part's PR boundary. Later phases are the next /j-next, not this one.
 
-Maintain the plan file's living-document sections as you go - `## Progress` with commit SHAs, `## Decision Log`, `## Surprises & Discoveries`. They are how the next run of this command finds its place.
+Maintain the plan file's living-document sections as you go: `## Progress` with commit SHAs, `## Decision Log`, `## Surprises & Discoveries`. They are how the next run of this command finds its place.
 
 Honor the plan's validation gate before moving on, and stop on failure per `executing-plans`.
 

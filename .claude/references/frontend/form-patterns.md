@@ -353,7 +353,7 @@ Use `mode: 'onBlur'` for inline validation. Debounce async validators (username 
 ## Gotchas
 
 - **Controlled vs uncontrolled**: React Hook Form is uncontrolled by default; `Controller` wraps controlled components (Select, DatePicker). Don't mix `register` with `value` prop
-- **FormData with checkboxes**: unchecked checkboxes are absent from FormData, not `false`: parse with `formData.get('field') === 'on'`
+- **FormData with checkboxes**: unchecked checkboxes are absent from FormData, not `false`; parse with `formData.get('field') === 'on'`
 - **File input reset**: setting `input.value = ''` is the only way to clear; React state won't do it
 - **Server Action errors**: `useActionState` replaces `useFormState` in React 19; always return structured error objects, not thrown errors
 - **Zod `.transform()`**: transforms run after validation; `z.coerce.number()` for FormData string-to-number
