@@ -11,7 +11,7 @@ reserved in the ledger before the paid call and settled to the actual cost after
 interrupt leaves the cap charged and concurrent runners cannot spend the same headroom.
 
 One CLI per invocation: `ClaudeCli` resolves `claude` to its real path once and runs that binary
-throughout, and each batch checks the version before its paid call. A change stops the run with
+throughout, and each batch checks the version before its paid call. A complete batch is reused before that check; `summarize` refuses mixed versions. A change stops the run with
 exit 4; a result whose own `claudeVersion` differs from the step's is settled, then moved to
 `quarantine/` beside the results with a README.txt note. An interrupt, and any other path that
 keeps the cap charged, prints the `settle` command that closes its reservation once the real cost is

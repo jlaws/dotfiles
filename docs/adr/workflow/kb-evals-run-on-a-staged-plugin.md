@@ -33,10 +33,14 @@ Sonnet 5.5, with Fable 5.2 as the sole judge. Each case runs three times. Spend 
 a machine-local, locked ledger and a committed per-period budget. Compact summaries are committed;
 raw results stay machine-local. Runs bill an API key. One invocation holds one CLI version:
 - The runner pins `claude` to its real path once and runs that binary throughout.
-- It checks the version before each batch's paid call; a change stops the run with exit 4.
-- A result written by another version is settled, then quarantined with a note.
+- It checks the version before each batch's paid call; a change stops the run with exit 4 and no
+  new charge.
+- A result written by another version is settled, then quarantined with a note; the run exits 4
+  and is charged the settled cost.
 - An interrupted reservation stays charged, because in-flight spend is unknown; the `settle`
-  command closes it at a cost the owner states.
+  command closes it at a cost the owner states (`--reason`, default `interrupted`; `--id` when a
+  rerun left several open). It prints the settle row as JSON and exits 0, or `settle: <error>` and
+  exits 1.
 - `run --plugin` refuses a plugin staged before an edit to the tree: the stage marker holds a source
   digest, and a mismatch exits 1 before any spend.
   The marker also records the staging, and a plugin staged as the other one is refused the same way.

@@ -172,19 +172,31 @@ python3 -m evals.kbeval settle --purpose P --staging S --model M --suite X --bat
 ```
 
 A reserve row carries an `id`, and a `replaces` field when it reruns a batch the ledger already
-holds; a settle row carries `settles`, the `id` it closes. `settle` closes exactly one open
-reservation and refuses when none or several match; after an interrupt and a rerun of one batch two
-reservations match, so the printed command names the reservation with `--id R`. If the runner and `settle` both close the
-same reservation, the first row stands.
+holds. A settle row carries `settles` (the `id` it closes), `actualUsd` (the real cost), `reason`
+(`--reason`, default `interrupted`), and a `costUsd` that is `actualUsd` minus the reserved cap.
+`settle` closes exactly one open reservation. It refuses when none or several match; after an
+interrupt and a rerun of one batch two reservations match, so the printed command names the one
+with `--id R`, and the several-match error lists each candidate's id. With `--id`, the reservation
+must be open and match the other flags. On success it prints the appended row as JSON on stdout and
+exits 0; on a refusal it prints `settle: <error>` on stderr and exits 1. If the runner and `settle`
+both close the same reservation, the first row stands.
 
 One CLI version holds for a whole invocation. The runner resolves `claude` once to its real path
 and runs that binary throughout, so a symlink repointed mid-run changes nothing. Before each
 batch's paid call it reads the version again; a change stops the run with exit 4 and no new
 charge. A result written by another version (its `claudeVersion` differs from the step's) is
-settled to its cost, then moved to `quarantine/<UTC date>-cli-<version>/` beside the results (any character in the version other
-than a letter, digit, or dot becomes `_`),
-with a `README.txt` that names the batch, both versions, the binary, the moved files, and the
-settled cost. A result with no `claudeVersion` is kept, with a warning.
+settled to its cost, then moved to `quarantine/<UTC date>-cli-<version>/` beside the results (any
+character in the version other than a letter, digit, or dot becomes `_`), with a `README.txt` that
+names the batch, both versions, the binary, the moved files, and the settled cost; that run also
+exits 4, and it is charged its settled cost. A result with no `claudeVersion` is kept, with a
+warning. A batch already complete from an earlier run is reused before the version check, so a
+rerun can keep a batch written by another CLI version; `summarize` refuses mixed CLI versions, so
+no such batch reaches a baseline.
+
+`run` exits 0 on success; 1 on a refusal before spend, a load error, or a bad cost; 2 when the
+budget or a cap stops a batch, or a result is partial; 3 on a key leak; 4 on a CLI version change
+(before the call, with no new charge, or after it, with the result quarantined and charged); 130
+on an interrupted partial result.
 
 Each batch writes `cli.log` (exit code, stdout, stderr) beside its result. Every result, log, and
 kept trace is scanned for `sk-ant-`; a hit quarantines the result and aborts the run.
@@ -624,7 +636,9 @@ what and why. The run was then resumed with the old binary
 `PATH`. All 468 accepted result files (234 per model) record 2.1.331. Of the $79.10 between the
 Opus ledger spend and its accepted runs, $19.10 is the eight quarantined batches and $60.00 is the
 interrupted batch's reservation, which an interrupt leaves at the full batch allowance (Budget);
-its real cost is unknown and at most that. The harness gaps this exposed are closed: see Budget.
+its real cost is unknown and at most that. The version and settle gaps this exposed are closed (see Budget); the remaining ledger and
+staging gaps are filed in `tasks/kbeval-ledger-undercount-paths.md` and
+`tasks/kbeval-concurrent-plans-share-stage-dir.md`.
 
 **Cases that failed in both arms (Sonnet).** After the first pass, 14 effect cases scored below
 2/3 in both arms. Each was judged from its stored run outputs by checks A2 to A4. Three were

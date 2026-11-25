@@ -36,7 +36,7 @@ make eval-pilot      # bills ANTHROPIC_API_KEY: pilot cases
 make eval-smoke ASSETS="..."      # bills ANTHROPIC_API_KEY: one-run smoke for named assets
 make eval-baseline MODEL=...      # bills ANTHROPIC_API_KEY: full baseline for one model; CAP=<usd> stops new runs once purpose baseline has spent that
 make eval-compare OLD=... NEW=... # free: compare two baseline summaries
-python3 -m evals.kbeval settle --purpose P --staging S --model M --suite X --batch B [--id R] --actual-usd N   # free: settle one open reservation to its real cost
+python3 -m evals.kbeval settle --purpose P --staging S --model M --suite X --batch B [--id R] --actual-usd N   # free: settle one open reservation to its real cost (--reason defaults to interrupted; --id picks one of several; prints the settle row as JSON, exit 0; `settle: <error>`, exit 1)
 make eval-spend      # free: snapshot the spend ledger into evals/spend.json; exits 1 over the ceiling
 make eval-headroom   # free: classify effect and workflow cases from evals/baselines/; each suite ends "<n> cases: <s> saturated, <d> dead, <k> kb-below-vanilla, <x> discriminating, <u> unmeasured"
 make eval-affected   # free: assets a diff touches, as one line for ASSETS=, and the projected smoke cost on stderr

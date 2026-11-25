@@ -2,7 +2,7 @@
 
 ## Context
 `runner.execute` reserves a batch's cap, runs the CLI, then settles the reservation to a cost. The
-settle path for an interrupt is the `settle` command (see `tasks/kbeval-run-integrity.md`). Three
+settle path for an interrupt is the `settle` command (see Budget in `evals/README.md`). Three
 paths in `execute` still settle to a figure that can be lower than the real spend.
 
 ## Problem
@@ -22,3 +22,5 @@ paths in `execute` still settle to a figure that can be lower than the real spen
    cases ran.
 3. Decide what the key-leak path settles, and print the `settle` command when it leaves the
    reservation open.
+4. An unhandled exception from `cli.run` (an `OSError`, a SIGTERM) leaves a reservation open with no
+   message. Only `KeyboardInterrupt` prints the settle command, so catch these too and print it.
