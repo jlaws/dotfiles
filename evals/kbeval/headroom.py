@@ -25,7 +25,9 @@ def classify(rows_by_model: Dict[str, Dict[str, dict]]) -> Dict[str, str]:
         pairs = []
         for rows in rows_by_model.values():
             row = rows.get(name)
-            pairs.append((None, None) if row is None else (row.get("kbScore"), row.get("vanillaScore")))
+            pairs.append(
+                (None, None) if row is None else (row.get("kbScore"), row.get("vanillaScore"))
+            )
         if any(kb is None or vanilla is None for kb, vanilla in pairs):
             classes[name] = "unmeasured"
         elif all(kb == 1.0 and vanilla == 1.0 for kb, vanilla in pairs):
@@ -72,14 +74,22 @@ def report(baselines: Path, live: Mapping[str, Set[str]]) -> List[str]:
                 for model in models
             )
             lines.append(f"HEADROOM {label} {name} {scores}")
-        if suite == "effects":  # a workflow case spans several commands, so it belongs to no one asset
+        if (
+            suite == "effects"
+        ):  # a workflow case spans several commands, so it belongs to no one asset
             assets: Dict[str, bool] = {}
             for name, label in classes.items():
                 asset = name.split("--")[0]
                 assets[asset] = assets.get(asset, False) or label == "discriminating"
-            lines += [f"ASSET {asset} no discriminating case" for asset, found in sorted(assets.items()) if not found]
+            lines += [
+                f"ASSET {asset} no discriminating case"
+                for asset, found in sorted(assets.items())
+                if not found
+            ]
         lines += [f"MISSING {name}" for name in sorted(live.get(suite, set()) - set(classes))]
-        counts = {label: sum(1 for value in classes.values() if value == label) for label in CLASSES}
+        counts = {
+            label: sum(1 for value in classes.values() if value == label) for label in CLASSES
+        }
         lines.append(
             f"{len(classes)} cases: {counts['saturated']} saturated, {counts['dead']} dead, "
             f"{counts['kb-below-vanilla']} kb-below-vanilla, {counts['discriminating']} discriminating, "

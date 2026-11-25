@@ -274,7 +274,11 @@ def cell(value: object) -> str:
 
 
 def render(
-    rows: "Sequence[Dict[str, object]]", window: str, scanned: int, unreadable: int, notes: "Sequence[str]"
+    rows: "Sequence[Dict[str, object]]",
+    window: str,
+    scanned: int,
+    unreadable: int,
+    notes: "Sequence[str]",
 ) -> str:
     """Render the text report: the limits first, then one row per asset."""
     skipped = ", {} unreadable and skipped".format(unreadable) if unreadable else ""
@@ -319,9 +323,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="transcript root (default: ~/.claude/projects)",
     )
     parser.add_argument(
-        "--since", type=int, default=DEFAULT_SINCE_DAYS, help="window in days, minimum 1 (default: 30)"
+        "--since",
+        type=int,
+        default=DEFAULT_SINCE_DAYS,
+        help="window in days, minimum 1 (default: 30)",
     )
-    parser.add_argument("--all", action="store_true", help="scan every transcript, ignoring --since")
+    parser.add_argument(
+        "--all", action="store_true", help="scan every transcript, ignoring --since"
+    )
     parser.add_argument(
         "--active-days",
         type=int,
@@ -363,14 +372,22 @@ def main(argv: "Optional[Sequence[str]]" = None) -> int:
         # real one, and pointing this at the wrong directory is the likeliest way to get one. The
         # repo path came from the operator, so echoing it discloses nothing they did not type.
         message = "no knowledge-base assets found under {}/.claude".format(repo)
-        emit({"error": message, "window": window, "transcripts": 0, "assets": []}, message, args.as_json)
+        emit(
+            {"error": message, "window": window, "transcripts": 0, "assets": []},
+            message,
+            args.as_json,
+        )
         return 1
 
     if not root.is_dir():
         # The transcript root is either the harness's own directory or a path the operator passed,
         # so naming it discloses nothing new -- and without it a zero report is undiagnosable.
         message = "no transcripts found at {}".format(root)
-        emit({"error": message, "window": window, "transcripts": 0, "assets": []}, message, args.as_json)
+        emit(
+            {"error": message, "window": window, "transcripts": 0, "assets": []},
+            message,
+            args.as_json,
+        )
         return 0
 
     cutoff = None if args.all else datetime.now(timezone.utc) - timedelta(days=args.since)

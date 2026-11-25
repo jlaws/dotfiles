@@ -106,7 +106,9 @@ class ShellStartupTests(unittest.TestCase):
         return prefix
 
     def _paths(self, **env: str) -> tuple[list[str], list[str]]:
-        result = self._zsh('print -rl -- "${path[@]}"; print -- ---; print -rl -- "${fpath[@]}"', **env)
+        result = self._zsh(
+            'print -rl -- "${path[@]}"; print -- ---; print -rl -- "${fpath[@]}"', **env
+        )
         path, fpath = result.stdout.split("---\n")
         return path.splitlines(), fpath.splitlines()
 
@@ -122,7 +124,9 @@ class ShellStartupTests(unittest.TestCase):
 
     def test_path_names_no_other_account_or_unresolved_prefix(self):
         path, _ = self._paths()
-        self.assertFalse([e for e in path if e.startswith("/Users/") and not e.startswith(str(self.home))])
+        self.assertFalse(
+            [e for e in path if e.startswith("/Users/") and not e.startswith(str(self.home))]
+        )
         self.assertNotIn("/opt/openssl/bin", path)
         self.assertNotIn("/opt/homebrew/opt/rustup/bin", path)
 
@@ -134,7 +138,9 @@ class ShellStartupTests(unittest.TestCase):
         self.assertNotIn("/opt/homebrew/share/zsh/site-functions", fpath)
 
     def test_autojump_loads_from_the_prefix(self):
-        result = self._zsh('print -r -- "${AUTOJUMP_LOADED:-}"', HOMEBREW_PREFIX=str(self._prefix()))
+        result = self._zsh(
+            'print -r -- "${AUTOJUMP_LOADED:-}"', HOMEBREW_PREFIX=str(self._prefix())
+        )
         self.assertEqual(result.stdout.strip(), "1")
 
     def test_prefix_without_openssl_adds_no_openssl_entry(self):

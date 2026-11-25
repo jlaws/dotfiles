@@ -642,13 +642,16 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         checked = 0
         for path in sorted((REPO / ".claude" / "skills").glob("*/SKILL.md")):
             line = next(
-                (x for x in frontmatter_block(path).splitlines() if x.startswith("description:")), ""
+                (x for x in frontmatter_block(path).splitlines() if x.startswith("description:")),
+                "",
             )
-            value = line[len("description:"):].strip()
+            value = line[len("description:") :].strip()
             checked += 1
             with self.subTest(skill=path.parent.name):
                 self.assertRegex(value, r'^"[^"]*"$', f"{path.parent.name}: one quoted line")
-                self.assertLessEqual(len(value) - 2, 200, f"{path.parent.name}: over 200 characters")
+                self.assertLessEqual(
+                    len(value) - 2, 200, f"{path.parent.name}: over 200 characters"
+                )
         self.assertGreater(checked, 0, "no Claude skills checked; the check is vacuous")
 
     def test_shared_skill_frontmatter_is_name_and_description_only(self):
@@ -1580,7 +1583,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         assert depth is not None
         claude_env = json.loads((REPO / ".claude" / "settings.json").read_text()).get("env", {})
         self.assertEqual(
-            claude_env.get("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"), depth[1],
+            claude_env.get("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"),
+            depth[1],
             "Claude's spawn-depth setting must match .codex/config.toml max_depth",
         )
         for config in (
@@ -1891,8 +1895,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for rel in WRITING_PLANS_OWNERS:
             text = (REPO / rel).read_text(encoding="utf-8")
             with self.subTest(path=rel):
-                for phrase in ("set of decisions the implementer cannot make alone",
-                               "**Proportion**", "**Interfaces:**", "expand-contract"):
+                for phrase in (
+                    "set of decisions the implementer cannot make alone",
+                    "**Proportion**",
+                    "**Interfaces:**",
+                    "expand-contract",
+                ):
                     self.assertIn(phrase, text)
                 for retired in ("**Complete code**", "Junior-engineer bar", "2-5 minutes"):
                     self.assertNotIn(retired, text)
@@ -2000,7 +2008,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             self._assert_all_contain(command("j-paper"), phrase)
         self._assert_all_contain(command("j-paper"), "Citation Verification")
         self._assert_all_contain(research("literature-review.md"), "## Citation Verification")
-        self._assert_all_contain((*research("rebuttal-writing.md"), *command("j-paper")), "Rebuttal")
+        self._assert_all_contain(
+            (*research("rebuttal-writing.md"), *command("j-paper")), "Rebuttal"
+        )
         self._assert_all_contain(
             (*research("paper-analysis-methodology.md"), *analysis), "Confidential manuscript"
         )
@@ -2051,11 +2061,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         memory = re.compile(r"(?m)^memory:")
         agents = sorted((REPO / ".claude" / "agents").glob("*.md"))
         self.assertTrue(agents, "no Claude agents found; the check is vacuous")
-        offenders = [
-            path.name
-            for path in agents
-            if memory.search(frontmatter_block(path))
-        ]
+        offenders = [path.name for path in agents if memory.search(frontmatter_block(path))]
         self.assertEqual(offenders, [], f"agents set memory: {offenders}")
 
     def test_side_effect_commands_nothing_invokes_are_user_only(self):
@@ -2066,11 +2072,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         flag = re.compile(r"(?m)^disable-model-invocation:\s*true\s*$")
         commands = sorted((REPO / ".claude" / "commands").glob("*.md"))
         self.assertTrue(commands, "no Claude commands found; the check is vacuous")
-        flagged = {
-            path.stem
-            for path in commands
-            if flag.search(frontmatter_block(path))
-        }
+        flagged = {path.stem for path in commands if flag.search(frontmatter_block(path))}
         self.assertEqual(flagged, USER_ONLY_COMMANDS)
 
     def test_codex_user_only_commands_disable_implicit_invocation(self):
@@ -2101,13 +2103,22 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         banned = ("scale of 1-5", "1-5 scale", "<1-5>", "both orders and average")
         for tree in (".claude", ".agents"):
             root = REPO / tree / "references" / "ai-ml"
-            for rel in ("eval-and-benchmarking.md", "dataset-management/synthetic-data-generation.md"):
+            for rel in (
+                "eval-and-benchmarking.md",
+                "dataset-management/synthetic-data-generation.md",
+            ):
                 text = (root / rel).read_text(encoding="utf-8")
                 for phrase in banned:
                     with self.subTest(file=f"{tree}/{rel}", phrase=phrase):
                         self.assertNotIn(phrase, text)
             names = heading_texts((root / "eval-and-benchmarking.md").read_text(encoding="utf-8"))
-            for heading in ("Eval Task Design", "Validity Checks", "Golden Sets", "Hillclimbing", "Overfitting"):
+            for heading in (
+                "Eval Task Design",
+                "Validity Checks",
+                "Golden Sets",
+                "Hillclimbing",
+                "Overfitting",
+            ):
                 with self.subTest(tree=tree, heading=heading):
                     self.assertIn(heading, names)
 
@@ -2174,10 +2185,16 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     if grounded is None:
                         self.fail(f"unreadable reference path in: {line}")
                     own = grounded.group(1)
-                    self.assertIn(own, dirs, "the named reference is outside the agents' directories")
-                    self.assertIn(f"/{own}/", grader, "read-refs omits the named reference's directory")
+                    self.assertIn(
+                        own, dirs, "the named reference is outside the agents' directories"
+                    )
+                    self.assertIn(
+                        f"/{own}/", grader, "read-refs omits the named reference's directory"
+                    )
                     for other in dirs - {own}:
-                        self.assertNotIn(other, grader, "a grounded case grades one directory alone")
+                        self.assertNotIn(
+                            other, grader, "a grounded case grades one directory alone"
+                        )
 
 
 if __name__ == "__main__":

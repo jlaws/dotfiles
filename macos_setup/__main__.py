@@ -171,14 +171,14 @@ def _start_sudo_keepalive(runner: Runner) -> None:
     thread.start()
 
 
-_SUDO_SKIPPED = "Skipped system-wide settings (no administrator privileges); per-user changes applied."
+_SUDO_SKIPPED = (
+    "Skipped system-wide settings (no administrator privileges); per-user changes applied."
+)
 
 
 def _close_system_settings(runner: Runner) -> None:
     """Quit System Settings so it does not overwrite the preferences being changed."""
-    runner.run(
-        ["osascript", "-e", 'tell application "System Settings" to quit'], check=False
-    )
+    runner.run(["osascript", "-e", 'tell application "System Settings" to quit'], check=False)
 
 
 def _acquire_sudo(runner: Runner) -> bool:
@@ -225,8 +225,10 @@ def _uninstall(archive_root: Path, actions: Actions, runner: Runner, home: Path)
     except FileNotFoundError as exc:
         _LOG.error(str(exc))
         return 1
-    if not actions.force and not actions.dry_run and not _confirm(
-        f"Revert changes from {path.name}? [y/N] "
+    if (
+        not actions.force
+        and not actions.dry_run
+        and not _confirm(f"Revert changes from {path.name}? [y/N] ")
     ):
         _LOG.warning("Aborted.")
         return 1
@@ -251,8 +253,11 @@ def _uninstall(archive_root: Path, actions: Actions, runner: Runner, home: Path)
 
 def _install(actions: Actions, runner: Runner, repo: Path, home: Path, archive_root: Path) -> int:
     """Run the selected install steps, archiving everything they change."""
-    if actions.run_all and not actions.force and not actions.dry_run and not _confirm(
-        "This will overwrite files and change system settings. Continue? [y/N] "
+    if (
+        actions.run_all
+        and not actions.force
+        and not actions.dry_run
+        and not _confirm("This will overwrite files and change system settings. Continue? [y/N] ")
     ):
         _LOG.warning("Aborted.")
         return 1

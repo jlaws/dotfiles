@@ -74,7 +74,9 @@ def _count(rows: List[det.TriggerRow], kind: str, split: Optional[str]) -> Tuple
 
 def _held_cases(rows: List[det.TriggerRow]) -> int:
     """Return the number of distinct held-out should cases in rows."""
-    return len({name for name, kind, *_ in rows if kind == "trigger-should" and _split(name) == "held"})
+    return len(
+        {name for name, kind, *_ in rows if kind == "trigger-should" and _split(name) == "held"}
+    )
 
 
 def adopt(
@@ -103,7 +105,9 @@ def adopt(
             unreadable[asset] = error
     others = _others(assets, after)
     near_rows, near_dups = _rows(after, others)
-    dups = [line for (_, old_dups), (_, new_dups) in loaded.values() for line in old_dups + new_dups]
+    dups = [
+        line for (_, old_dups), (_, new_dups) in loaded.values() for line in old_dups + new_dups
+    ]
     if dups or near_dups:
         for line in dups + near_dups:
             print(line, file=sys.stderr)
@@ -129,7 +133,11 @@ def adopt(
             f"{n} held-out should cases {side}, need 1"
             for side, n in (("before", _held_cases(old)), ("after", _held_cases(new)))
             if n != 1
-        ] + [f"{n} graded {side}, need {HELD_RUNS}" for side, n in (("before", hbn), ("after", han)) if n != HELD_RUNS]
+        ] + [
+            f"{n} graded {side}, need {HELD_RUNS}"
+            for side, n in (("before", hbn), ("after", han))
+            if n != HELD_RUNS
+        ]
         if why:
             status = "BLOCKED"
         else:
@@ -146,7 +154,11 @@ def adopt(
         if not why and ebn != ean:
             why = [f"graded {ebn} before, {ean} after"]
         status = "BLOCKED" if why else ("FAIL" if ea < eb else "PASS")
-        emit("existing-should", status, f"existing {eb}/{ebn} -> {ea}/{ean}" + "".join(f"; {w}" for w in why))
+        emit(
+            "existing-should",
+            status,
+            f"existing {eb}/{ebn} -> {ea}/{ean}" + "".join(f"; {w}" for w in why),
+        )
         nf, nn = _count(new, "trigger-near", None)
         if not nn:
             emit("near-fires", "BLOCKED", f"near {nf}/{nn} fired; 0 graded after")
@@ -186,7 +198,11 @@ def _effects(asset: str, effects: str, effects_base: str) -> Tuple[str, str]:
     if not pairs:
         return "BLOCKED", f"no effect case compared against {effects_base}"
     bad = regressed(base, data, det.SKIP)
-    detail = f"regressed vs {effects_base}: {' '.join(bad)}" if bad else f"no regression vs {effects_base}"
+    detail = (
+        f"regressed vs {effects_base}: {' '.join(bad)}"
+        if bad
+        else f"no regression vs {effects_base}"
+    )
     return ("FAIL" if bad else "PASS"), f"{detail} ({pairs} pairs)"
 
 

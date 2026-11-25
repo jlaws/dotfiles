@@ -93,7 +93,11 @@ def _identity(name: str) -> Tuple[str, str]:
 
 
 def summarize(
-    results: Path, model: str, suite: str, settings: dict, live: Optional[Set[str]] = None,
+    results: Path,
+    model: str,
+    suite: str,
+    settings: dict,
+    live: Optional[Set[str]] = None,
     notes: Optional[List[str]] = None,
 ) -> dict:
     """Return the summary document for one model and suite.
@@ -102,7 +106,10 @@ def summarize(
     `excludeTags`); `check` holds the summary to it. `live` drops results for cases outside it.
     `notes`, when given, receives one line per skipped file and one per staging with dropped cases.
     """
-    by_staging = {staging: load_cases(results / staging / model / suite, live=live) for staging in ("kb", "vanilla")}
+    by_staging = {
+        staging: load_cases(results / staging / model / suite, live=live)
+        for staging in ("kb", "vanilla")
+    }
     if notes is not None:
         for staging, found in by_staging.items():
             where = f"{staging}/{model}/{suite}"
@@ -148,7 +155,9 @@ def summarize(
             if kb_graded:
                 load_rate = sum(loaded(kb, r, load) for r in kb_graded) / len(kb_graded)
             censored = sum(1 for is_kb, r in capped if is_kb and not loaded(kb, r, load))
-        errors = sorted({str(r["error"]) for c in (kb, van) if c for r in _runs(c) if r.get("error")})
+        errors = sorted(
+            {str(r["error"]) for c in (kb, van) if c for r in _runs(c) if r.get("error")}
+        )
         error_runs = sum(1 for c in (kb, van) if c for r in _runs(c) if r.get("error"))
         asset, kind = _identity(name)
         rows.append(
@@ -157,7 +166,9 @@ def summarize(
                 "behaviorRate": None if behavior is None else round(behavior, 4),
                 "cappedRuns": len(capped),
                 "censoredRuns": censored,
-                "delta": None if kb_score is None or van_score is None else round(kb_score - van_score, 4),
+                "delta": None
+                if kb_score is None or van_score is None
+                else round(kb_score - van_score, 4),
                 "errorRuns": error_runs,
                 "errors": errors,
                 "kbRuns": kb_runs,
@@ -186,7 +197,9 @@ def summarize(
         "costUsd": round(sum(float(d.get("costUsd") or 0.0) for d in docs), 4),
         "aggregates": {
             "kb": _bootstrap([r["kbScore"] for r in rows if r["kbScore"] is not None]),
-            "vanilla": _bootstrap([r["vanillaScore"] for r in rows if r["vanillaScore"] is not None]),
+            "vanilla": _bootstrap(
+                [r["vanillaScore"] for r in rows if r["vanillaScore"] is not None]
+            ),
             "delta": _bootstrap([r["delta"] for r in rows if r["delta"] is not None]),
         },
         "cases": rows,
@@ -208,7 +221,9 @@ def check(doc: dict) -> List[str]:
         if case["kbRuns"] != settings.get("kbRuns"):
             problems.append(f"{name}: kbRuns {case['kbRuns']}, expected {settings.get('kbRuns')}")
         if want_vanilla and case["vanillaRuns"] != settings.get("vanillaRuns"):
-            problems.append(f"{name}: vanillaRuns {case['vanillaRuns']}, expected {settings.get('vanillaRuns')}")
+            problems.append(
+                f"{name}: vanillaRuns {case['vanillaRuns']}, expected {settings.get('vanillaRuns')}"
+            )
         for error in case.get("errors", []):
             if API_ERROR.search(error):
                 problems.append(f"{name}: unresolved API error: {error}")

@@ -57,7 +57,9 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
     out = out.resolve()
     if out.exists():
         if any(out.iterdir()) and not (out / MARKER).is_file():
-            raise StageError(f"{out} is not empty and holds no {MARKER} marker; refusing to replace it")
+            raise StageError(
+                f"{out} is not empty and holds no {MARKER} marker; refusing to replace it"
+            )
         shutil.rmtree(out)
     out.mkdir(parents=True)
     (out / MARKER).write_text("staged by evals.kbeval\n", encoding="utf-8")
@@ -69,7 +71,9 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
     plugin = out / "kb"
     (plugin / ".claude-plugin").mkdir(parents=True)
     manifest = {"name": staging, "version": "0.0.0", "description": f"KB eval staging: {staging}"}
-    (plugin / ".claude-plugin" / "plugin.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (plugin / ".claude-plugin" / "plugin.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+    )
 
     claude = repo / ".claude"
     refs = plugin / "_kb" / "references"
@@ -79,7 +83,9 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
         if command_form == "skill":
             for command in (plugin / "commands").glob("*.md"):
                 text = command.read_text(encoding="utf-8")
-                command.write_text(re.sub(r"(?m)^disable-model-invocation:.*\n", "", text), encoding="utf-8")
+                command.write_text(
+                    re.sub(r"(?m)^disable-model-invocation:.*\n", "", text), encoding="utf-8"
+                )
         shutil.copytree(claude / "references", refs, ignore=IGNORE)
         shutil.copy2(claude / "CLAUDE.md", plugin / "_kb" / "CLAUDE.md")
         shutil.copy2(repo / "evals" / "harness.json", plugin / "_kb" / "harness.json")
@@ -89,7 +95,9 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
     else:
         fixtures.mkdir(parents=True)
     notes = (NON_INTERACTIVE, GIT_NOTE, AGENT_NOTE, REFS_NOTE, AGENT_PREFIX + REFS_NOTE)
-    (plugin / "_kb" / "prompt-notes.txt").write_text("".join(n + "\n" for n in notes), encoding="utf-8")
+    (plugin / "_kb" / "prompt-notes.txt").write_text(
+        "".join(n + "\n" for n in notes), encoding="utf-8"
+    )
 
     claude_md = (claude / "CLAUDE.md").read_text(encoding="utf-8") if staging == "kb" else ""
     suites = ("triggers", "effects", "workflows") if staging == "kb" else ("effects", "workflows")
@@ -106,7 +114,9 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
         where = f"{dest / '_refs'}/" if add_refs else "./.kb-references/"
         system = None
         if staging == "kb":
-            system = claude_md.rstrip("\n") + "\n\n" + REFS_NOTE.format(where=where) + "\n" + AGENT_NOTE
+            system = (
+                claude_md.rstrip("\n") + "\n\n" + REFS_NOTE.format(where=where) + "\n" + AGENT_NOTE
+            )
         _write_prompt(case, dest, staging, command_form, system, where)
         _write_case_yaml(case, dest, add_refs)
         seed_refs = refs if staging == "kb" and refs_mode == "workspace" else None
@@ -152,7 +162,9 @@ def _write_prompt(
     if system is not None:
         lines.append("append_system_prompt: " + json.dumps(system, ensure_ascii=True))
     body = _transform_body(case, staging, command_form, where)
-    (dest / "prompt.md").write_text("---\n" + "\n".join(lines) + "\n---\n\n" + body + "\n", encoding="utf-8")
+    (dest / "prompt.md").write_text(
+        "---\n" + "\n".join(lines) + "\n---\n\n" + body + "\n", encoding="utf-8"
+    )
 
 
 def _write_case_yaml(case: Case, dest: Path, add_refs: bool) -> None:

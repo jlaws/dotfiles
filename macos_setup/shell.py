@@ -64,7 +64,5 @@ class Runner:
         _LOG.debug("exit %d: %s", proc.returncode, " ".join(full))
         result = CompletedResult(proc.returncode, proc.stdout or "", proc.stderr or "")
         if check and proc.returncode != 0:
-            raise subprocess.CalledProcessError(
-                proc.returncode, full, result.stdout, result.stderr
-            )
+            raise subprocess.CalledProcessError(proc.returncode, full, result.stdout, result.stderr)
         return result

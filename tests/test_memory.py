@@ -314,9 +314,7 @@ class MemoryCheckTests(_StoreMixin):
             {"feedback_b.md": memory_file("feedback-b")}, index=False, root=base / "two"
         )
         found = self.findings(one, two, expect=1)
-        self.assertEqual(
-            sorted(f["store"] for f in found), sorted([_label(one), _label(two)])
-        )
+        self.assertEqual(sorted(f["store"] for f in found), sorted([_label(one), _label(two)]))
 
     def test_text_report_names_the_check_and_file(self):
         root = self.store({"feedback_a.md": memory_file("feedback-a", "See [[missing]].")})

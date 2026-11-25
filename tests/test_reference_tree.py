@@ -373,7 +373,9 @@ class AuditMissingTreeTests(unittest.TestCase):
         root = Path(tmp.name)
         folder = root / ".claude" / "skills" / "x"
         folder.mkdir(parents=True)
-        (folder / "SKILL.md").write_text("---\nname: x\ndescription: Use when probing.\n---\n\nBody.\n")
+        (folder / "SKILL.md").write_text(
+            "---\nname: x\ndescription: Use when probing.\n---\n\nBody.\n"
+        )
         result = self.run_audit(root, "agents", "commands")
         self.assertNotIn("Traceback", result.stderr + result.stdout)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -505,7 +507,9 @@ class SkillSizeTests(unittest.TestCase):
         head = "---\nname: probe\ndescription: Use when probing the audit.\n---\n\n"
         limit = self.audit_module.SKILL_SIZE_LIMIT
         # Exactly `limit` characters, but the two-byte "é" makes it limit + 1 bytes.
-        (folder / "SKILL.md").write_text(head + "x" * (limit - len(head) - 1) + "é", encoding="utf-8")
+        (folder / "SKILL.md").write_text(
+            head + "x" * (limit - len(head) - 1) + "é", encoding="utf-8"
+        )
         audit = self.audit_module.Audit(Path(tmp.name))
         audit.check_skills()
         findings = [f for f in audit.findings if f.check == "SK-C6"]

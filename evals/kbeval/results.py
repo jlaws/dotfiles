@@ -51,7 +51,11 @@ def load_cases(root: Path, asset: Optional[str] = None, live: Optional[Set[str]]
         paths = list(root.glob("*.json"))
     else:
         name = glob.escape(asset)
-        paths = [root / f"{asset}.json", *root.glob(f"{name}@*.json"), *root.glob(f"{name}--*.json")]
+        paths = [
+            root / f"{asset}.json",
+            *root.glob(f"{name}@*.json"),
+            *root.glob(f"{name}--*.json"),
+        ]
     found: List[Tuple[Tuple[str, int, str], Path, dict]] = []
     skipped: List[str] = []
     for path in paths:

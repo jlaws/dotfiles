@@ -58,9 +58,7 @@ class ArchiveTests(unittest.TestCase):
         archive = Archive.create(self.tmp, "ts1")
         archive.record_file("/home/user/.extra", "replaced", "abc123")
         archive.record_setting("user", "com.apple.dock", "tilesize", present=True, applied=36)
-        archive.record_system(
-            "nvram:SystemAudioVolume", present=True, original="%80", applied=" "
-        )
+        archive.record_system("nvram:SystemAudioVolume", present=True, original="%80", applied=" ")
         archive.save()
 
         loaded = Archive.load(self.tmp / "ts1")

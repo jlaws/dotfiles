@@ -56,9 +56,7 @@ def brew_writable(runner: Runner) -> bool:
     the Homebrew step with a warning instead of failing partway.
     """
     if not runner.run(["brew", "--version"], capture=True, check=False).ok:
-        _LOG.warning(
-            "Skipped Homebrew packages: Homebrew is not installed (see https://brew.sh)."
-        )
+        _LOG.warning("Skipped Homebrew packages: Homebrew is not installed (see https://brew.sh).")
         return False
     repo = runner.run(["brew", "--repository"], capture=True, check=False).stdout.strip()
     if not repo or not runner.run(["test", "-w", repo], check=False).ok:
@@ -107,6 +105,10 @@ def install_packages(runner: Runner, *, dry_run: bool = False) -> bool:
     _run(runner, ["agent-browser", "install"], dry_run=dry_run, check=False)
 
     # npm comes from the brew `node` formula, so its global prefix is the Homebrew prefix.
-    _run(runner, ["npm", "install", "-g", "typescript-language-server", "typescript"], dry_run=dry_run)
+    _run(
+        runner,
+        ["npm", "install", "-g", "typescript-language-server", "typescript"],
+        dry_run=dry_run,
+    )
     _run(runner, ["brew", "cleanup"], dry_run=dry_run)
     return True

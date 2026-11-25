@@ -144,9 +144,7 @@ def template_frontmatter(text: str) -> list[tuple[int, dict[str, str]]]:
     of the retired-key check without the caller seeing it.
     """
     return [
-        (line, frontmatter(body))
-        for line, body in fenced_blocks(text)
-        if body.startswith("---\n")
+        (line, frontmatter(body)) for line, body in fenced_blocks(text) if body.startswith("---\n")
     ]
 
 

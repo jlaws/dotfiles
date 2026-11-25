@@ -251,9 +251,10 @@ class AdoptionCountingTests(_TmpMixin):
         self.write_transcript(root, "project-a", "s1", [turn("skill-audit")])
         envelope = self.envelope(root, "--exclude", "typo-here")
         self.assertEqual(envelope["notes"], ["--exclude typo-here matched no project directory"])
-        self.assertIn("matched no project directory", self.run_script(
-            "--transcripts", str(root), "--exclude", "typo-here"
-        ).stdout)
+        self.assertIn(
+            "matched no project directory",
+            self.run_script("--transcripts", str(root), "--exclude", "typo-here").stdout,
+        )
 
     def test_the_since_window_excludes_older_records(self):
         root = self.tmpdir()
@@ -313,9 +314,7 @@ class AdoptionCountingTests(_TmpMixin):
         width other than 3 or 6 digits. Getting this wrong zeroes every windowed count."""
         root = self.tmpdir()
         stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-2] + "Z"
-        self.write_transcript(
-            root, "project-a", "s1", [dict(turn("skill-audit"), timestamp=stamp)]
-        )
+        self.write_transcript(root, "project-a", "s1", [dict(turn("skill-audit"), timestamp=stamp)])
         row = self.rows(root)["skill-audit"]
         self.assertEqual(row["mentions"], 1)
         self.assertEqual(row["status"], "active")
@@ -482,9 +481,9 @@ class AdoptionReportTests(_TmpMixin):
         root = self.tmpdir()
         self.write_transcript(root, "project-a", "s1", [turn("skill-audit")])
         self.write_transcript(root, "project-b", "s2", [turn("skill-audit")])
-        self.assertIn("Scanned 2 transcript file(s)", self.run_script(
-            "--transcripts", str(root)
-        ).stdout)
+        self.assertIn(
+            "Scanned 2 transcript file(s)", self.run_script("--transcripts", str(root)).stdout
+        )
         self.assertEqual(self.envelope(root)["transcripts"], 2)
 
     def test_the_window_label_matches_the_mode(self):
@@ -498,9 +497,7 @@ class AdoptionReportTests(_TmpMixin):
         self.write_transcript(
             root, "project-a", "s1", [turn("writing-plans")] + [turn("skill-audit")] * 3
         )
-        assets = json.loads(
-            self.run_script("--transcripts", str(root), "--json").stdout
-        )["assets"]
+        assets = json.loads(self.run_script("--transcripts", str(root), "--json").stdout)["assets"]
         kinds = [row["kind"] for row in assets]
         self.assertEqual(kinds, sorted(kinds))
         skills = [row for row in assets if row["kind"] == "skill"]

@@ -296,9 +296,7 @@ def _agent_removal_paths(repo: Path, target: Path) -> Iterator[Path]:
     for pattern in AGENT_REMOVAL_GLOBS:
         yield from sorted(target.glob(pattern))
 
-    source_commands = {
-        path.name for path in (repo / ".agents" / "skills").glob("cmd-j-*")
-    }
+    source_commands = {path.name for path in (repo / ".agents" / "skills").glob("cmd-j-*")}
     target_skills = target / ".agents" / "skills"
     for command in sorted(target_skills.glob("cmd-j-*")):
         if command.name not in source_commands:

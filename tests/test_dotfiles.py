@@ -161,14 +161,18 @@ class ApplyMergedFileTests(unittest.TestCase):
         summary = revert_files(self.archive)
 
         self.assertEqual(summary.restored, [str(dest)])
-        self.assertEqual(dest.read_text(encoding="utf-8"), '{"outputStyle": "Verbose", "machineId": "mac1"}\n')
+        self.assertEqual(
+            dest.read_text(encoding="utf-8"), '{"outputStyle": "Verbose", "machineId": "mac1"}\n'
+        )
 
     def test_existing_target_is_archived_and_merged_toml(self) -> None:
         src = self.tmp / "repo_config.toml"
         src.write_text('model = "gpt-6-astra"\n[agents]\nmax_threads = 4\n', encoding="utf-8")
         dest = self.tmp / "home" / ".codex" / "config.toml"
         dest.parent.mkdir(parents=True)
-        dest.write_text('model = "gpt-5"\nlocal_key = "val"\n[agents]\nmax_threads = 8\n', encoding="utf-8")
+        dest.write_text(
+            'model = "gpt-5"\nlocal_key = "val"\n[agents]\nmax_threads = 8\n', encoding="utf-8"
+        )
 
         action = apply_merged_file(src, dest, self.archive, format_type="toml")
 
@@ -184,14 +188,14 @@ class ApplyMergedFileTests(unittest.TestCase):
         src.write_text('model = "gpt-6-astra"\n', encoding="utf-8")
         dest = self.tmp / "home" / ".codex" / "config.toml"
         dest.parent.mkdir(parents=True)
-        dest.write_text('[unclosed header\nkey = 1\n', encoding="utf-8")
+        dest.write_text("[unclosed header\nkey = 1\n", encoding="utf-8")
 
         action = apply_merged_file(src, dest, self.archive, format_type="toml")
 
         self.assertEqual(action, "reset")
         self.assertEqual(dest.read_text(encoding="utf-8"), src.read_text(encoding="utf-8"))
         archived = self.archive.files_dir / str(dest).lstrip("/")
-        self.assertEqual(archived.read_text(encoding="utf-8"), '[unclosed header\nkey = 1\n')
+        self.assertEqual(archived.read_text(encoding="utf-8"), "[unclosed header\nkey = 1\n")
 
     def test_corrupt_binary_target_is_archived_and_reset_to_template(self) -> None:
         dest = self.tmp / "home" / ".claude" / "settings.json"
@@ -425,8 +429,7 @@ class SyncAgentsTests(unittest.TestCase):
 
         self.assertTrue(
             any(
-                "would sync" in line and ".claude/settings.json" in line
-                for line in captured.output
+                "would sync" in line and ".claude/settings.json" in line for line in captured.output
             )
         )
 
@@ -445,15 +448,9 @@ class SyncAgentsTests(unittest.TestCase):
 
     def test_removes_cursor_agent_wrappers_and_orphaned_commands(self):
         cursor_file = self._write_target(".cursor/ai-tracking/tracking.db")
-        agent_wrapper = self._write_target(
-            ".agents/skills/agent-reviewer/SKILL.md"
-        )
-        current_command = self._write_target(
-            ".agents/skills/cmd-j-tdd/SKILL.md", "stale command"
-        )
-        orphaned_command = self._write_target(
-            ".agents/skills/cmd-j-write-plan/SKILL.md"
-        )
+        agent_wrapper = self._write_target(".agents/skills/agent-reviewer/SKILL.md")
+        current_command = self._write_target(".agents/skills/cmd-j-tdd/SKILL.md", "stale command")
+        orphaned_command = self._write_target(".agents/skills/cmd-j-write-plan/SKILL.md")
 
         sync_agents(self.repo, self.target, self.archive)
 
@@ -465,9 +462,7 @@ class SyncAgentsTests(unittest.TestCase):
 
     def test_dry_run_reports_removals_without_changing_files(self):
         cursor_file = self._write_target(".cursor/state.json")
-        agent_wrapper = self._write_target(
-            ".agents/skills/agent-reviewer/SKILL.md"
-        )
+        agent_wrapper = self._write_target(".agents/skills/agent-reviewer/SKILL.md")
 
         with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
             sync_agents(self.repo, self.target, self.archive, dry_run=True)
@@ -509,7 +504,9 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertFalse((self.target / ".gemini" / "agents").exists())
 
         installed_settings = self.target / ".gemini" / "antigravity-cli" / "settings.json"
-        installed_skill = self.target / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md"
+        installed_skill = (
+            self.target / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md"
+        )
         installed_agent = self.target / ".gemini" / "config" / "agents" / "code-reviewer.md"
         self.assertTrue(installed_settings.exists())
         self.assertEqual(installed_settings.read_text(), '{"permissions": {}}')
@@ -526,7 +523,9 @@ class SyncAgentsTests(unittest.TestCase):
 
         Archived before deletion, so `--uninstall` can put them back.
         """
-        claude_guard = self._write_target(".claude/hooks/guard-bash-output.sh", "#!/usr/bin/env bash")
+        claude_guard = self._write_target(
+            ".claude/hooks/guard-bash-output.sh", "#!/usr/bin/env bash"
+        )
         codex_guard = self._write_target(".codex/hooks/guard-bash-output.sh", "#!/usr/bin/env bash")
         kept = self._write_target(".claude/hooks/log-prompt.sh", "#!/usr/bin/env bash")
 

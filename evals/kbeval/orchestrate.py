@@ -75,7 +75,9 @@ def report_cap(purpose: str, cap_usd: float) -> None:
     print(line, file=sys.stderr)
 
 
-def _sequence(steps: Iterable[tuple], cli: Optional[runner.Cli], cap_usd: Optional[float] = None) -> int:
+def _sequence(
+    steps: Iterable[tuple], cli: Optional[runner.Cli], cap_usd: Optional[float] = None
+) -> int:
     first = True
     for suite, staging, model, runs, purpose, assets, jobs, options in steps:
         if cap_usd is not None:
@@ -99,7 +101,9 @@ def _effect_cases(plugin: Path, assets: List[str]) -> List[str]:
     if not root.is_dir():
         return []
     return sorted(
-        d.name for d in root.iterdir() if d.is_dir() and any(d.name.startswith(f"{a}--") for a in assets)
+        d.name
+        for d in root.iterdir()
+        if d.is_dir() and any(d.name.startswith(f"{a}--") for a in assets)
     )
 
 
@@ -108,7 +112,11 @@ def pilot(jobs: int = 8, cli: Optional[runner.Cli] = None) -> int:
     kb, vanilla = _stage("kb"), _stage("vanilla")
     assets = list(PILOT_ASSETS)
     for model in MODELS:
-        for suite, staging, plugin in (("triggers", "kb", kb), ("effects", "kb", kb), ("effects", "vanilla", vanilla)):
+        for suite, staging, plugin in (
+            ("triggers", "kb", kb),
+            ("effects", "kb", kb),
+            ("effects", "vanilla", vanilla),
+        ):
             options = {"plugin": plugin, "state": state_root() / "results",
                        "cap_limit": _capped("pilot", PILOT_CAP_USD)}  # fmt: skip
             status = _sequence([(suite, staging, model, 1, "pilot", assets, jobs, options)], cli)
@@ -119,8 +127,12 @@ def pilot(jobs: int = 8, cli: Optional[runner.Cli] = None) -> int:
 
 def _branch() -> str:
     result = subprocess.run(
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=REPO, capture_output=True, text=True,
-        stdin=subprocess.DEVNULL, check=False,
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+        stdin=subprocess.DEVNULL,
+        check=False,
     )
     return result.stdout.strip() or "unknown"
 
@@ -144,7 +156,9 @@ def smoke(assets: List[str], jobs: int = 8, cli: Optional[runner.Cli] = None) ->
     for name in _effect_cases(vanilla, plain)[:VANILLA_SAMPLE]:
         options = {"plugin": vanilla, "state": state_root() / "results",
                    "cap_limit": _capped(purpose, float(budget["smokeCapUsd"])), "keep_temp": True}  # fmt: skip
-        status = runner.run("effects", "vanilla", SMOKE_MODEL, 1, purpose, [name], jobs, cli, **options)
+        status = runner.run(
+            "effects", "vanilla", SMOKE_MODEL, 1, purpose, [name], jobs, cli, **options
+        )
         if status != 0:
             return status
     return 0
@@ -164,7 +178,16 @@ def baseline(
     assets = sorted(repo_assets(REPO))
     state = state_root() / "results"
     steps = [
-        ("triggers", "kb", model, KB_RUNS, "baseline", assets, jobs, {"plugin": kb, "state": state}),
+        (
+            "triggers",
+            "kb",
+            model,
+            KB_RUNS,
+            "baseline",
+            assets,
+            jobs,
+            {"plugin": kb, "state": state},
+        ),
         ("effects", "kb", model, KB_RUNS, "baseline", assets, jobs, {"plugin": kb, "state": state}),
         ("workflows", "kb", model, KB_RUNS, "baseline", [], jobs, {"plugin": kb, "state": state}),
     ]

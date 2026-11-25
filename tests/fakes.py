@@ -28,9 +28,7 @@ class FakeRunner(Runner):
         check: bool = True,
     ) -> CompletedResult:
         """Record the call and return the handler's result (or a zero-exit default)."""
-        self.calls.append(
-            {"argv": list(argv), "sudo": sudo, "capture": capture, "check": check}
-        )
+        self.calls.append({"argv": list(argv), "sudo": sudo, "capture": capture, "check": check})
         result = self.handler(list(argv)) if self.handler else None
         if result is None:
             result = CompletedResult(0, "", "")
