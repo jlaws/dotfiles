@@ -356,6 +356,85 @@ class SyncAgentsTests(unittest.TestCase):
         allow = json.loads(target.read_text())["permissions"]["allow"]
         self.assertEqual(allow, ["Bash(git diff *)", "Bash(ls *)"])
 
+    def _repo_settings(self, relative: str, text: str) -> None:
+        path = self.repo / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+
+    def test_sync_retired_log_points_at_settings_local_and_counts_in_summary(self) -> None:
+        self._repo_settings(".claude/settings.json", '{"permissions": {"allow": []}}\n')
+        self._write_target(
+            ".claude/settings.json",
+            '{"permissions": {"allow": ["Bash(npx *)", "Bash(gh:*)"]}}\n',
+        )
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+        self.assertTrue(
+            any(
+                "retired Bash(gh:*) from" in e and "settings.local.json" in e
+                for e in captured.output
+            ),
+            captured.output,
+        )
+        self.assertTrue(any("2 retired" in e for e in captured.output), captured.output)
+
+    def test_dry_run_previews_each_retirement_and_writes_nothing(self) -> None:
+        self._repo_settings(".claude/settings.json", '{"permissions": {"allow": []}}\n')
+        text = '{"permissions": {"allow": ["Bash(npx *)", "Bash(ls *)"]}}\n'
+        target = self._write_target(".claude/settings.json", text)
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+        self.assertTrue(
+            any(f"would retire Bash(npx *) from {target}" in e for e in captured.output),
+            captured.output,
+        )
+        self.assertFalse(any("would retire Bash(ls" in e for e in captured.output))
+        self.assertTrue(any("1 would retire" in e for e in captured.output), captured.output)
+        self.assertEqual(target.read_text(), text)
+
+    def test_sync_retires_antigravity_command_entries(self) -> None:
+        self._repo_settings(
+            ".gemini/antigravity-cli/settings.json",
+            '{"permissions": {"allow": ["command(git diff)"]}}\n',
+        )
+        target = self._write_target(
+            ".gemini/antigravity-cli/settings.json",
+            '{"permissions": {"allow": ["command(python3)", "command(gh)", "command(ls)"]}}\n',
+        )
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+        output = "\n".join(captured.output)
+        self.assertIn(f"retired command(python3) from {target}", output)
+        self.assertIn(f"retired command(gh) from {target}", output)
+        allow = json.loads(target.read_text())["permissions"]["allow"]
+        self.assertEqual(allow, ["command(git diff)", "command(ls)"])
+
+    def test_retired_is_not_logged_when_the_write_fails(self) -> None:
+        from unittest import mock
+
+        self._repo_settings(".claude/settings.json", '{"permissions": {"allow": []}}\n')
+        target = self._write_target(
+            ".claude/settings.json", '{"permissions": {"allow": ["Bash(npx *)"]}}\n'
+        )
+        with (
+            mock.patch.object(Path, "replace", side_effect=OSError("boom")),
+            self.assertLogs("macos_setup.dotfiles", level="INFO") as captured,
+        ):
+            import logging
+
+            logging.getLogger("macos_setup.dotfiles").info("probe")
+            with self.assertRaises(OSError):
+                sync_agents(self.repo, self.target, self.archive)
+        self.assertFalse(any("retired Bash(npx" in e for e in captured.output))
+        self.assertIn("npx", target.read_text())
+
+    def test_a_string_allow_in_the_target_logs_no_retirement(self) -> None:
+        self._repo_settings(".claude/settings.json", '{"permissions": {"allow": []}}\n')
+        self._write_target(".claude/settings.json", '{"permissions": {"allow": "Bash(npx *)"}}\n')
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+        self.assertFalse(any("retired Bash" in e for e in captured.output), captured.output)
+
     def test_sync_agents_merges_configs_and_replaces_skills(self) -> None:
         repo_skill = self.repo / ".agents" / "skills" / "cmd-j-tdd" / "SKILL.md"
         repo_skill.parent.mkdir(parents=True, exist_ok=True)
