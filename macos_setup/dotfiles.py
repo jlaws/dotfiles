@@ -83,10 +83,53 @@ AGENT_REMOVALS = [
     ".gemini/settings.json",
     ".gemini/commands",
     ".gemini/agents",
+    # Category-named Codex prompts deleted from the repo in #51.
+    ".codex/prompts/ai-ml-experiment.md",
+    ".codex/prompts/ai-ml-ml.md",
+    ".codex/prompts/architecture-arch.md",
+    ".codex/prompts/architecture-team-design.md",
+    ".codex/prompts/architecture-workflow-spec.md",
+    ".codex/prompts/business-biz.md",
+    ".codex/prompts/cloud-cloud.md",
+    ".codex/prompts/data-data.md",
+    ".codex/prompts/devops-devops.md",
+    ".codex/prompts/documentation-doc-sync.md",
+    ".codex/prompts/documentation-docs.md",
+    ".codex/prompts/frontend-frontend.md",
+    ".codex/prompts/frontend-redesign.md",
+    ".codex/prompts/languages-lang.md",
+    ".codex/prompts/product-pm.md",
+    ".codex/prompts/product-scope-review.md",
+    ".codex/prompts/research-email-analysis.md",
+    ".codex/prompts/research-paper-analysis.md",
+    ".codex/prompts/research-research.md",
+    ".codex/prompts/security-audit.md",
+    ".codex/prompts/testing-debug.md",
+    ".codex/prompts/testing-tdd.md",
+    ".codex/prompts/workflow-batch-refactor.md",
+    ".codex/prompts/workflow-brainstorm.md",
+    ".codex/prompts/workflow-create-pr.md",
+    ".codex/prompts/workflow-diff-review.md",
+    ".codex/prompts/workflow-execute-plan.md",
+    ".codex/prompts/workflow-pr-fix.md",
+    ".codex/prompts/workflow-retro.md",
+    ".codex/prompts/workflow-review-claudemd.md",
+    ".codex/prompts/workflow-skill-audit.md",
+    ".codex/prompts/workflow-team-investigate.md",
+    ".codex/prompts/workflow-team-review.md",
+    ".codex/prompts/workflow-write-plan.md",
 ]
 
 AGENT_REMOVAL_GLOBS = [
     ".agents/skills/agent-*",
+]
+
+# Command entries per synced tree: one the repo no longer ships under the same glob is pruned.
+AGENT_ORPHAN_GLOBS: list[tuple[str, str]] = [
+    (".agents/skills", "cmd-j-*"),
+    (".claude/commands", "j-*.md"),
+    (".codex/prompts", "j-*.md"),
+    (".gemini/antigravity-cli/skills", "j-*"),
 ]
 
 
@@ -296,11 +339,15 @@ def _agent_removal_paths(repo: Path, target: Path) -> Iterator[Path]:
     for pattern in AGENT_REMOVAL_GLOBS:
         yield from sorted(target.glob(pattern))
 
-    source_commands = {path.name for path in (repo / ".agents" / "skills").glob("cmd-j-*")}
-    target_skills = target / ".agents" / "skills"
-    for command in sorted(target_skills.glob("cmd-j-*")):
-        if command.name not in source_commands:
-            yield command
+    for root, pattern in AGENT_ORPHAN_GLOBS:
+        shipped = {path.name for path in (repo / root).glob(pattern)}
+        for entry in sorted((target / root).glob(pattern)):
+            if entry.name in shipped:
+                continue
+            if entry.is_symlink():
+                _LOG.warning("keeping symlinked command %s", entry)
+                continue
+            yield entry
 
 
 def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = False) -> None:
