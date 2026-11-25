@@ -552,11 +552,18 @@ class SyncAgentsTests(unittest.TestCase):
         link.parent.mkdir(parents=True)
         link.symlink_to(real, target_is_directory=True)
 
-        with self.assertLogs("macos_setup.dotfiles", level="WARNING"):
+        self._write_repo(".gemini/antigravity-cli/skills/j-keep/SKILL.md")
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING") as captured:
             sync_agents(self.repo, self.target, self.archive)
 
         self.assertTrue(link.is_symlink())
         self.assertTrue(real.is_dir())
+        self.assertIn(
+            f"keeping symlinked command {link}: not shipped by the repo; "
+            "remove it by hand to stop this warning",
+            " ".join(captured.output),
+        )
 
     def test_dry_run_reports_removals_without_changing_files(self):
         cursor_file = self._write_target(".cursor/state.json")

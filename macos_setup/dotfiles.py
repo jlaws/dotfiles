@@ -355,7 +355,11 @@ def _agent_removal_paths(repo: Path, target: Path) -> Iterator[tuple[Path, str]]
             if entry.name in shipped:
                 continue
             if entry.is_symlink():
-                _LOG.warning("keeping symlinked command %s", entry)
+                _LOG.warning(
+                    "keeping symlinked command %s: not shipped by the repo; "
+                    "remove it by hand to stop this warning",
+                    entry,
+                )
                 continue
             candidates.append((entry, "not shipped"))
 
