@@ -74,6 +74,7 @@ older results is refused until that staging is rerun or the older results are mo
 | Stage per invocation into a new directory | Re-keys every cached batch: `seed.sh` holds the staged path | 2026-11-25 |
 | Read the CLI version once per step | A symlink repointed mid-step lets later batches run on another version | 2026-11-25 |
 | Release an interrupted reservation automatically | The cost of runs in flight is unknown, so any release can undercount | 2026-11-25 |
+| Compare any two summaries | A judge change reads as a KB change; compare refuses summaries judged by different models | 2026-11-25 |
 
 ## Enforcement
 - Owner: `evals/`

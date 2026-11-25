@@ -18,7 +18,7 @@ make eval-lint                       # free: lint every case; ends "0 problems"
 make eval-pilot                      # paid: the five pilot cases, both models, one run each
 make eval-smoke ASSETS="a b"         # paid: kb on Sonnet, one run per case, then a vanilla sample
 make eval-baseline MODEL=claude-opus-5-5   # paid: the full baseline for one model
-make eval-compare OLD=<summary.json> NEW=<summary.json>   # free: regressions between two summaries
+make eval-compare OLD=<summary.json> NEW=<summary.json>   # free: regressions between two summaries; refuses different judge models
 make eval-spend                      # free: snapshot ledger totals into evals/spend.json; exits 1 over the ceiling
 python3 -m evals.kbeval summarize    # free: check every result, then write evals/baselines/ (nothing if a check fails)
 make eval-headroom                   # free: classify effect and workflow cases from evals/baselines/; each suite ends "<n> cases: <s> saturated, <d> dead, <k> kb-below-vanilla, <x> discriminating, <u> unmeasured"
@@ -453,9 +453,26 @@ accepted and changes nothing). It also refuses to write text holding a key (`sk-
 `/var/folders/`, `/tmp/`, `/private/`, `~/`), or an API request or message ID, because summaries
 are committed to a public repo. Emails and hostnames are not checked.
 
-`make eval-compare OLD=... NEW=...` compares two summaries: the suite means with both intervals,
-cases whose `kbScore` dropped by at least 1/3, and pass/fail flips. Cases in only one file are
-listed as "not run here", since a partial rerun covers a subset.
+`make eval-compare OLD=... NEW=...` compares two summaries: the suite means with both intervals, then the
+claude version line, regressed cases, and a noise count. Cases in only one file are listed as
+"not run here", since a partial rerun covers a subset.
+
+```
+judge <j>; Claude Code <v>
+regressed (<n>): kbScore dropped by 2/3 or more
+  <name>: kbScore b -> a[; pass -> fail]
+within run-to-run noise: <n> cases (a drop of 1/3 up to 2/3, or a pass/fail flip; not listed)
+```
+
+A case is named only when `kbScore` fell by 2/3 or more (the single-model threshold `regressed`
+uses); with none, the line reads `regressed: none`. Three runs per case make a 1/3 drop common
+for an unchanged case: at most 10.9% of unchanged non-ceiling cases would be falsely named at 2/3
+(binomial, 3 runs, p = 0.5), against 12-34% at 1/3. The trade-off: a real 1/3 drop is counted,
+not named. When the two summaries differ in `claudeVersion` the second line reads
+`judge <j>; Claude Code <a> -> <b> (differs: a change below may come from the CLI, not the KB)`;
+a missing field prints `unknown`. Summaries with different `judgeModel` values exit 1 with
+`compare: judge models differ (A vs B); scores are not comparable`. Different `model` values are
+allowed: a cross-model compare is the documented use.
 
 A split judge vote is an llm-grader record whose three judge votes disagree. In the raw results
 behind the 2026-11-16 baseline (both models, both arms, the effects and workflows suites;

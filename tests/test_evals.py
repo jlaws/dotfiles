@@ -2745,9 +2745,12 @@ class ResultsLoaderTests(unittest.TestCase):
                 self.assertEqual(out.getvalue(), line)
 
 
-def summary_doc(cases: dict, model: str = OPUS) -> dict:
+def summary_doc(
+    cases: dict, model: str = OPUS, judge: str = "claude-fable-5-2", version: str = "2.1.331"
+) -> dict:
     return {
         "schema": 1, "suite": "effects", "model": model,
+        "judgeModel": judge, "claudeVersion": version,
         "aggregates": {
             "kb": {"mean": sum(c[0] for c in cases.values()) / len(cases), "ci95": [0.4, 0.9]},
             "vanilla": {"mean": 0.3, "ci95": [0.1, 0.5]},
@@ -2769,22 +2772,55 @@ class CompareTests(unittest.TestCase):
             {"a--effect-x": (1.0, True), "b--effect-y": (0.5, False), "c--effect-gone": (1.0, True)}
         )
         new = summary_doc(
-            {"a--effect-x": (0.6, False), "b--effect-y": (0.5, False), "d--effect-new": (1.0, True)}
+            {"a--effect-x": (0.3, False), "b--effect-y": (0.5, False), "d--effect-new": (1.0, True)}
         )
         report = "\n".join(kcompare.compare(old, new))
         self.assertIn("suite mean", report)
         self.assertIn("[0.40, 0.90]", report)
-        self.assertRegex(report, r"a--effect-x.*1\.00 -> 0\.60")
+        self.assertRegex(report, r"a--effect-x.*1\.00 -> 0\.30")
         self.assertRegex(report, r"a--effect-x.*pass -> fail")
         self.assertNotRegex(report, r"b--effect-y.*->")
         self.assertRegex(report, r"c--effect-gone.*not run here")
         self.assertRegex(report, r"d--effect-new.*not run here")
         self.assertNotIn("removed", report)
 
-    def test_drop_of_exactly_one_third_is_reported(self):
+    def test_a_one_run_in_three_drop_is_counted_as_noise(self):
         old = summary_doc({"a--effect-x": (1.0, True)})
-        new = summary_doc({"a--effect-x": (2 / 3, True)})
-        self.assertRegex("\n".join(kcompare.compare(old, new)), r"a--effect-x.*1\.00 -> 0\.67")
+        new = summary_doc({"a--effect-x": (0.6667, True)})
+        report = "\n".join(kcompare.compare(old, new))
+        self.assertNotRegex(report, r"a--effect-x.*->")
+        self.assertIn("regressed: none", report)
+        self.assertIn("within run-to-run noise: 1 cases", report)
+
+    def test_a_rounded_two_thirds_drop_is_listed(self):
+        old = summary_doc({"a--effect-x": (1.0, True)})
+        new = summary_doc({"a--effect-x": (0.3333, True)})
+        report = "\n".join(kcompare.compare(old, new))
+        self.assertIn("regressed (1):", report)
+        self.assertRegex(report, r"a--effect-x.*1\.00 -> 0\.33")
+
+    def test_compare_refuses_different_judge_models(self):
+        old = summary_doc({"a--effect-x": (1.0, True)}, judge="j1")
+        new = summary_doc({"a--effect-x": (1.0, True)}, judge="j2")
+        with self.assertRaises(kcompare.IncomparableError):
+            kcompare.compare(old, new)
+
+    def test_compare_marks_a_claude_version_change(self):
+        old = summary_doc({"a--effect-x": (1.0, True)}, version="2.1.330")
+        new = summary_doc({"a--effect-x": (1.0, True)})
+        lines = kcompare.compare(old, new)
+        self.assertEqual(
+            lines[1],
+            "judge claude-fable-5-2; Claude Code 2.1.330 -> 2.1.331 "
+            "(differs: a change below may come from the CLI, not the KB)",
+        )
+        same = kcompare.compare(new, new)
+        self.assertEqual(same[1], "judge claude-fable-5-2; Claude Code 2.1.331")
+
+    def test_compare_allows_different_models(self):
+        old = summary_doc({"a--effect-x": (1.0, True)}, model="m1")
+        new = summary_doc({"a--effect-x": (1.0, True)}, model="m2")
+        self.assertIn("m1 -> m2", kcompare.compare(old, new)[0])
 
     def test_small_drop_is_not_a_regression(self):
         old = summary_doc({"a--effect-x": (1.0, True)})
@@ -3324,6 +3360,20 @@ class EntryPointTests(OrchestrateTests):
         self.stale_patch = mock.patch.object(kmain.kstage, "staleness", return_value=None)
         self.stale_patch.start()
         self.addCleanup(self.stale_patch.stop)
+
+    def test_compare_exits_1_on_incomparable_summaries(self):
+        paths = []
+        for name, judge in (("old", "j1"), ("new", "j2")):
+            path = self.tmp / f"{name}-summary.json"
+            path.write_text(json.dumps(summary_doc({"a--effect-x": (1.0, True)}, judge=judge)))
+            paths.append(str(path))
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            status = kmain.main(["compare", *paths])
+        self.assertEqual(status, 1)
+        self.assertIn(
+            "compare: judge models differ (j1 vs j2); scores are not comparable", err.getvalue()
+        )
 
     def run_against_staged_tree(self, edit: bool):
         self.stale_patch.stop()

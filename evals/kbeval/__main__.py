@@ -168,7 +168,12 @@ def _compare(args: argparse.Namespace) -> int:
     except (OSError, ValueError) as error:
         print(f"compare: {error}", file=sys.stderr)
         return 1
-    for line in kcompare.compare(old, new):
+    try:
+        lines = kcompare.compare(old, new)
+    except kcompare.IncomparableError as error:
+        print(f"compare: {error}; scores are not comparable", file=sys.stderr)
+        return 1
+    for line in lines:
         print(line)
     return 0
 
