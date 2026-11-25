@@ -73,9 +73,14 @@ def test_email_validation(input, expected):
     assert is_valid_email(input) == expected
 ```
 
-- A running-maximum comparator (`if v >= worst: worst = v`) drops NaN because every NaN comparison is false; feed NaN to the comparator, plant NaN in a neutral value of the code under test, and see whether the suite stays green
-- A numeric tolerance near single-precision rounding passes on a fixed seed by luck; measure the correct implementation over many seeds before pinning, or assert on a higher-precision gap
-- When a change narrows a regex character class, test each excluded character separately at each position; a whole-string case with several excluded characters pins only that at least one blocks
+- A running-maximum comparator (`if v >= worst: worst = v`) drops NaN because every NaN comparison is false.
+- Feed NaN to the comparator, plant NaN in a neutral value of the code under test, and see whether the suite stays green.
+- An equality test of NaN-bearing values built from a copy that shares the same float object is vacuous, because container equality short-circuits on identity.
+- Build the copy from a fresh NaN or a serialization round trip, and run it to confirm.
+- A numeric tolerance near single-precision rounding can pass on a fixed seed by luck.
+- Criterion: run the correct implementation over many seeds (for example 100) and pin the tolerance only at zero failures. Otherwise assert on a higher-precision gap.
+- When a change narrows a regex character class, test each excluded character separately at each position.
+- A whole-string case with several excluded characters pins only that at least one blocks.
 
 ## Test Organization
 ```
@@ -94,8 +99,8 @@ tests/
 - Root: DB engine, app config, shared factories
 - Directory-level: scope-specific fixtures
 - Never import from conftest -- pytest injects automatically
-- A test that checks parallel output equals serial output proves the results match, not that work ran concurrently, in the workers, or in order; pin concurrency with a rendezvous that completes only if two jobs overlap, and assert which process emitted each record
-- An equality test of NaN-bearing values built from a copy that shares the same float object is vacuous, because container equality short-circuits on identity; build the copy from a fresh NaN or a serialization round trip, and run it to confirm
+- A test that checks parallel output equals serial output proves the results match, not that work ran concurrently, in the workers, or in order.
+- Pin concurrency with a rendezvous that completes only if two jobs overlap, and assert which process emitted each record.
 
 ## CI Markers
 ```ini
@@ -107,6 +112,12 @@ addopts = "--strict-markers --tb=short -q --cov-fail-under=80"
 
 - Use `--strict-markers` to catch typos
 - Run `pytest -m "not integration"` in pre-commit, full suite in CI
-- Before quoting coverage for chosen modules, confirm the selector collected data: dotted-module selectors can fail at import, and path selectors can report 0% with a "no data" warning under parallel runners; check that sibling modules show non-zero coverage first
-- Coverage source settings that walk only package directories never list a module that no test imports, so a percentage floor cannot catch a new untested module; list new modules against the report by name
-- A pass counts only if the optional dependencies the tests need are installed in the environment used: a test module that imports a gated dependency can report a clean pass against a partly synced environment; import the dependency directly before trusting the run
+
+## Coverage And Run Trust
+
+A green run counts only when it measured what you think it measured.
+- Before quoting coverage for chosen modules, confirm the selector collected data. A dotted-module selector can report no data (a "module was never imported" warning), not an import failure.
+- A path selector can report 0% with a "no data" warning under parallel runners. Check that sibling modules show non-zero coverage first.
+- Coverage lists an unimported module at 0% only when it sits inside the configured source directories. Check that a new module is not hidden by files outside the source directories, `omit` patterns, a namespace directory without `__init__.py`, or a `source_pkgs` list that does not name the new package.
+- Check the new module by name in the report, since a percentage floor can hide a gap.
+- Install the optional dependencies the tests need in the environment you run. A test module that imports a gated dependency can pass cleanly against a partly synced environment. Import the dependency directly before trusting the run.
