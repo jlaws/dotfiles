@@ -218,6 +218,18 @@ class MergeJsonTests(unittest.TestCase):
         data = json.loads(merge_json(repo, target, retired=("Bash(npx *)", "Bash(gh *)")))
         self.assertEqual(data["permissions"]["allow"], ["Bash(git diff *)", "Bash(ls *)"])
 
+    def test_merge_drops_the_legacy_colon_form_of_a_retired_entry(self) -> None:
+        target = '{"permissions": {"allow": ["Bash(gh:*)", "Bash(npm test:*)", "Bash(ls *)"]}}'
+        repo = '{"permissions": {"allow": ["Bash(git diff *)"]}}'
+        retired = ("Bash(gh *)", "Bash(npm test *)")
+        data = json.loads(merge_json(repo, target, retired=retired))
+        self.assertEqual(data["permissions"]["allow"], ["Bash(git diff *)", "Bash(ls *)"])
+
+    def test_merge_retires_a_colon_form_listed_in_the_retired_set(self) -> None:
+        target = '{"permissions": {"allow": ["Bash(gh *)"]}}'
+        data = json.loads(merge_json("{}", target, retired=("Bash(gh:*)",)))
+        self.assertEqual(data["permissions"]["allow"], [])
+
     def test_unions_permission_lists_without_duplicates(self) -> None:
         target = '{"permissions": {"allow": ["Bash(git diff *)", "Bash(custom)"], "deny": ["Read(~/.secret)"]}}'
         repo = '{"permissions": {"allow": ["Bash(git diff *)", "Bash(git log *)"], "deny": ["Read(~/.ssh/**)"]}}'

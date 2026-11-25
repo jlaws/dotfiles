@@ -56,6 +56,18 @@ def _merge_dict(
     return merged
 
 
+_COLON_WILDCARD = re.compile(r"^(Bash\(.+):\*\)$")
+
+
+def _permission_key(entry: Any) -> Any:
+    """Canonical form of a permission entry: the legacy ``Bash(cmd:*)`` equals ``Bash(cmd *)``."""
+    if isinstance(entry, str):
+        match = _COLON_WILDCARD.match(entry)
+        if match:
+            return f"{match.group(1)} *)"
+    return entry
+
+
 def merge_json(repo_content: str, target_content: str, retired: Sequence[str] = ()) -> str:
     """Merge JSON repo updates into target machine settings, preserving target keys.
 
@@ -86,7 +98,10 @@ def merge_json(repo_content: str, target_content: str, retired: Sequence[str] = 
     merged = _merge_dict(repo_data, target_data)
     permissions = merged.get("permissions")
     if retired and isinstance(permissions, dict) and isinstance(permissions.get("allow"), list):
-        permissions["allow"] = [item for item in permissions["allow"] if item not in retired]
+        gone = {_permission_key(entry) for entry in retired}
+        permissions["allow"] = [
+            item for item in permissions["allow"] if _permission_key(item) not in gone
+        ]
     return json.dumps(merged, indent=2, ensure_ascii=False) + "\n"
 
 
