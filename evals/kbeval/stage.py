@@ -152,7 +152,17 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
                 text = staged.read_text(encoding="utf-8")
                 localized = _localize_references(text)
                 if localized != text:
+                    if refs_mode != "workspace":
+                        raise StageError(
+                            f"{staged.relative_to(plugin)} cites installed references; "
+                            f"refsMode {refs_mode!r} has no shared path to rewrite them to"
+                        )
                     staged.write_text(localized, encoding="utf-8")
+                left = [p for p in INSTALLED_REFERENCE_PREFIXES if p in localized]
+                if left:
+                    raise StageError(
+                        f"{staged.relative_to(plugin)} still cites installed prefix {left[0]}"
+                    )
         if command_form == "skill":
             for command in (plugin / "commands").glob("*.md"):
                 text = command.read_text(encoding="utf-8")

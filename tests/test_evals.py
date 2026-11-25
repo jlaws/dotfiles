@@ -339,6 +339,22 @@ class StageTests(TempRepoCase):
         original = (self.repo / ".claude/commands/j-demo.md").read_text()
         self.assertIn("~/.claude/references/cat/ref.md", original)
 
+    def test_add_dirs_mode_refuses_assets_that_cite_the_workspace_copy(self):
+        self.set_harness(refsMode="add_dirs")
+        path = self.repo / ".claude/commands/j-demo.md"
+        path.write_text(path.read_text() + "\nRead `~/.claude/references/cat/ref.md`.\n")
+        with self.assertRaises(kstage.StageError) as caught:
+            self.stage()
+        self.assertIn("j-demo.md", str(caught.exception))
+
+    def test_stage_fails_when_an_installed_prefix_survives_localizing(self):
+        path = self.repo / ".claude/commands/j-demo.md"
+        path.write_text(path.read_text() + "\nRead `~/.claude/references/cat/ref.md`.\n")
+        with mock.patch.object(kstage, "_localize_references", side_effect=lambda text: text):
+            with self.assertRaises(kstage.StageError) as caught:
+                self.stage()
+        self.assertIn("j-demo.md", str(caught.exception))
+
     def test_stage_kb_injects_json_encoded_system_prompt(self):
         plugin = self.stage()
         for suite in ("triggers", "effects", "workflows"):
