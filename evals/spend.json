@@ -2,12 +2,21 @@
   "period": "initial-baseline-2026-11",
   "totals": {
     "byModel": {
-      "claude-opus-5-5": 1234.2647,
-      "claude-sonnet-5-5": 831.3703
+      "claude-opus-5-5": 1245.0319,
+      "claude-sonnet-5-5": 869.0107
     },
     "byPurpose": {
       "audit-probe": 1.6549,
       "baseline": 1620.2085,
+      "cq-tune-base": 1.6713,
+      "cq-tune-effects": 2.9026,
+      "cq-tune-final": 1.7874,
+      "cq-tune-held-base": 2.5001,
+      "cq-tune-held-final": 2.4702,
+      "cq-tune-neighbours": 31.9855,
+      "cq-tune-r1": 1.6593,
+      "cq-tune-r2": 1.6514,
+      "cq-tune-r3": 1.7798,
       "fanout-check-a": 0.8126,
       "fanout-check-c": 1.5793,
       "fix-asset-defects": 89.7104,
@@ -35,6 +44,6 @@
       "trigger-recall-r2": 12.2754,
       "trigger-recall-r3": 7.3696
     },
-    "totalUsd": 2065.635
+    "totalUsd": 2114.0426
   }
 }
