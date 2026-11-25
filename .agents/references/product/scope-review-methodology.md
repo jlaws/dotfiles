@@ -6,7 +6,7 @@ Challenge assumptions about WHAT to build and how much, before design work begin
 
 | Mode | Question | When to Use | Risk |
 |------|----------|-------------|------|
-| **EXPAND** | "What's the 10x version?" | Greenfield, exploring possibilities | Scope creep, analysis paralysis |
+| **EXPAND** | "Which capability the goal needs is missing?" | The proposed scope is missing capabilities required for the stated goal | Scope creep, analysis paralysis |
 | **SELECTIVE EXPAND** | "Keep core, add one high-leverage extension" | Feature iteration, v2 planning | Gold-plating one dimension |
 | **HOLD** | "Is current scope right-sized?" | Mid-project validation, milestone reviews | Confirmation bias |
 | **REDUCE** | "What's the minimum that tests the hypothesis?" | MVP, tight deadline, uncertain market | Cutting too deep, losing value |

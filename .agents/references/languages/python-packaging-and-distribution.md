@@ -133,7 +133,7 @@ my-package/
 # In library pyproject.toml: use >= lower bounds, avoid upper caps
 dependencies = [
     "httpx>=0.25",           # Lower bound only
-    "pydantic>=2.0,<3.0",   # Cap only at known-breaking major versions
+    "pydantic>=2.0",         # No upper cap: no released pydantic breaks this code
 ]
 
 # In application: pin exact versions in a lock file

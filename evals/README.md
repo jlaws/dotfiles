@@ -399,7 +399,11 @@ Absolute scores differ from a real session in these ways; comparisons within the
   it fails, which is what using-git-worktrees--effect-isolated-from-origin grades. Evidence: while
   that case read `git worktree list` alone, its `worktree-made` grader failed in all 12 of its
   stored 2026-11-16 baseline runs (both stagings, both models), and 5 of those runs record the
-  error text.
+  error text. The same limit stops using-git-worktrees--effect-land-uncommitted-work: it needs
+  `git commit` inside `.worktrees/feat-rst`, which fails with `Unable to create
+  '.../.git/worktrees/feat-rst/index.lock': Operation not permitted`. The probe reproduced it (4 of
+  6 probe runs, 3 kb and 1 vanilla, stopped on it); the 2026-12 baseline's 4 of 6 early stops are
+  consistent with the same limit, but their traces were not kept.
 - The child session inherits `ANTHROPIC_API_KEY`, so a run granted Bash could print it. The
   sandbox blocks network, and the key scan covers results, logs, and kept traces; traces of runs
   without `--keep-temp` are deleted by the CLI unscanned.
@@ -656,25 +660,40 @@ the whole asset batch in both arms, so the other cases of those three assets got
 | j-data--effect-late-events-incremental | A4: "3 days back" had two readings (three daily partitions, or a 3-day interval) | the claim accepts both and still fails a one-day or two-partition re-read | 0.67, 0.00 |
 | j-cloud--effect-large-upload-path | judged A3: the claim required a 1-hour expiry on every part URL | the claim now also accepts part URLs signed on demand | 1.00, 1.00 |
 
-The `j-cloud` change was a mistake and is not a repair. The reference says to "set generous expiry
-(1h+) for large files" and says nothing about part URLs or signing on demand, so the new claim
-grades a rule the reference does not state, and the case's hard part is gone: all 12 runs on both
-models now pass it. Two reviewers read the rerun outputs against the old claim and found it would
-have separated the arms on Sonnet (kb 2 of 3, vanilla 1 of 3). Both repair rounds were used, so the
-case stays as measured here, and restoring the 1-hour claim with a rerun of that asset is filed in
-`tasks/kbeval-case-defects.md`.
+The `j-cloud` loosening stands by the owner's 2026-11-25 decision. `references/cloud/file-storage-patterns.md` now
+states the rule the claim grades (sign each part on demand with a short expiry and re-sign on retry,
+or sign every part up front with an expiry that covers the whole upload); it states no
+per-part one-hour rule. In a reviewer reading against the old claim (results keep no judge
+reasons) all six stored Opus runs (both arms) chose short part URLs signed on demand. The Sonnet
+split (kb 2 of 3, vanilla 1 of 3) is three-run noise on a claim both arms can meet; it was not
+investigated further. The case is unchanged
+in its prompt.
 
 Ten of the other eleven are dead and valid on Sonnet: the case is sound and both arms failed it.
-The eleventh, using-git-worktrees--effect-land-uncommitted-work, is unexplained: 4 of its 6 runs
-stopped after about 18 seconds without a tool call, and results keep no transcript, so whether the
-case, the skill, or the sandbox stops them is not known (`tasks/kbeval-case-defects.md`). All
-eleven stay as they are.
+The eleventh, using-git-worktrees--effect-land-uncommitted-work, was unexplained until a probe
+(purpose `probe-land-uncommitted-work`, Claude Code 2.1.332, Sonnet, 3 runs per arm with
+`--keep-temp`; the stored baselines ran on 2.1.331; spend 0.3908 USD, in the ledger under that
+purpose, while `evals/spend.json` is a snapshot not refreshed here). Every run of 5 turns or fewer (3 kb, 1 vanilla) read the state, ran
+`git commit` in `.worktrees/feat-rst`, and got `fatal: Unable to create
+'<workspace>/.git/worktrees/feat-rst/index.lock': Operation not permitted`. They then stopped and
+told the user to run the commands. The cause is the sandbox limit recorded under Divergences, not
+the case or the skill, and no run asked about the prompt or quoted a skill rule. The two longer
+vanilla runs (6 and 7 turns) also hit the error and scored 0.6 (`merged-not-copied`, `work-landed`,
+and `worktree-kept` passed). The `skill-loaded` and `used-git-merge` graders reported "Bash called
+0x" on runs that did run git; that is recorded as an open question about tool-call counting and was
+not investigated here. The probe traces live outside the repo (results under the kbeval state
+directory, traces under `/private/tmp`, both ephemeral); the stored excerpt is the one error line
+above. There is no prompt-wording change for this finding; the prompt now also writes `merges.txt`
+and `merged-not-copied` reads it (case-defect fix below), so stored scores for this case predate
+that change. The 2026-12 stops show the same signature as far as the stored outputs go. The case
+needs a worktree commit, so under the sandbox a pass needs a run that avoids or gets past the error:
+the stored Opus runs (kb 1.0, vanilla 1.0) did. All eleven stay as they are.
 
 | Case | What the runs did |
 |---|---|
 | business-analyst--effect-tracking-reset | every failing plan starts with 20 to 30 events against the reference's 10 to 15; one kb run read the rule and overrode it |
-| code-quality--effect-marker-audit | the skill loaded in 0 of 3 kb runs, and every run in both arms called the login shortcut sanctioned (`tasks/kb-asset-defects-from-eval-audit.md`) |
-| code-review-patterns--effect-receiving-comments | all 6 runs asked about the unclear comment but implemented a clear one first, including the kb run that loaded the skill |
+| code-quality--effect-marker-audit | the skill loaded in 0 of 3 kb runs, and every Sonnet run in both arms called the login shortcut sanctioned (Opus passed 1.0 / 1.0) (`tasks/kb-asset-defects-from-eval-audit.md`) |
+| code-review-patterns--effect-receiving-comments | all 6 runs asked about the unclear comment but implemented a clear one first, including the kb run that loaded the skill; the case grades only `replies.md`, and lint's grounding rule bars a grader on the seeded `calc/ops.py`, so a run that edited the file while claiming otherwise would pass; no stored run did |
 | dependency-upgrade--effect-multi-major-plan | all 6 plans upgrade jest before express and mongoose; the skill loaded in all 3 kb runs |
 | j-devops--effect-latency-api-resources | failing runs set the memory limit equal to the request; no kb run read the reference |
 | j-system-design--effect-tenant-isolation | failing runs gave each HIPAA tenant a database on a shared cluster; one kb run read the infra-per-tenant rule and rejected it |
@@ -682,7 +701,7 @@ eleven stay as they are.
 | skill-audit--effect-judgment-pass | one kb run named two next changes, one counted by hand; vanilla has no checker to run |
 | skill-lookup-discipline--effect-feature-order | the skill loaded in 0 of 3 kb runs and every kb list put test-driven-development first |
 | test-writer--effect-speed-regression-test | runs took 15 to 21 samples and compared minimums or allowed 25%; the agent never read the reference |
-| using-git-worktrees--effect-land-uncommitted-work | not judged valid: 4 of 6 runs stopped after 3 turns with no file written; Opus passed this case 6 of 6 on 2026-11-16 |
+| using-git-worktrees--effect-land-uncommitted-work | 4 of 6 runs stopped after 3 turns with no file written: the sandbox refuses the worktree commit (probe above); Opus passed this case 6 of 6 on 2026-11-16 |
 
 Which claim failed is inferred from the graded file each result stores; results do not keep the
 judge's reasons. The "what the runs did" cells come from reading those stored outputs, not from a
@@ -747,8 +766,14 @@ Per-case rows are in `evals/baselines/<model>/<suite>.json`.
   Sonnet kb 0.67) and writing-skills--effect-fix-broken-skill (kb 0.00, vanilla 0.33; the skill
   loaded in 0 of 3 runs; Sonnet kb 0.67). They were not judged for case faults.
 - Two new cases score kb below vanilla on both models: j-docs--effect-upgrade-warning-order and
-  workflow-architect--effect-hidden-entry-points. Neither was re-checked against A3 and A4 in this
-  baseline, so whether the case or the asset is at fault is open.
+  workflow-architect--effect-hidden-entry-points. Both were checked against A3 and A4
+  after the baseline (a manual reading, no ledger purpose). A3 passes for both (j-docs asks for the rule the asset states; for
+  workflow-architect vanilla also meets the claim). A4 is `ambiguous` for both: j-docs outputs state
+  the risk twice and the judge split on identical structure, so claim 1 now covers every sentence
+  that says --drop-legacy deletes the table; workflow-architect claim 3 turned on the reference's
+  "Destroyed By" column name, which the prompt never asked for, so the prompt now asks for a
+  cleanup inventory that lists each resource and the path that ends it and the claim grades that.
+  Both cases are re-measured at the next full baseline.
 - Workflows: wf--execute-plan-to-review now discriminates (vanilla 0.75 on both models, on the
   review claim the audit added); the other three stay at 1.00 in both arms. n=4 gives no usable CI.
 - Capped runs: 28 Opus and 18 Sonnet trigger runs hit the 6-turn cap or the 120 s timeout; two on
@@ -866,8 +891,6 @@ Their cases gain a `read-refs` process grader (`tool_used` on `Read` of `<dir>` 
   stored), Sonnet 3/3 (3/3 stored).
 - architecture-specialist `not-retried` rejected correct non-retry rows (Sonnet runs 0 and 1); its
   claim moves into the `design` llm grader.
-- Case defects and harness gaps that need more than a grader fix:
-  [kbeval-case-defects](../tasks/kbeval-case-defects.md).
 
 ### Post-fix rerun
 
@@ -991,7 +1014,7 @@ house convention.
 | `no-rule` | replace the case with one written from an asset rule; keep the slug only when the scenario is kept |
 | `ambiguous`, `broken-fixture` | fix the prompt or the case's own `fixture.sh` |
 | `unrealistic`, `not-near` | rewrite the trigger prompt |
-| the case is sound and the asset is at fault | change no case; add a line to `tasks/kb-asset-defects-from-eval-audit.md` |
+| the case is sound and the asset is at fault | change no case; add a task file under `tasks/` |
 
 **Hardening.** Each asset that `make eval-headroom` lists as `ASSET <asset> no discriminating case`
 gains one new effect case tagged `extended`, written by the hard-case rules above. `j-paper` is
@@ -1015,7 +1038,7 @@ requires (docs that match the change, a retired workaround), without naming the 
 **Limits.** No KB asset and no file under `evals/fixtures/` is edited; either would change every
 case's content. Case slugs keep their `tune-` and `held-` prefixes. Every new llm grader has two to
 five claims with both `PASS if` and `FAIL if`. A `held-` case gets its `description` line and
-nothing else; a finding on one goes to `tasks/kbeval-case-defects.md`, because rewriting it would
+nothing else; a finding on one goes in a task file under `tasks/`, because rewriting it would
 void the held-out comparison a later baseline makes.
 
 **Results.** The Headroom class column is the class at the 2026-11-16 baseline, read when the
@@ -1106,6 +1129,47 @@ asset was audited; `make eval-headroom` gives the current class.
 | security-reviewer | 2 | all pass | effect-authz-and-non-findings saturated; effect-pipeline-states saturated | security-reviewer--effect-unverified-escape-helper |
 | test-writer | 2 | all pass | effect-mutation-proof-js saturated; effect-red-then-green saturated | test-writer--effect-speed-regression-test |
 | workflow-architect | 2 | all pass | discriminating | workflow-architect--effect-hidden-entry-points |
+
+## Post-audit asset fixes (2026-11-25)
+
+Fixes for the asset defects the case audit listed, except code-quality (tuned separately). Evidence standard: a bullet whose covering case
+already fails in a stored baseline cites that row; every other fix has a text pin in
+`tests/test_agent_config.py` (`test_eval_audit_asset_fixes_hold`). A bullet with no failing case is
+UNPROVEN: the fix stands on the pin, and the reason is given.
+
+| Bullet | Change | Evidence |
+|---|---|---|
+| using-git-worktrees | Safety Verification says to add the path to `.git/info/exclude`, or commit `.gitignore` alone, in all three trees | UNPROVEN: the covering prompt already says to leave staged work alone |
+| dependency-upgrade | none; SKILL.md already orders framework before testing | stored: `dependency-upgrade--effect-multi-major-plan` kb 0.0, loadRate 1.0, both models; the case stays dead |
+| skill-lookup-discipline | none; the skill is excluded from description tuning, its body already lists `design-first` first for a feature request, and its effect case stays as measured | stored: kb 0.0, loadRate 0.0, both models |
+| uv-workflows | `--frozen` presented as the CI or stale-lockfile flag becomes `--locked` in both reference trees | UNPROVEN: `j-lang--effect-uv-project-notes` already requires `--locked` and passes 1.0 |
+| python-packaging | the pydantic example drops the cap on an unreleased major | UNPROVEN: no case asks for this example |
+| js-ts-patterns | the `exports` example puts `"types"` before `"import"` | UNPROVEN: no case |
+| scope-review | EXPAND is defined as the agent defines it ("missing capabilities"), not "10x version" | Sonnet `scope-reviewer--effect-every-mode-weighed` kb 0.3333 vs vanilla 1.0; the link to this clash is an inference |
+| file-storage-patterns | the presigned-expiry gotcha covers multipart part URLs | UNPROVEN: the covering case passed before the fix (12 of 12) |
+
+Smoke result after the edits (2026-11-25, Claude Code 2.1.332, Sonnet, one run per case; purpose
+`smoke-fix-kb-asset-and-case-defects`, 13.99 USD): exit 0; 55 kb cases ran and 34 scored 1.0. Thirteen
+cases with a stored kb score of 1.0 scored lower, and every failing grader was a tool-call count:
+`delegated` and `read-refs` (j-cloud, j-docs, j-lang consult commands did not call the agent),
+`lens-dispatches` and `wrote-plan` (j-plan dispatched no lens), and `skill-loaded` (writing-plans,
+using-git-worktrees).
+
+- Rerun, three runs each (purpose `smoke-rerun-kb-asset-and-case-defects`, 8.43 USD): 12 of the 13
+  stayed below 1.0; `scope-reviewer--effect-expand-missing-capability` passed 3 of 3. No consult
+  command delegated in any run, and j-plan dispatched no lens.
+- A/B, two runs each (purpose `smoke-ab-pre-plan-kb`, 4.93 USD): the KB staged from `c8979cd`, before
+  any edit in this plan, with that commit's own harness, on the same CLI. The same twelve cases failed
+  the same graders in every case; per-case means differ by at most one
+  run's grader. The drop follows the CLI change from 2.1.331
+  (the stored baselines) to 2.1.332, not these edits. The 2.1.332 session lists `Task`, `TaskCreate`,
+  `TaskGet`, `TaskList`, `TaskStop`, and `TaskUpdate` tools; a prompt that names a `kb:` agent still
+  dispatches it.
+- Watch item: `using-git-worktrees--effect-isolated-from-origin` scored 0.5 mean on this branch (three
+  runs; `edits-preserved`, `report`, `worktree-made` also failed) against 0.875 for the pre-plan KB (two
+  runs). The sample is small and the skill changed here; the next baseline measures it.
+
+The next full baseline runs on 2.1.332 or later, so its scores are not comparable with 2026-12.
 
 ## Fan-out experiment
 

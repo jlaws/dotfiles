@@ -37,7 +37,7 @@ No worktree directory found. Where should I create worktrees?
 git check-ignore -q .worktrees 2>/dev/null
 ```
 
-**If NOT ignored:** Add to .gitignore, commit, then proceed.
+**If NOT ignored:** add the path to `.git/info/exclude` (`git rev-parse --git-path info/exclude` prints it from any worktree), or add it to `.gitignore` and commit that file alone (`git add .gitignore`, then `git commit -m "Ignore the worktree directory" -- .gitignore`); a plain `git commit` also commits whatever else is staged.
 
 **For a directory outside the repo:** No verification needed.
 
@@ -145,7 +145,7 @@ collisions surface as merge conflicts after the fact. Coordinate before they hap
 | `worktrees/` exists | Use it (verify ignored) |
 | Both exist | Use `.worktrees/` |
 | Neither exists | Check CLAUDE.md, then ask user |
-| Directory not ignored | Add to .gitignore + commit |
+| Directory not ignored | Add to `.git/info/exclude`, or commit `.gitignore` alone |
 | Tests fail in baseline | Report failures + ask |
 | No start point in mind | Name one anyway - `origin/main`, a branch, or a SHA |
 | HEAD is not the commit you were given | Stop, report BLOCKED |

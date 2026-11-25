@@ -94,7 +94,7 @@ When upgrading changes many models/types (e.g., Pydantic v1→v2 with 120 models
 
 ### Lock File Hygiene
 - Always commit lock files
-- Use frozen installs in CI: `npm ci`, `pnpm install --frozen-lockfile`, `uv sync --frozen`
+- Use frozen installs in CI: `npm ci`, `pnpm install --frozen-lockfile`, `uv sync --locked`, which fails on a stale lockfile
 - After upgrade: deduplicate (`npm dedupe`, `pnpm dedupe`)
 
 ### Version Override Patterns

@@ -227,7 +227,7 @@ def upload_with_scan(file_bytes: bytes, bucket: str, final_key: str):
 
 ## Gotchas
 
-- **Presigned URL expiry mismatch**: URL expires during slow upload; set generous expiry (1h+) for large files
+- **Presigned URL expiry mismatch**: S3 checks expiry when a request starts, so a URL must still be valid when its last attempt begins. Whole-file URL: 1h+ for large files. Multipart: sign every part up front with an expiry that covers the whole upload, or sign each part on demand with a short expiry and re-sign on retry. The signing credential's lifetime caps any expiry (an assumed-role session defaults to 1 hour)
 - **CORS on S3**: Direct browser uploads fail without CORS config; allow PUT/POST from your domain
 - **Content-Type not set**: S3 defaults to `application/octet-stream`; always set Content-Type on upload
 - **Incomplete multipart uploads**: Stale parts cost money silently; add lifecycle rule to abort after 7 days
