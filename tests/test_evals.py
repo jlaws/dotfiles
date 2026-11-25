@@ -222,6 +222,24 @@ class TempRepoCase(unittest.TestCase):
 
 
 class StageTests(TempRepoCase):
+    def test_marker_holds_the_source_digest_outside_the_plugin(self):
+        plugin = self.stage()
+        marker = json.loads((self.tmp / "out-kb" / ".kbeval-stage").read_text())
+        self.assertRegex(marker["sourceDigest"], r"^[0-9a-f]{64}$")
+        self.assertEqual(marker["staging"], "kb")
+        self.assertFalse((plugin / ".kbeval-stage").exists())
+        self.assertIsNone(kstage.staleness(self.repo, plugin))
+
+    def test_staleness_reports_an_edit_and_a_missing_digest(self):
+        plugin = self.stage()
+        (self.repo / ".claude/references/cat/ref.md").write_text("# Changed\n")
+        self.assertRegex(
+            kstage.staleness(self.repo, plugin) or "",
+            r"^staged plugin .* is stale \(staged [0-9a-f]{8}, tree [0-9a-f]{8}\)$",
+        )
+        (self.tmp / "out-kb" / ".kbeval-stage").write_text("staged by evals.kbeval\n")
+        self.assertIn("holds no source digest", kstage.staleness(self.repo, plugin) or "")
+
     def test_stage_refuses_unmarked_nonempty_out(self):
         out = self.tmp / "busy"
         out.mkdir()
@@ -3301,6 +3319,42 @@ class EntryPointTests(OrchestrateTests):
         "fanout-x",
     ]
 
+    def setUp(self):
+        super().setUp()
+        self.stale_patch = mock.patch.object(kmain.kstage, "staleness", return_value=None)
+        self.stale_patch.start()
+        self.addCleanup(self.stale_patch.stop)
+
+    def run_against_staged_tree(self, edit: bool):
+        self.stale_patch.stop()
+        self.addCleanup(self.stale_patch.start)
+        out = self.tmp / "out-entry"
+        plugin = kstage.stage(self.repo, out, "kb")
+        if edit:
+            skill = self.repo / ".claude/skills/demo-skill/SKILL.md"
+            skill.write_text(skill.read_text() + "More.\n")
+        args = [*self.RUN_ARGS[:6], str(plugin), *self.RUN_ARGS[7:]]
+        err = io.StringIO()
+        with (
+            mock.patch.object(kmain, "REPO", self.repo),
+            mock.patch.object(kmain.runner, "run", return_value=0) as run,
+            contextlib.redirect_stderr(err),
+        ):
+            status = kmain.main(args)
+        return status, run, err.getvalue()
+
+    def test_run_refuses_a_plugin_staged_before_a_tree_edit(self):
+        status, run, err = self.run_against_staged_tree(edit=True)
+        self.assertEqual(status, 1)
+        run.assert_not_called()
+        self.assertIn("is stale (staged ", err)
+        self.assertIn("; rerun make eval-stage", err)
+
+    def test_run_accepts_a_freshly_staged_plugin(self):
+        status, run, _ = self.run_against_staged_tree(edit=False)
+        self.assertEqual(status, 0)
+        run.assert_called_once()
+
     def test_settle_subcommand_appends_a_settle_row(self):
         key = {"period": self.budget["period"], "purpose": "fanout-x", "staging": "kb",
                "model": "claude-opus-5-5", "suite": "effects", "batch": "j-demo"}  # fmt: skip
@@ -3830,7 +3884,10 @@ class RunKeepTempTests(unittest.TestCase):
             "p",
             *extra,
         ]
-        with mock.patch.object(kmain.runner, "run", fake_run):
+        with (
+            mock.patch.object(kmain.runner, "run", fake_run),
+            mock.patch.object(kmain.kstage, "staleness", return_value=None),
+        ):
             self.assertEqual(kmain.main(argv), 0)
         return recorded["keep_temp"]
 

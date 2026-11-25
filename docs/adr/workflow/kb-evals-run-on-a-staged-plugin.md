@@ -37,6 +37,8 @@ raw results stay machine-local. Runs bill an API key. One invocation holds one C
 - A result written by another version is settled, then quarantined with a note.
 - An interrupted reservation stays charged, because in-flight spend is unknown; the `settle`
   command closes it at a cost the owner states.
+- `run --plugin` refuses a plugin staged before an edit to the tree: the stage marker holds a source
+  digest, and a mismatch exits 1 before any spend.
 
 ## Rationale
 

@@ -72,6 +72,10 @@ def _lint(args: argparse.Namespace) -> int:
 
 
 def _run(args: argparse.Namespace) -> int:
+    stale = kstage.staleness(REPO, Path(args.plugin))
+    if stale:
+        print(f"run: {stale}; rerun make eval-stage", file=sys.stderr)
+        return 1
     cap_limit = None
     if args.cap_usd is not None:
         orchestrate.announce_cap(args.purpose, args.cap_usd)

@@ -28,6 +28,12 @@ python3 -m evals.kbeval.hillclimb adopt --asset A... --before P... --after P... 
 
 `python3 -m evals.kbeval run --suite ... --staging ... --plugin ...` runs one suite for one staging
 and model; the make targets call the plans built on it. Add `--keep-temp` to keep each run's trace.
+
+`run --plugin` refuses a plugin staged before an edit to the tree it was staged from. It compares
+the source digest in the stage marker with the tree and, on a difference, prints
+`run: staged plugin <dir> is stale (staged <8 hex>, tree <8 hex>); rerun make eval-stage` (or
+`run: staged plugin <dir> holds no source digest; rerun make eval-stage`) and exits 1 before any cap
+or ledger work. The plans restage at start and are unaffected.
 `run --cap-usd <usd>` and `make eval-baseline CAP=<usd>` cap a purpose, which is the label passed
 as `--purpose` (`baseline` for the baseline). Both print
 `<purpose>: purpose cap $<cap>, spent $<spent>, left $<left>` on stderr before the first step and

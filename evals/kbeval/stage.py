@@ -11,6 +11,7 @@ run reads those files.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -44,6 +45,52 @@ class StageError(Exception):
     """Raised when staging cannot proceed safely."""
 
 
+def _hash_tree(digest, root: Path, repo: Path) -> None:
+    if not root.is_dir():
+        if root.is_file():
+            digest.update(f"{root.relative_to(repo)}\0".encode())
+            digest.update(root.read_bytes() + b"\0")
+        return
+    for path in sorted(root.rglob("*")):
+        parts = path.relative_to(root).parts
+        if not path.is_file() or "__pycache__" in parts or path.suffix == ".pyc":
+            continue
+        digest.update(f"{path.relative_to(repo)}\0".encode())
+        digest.update(path.read_bytes() + b"\0")
+
+
+def source_digest(repo: Path, staging: str, exclude_tags: frozenset) -> str:
+    """Hash everything `stage()` reads, so a later edit to any of it is detectable."""
+    digest = hashlib.sha256()
+    digest.update(f"{staging}\0{','.join(sorted(exclude_tags))}\0".encode())
+    paths = [
+        repo / "evals" / "kbeval" / "stage.py",
+        repo / "evals" / "harness.json",
+        repo / "evals" / "fixtures",
+        repo / "evals" / "cases",
+    ]
+    if staging == "kb":
+        claude = repo / ".claude"
+        paths += [claude / n for n in ("skills", "commands", "agents", "references", "CLAUDE.md")]
+    for path in paths:
+        _hash_tree(digest, path, repo)
+    return digest.hexdigest()
+
+
+def staleness(repo: Path, plugin: Path) -> Optional[str]:
+    """Return why `plugin` no longer matches the tree, or None when it does."""
+    try:
+        marker = json.loads((plugin.parent / MARKER).read_text(encoding="utf-8"))
+        staged = marker["sourceDigest"]
+        staging, tags = marker["staging"], frozenset(marker["excludeTags"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return f"staged plugin {plugin} holds no source digest"
+    tree = source_digest(repo, staging, tags)
+    if tree == staged:
+        return None
+    return f"staged plugin {plugin} is stale (staged {staged[:8]}, tree {tree[:8]})"
+
+
 def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozenset()) -> Path:
     """Build a staged plugin under `out` and return the plugin directory.
 
@@ -55,6 +102,7 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
     if out.is_symlink() or (out.exists() and not out.is_dir()):
         raise StageError(f"{out} is a symlink or a file; refusing to stage there")
     out = out.resolve()
+    sources = source_digest(repo, staging, exclude_tags)
     if out.exists():
         if any(out.iterdir()) and not (out / MARKER).is_file():
             raise StageError(
@@ -62,7 +110,8 @@ def stage(repo: Path, out: Path, staging: str, exclude_tags: frozenset = frozens
             )
         shutil.rmtree(out)
     out.mkdir(parents=True)
-    (out / MARKER).write_text("staged by evals.kbeval\n", encoding="utf-8")
+    marker = {"staging": staging, "excludeTags": sorted(exclude_tags), "sourceDigest": sources}
+    (out / MARKER).write_text(json.dumps(marker) + "\n", encoding="utf-8")
 
     harness = json.loads((repo / "evals" / "harness.json").read_text(encoding="utf-8"))
     command_form = harness.get("commandForm", "slash")
