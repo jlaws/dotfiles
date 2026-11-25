@@ -103,7 +103,7 @@ Conditional lenses, dispatched when Step 1 shows the surface is present:
 | Metrics, KPIs, or payment flows | `business-analyst` |
 | Prior art, papers, or methodology worth surveying | `research-analyst` |
 
-**These tables are a floor, not a ceiling.** Any agent in `.claude/agents/` whose lens applies is fair
+**These tables are a floor, not a ceiling.** Any available agent type whose lens applies is fair
 game - dispatch it with the same frozen packet. Report which agents ran and why, and which you
 deliberately skipped.
 

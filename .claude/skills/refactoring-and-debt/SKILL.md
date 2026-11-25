@@ -207,5 +207,5 @@ After analyzing all perspectives, synthesize findings: deduplicate, resolve cont
 
 ## Cross-References
 
-- **workflow:code-quality**: code smells, style conventions
-- **workflow:documentation-validation**: when a rename or interface change touches public surface, confirm docs (README, API reference) still match
+- **skill:code-quality**: code smells, style conventions
+- **skill:documentation-validation**: when a rename or interface change touches public surface, confirm docs (README, API reference) still match

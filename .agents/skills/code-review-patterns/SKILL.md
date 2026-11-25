@@ -198,16 +198,16 @@ Every finding cites `file:line`. Run this with the harness Workflow / `deep-rese
 
 ## Cross-References
 
-Load these skills if the review scope requires them:
-- `workflow:code-quality`: if detecting code smells or anti-patterns not covered above
-- `security:security-analysis`: if the diff touches auth, crypto, network, or trust boundaries
-- `security:auth-implementation-patterns`: if reviewing auth/authz logic specifically
-- `security:secrets-management`: if the diff contains credentials, tokens, or env var handling
-- `testing:language-testing-patterns`: if assessing test coverage or test quality
-- `testing:test-driven-development`: if evaluating test design or TDD compliance
-- `workflow:verification-before-completion`: if implementing fixes discovered during review
-- `workflow:pr-comment-resolution`: if responding to reviewer feedback on your own PR
-- `languages:*-patterns`: load the language-specific skill matching the primary language in the diff
-- `workflow:documentation-validation`: if the diff changes public surface or documented behavior and docs may be stale
+Load these skills, or read these references, if the review scope requires them:
+- `code-quality`: if detecting code smells or anti-patterns not covered above
+- `~/.agents/references/security/security-analysis.md`: if the diff touches auth, crypto, network, or trust boundaries
+- `~/.agents/references/security/auth-implementation-patterns.md`: if reviewing auth/authz logic specifically
+- `~/.agents/references/security/secrets-management.md`: if the diff contains credentials, tokens, or env var handling
+- `language-testing-patterns`: if assessing test coverage or test quality
+- `test-driven-development`: if evaluating test design or TDD compliance
+- `verification-before-completion`: if implementing fixes discovered during review
+- `pr-comment-resolution`: if responding to reviewer feedback on your own PR
+- `~/.agents/references/languages/`: read the file matching the primary language in the diff
+- `documentation-validation`: if the diff changes public surface or documented behavior and docs may be stale
 
 If the diff involves SQL queries, concurrent code, LLM inputs, enum exhaustiveness, or design system components, read `~/.agents/references/workflow/review-checklists` for domain-specific checklists.

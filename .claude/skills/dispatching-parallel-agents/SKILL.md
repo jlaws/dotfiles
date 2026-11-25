@@ -98,4 +98,4 @@ Reach for a workflow when control flow should be deterministic (loops, fan-out, 
 
 **Pairs with:** `subagent-driven-development` (run independent plan tasks concurrently)
 **Uses:** `verification-before-completion` for the evidence hierarchy when weighing what an agent reports
-**See also:** `.claude/CLAUDE.md` Delegation
+**See also:** `~/.claude/CLAUDE.md`, Delegation
