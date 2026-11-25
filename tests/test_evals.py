@@ -320,6 +320,25 @@ class StageTests(TempRepoCase):
         seed = (prompt.parent / "seed.sh").read_text()
         self.assertNotIn("references", seed)
 
+    def test_staged_assets_cite_workspace_references(self):
+        cited = {
+            ".claude/skills/demo-skill/SKILL.md": "${CLAUDE_SKILL_DIR}/../../references/cat/ref.md",
+            ".claude/commands/j-demo.md": "~/.claude/references/cat/ref.md",
+            ".claude/agents/demo-agent.md": "~/.claude/references/cat/ref.md",
+        }
+        for rel, citation in cited.items():
+            path = self.repo / rel
+            path.write_text(path.read_text() + f"\nRead `{citation}` first.\n")
+        plugin = self.stage()
+        for rel in cited:
+            staged = (plugin / Path(rel).relative_to(".claude")).read_text()
+            with self.subTest(asset=rel):
+                self.assertIn("Read `./.kb-references/cat/ref.md` first.", staged)
+                self.assertNotIn("CLAUDE_SKILL_DIR", staged)
+                self.assertNotIn("~/.claude/references", staged)
+        original = (self.repo / ".claude/commands/j-demo.md").read_text()
+        self.assertIn("~/.claude/references/cat/ref.md", original)
+
     def test_stage_kb_injects_json_encoded_system_prompt(self):
         plugin = self.stage()
         for suite in ("triggers", "effects", "workflows"):
@@ -332,8 +351,7 @@ class StageTests(TempRepoCase):
                 text = json.loads(line[len("append_system_prompt: ") :])
                 self.assertTrue(text.startswith((self.repo / ".claude/CLAUDE.md").read_text()))
                 self.assertIn(
-                    "KB references cited as `.claude/references/<p>` or `references/<p>` are at "
-                    "./.kb-references/<p>; they are not project files.",
+                    "KB references are at ./.kb-references/<p>; they are not project files.",
                     text,
                 )
                 self.assertIn(
@@ -347,8 +365,7 @@ class StageTests(TempRepoCase):
 
     def test_agent_case_prompt_carries_the_reference_path_note(self):
         note = (
-            "Tell the agent: KB references cited as `.claude/references/<p>` or `references/<p>` "
-            "are at ./.kb-references/<p>; they are not project files."
+            "Tell the agent: KB references are at ./.kb-references/<p>; they are not project files."
         )
         plugin = self.stage()
         effects = plugin / "evals-effects"

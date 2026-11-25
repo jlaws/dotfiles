@@ -15,10 +15,10 @@ Before starting, gather diagnostic context:
 
 Load the relevant references for the topic, based on the diagnostic context:
 
-Reference library at `references/cloud/`:
+Reference library at `~/.claude/references/cloud/`:
 - cost-optimization, file-storage-patterns, gpu-compute-management
 - multi-cloud-architecture, serverless-patterns
 
-For deep cloud guidance, you may instead delegate to the `cloud-architect` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `references/cloud/` library, then returns specific guidance. Verify its output before presenting.
+For deep cloud guidance, you may instead delegate to the `cloud-architect` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills (design-first) and the `~/.claude/references/cloud/` library, then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

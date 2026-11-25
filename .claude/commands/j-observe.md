@@ -16,13 +16,13 @@ Before starting, gather diagnostic context:
 5. **Get scope overview** of the target area (if $ARGUMENTS specifies a service or component, scope to that; otherwise scan for monitoring/, observability/, telemetry/, instrumentation/, or analytics/ directories and config).
 
 Load relevant references based on what the diagnostic context reveals:
-- `references/devops/observability` -- golden signals, metric design, tracing strategy, alerting, stack preferences
-- `references/devops/sre-practices` -- error budgets, SLO targets by tier, progressive deployment
-- `references/devops/incident-management` -- severity framework, runbook structure, postmortem process
-- `references/business/analytics-instrumentation` -- event taxonomy, tracking wrappers, funnel design, PII gotchas
-- `references/architecture/error-handling-patterns` -- error hierarchy, logging levels, resilience patterns
-- `references/business/kpi-dashboard-design` -- dashboard hierarchy, KPI framework
+- `~/.claude/references/devops/observability` -- golden signals, metric design, tracing strategy, alerting, stack preferences
+- `~/.claude/references/devops/sre-practices` -- error budgets, SLO targets by tier, progressive deployment
+- `~/.claude/references/devops/incident-management` -- severity framework, runbook structure, postmortem process
+- `~/.claude/references/business/analytics-instrumentation` -- event taxonomy, tracking wrappers, funnel design, PII gotchas
+- `~/.claude/references/architecture/error-handling-patterns` -- error hierarchy, logging levels, resilience patterns
+- `~/.claude/references/business/kpi-dashboard-design` -- dashboard hierarchy, KPI framework
 
-For deep observability design, you may delegate to the `devops-engineer` agent via the Agent tool (it loads the `references/devops/` library incl. observability, sre-practices, incident-management). Verify its output before presenting.
+For deep observability design, you may delegate to the `devops-engineer` agent via the Agent tool (it loads the `~/.claude/references/devops/` library incl. observability, sre-practices, incident-management). Verify its output before presenting.
 
 Help with: $ARGUMENTS

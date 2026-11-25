@@ -133,7 +133,7 @@ Starting Task 4 (Write API endpoints)...
 - Guessing when the plan is unclear
 - Summarizing verification output instead of pasting it (paste the actual terminal output)
 - Making decisions without logging them (every judgment call goes in the Decision Log)
-- Building a feature, option, or abstraction the plan did not ask for: do the bare minimum (`.claude/references/workflow/completeness-principle.md`, Where Thoroughness Stops); review fixes are not new scope
+- Building a feature, option, or abstraction the plan did not ask for: do the bare minimum (`${CLAUDE_SKILL_DIR}/../../references/workflow/completeness-principle.md`, Where Thoroughness Stops); review fixes are not new scope
 
 ## Integration
 

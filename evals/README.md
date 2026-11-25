@@ -241,8 +241,7 @@ and `refsMode` (`workspace`, or `add_dirs`).
   stagings: "In this sandbox `/usr/bin/git` fails; run git as `<git>`." `<git>` is the first `git`
   on the staging machine's `PATH` outside `/usr/bin`; with none, the line is left out.
 - For an agent effect prompt in the kb staging, the builder adds one line: "Tell the agent: KB
-  references cited as `.claude/references/<p>` or `references/<p>` are at <where><p>; they are not
-  project files." (`<where>` is `./.kb-references/`, or the run's `_refs/` directory in the
+  references are at <where><p>; they are not project files." (`<where>` is `./.kb-references/`, or the run's `_refs/` directory in the
   `add_dirs` reference mode.) A dispatched agent does not see the session's system prompt, which is where
   every other run learns that path. Measured on 2026-11-24 with
   architecture-specialist--effect-notification-fallbacks on Sonnet (purpose `audit-probe`, 1.65
@@ -372,7 +371,11 @@ What an offline run can show, per asset where it differs from a real session:
 
 Absolute scores differ from a real session in these ways; comparisons within the harness hold:
 - CLAUDE.md arrives as appended system text.
-- References sit in the workspace at `./.kb-references/`, not under `~/.claude/references/`.
+- References sit in the workspace at `./.kb-references/`, not under `~/.claude/references/`. The
+  stager rewrites the installed forms (`~/.claude/references/` in commands and agents,
+  `${CLAUDE_SKILL_DIR}/../../references/` in skills) to `./.kb-references/` in staged copies. That
+  edit to `evals/kbeval/stage.py` changes every case's staged text, so reference-reach figures in
+  the next baseline are not comparable with 2026-12.
 - Asset names carry the `kb:` namespace.
 - No settings or hooks load.
 - Bash runs under the OS sandbox.

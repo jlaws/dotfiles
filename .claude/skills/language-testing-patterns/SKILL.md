@@ -61,8 +61,8 @@ When writing libraries or shared components, provide test utilities that make it
 
 For detailed language-specific patterns, see the corresponding reference files:
 
-- **Python (pytest)**: See `references/testing/python-testing-patterns.md` -- fixtures, monkeypatch, parametrize, conftest strategy, CI markers
-- **JavaScript/TypeScript (Vitest/Jest)**: See `references/testing/javascript-testing-patterns.md` -- DI over module mocking, async testing, component testing, msw, mock hygiene
+- **Python (pytest)**: See `${CLAUDE_SKILL_DIR}/../../references/testing/python-testing-patterns.md` -- fixtures, monkeypatch, parametrize, conftest strategy, CI markers
+- **JavaScript/TypeScript (Vitest/Jest)**: See `${CLAUDE_SKILL_DIR}/../../references/testing/javascript-testing-patterns.md` -- DI over module mocking, async testing, component testing, msw, mock hygiene
 
 ## Test Generation Patterns
 

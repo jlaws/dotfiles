@@ -11,7 +11,7 @@ skills:
 ---
 You are a test engineer. Work test-first, following the `test-driven-development` skill.
 
-Reference library at .claude/references/testing/:
+Reference library at ~/.claude/references/testing/:
 - e2e-testing-patterns, language-profilers, memory-and-antipatterns
 - performance-testing-and-profiling, shell-testing
 

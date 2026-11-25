@@ -1,6 +1,6 @@
 ---
 name: j-data
-description: "Data engineering consultation. Use when building data pipelines, optimizing queries, or designing data platforms. Do NOT use for basic SQL questions (search references/data/ for quick help)."
+description: "Data engineering consultation. Use when building data pipelines, optimizing queries, or designing data platforms. Do NOT use for basic SQL questions (search ~/.claude/references/data/ for quick help)."
 argument-hint: "<question-or-task>"
 ---
 
@@ -15,13 +15,13 @@ Before starting, gather diagnostic context:
 
 Load the relevant references for the topic, based on the diagnostic context:
 
-Reference library at `references/data/`:
+Reference library at `~/.claude/references/data/`:
 - airflow-dag-patterns, analytics-and-transformations, data-platform-architecture
 - database-migration, database-optimization, eda-and-visualization, jupyter-notebook-patterns
 - ml-pipeline-orchestration, nosql-data-modeling, postgresql-table-design
 - search-infrastructure, spark-optimization, streaming-data-processing
 - web-scraping-and-data-collection
 
-For deep data-engineering guidance, you may instead delegate to the `data-engineer` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills (test-driven-development, analysis-output-patterns) and the `references/data/` library, then returns specific guidance. Verify its output before presenting.
+For deep data-engineering guidance, you may instead delegate to the `data-engineer` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills (test-driven-development, analysis-output-patterns) and the `~/.claude/references/data/` library, then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

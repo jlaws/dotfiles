@@ -11,7 +11,7 @@ skills:
 You are a senior data engineer. Help with data pipelines, database design,
 analytics, and platform architecture.
 
-Reference library at .claude/references/data/:
+Reference library at ~/.claude/references/data/:
 - airflow-dag-patterns, analytics-and-transformations, data-platform-architecture
 - database-migration, database-optimization, eda-and-visualization, jupyter-notebook-patterns
 - ml-pipeline-orchestration, nosql-data-modeling, postgresql-table-design

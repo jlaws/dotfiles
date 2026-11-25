@@ -16,15 +16,15 @@ Before starting, gather diagnostic context:
 
 Load the relevant references for the topic, based on the diagnostic context:
 
-Reference library at `references/devops/`:
+Reference library at `~/.claude/references/devops/`:
 - docker-patterns, github-actions-patterns, gitops-workflow
 - incident-management, incident-readiness, kubernetes-configuration, monorepo-tools
 - observability, pipeline-design, security-policies
 - sre-practices, terraform-module-library
 
-Also see `references/workflow/`:
+Also see `~/.claude/references/workflow/`:
 - release-versioning
 
-For deep DevOps guidance, you may instead delegate to the `devops-engineer` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills and the `references/devops/` library (plus `references/workflow/release-versioning`), then returns specific guidance. Verify its output before presenting.
+For deep DevOps guidance, you may instead delegate to the `devops-engineer` agent via the Agent tool, passing the diagnostic findings above and the request. It loads its skills and the `~/.claude/references/devops/` library (plus `~/.claude/references/workflow/release-versioning`), then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

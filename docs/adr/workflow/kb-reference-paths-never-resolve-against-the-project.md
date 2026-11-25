@@ -13,7 +13,7 @@ KB assets (skills, commands, prompts, agent definitions) cite shared references 
 assets cite them by a path such as `.agents/references/<category>/<file>.md`. A tool resolves a
 relative path against the session's working directory, which is the user's project. A cloned,
 untrusted repository can ship a file at that same relative path, and the model then reads the
-project's file as trusted KB guidance (`tasks/kb-cwd-relative-reference-paths.md`).
+project's file as trusted KB guidance.
 
 What the tools document, as of codex-cli 0.172.0, Claude Code 2.1.332, and agy 1.5.17:
 

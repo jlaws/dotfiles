@@ -585,12 +585,16 @@ def reference_names(text: str) -> set[str]:
 # home-anchored `~/` forms to the absolute home path in installed copies. No form resolves against
 # the project (docs/adr/workflow/kb-reference-paths-never-resolve-against-the-project.md).
 AGENTS_REFERENCES = "~/.agents/references/"
+CLAUDE_REFERENCES = "~/.claude/references/"
 REFERENCE_FORMS: dict[tuple[str, str], str] = {
     (".agents", "skills"): AGENTS_REFERENCES,
     (".gemini/antigravity-cli", "skills"): AGENTS_REFERENCES,
     (".codex", "prompts"): AGENTS_REFERENCES,
     (".codex", "agents"): AGENTS_REFERENCES,
     (".gemini/config", "agents"): AGENTS_REFERENCES,
+    (".claude", "skills"): "${CLAUDE_SKILL_DIR}/../../references/",
+    (".claude", "commands"): CLAUDE_REFERENCES,
+    (".claude", "agents"): CLAUDE_REFERENCES,
 }
 REFERENCE_CATEGORIES = sorted(path.name for path in (REPO / ".agents" / "references").iterdir())
 # One citation token: everything from the last delimiter up to and including `<category>/`.
@@ -622,7 +626,10 @@ def command_copies(command: str) -> tuple[tuple[Path, str], ...]:
     """Return each tree's copy of a command with the reference path prefix that tree uses."""
     agents = REFERENCE_FORMS[(".agents", "skills")]
     return (
-        (REPO / ".claude" / "commands" / f"{command}.md", "references/"),
+        (
+            REPO / ".claude" / "commands" / f"{command}.md",
+            REFERENCE_FORMS[(".claude", "commands")],
+        ),
         (REPO / ".agents" / "skills" / f"cmd-{command}" / "SKILL.md", agents),
         (REPO / ".codex" / "prompts" / f"{command}.md", REFERENCE_FORMS[(".codex", "prompts")]),
         (
@@ -2124,8 +2131,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     path = REPO / rel
                     self.assertTrue(path.is_file(), f"{rel} is missing")
                     text = path.read_text(encoding="utf-8")
-                    tree = "claude" if rel.split("/", 1)[0] == ".claude" else "agents"
-                    pointer = f".{tree}/references/workflow/existing-code-discipline.md"
+                    key = reference_form_key(rel)
+                    self.assertIsNotNone(key, f"{rel} is outside REFERENCE_FORMS")
+                    assert key is not None
+                    prefix = REFERENCE_FORMS[key]
+                    pointer = f"{prefix}workflow/existing-code-discipline.md"
                     self.assertTrue(bullet in text, f"{rel} has no {bullet} bullet")
                     self.assertTrue(pointer in text, f"{rel} does not point at {pointer}")
         self.assertEqual(
