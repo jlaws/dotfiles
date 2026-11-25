@@ -725,6 +725,20 @@ class SyncAgentsTests(unittest.TestCase):
             captured.output,
         )
 
+    def test_a_failed_removal_warns_and_the_sync_continues(self):
+        self._write_repo(".gemini/antigravity-cli/skills/j-keep/SKILL.md")
+        broken = self._write_target(".gemini/antigravity-cli/skills/j-bad/SKILL.md").parent
+        (broken / "dangling").symlink_to(self.tmp / "missing")
+        later = self._write_target(".gemini/antigravity-cli/skills/j-zzz/SKILL.md")
+        hook = self._write_target(".claude/hooks/guard-bash-output.sh")
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertTrue(any("j-bad" in e and "could not remove" in e for e in captured.output))
+        self.assertFalse(later.exists())
+        self.assertFalse(hook.exists())
+
 
 class RevertFilesTests(unittest.TestCase):
     def setUp(self):

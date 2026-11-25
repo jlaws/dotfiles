@@ -414,12 +414,17 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
     for removal, reason in _agent_removal_paths(repo, target):
         if not removal.exists() and not removal.is_symlink():
             continue
-        removed += 1
         if dry_run:
+            removed += 1
             _LOG.info("would remove %s (%s)", removal, reason)
-        else:
+            continue
+        try:
             remove_path(removal, archive)
-            _LOG.info("removed stale %s (%s)", removal, reason)
+        except OSError as exc:
+            _LOG.warning("could not remove %s: %s", removal, exc)
+            continue
+        removed += 1
+        _LOG.info("removed stale %s (%s)", removal, reason)
 
     if dry_run:
         _LOG.info(
