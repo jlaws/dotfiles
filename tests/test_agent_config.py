@@ -1834,7 +1834,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 continue
             start = block.index("pattern")
             decision = re.search(r"decision\s*=", block)
-            self.assertIsNotNone(decision)
+            if decision is None:
+                self.fail("allow rule has no decision")
             pattern = block[start : decision.start()]
             for token in banned:
                 self.assertIsNone(
@@ -1892,15 +1893,18 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             ):
                 continue
             match = re.search(r"pattern\s*=\s*(\[.*?\]),\s*\n\s*decision", block, re.S)
-            self.assertIsNotNone(match)
+            if match is None:
+                self.fail("allow rule has no pattern")
             pattern = match.group(1)
             if not re.match(r'\[\s*["\']gh["\']', pattern):
                 continue
             head = re.match(r'\[\s*["\']gh["\']\s*,\s*["\'](\w+)["\']', pattern)
-            self.assertIsNotNone(head)
+            if head is None:
+                self.fail(f"gh rule has no subcommand: {pattern}")
             first = head.group(1)
             rest = re.match(r'\[\s*["\']gh["\']\s*,\s*["\']\w+["\']\s*,\s*(.+)\]$', pattern, re.S)
-            self.assertIsNotNone(rest, f"gh rule has no third element: {pattern}")
+            if rest is None:
+                self.fail(f"gh rule has no third element: {pattern}")
             verbs = re.findall(r'["\'](\w+)["\']', rest.group(1))
             codex_gh.update(f"{first} {verb}" for verb in verbs)
         self.assertEqual(codex_gh, self.GH_ALLOWED)
