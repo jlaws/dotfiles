@@ -12,8 +12,8 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional
 
-REGRESSED_DROP = 2 / 3  # the single-model threshold `results.regressed` uses
-NOISE_DROP = 1 / 3  # one run in three: within run-to-run noise
+from evals.kbeval.results import NOISE_DROP, REGRESSED_DROP
+
 TOLERANCE = 1e-3  # summaries round scores to 4 decimals
 
 
