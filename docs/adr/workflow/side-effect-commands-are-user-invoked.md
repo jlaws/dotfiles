@@ -37,7 +37,10 @@ own control.
 this was decided: at the 2026-11-16 baseline `refactoring-and-debt` fired in none of its 18 kb
 runs (6 trigger-should, 12 effect, both models). Its description was rewritten on 2026-11-23, and
 it then fired in 6 of 6 runs of its existing should case and 10 of 12 held-out runs
-(`evals/README.md`, Trigger tuning); no effect run has been taken since. j-review-claudemd runs
+(`evals/README.md`, Trigger tuning). In the 2026-12 baseline its should cases fired in 15 of 18
+runs, but in its effect cases, where the request is a refactoring task, not a question about
+refactoring, it loaded in 1 of 18 kb runs: the path exists for a direct ask and is still mostly
+unused during the work itself. j-review-claudemd runs
 only when typed. Other Codex command skills stay implicitly invocable, as they already were in practice.
 
 ## Ruled Out
