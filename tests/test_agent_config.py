@@ -2214,6 +2214,47 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertGreater(cited, 0, "no shared citations found; the check is vacuous")
         self.assertEqual(dangling, [], "shared citations do not resolve:\n" + "\n".join(dangling))
 
+    def test_prefixed_citations_name_a_real_reference_or_skill(self):
+        """`<category>:<name>` (in backticks or bold) names `references/<category>/<name>.md`, and
+        `skill:<name>` names a skill, both in the citing file's own tree (`.claude` cites the
+        Claude tree; `.agents`, `.codex`, and `.gemini` cite `.agents`). A skill written in
+        category form, or a `languages:*` wildcard, resolves nowhere; that is the drift #157 swept."""
+        categories = sorted(
+            {entry.name for root in REFERENCE_TREES for entry in root.iterdir() if entry.is_dir()}
+        )
+        token = re.compile(r"(?:`|\*\*)(skill|%s):([\w*./-]+)(?:`|\*\*)" % "|".join(categories))
+        tracked = subprocess.run(
+            ["git", "ls-files", "-z", *TREE_ROOTS],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split("\0")
+        cited = 0
+        dangling = []
+        for name in tracked:
+            path = REPO / name
+            if path.suffix not in {".md", ".toml"} or not path.is_file():
+                continue
+            tree = REPO / (".claude" if name.startswith(".claude/") else ".agents")
+            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                for kind, target in token.findall(line):
+                    cited += 1
+                    if kind == "skill":
+                        skills = tree / "skills"
+                        found = (skills / target).is_dir() or (skills / f"cmd-{target}").is_dir()
+                    else:
+                        found = (tree / "references" / kind / f"{target}.md").is_file()
+                    if not found:
+                        dangling.append(f"{name}:{lineno}: {kind}:{target}")
+        self.assertGreater(cited, 0, "no prefixed citations found; the check is vacuous")
+        self.assertEqual(
+            dangling,
+            [],
+            "prefixed citations resolve to no reference or skill; cite a skill by bare name or "
+            "`skill:<name>`, and a reference by path:\n" + "\n".join(dangling),
+        )
+
     def test_existing_code_discipline_is_one_document_in_every_tree(self):
         """Four copies, one section set and one body. Two paste the text rather than linking it,
         so an edit to the reference alone leaves the diff-review prompts stale -- and comparing
