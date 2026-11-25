@@ -77,16 +77,58 @@ AGENT_REMOVALS = [
     ".gemini/hooks/lessons-learned.sh",
     ".claude/hooks/guard-bash-output.sh",
     ".codex/hooks/guard-bash-output.sh",
-    ".claude/commands/j-finalize-pr.md",
     ".gemini/hooks",
     ".gemini/policies",
     ".gemini/settings.json",
     ".gemini/commands",
     ".gemini/agents",
+    # Category-named Codex prompts deleted from the repo in #51.
+    ".codex/prompts/ai-ml-experiment.md",
+    ".codex/prompts/ai-ml-ml.md",
+    ".codex/prompts/architecture-arch.md",
+    ".codex/prompts/architecture-team-design.md",
+    ".codex/prompts/architecture-workflow-spec.md",
+    ".codex/prompts/business-biz.md",
+    ".codex/prompts/cloud-cloud.md",
+    ".codex/prompts/data-data.md",
+    ".codex/prompts/devops-devops.md",
+    ".codex/prompts/documentation-doc-sync.md",
+    ".codex/prompts/documentation-docs.md",
+    ".codex/prompts/frontend-frontend.md",
+    ".codex/prompts/frontend-redesign.md",
+    ".codex/prompts/languages-lang.md",
+    ".codex/prompts/product-pm.md",
+    ".codex/prompts/product-scope-review.md",
+    ".codex/prompts/research-email-analysis.md",
+    ".codex/prompts/research-paper-analysis.md",
+    ".codex/prompts/research-research.md",
+    ".codex/prompts/security-audit.md",
+    ".codex/prompts/testing-debug.md",
+    ".codex/prompts/testing-tdd.md",
+    ".codex/prompts/workflow-batch-refactor.md",
+    ".codex/prompts/workflow-brainstorm.md",
+    ".codex/prompts/workflow-create-pr.md",
+    ".codex/prompts/workflow-diff-review.md",
+    ".codex/prompts/workflow-execute-plan.md",
+    ".codex/prompts/workflow-pr-fix.md",
+    ".codex/prompts/workflow-retro.md",
+    ".codex/prompts/workflow-review-claudemd.md",
+    ".codex/prompts/workflow-skill-audit.md",
+    ".codex/prompts/workflow-team-investigate.md",
+    ".codex/prompts/workflow-team-review.md",
+    ".codex/prompts/workflow-write-plan.md",
 ]
 
 AGENT_REMOVAL_GLOBS = [
     ".agents/skills/agent-*",
+]
+
+# Command entries per synced tree: one the repo no longer ships under the same glob is pruned.
+AGENT_ORPHAN_GLOBS: list[tuple[str, str]] = [
+    (".agents/skills", "cmd-j-*"),
+    (".claude/commands", "j-*.md"),
+    (".codex/prompts", "j-*.md"),
+    (".gemini/antigravity-cli/skills", "j-*"),
 ]
 
 
@@ -289,18 +331,42 @@ def sync_dotfiles(repo: Path, home: Path, archive: Archive, *, dry_run: bool = F
             _LOG.debug("sync %s", dest)
 
 
-def _agent_removal_paths(repo: Path, target: Path) -> Iterator[Path]:
-    """Yield stale managed paths, including command skills removed from the source tree."""
-    for removal in AGENT_REMOVALS:
-        yield target / removal
-    for pattern in AGENT_REMOVAL_GLOBS:
-        yield from sorted(target.glob(pattern))
+def _behind_symlink(path: Path, target: Path) -> bool:
+    """True when a parent directory of ``path`` under ``target`` is a symlink that leaves it."""
+    parent = path.parent
+    return parent.resolve() != target.resolve() / parent.relative_to(target)
 
-    source_commands = {path.name for path in (repo / ".agents" / "skills").glob("cmd-j-*")}
-    target_skills = target / ".agents" / "skills"
-    for command in sorted(target_skills.glob("cmd-j-*")):
-        if command.name not in source_commands:
-            yield command
+
+def _agent_removal_paths(repo: Path, target: Path) -> Iterator[tuple[Path, str]]:
+    """Yield ``(path, reason)`` for stale managed paths, including commands the repo dropped."""
+    candidates: list[tuple[Path, str]] = [(target / r, "retired") for r in AGENT_REMOVALS]
+    for pattern in AGENT_REMOVAL_GLOBS:
+        candidates.extend((match, "retired glob") for match in sorted(target.glob(pattern)))
+
+    for root, pattern in AGENT_ORPHAN_GLOBS:
+        shipped = {path.name for path in (repo / root).glob(pattern)}
+        present = sorted((target / root).glob(pattern))
+        if not shipped:
+            if present:
+                _LOG.warning("not pruning %s: the repo ships no %s there", root, pattern)
+            continue
+        for entry in present:
+            if entry.name in shipped:
+                continue
+            if entry.is_symlink():
+                _LOG.warning(
+                    "keeping symlinked command %s: not shipped by the repo; "
+                    "remove it by hand to stop this warning",
+                    entry,
+                )
+                continue
+            candidates.append((entry, "not shipped"))
+
+    for path, reason in candidates:
+        if _behind_symlink(path, target):
+            _LOG.warning("not removing %s: a parent directory is a symlink out of %s", path, target)
+            continue
+        yield path, reason
 
 
 def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = False) -> None:
@@ -347,29 +413,38 @@ def sync_agents(repo: Path, target: Path, archive: Archive, *, dry_run: bool = F
     # the dry-run branch rather than at DEBUG inside `remove_path`. Without this the preview was
     # louder than the real run: `--dry-run` listed every path while the live run said nothing, and
     # the only record that anything went was the archive manifest.
-    for removal in _agent_removal_paths(repo, target):
+    removed = 0
+    for removal, reason in _agent_removal_paths(repo, target):
         if not removal.exists() and not removal.is_symlink():
             continue
         if dry_run:
-            _LOG.info("would remove %s", removal)
-        else:
+            removed += 1
+            _LOG.info("would remove %s (%s)", removal, reason)
+            continue
+        try:
             remove_path(removal, archive)
-            _LOG.info("removed stale %s", removal)
+        except OSError as exc:
+            _LOG.warning("could not remove %s: %s", removal, exc)
+            continue
+        removed += 1
+        _LOG.info("removed stale %s (%s)", removal, reason)
 
     if dry_run:
         _LOG.info(
-            "Would sync %d agent config files to %s (%d would merge, %d would sync)",
+            "Would sync %d agent config files to %s (%d would merge, %d would sync, %d would remove)",
             would_sync + would_merge,
             target,
             would_merge,
             would_sync,
+            removed,
         )
         return
 
     _LOG.info(
-        "Synced %d agent config files to %s (%d merged, %d synced)",
+        "Synced %d agent config files to %s (%d merged, %d synced, %d removed)",
         synced + merged,
         target,
         merged,
         synced,
+        removed,
     )

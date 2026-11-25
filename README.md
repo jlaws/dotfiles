@@ -92,7 +92,7 @@ Steps run in privilege order, so a standard (non-admin) user can apply everythin
 
 ### 1. Sync Dotfiles
 Copies dotfiles and agent workflows to your home directory:
-- **Executable knowledge assets** (skills, commands, prompts, and agent roles under `.claude/`, `.agents/`, `.codex/`, and `.gemini/`) are fully replaced with the latest versions from the repository.
+- **Executable knowledge assets** (skills, commands, prompts, and agent roles under `.claude/`, `.agents/`, `.codex/`, and `.gemini/`) are fully replaced with the latest versions from the repository. Commands the repository no longer ships are removed from `~`.
 - **Machine configuration files** (`.claude/settings.json`, `.codex/config.toml`, `.gemini/antigravity-cli/settings.json`) are **merged**: incoming keys from the repository are updated, while machine-specific settings, local overrides, and unrecognized keys are preserved.
 - **Root dotfiles** (`.zshrc`, `.gitconfig`, `.vimrc`, etc.) are installed to `~`.
 

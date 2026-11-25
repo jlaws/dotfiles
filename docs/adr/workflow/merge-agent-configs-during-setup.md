@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-09-28
-updated: 2026-11-14
+updated: 2026-11-25
 ---
 # Merge agent machine configs during setup, overwrite skills and commands
 
@@ -27,7 +27,7 @@ The setup runner must execute on bare macOS system Python (Python 3.9.6 floor) w
 
 We will divide agent synchronization into two lifecycle policies:
 
-1. **Executable Knowledge Assets (Overwrite)**: Skills, slash commands, agent personas, prompts, hooks, and references are copied directly from the repository, replacing destination files. Stale removed commands and legacy directories are cleaned up via `AGENT_REMOVALS` and `AGENT_REMOVAL_GLOBS`. Known gap: only `.agents/skills/cmd-j-*` is pruned by name today; commands deleted from `.claude/commands/`, `.codex/prompts/`, and `.gemini/antigravity-cli/skills/` linger until `tasks/prune-deleted-commands-on-sync.md` lands.
+1. **Executable Knowledge Assets (Overwrite)**: Skills, slash commands, agent personas, prompts, hooks, and references are copied directly from the repository, replacing destination files. Stale removed commands and legacy directories are cleaned up via `AGENT_REMOVALS` and `AGENT_REMOVAL_GLOBS`. Commands deleted from the repository are pruned per tree: any `j-*` entry the repo does not ship is removed from `.agents/skills` (`cmd-j-*`), `.claude/commands/`, `.codex/prompts/`, and `.gemini/antigravity-cli/skills/` (`AGENT_ORPHAN_GLOBS`). Prompts retired under other names are listed in `AGENT_REMOVALS`.
 2. **Machine Configuration Files (Deep Key Merge)**: Target configuration files (`.claude/settings.json`, `.codex/config.toml`, and `.gemini/antigravity-cli/settings.json`) are merged when the target already exists:
    - Repository-managed keys update or insert into the target.
    - User-defined or machine-local keys and sections absent from the repository template are preserved.
@@ -49,6 +49,8 @@ Overwriting skills and commands while merging configs aligns with their distinct
 
 **Accepted**: `macos_setup` must maintain a stdlib-only TOML merge implementation compatible with Python 3.9. Merge conflict rules must be deterministic (repo keys override target on collisions).
 
+**Removal scope**: `AGENT_ORPHAN_GLOBS` names the pruned roots. A `j-*` (`cmd-j-*` under `.agents/skills`) entry the repo does not ship is removed from any sync target, a `--project` directory included. Those names are reserved for repo-shipped commands, so a user-authored `j-mine.md` is removed too. A symlinked entry, or one behind a symlinked parent directory, is kept with a warning. A root whose repo source ships nothing is not pruned. A failed removal warns and the sync continues. Removals are archived and restorable with `--uninstall`.
+
 ## Ruled Out
 
 | Idea | Why ruled out | When |
@@ -56,6 +58,8 @@ Overwriting skills and commands while merging configs aligns with their distinct
 | Git-style three-way text merge | Prone to syntax-breaking conflict markers during automated non-interactive runs (`--force`). | 2026-09-28 |
 | Harness `.local` include configuration files | Upstream harnesses (`claude`, `codex`, `antigravity`) do not support an `include` or `.local` file pattern for their primary configuration files. | 2026-09-28 |
 | Third-party TOML library via pip | Violates the strict standard-library-only requirement for `macos_setup` on fresh macOS installations (`README.md:79-80`, `CLAUDE.md:20`). | 2026-09-28 |
+| Mirror each synced directory | Deleting everything the repo does not ship would delete user-authored files. | 2026-11-25 |
+| Prune from the archive manifests | No manifest records the stale files, so there is nothing to compare against. | 2026-11-25 |
 
 ## Enforcement
 

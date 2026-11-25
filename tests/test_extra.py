@@ -12,38 +12,45 @@ ZSHRC_PATH = REPO_ROOT / ".zshrc"
 
 
 class ExtraFileLimitTests(unittest.TestCase):
-    def test_zsh_raises_ulimit(self):
-        cmd = f"ulimit -Sn 256\nsource {EXTRA_PATH} 2>/dev/null\nulimit -n"
-        result = subprocess.run(
-            ["zsh", "-c", cmd],
-            capture_output=True,
-            text=True,
-            check=True,
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.home = Path(self._tmp.name)
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def _shell(self, shell: str, script: str) -> subprocess.CompletedProcess:
+        env = {
+            "HOME": str(self.home),
+            "PATH": "/usr/bin:/bin",
+            "TERM": "dumb",
+            "GIT_CONFIG_NOSYSTEM": "1",
+        }
+        return subprocess.run(
+            [shell, "-c", script], capture_output=True, text=True, check=True, env=env
         )
+
+    def test_sourcing_extra_writes_git_config_under_the_temp_home(self):
+        self._shell("zsh", f"source {shlex.quote(str(EXTRA_PATH))} 2>/dev/null")
+        self.assertTrue((self.home / ".gitconfig").is_file())
+
+    def test_zsh_raises_ulimit(self):
+        cmd = f"ulimit -Sn 256\nsource {shlex.quote(str(EXTRA_PATH))} 2>/dev/null\nulimit -n"
+        result = self._shell("zsh", cmd)
         limit = int(result.stdout.strip())
         self.assertGreaterEqual(limit, 10240)
         self.assertEqual(limit, 65536)
 
     def test_bash_raises_ulimit(self):
-        cmd = f"ulimit -Sn 256\nsource {EXTRA_PATH} 2>/dev/null\nulimit -n"
-        result = subprocess.run(
-            ["bash", "-c", cmd],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+        cmd = f"ulimit -Sn 256\nsource {shlex.quote(str(EXTRA_PATH))} 2>/dev/null\nulimit -n"
+        result = self._shell("bash", cmd)
         limit = int(result.stdout.strip())
         self.assertGreaterEqual(limit, 10240)
         self.assertEqual(limit, 65536)
 
     def test_preserves_higher_limit(self):
-        cmd = f"ulimit -n 245760 2>/dev/null\nsource {EXTRA_PATH} 2>/dev/null\nulimit -n"
-        result = subprocess.run(
-            ["zsh", "-c", cmd],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+        cmd = f"ulimit -n 245760 2>/dev/null\nsource {shlex.quote(str(EXTRA_PATH))} 2>/dev/null\nulimit -n"
+        result = self._shell("zsh", cmd)
         limit = int(result.stdout.strip())
         self.assertEqual(limit, 245760)
 

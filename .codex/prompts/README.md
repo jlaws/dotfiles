@@ -6,4 +6,6 @@ These markdown files are the Codex slash-command registry.
 - This repo keeps the active prompt files in `.codex/prompts/`.
 - Filenames match the Claude command names (`j-<name>.md`); Codex prompt discovery is flat.
 
+Sync removes `j-*.md` prompts the repo no longer ships.
+
 After syncing this repo into `~/.codex/`, these prompts should appear in Codex slash completion.

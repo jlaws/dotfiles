@@ -10,6 +10,10 @@ from pathlib import Path
 from macos_setup.archive import Archive
 from macos_setup.config_merge import ConfigMergeError
 from macos_setup.dotfiles import (
+    AGENT_ORPHAN_GLOBS,
+    AGENT_REMOVALS,
+    AGENT_SYNC,
+    _iter_pairs,
     apply_file,
     apply_merged_file,
     file_revert_decision,
@@ -460,6 +464,110 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertTrue(current_command.exists())
         self.assertIn("name: cmd-j-tdd", current_command.read_text())
 
+    def _write_repo(self, relative: str, content: str = "shipped") -> Path:
+        path = self.repo / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+        return path
+
+    def _orphan_entry(self, root: str, pattern: str, stem: str) -> str:
+        """Return the relative path of a command entry in ``root`` for glob ``pattern``."""
+        name = pattern.replace("*", stem)
+        return f"{root}/{name}/SKILL.md" if not name.endswith(".md") else f"{root}/{name}"
+
+    def test_removes_a_command_the_repo_no_longer_ships_from_each_tree(self):
+        for root, pattern in AGENT_ORPHAN_GLOBS:
+            with self.subTest(root=root):
+                keep = self._orphan_entry(root, pattern, "keep")
+                gone = self._orphan_entry(root, pattern, "gone")
+                self._write_repo(keep)
+                kept = self._write_target(keep)
+                removed = self._write_target(gone)
+
+                sync_agents(self.repo, self.target, self.archive)
+
+                self.assertFalse(removed.exists())
+                self.assertTrue(kept.exists())
+                records = self.archive.manifest["files"]
+                self.assertTrue(
+                    any(r["dest"] == str(removed) and r["action"] == "removed" for r in records)
+                )
+
+    def test_removes_the_retired_category_named_codex_prompts(self):
+        retired = self._write_target(".codex/prompts/workflow-diff-review.md")
+        other = self._write_target(".codex/prompts/ai-ml-experiment.md")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(retired.exists())
+        self.assertFalse(other.exists())
+
+    def test_dry_run_reports_pruned_commands_without_removing_them(self):
+        for root, pattern in AGENT_ORPHAN_GLOBS:
+            with self.subTest(root=root):
+                self._write_repo(self._orphan_entry(root, pattern, "keep"))
+                gone = self._write_target(self._orphan_entry(root, pattern, "gone"))
+
+                with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+                    sync_agents(self.repo, self.target, self.archive, dry_run=True)
+
+                self.assertTrue(gone.exists())
+                self.assertTrue(
+                    any(
+                        "would remove" in line and str(gone.parent) in line
+                        for line in captured.output
+                    ),
+                    captured.output,
+                )
+
+    def test_keeps_a_user_authored_command_the_repo_never_shipped(self):
+        notes = [
+            self._write_target(".claude/commands/my-notes.md"),
+            self._write_target(".codex/prompts/my-notes.md"),
+            self._write_target(".gemini/antigravity-cli/skills/my-skill/SKILL.md"),
+        ]
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        for path in notes:
+            self.assertTrue(path.exists(), path)
+
+    def test_keeps_shared_gemini_skills(self):
+        # A non-command skill that lives only in the target (a user's own, or a shared skill
+        # synced earlier) must survive: only `j-*` entries are command skills.
+        target = self._write_target(".gemini/antigravity-cli/skills/tdd/SKILL.md")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertTrue(target.exists())
+
+    def test_keeps_the_codex_prompts_readme(self):
+        readme = self._write_target(".codex/prompts/README.md")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertTrue(readme.exists())
+
+    def test_orphan_prune_keeps_a_symlinked_entry(self):
+        real = self.tmp / "elsewhere"
+        real.mkdir()
+        link = self.target / ".gemini/antigravity-cli/skills/j-linked"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(real, target_is_directory=True)
+
+        self._write_repo(".gemini/antigravity-cli/skills/j-keep/SKILL.md")
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertTrue(link.is_symlink())
+        self.assertTrue(real.is_dir())
+        self.assertIn(
+            f"keeping symlinked command {link}: not shipped by the repo; "
+            "remove it by hand to stop this warning",
+            " ".join(captured.output),
+        )
+
     def test_dry_run_reports_removals_without_changing_files(self):
         cursor_file = self._write_target(".cursor/state.json")
         agent_wrapper = self._write_target(".agents/skills/agent-reviewer/SKILL.md")
@@ -559,6 +667,131 @@ class SyncAgentsTests(unittest.TestCase):
             any(f"removed stale {guard}" in line for line in captured.output),
             captured.output,
         )
+
+    def test_removal_logs_carry_a_reason(self):
+        self._write_repo(".claude/commands/j-keep.md")
+        retired = self._write_target(".claude/hooks/guard-bash-output.sh")
+        glob_hit = self._write_target(".agents/skills/agent-x/SKILL.md").parent
+        orphan = self._write_target(".claude/commands/j-gone.md")
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        def line(path):
+            return next(entry for entry in captured.output if f"removed stale {path}" in entry)
+
+        self.assertIn("retired", line(retired))
+        self.assertIn("retired glob", line(glob_hit))
+        self.assertIn("not shipped", line(orphan))
+
+    def test_sync_summary_counts_removals(self):
+        self._write_repo(".claude/commands/j-keep.md")
+        self._write_target(".claude/commands/j-gone.md")
+        self._write_target(".claude/hooks/guard-bash-output.sh")
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+        self.assertTrue(any("2 removed" in e for e in captured.output), captured.output)
+
+        self._write_target(".claude/commands/j-gone.md")
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+        self.assertTrue(
+            any("Would sync" in e and "1 would remove" in e for e in captured.output),
+            captured.output,
+        )
+
+    def test_removal_skips_paths_behind_a_symlinked_parent(self):
+        outside = self.tmp / "outside"
+        outside.mkdir()
+        victim = outside / "j-victim.md"
+        victim.write_text("not ours")
+        hook = outside / "guard-bash-output.sh"
+        hook.write_text("not ours")
+        self._write_repo(".claude/commands/j-keep.md")
+        (self.target / ".claude").mkdir(parents=True)
+        (self.target / ".claude/commands").symlink_to(outside, target_is_directory=True)
+        (self.target / ".claude/hooks").symlink_to(outside, target_is_directory=True)
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertTrue(victim.exists())
+        self.assertTrue(hook.exists())
+        self.assertTrue(any("symlink" in e and "commands" in e for e in captured.output))
+
+    def test_a_root_the_repo_ships_nothing_in_is_not_pruned(self):
+        stale = self._write_target(".claude/commands/j-user.md")
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertTrue(stale.exists())
+        self.assertTrue(
+            any(
+                "not pruning .claude/commands: the repo ships no j-*.md there" in e
+                for e in captured.output
+            ),
+            captured.output,
+        )
+
+    def test_a_failed_removal_warns_and_the_sync_continues(self):
+        self._write_repo(".gemini/antigravity-cli/skills/j-keep/SKILL.md")
+        broken = self._write_target(".gemini/antigravity-cli/skills/j-bad/SKILL.md").parent
+        (broken / "dangling").symlink_to(self.tmp / "missing")
+        later = self._write_target(".gemini/antigravity-cli/skills/j-zzz/SKILL.md")
+        hook = self._write_target(".claude/hooks/guard-bash-output.sh")
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertTrue(any("j-bad" in e and "could not remove" in e for e in captured.output))
+        self.assertFalse(later.exists())
+        self.assertFalse(hook.exists())
+
+    def test_orphan_globs_cover_the_four_command_trees(self):
+        self.assertEqual(
+            AGENT_ORPHAN_GLOBS,
+            [
+                (".agents/skills", "cmd-j-*"),
+                (".claude/commands", "j-*.md"),
+                (".codex/prompts", "j-*.md"),
+                (".gemini/antigravity-cli/skills", "j-*"),
+            ],
+        )
+
+    def test_no_retired_path_names_a_file_the_repo_ships(self):
+        repo_root = Path(__file__).resolve().parent.parent
+        shipped = {
+            dest.relative_to(Path("/t"))
+            for src_rel, dest_rel in AGENT_SYNC
+            for _, dest in _iter_pairs(repo_root / src_rel, Path("/t") / dest_rel)
+        }
+        for removal in AGENT_REMOVALS:
+            with self.subTest(removal=removal):
+                path = Path(removal)
+                self.assertFalse(
+                    any(item == path or path in item.parents for item in shipped),
+                    f"{removal} is retired but the repo ships it",
+                )
+
+    def test_a_user_authored_j_command_the_repo_does_not_ship_is_removed(self):
+        # `j-` is reserved for repo-shipped commands; the prune cannot tell a user's j-mine.md
+        # from a deleted one, so it removes both (archived, restorable).
+        self._write_repo(".claude/commands/j-keep.md")
+        mine = self._write_target(".claude/commands/j-mine.md", "my own command")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(mine.exists())
+
+    def test_the_orphan_glob_removes_the_retired_finalize_pr_command(self):
+        self._write_repo(".claude/commands/j-keep.md")
+        stale = self._write_target(".claude/commands/j-finalize-pr.md")
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        self.assertFalse(stale.exists())
 
 
 class RevertFilesTests(unittest.TestCase):
