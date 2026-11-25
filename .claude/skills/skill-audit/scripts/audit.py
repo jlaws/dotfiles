@@ -31,7 +31,7 @@ TRIGGER = re.compile(r"\b(use when|use this when|use for|use to|when )", re.IGNO
 # anchored `../../references/...` in skills. Each resolves against `.claude/references`.
 # REF_DIR matches the directory-only mentions in those forms too: the repo-relative
 # `.claude/references/<category>/`, the home-anchored `~/.claude/references/<category>/`, and the
-# skill-folder form `${CLAUDE_SKILL_DIR}/../../references/<category>/`.
+# skill-folder variable form with `../../references/<category>/`.
 REF_PATH = re.compile(r"references/[A-Za-z0-9._/-]+\.md")
 REF_DIR = re.compile(
     r"(?:\.claude/references|\$\{CLAUDE_SKILL_DIR\}/\.\./\.\./references)/([a-z0-9-]+)/"
