@@ -11,7 +11,13 @@ import unittest
 from pathlib import Path
 
 from macos_setup.dotfiles import EXPANDED_SUFFIXES, HOME_ANCHORS
-from tests.markdown import HEADING, heading_texts, markdown_headings
+from tests.markdown import (
+    HEADING,
+    has_unterminated_fence,
+    heading_texts,
+    lines_outside_fences,
+    markdown_headings,
+)
 
 REPO = Path(__file__).resolve().parents[1]
 FRONTMATTER_DESCRIPTION = re.compile(r'^description:\s*["\']?(.*?)["\']?$', re.MULTILINE)
@@ -41,6 +47,9 @@ TREE_SCRIPT_PATH = re.compile(
 )
 SKILL_DIR_SCRIPT_PATH = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+\.(?:py|sh|mjs|js))")
 TREE_ROOTS = (".claude", ".codex", ".agents", ".gemini")
+CODE_SPAN = re.compile(r"(`+).+?\1")
+TABLE_PLACEHOLDER = re.compile(r"\|\s*--\s*(?=\|)")
+PROSE_DOUBLE_HYPHEN = re.compile(r"(?<=\S) -- (?=\S)")
 EM_DASH = "\u2014"
 
 # Side-effect commands nothing invokes; user-only in Claude and Codex
@@ -1670,6 +1679,60 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
         self.assertEqual(undecodable, [], "tracked KB files that are not UTF-8 text")
         self.assertEqual(dashes, [], "\n".join(dashes))
+
+    def test_kb_prose_contains_no_double_hyphen_dash(self):
+        """A prose ` -- ` is a dash typed as two hyphens; use a comma, semicolon, colon, or
+        parentheses. Code spans, fenced blocks, and table placeholder cells are exempt, so a CLI
+        argument separator stays in a code span. Frontmatter descriptions and TOML strings are
+        prose."""
+
+        def flagged(text):
+            hits = []
+            for lineno, line in lines_outside_fences(text):
+                line = CODE_SPAN.sub("C", line)
+                line = TABLE_PLACEHOLDER.sub("", line)
+                if PROSE_DOUBLE_HYPHEN.search(line):
+                    hits.append(lineno)
+            return hits
+
+        for bad in (
+            "A prose dash -- here",
+            "## Phase 1 -- Scope",
+            "run `git log -- path` -- then",
+        ):
+            self.assertTrue(flagged(bad), f"control not rejected: {bad!r}")
+        for good in (
+            "Use `git diff -- path` here",
+            "| Right | -- | x |",
+            "```\na -- b\n```",
+            "a --flag",
+        ):
+            self.assertFalse(flagged(good), f"control wrongly rejected: {good!r}")
+        tracked = subprocess.run(
+            ["git", "ls-files", "-z", *TREE_ROOTS],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split("\0")
+        scanned = 0
+        problems = []
+        for name in tracked:
+            if not name.endswith((".md", ".toml")):
+                continue
+            path = REPO / name
+            if not path.is_file():
+                continue
+            text = path.read_text(encoding="utf-8")
+            scanned += 1
+            if has_unterminated_fence(text):
+                problems.append(f"{name}: unterminated fence hides prose from the check")
+            problems.extend(
+                f"{name}:{n}: prose ' -- '; use a colon, semicolon, or parentheses"
+                for n in flagged(text)
+            )
+        self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
+        self.assertEqual(problems, [], "\n".join(problems))
 
     def test_source_credit_patterns_catch_each_credit_form(self):
         """Positive and negative controls, so a loosened pattern cannot pass on a clean tree."""

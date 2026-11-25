@@ -25,7 +25,7 @@ Before analyzing, resolve and fetch the paper, then gather its resources in para
    | Videos, talks, blog posts, explainers | `research-analyst` | Conference/author talk URLs, blog/Distill/explainer URLs |
    | Supplementary materials, BibTeX citation | `research-analyst` | Project page, appendix, and dataset URLs; BibTeX from arxiv, Semantic Scholar, or publisher |
 
-**Integrate**: collect the subagent results, dedupe, and populate the Resources & Links section. A subagent reporting "found it" is not proof -- confirm each link resolves before you write it (see `verification-before-completion`). Use "Not available" for expected resources such as official code, and "None found" for optional ones such as blogs or videos.
+**Integrate**: collect the subagent results, dedupe, and populate the Resources & Links section. A subagent reporting "found it" is not proof: confirm each link resolves before you write it (see `verification-before-completion`). Use "Not available" for expected resources such as official code, and "None found" for optional ones such as blogs or videos.
 
 For small or well-known papers, run these searches inline instead of delegating.
 
@@ -105,7 +105,7 @@ Virtually re-implement the paper mentally. Challenge everything.
 
 ### References
 
-- `~/.agents/references/ai-ml/eval-and-benchmarking.md` -- ML evaluation methodology and benchmarks
+- `~/.agents/references/ai-ml/eval-and-benchmarking.md`: ML evaluation methodology and benchmarks
 
 ---
 
@@ -330,15 +330,15 @@ Create a file named `{paper-short-title}.md`. Use this template:
 ### Process Guidelines
 
 - Read the full paper across all three passes before writing the summary
-- Be precise -- use exact numbers from the paper
+- Be precise: use exact numbers from the paper
 - Distinguish between what the paper claims and what the evidence supports
 - **Linchpin check:** would removing any single piece of evidence collapse the argument? Say so
 - **Proportionate requests:** ask for a new experiment only when a central claim needs it; offer a narrower claim or a stated limitation first.
 - **Read scope:** with only an abstract or a paywalled page, write "not assessed (read scope: abstract)" for methods critique rather than inferring weaknesses
-- For critical analysis, be honest and constructive -- identify real issues, not nitpicks
+- For critical analysis, be honest and constructive: identify real issues, not nitpicks
 - The summary should be self-contained: someone reading it should understand the paper without reading the original
 - **Score calibration:** 6-7 = good paper with solid contribution; 8+ = genuinely strong/exceptional; don't grade-inflate
 - **Omit N/A sections** rather than filling them with "Not applicable" placeholders
 - **Novelty assessment:** compare against the closest specific prior work, not the field in general
 - **TL;DR:** draft after Pass 1, refine after Pass 3
-- **Resource links:** require genuine search effort -- use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos) A confidential manuscript skips the search; write "Not searched (confidential manuscript)" instead.
+- **Resource links:** require genuine search effort: use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos) A confidential manuscript skips the search; write "Not searched (confidential manuscript)" instead.

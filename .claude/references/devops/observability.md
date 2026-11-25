@@ -10,10 +10,10 @@ Pick RED for microservices, USE for infrastructure. Don't mix.
 
 ## Metric Design Opinions
 
-- Always use histograms over summaries for latency -- histograms are aggregatable, summaries are not
+- Always use histograms over summaries for latency: histograms are aggregatable, summaries are not
 - Bucket defaults `[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5]` cover most HTTP services
 - Exclude `/health` and `/metrics` endpoints from SLI calculations
-- Use recording rules for any query used in alerts or dashboards -- never put raw PromQL in alerts
+- Use recording rules for any query used in alerts or dashboards: never put raw PromQL in alerts
 - Label cardinality kills Prometheus: never use user IDs, request IDs, or unbounded values as labels
 
 ## Service Tier Classification
@@ -82,14 +82,14 @@ Start at 99.0% for 1 month baseline, then tighten: 99.5% (2 months) -> 99.9% (3 
 ### Backend Choice
 - **Tempo** (Grafana stack): prefer when already using Grafana; object-storage backed, cheap at scale
 - **Jaeger**: prefer when you need standalone deployment or Elasticsearch integration
-- Both support OTLP -- always send via OpenTelemetry Collector, never direct from app to backend
+- Both support OTLP: always send via OpenTelemetry Collector, never direct from app to backend
 
 ## Alerting Opinions
 
-- **Alert on symptoms, not causes** -- alert on error rate, not "pod restarted"
+- **Alert on symptoms, not causes**: alert on error rate, not "pod restarted"
 - Severity levels: `critical` (pages), `warning` (tickets), `info` (dashboard only)
 - Every alert must have a runbook link in annotations
-- `for:` duration: critical >= 2m, warning >= 5m, info >= 15m -- prevents flapping
+- `for:` duration: critical >= 2m, warning >= 5m, info >= 15m: prevents flapping
 - Route critical to PagerDuty, warning to Slack channel, info to dashboard only
 
 ## Stack Preferences
@@ -105,9 +105,9 @@ Start at 99.0% for 1 month baseline, then tighten: 99.5% (2 months) -> 99.9% (3 
 
 ## Gotchas
 
-- Prometheus `rate()` requires at least 2 data points in the window -- use `[5m]` minimum with 15s scrape interval
+- Prometheus `rate()` requires at least 2 data points in the window: use `[5m]` minimum with 15s scrape interval
 - `histogram_quantile` is an estimate; accuracy degrades with poor bucket choices
-- OTel Collector `batch` processor default timeout is 200ms -- increase to 5-10s for production to reduce export overhead
+- OTel Collector `batch` processor default timeout is 200ms: increase to 5-10s for production to reduce export overhead
 - Grafana dashboards without variables become unmaintainable past 3 services
-- Never scrape intervals faster than 10s in production -- it causes storage and CPU issues
-- Alertmanager grouping: group by `alertname, namespace, service` -- too broad silences everything, too narrow floods on-call
+- Never scrape intervals faster than 10s in production: it causes storage and CPU issues
+- Alertmanager grouping: group by `alertname, namespace, service`: too broad silences everything, too narrow floods on-call

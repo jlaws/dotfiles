@@ -152,10 +152,10 @@ def model_size_mb(model):
 - **Distillation capacity gap**: If student is too small relative to teacher, distillation underperforms training from scratch. Use progressive distillation (12->6->3) or intermediate layer matching.
 - **Calibration data**: PTQ quality depends on representative calibration data. 100 samples is usually sufficient, but must match inference distribution.
 - **Structured vs unstructured**: Unstructured pruning shows great sparsity numbers but zero speedup on standard hardware. Only structured pruning gives wall-clock speedup.
-- **Layer sensitivity**: First/last layers in vision models, embedding layers in transformers -- more sensitive to compression. Profile per-layer sensitivity before uniform compression.
+- **Layer sensitivity**: First/last layers in vision models, embedding layers in transformers: more sensitive to compression. Profile per-layer sensitivity before uniform compression.
 
 ### Quantization
-- **Hardware-specific**: INT8 on ARM (XNNPACK) differs from x86 (FBGEMM). Symmetric vs asymmetric, per-tensor vs per-channel -- hardware-dependent. Always profile on target device.
+- **Hardware-specific**: INT8 on ARM (XNNPACK) differs from x86 (FBGEMM). Symmetric vs asymmetric, per-tensor vs per-channel: hardware-dependent. Always profile on target device.
 - **Sensitive layers**: Attention and first/last conv layers quantize poorly. Use mixed-precision: keep sensitive layers FP16, quantize rest to INT8.
 
 ### Export & Deployment
@@ -168,5 +168,5 @@ def model_size_mb(model):
 
 ## References
 
-- `ai-ml/model-compression/pruning-and-distillation.md` -- Transformer head pruning, knowledge distillation training loop
-- `ai-ml/model-compression/edge-deployment.md` -- CoreML, TensorRT, browser ML, benchmarking, ONNX static quantization
+- `ai-ml/model-compression/pruning-and-distillation.md`: Transformer head pruning, knowledge distillation training loop
+- `ai-ml/model-compression/edge-deployment.md`: CoreML, TensorRT, browser ML, benchmarking, ONNX static quantization

@@ -34,7 +34,7 @@ def user(db_session):
 
 - Chain fixtures via dependency injection, not class inheritance
 - Always `yield` + cleanup, not just `return`
-- DB sessions should `rollback()` not `commit()` -- faster, auto-cleans
+- DB sessions should `rollback()` not `commit()`: faster, auto-cleans
 
 ## `autouse` Sparingly
 - Only for truly universal setup (e.g., resetting a global clock)
@@ -59,7 +59,7 @@ def test_api_call(monkeypatch):
 ## When to Use `MagicMock` vs `Mock`
 - `MagicMock`: when code uses dunder methods (`__len__`, `__iter__`)
 - `Mock`: default choice, simpler, fewer implicit behaviors
-- `spec=True`: always set when mocking classes -- catches typos in attribute access
+- `spec=True`: always set when mocking classes: catches typos in attribute access
 
 ## Parametrize Decisions
 - **Use when**: Same logic, different inputs (validation rules, edge cases, matrix testing)
@@ -100,7 +100,7 @@ tests/
 **conftest.py Strategy**:
 - Root: DB engine, app config, shared factories
 - Directory-level: scope-specific fixtures
-- Never import from conftest -- pytest injects automatically
+- Never import from conftest: pytest injects automatically
 - A test that checks parallel output equals serial output proves the results match, not that work ran concurrently, in the workers, or in order.
 - Pin concurrency with a rendezvous that completes only if two jobs overlap, and assert which process emitted each record.
 

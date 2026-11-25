@@ -300,7 +300,7 @@ Beyond PASS/WARN/FAIL, rate the KB on five axes and name the weakest; that is wh
 **Documentation currency:** mirror parity across trees and description-behavior match are part of freshness; see checks DOC-1..3.
 
 **Evidence rule:** the axis covers four failure shapes, not one. A number with no provenance. A
-*counterfactual* saving -- "this saved N tokens" about work never done the other way -- stated as
+*counterfactual* saving: "this saved N tokens" about work never done the other way, stated as
 measured rather than estimated. Behavior shipped on a hunch with no label saying so, and its mirror
 image, a rule the repo advertises that nothing enforces. And a best-case figure printed without the
 general one beside it. Full rules in `writing-skills`, Claims and evidence; this axis is where they

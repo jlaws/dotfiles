@@ -288,6 +288,6 @@ Zustand for UI state (sidebar, modal), React Query for server state. Never dupli
 
 ## Cross-References
 
-- **frontend:nextjs-app-router-patterns** -- server/client state boundary, React Server Components context
-- **frontend:form-patterns** -- form state management, React Hook Form integration
-- **frontend:i18n-and-localization** -- locale state management, context providers
+- **frontend:nextjs-app-router-patterns**: server/client state boundary, React Server Components context
+- **frontend:form-patterns**: form state management, React Hook Form integration
+- **frontend:i18n-and-localization**: locale state management, context providers

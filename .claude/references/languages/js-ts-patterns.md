@@ -1,6 +1,6 @@
 # JS/TS Patterns
 
-Tooling opinions, type-level decisions, and non-obvious patterns. Opus knows the basics -- this covers what to choose and when.
+Tooling opinions, type-level decisions, and non-obvious patterns. Opus knows the basics; this covers what to choose and when.
 
 ## Style Guide
 
@@ -65,9 +65,9 @@ Only rules linters/formatters cannot enforce.
 }
 ```
 
-- **Always `strict: true`** -- no exceptions
+- **Always `strict: true`**: no exceptions
 - **`moduleResolution: "bundler"`** for apps (Vite/Next), `"node16"` for libraries
-- **`skipLibCheck: true`** -- speeds up compilation, rarely hides real bugs
+- **`skipLibCheck: true`**: speeds up compilation, rarely hides real bugs
 - **`"type": "module"`** in package.json for all new projects
 
 ## Advanced Type Patterns
@@ -202,10 +202,10 @@ Rule: start with `interface`, switch to `type` when you need union/conditional.
 
 ## Gotchas
 
-- **`any` defeats the type system** -- use `unknown` and narrow
-- **Avoid `enum`** -- use `as const` objects or union types (better tree-shaking)
+- **`any` defeats the type system**: use `unknown` and narrow
+- **Avoid `enum`**: use `as const` objects or union types (better tree-shaking)
 - **`satisfies`** preserves literal types while checking: `const x = { a: 1 } satisfies Record<string, number>`
-- **`interface` extends > `type &`** -- intersections can produce `never` silently
-- **Deeply nested conditional types** slow tsc -- flatten when possible
-- **Circular type references** crash tsc -- break cycles with intermediate types
+- **`interface` extends > `type &`**: intersections can produce `never` silently
+- **Deeply nested conditional types** slow tsc: flatten when possible
+- **Circular type references** crash tsc: break cycles with intermediate types
 - **`as const`** to preserve literal types in arrays/objects

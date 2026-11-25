@@ -73,7 +73,7 @@ type Error { field: String; message: String! }
 
 **Federation**: Apollo Federation composes subgraphs via `@key` directives. Gateway handles query planning across services.
 
-**Error conventions**: Use union return types for business errors (`union CreateUserResult = User | ValidationError | NotFoundError`). Never throw from resolvers for business logic -- reserve exceptions for unexpected failures.
+**Error conventions**: Use union return types for business errors (`union CreateUserResult = User | ValidationError | NotFoundError`). Never throw from resolvers for business logic: reserve exceptions for unexpected failures.
 
 ## SDK Architecture
 
@@ -263,9 +263,9 @@ SDK semver: patch = bug fix, minor = new endpoints (backward compatible), major 
 
 ## Pitfalls
 
-**API design**: Over-fetching/under-fetching (GraphQL + DataLoaders fix this) -- Inconsistent error formats -- POST for idempotent operations -- API structure mirroring DB schema
+**API design**: Over-fetching/under-fetching (GraphQL + DataLoaders fix this); Inconsistent error formats; POST for idempotent operations; API structure mirroring DB schema
 
-**SDK implementation**: Mutable default headers (use `None` + create inside) -- Missing connection pooling (one `httpx.Client` per instance) -- No timeout default (30s reasonable) -- Retry on POST without idempotency keys -- Token refresh race condition (use a lock) -- Pagination loading all pages (use lazy iterators) -- Missing User-Agent header -- Swallowing errors -- Forgetting `close()` / context managers -- SDK vs API version drift
+**SDK implementation**: Mutable default headers (use `None` + create inside); Missing connection pooling (one `httpx.Client` per instance); No timeout default (30s reasonable); Retry on POST without idempotency keys; Token refresh race condition (use a lock); Pagination loading all pages (use lazy iterators); Missing User-Agent header; Swallowing errors; Forgetting `close()` / context managers; SDK vs API version drift
 
 ## References
 
@@ -280,5 +280,5 @@ Detailed implementations:
 
 ## Cross-References
 
-- **frontend:graphql-client-patterns** -- client-side GraphQL libraries, cache normalization, optimistic updates
-- **documentation:openapi-spec-generation** -- OpenAPI specs for SDK generation
+- **frontend:graphql-client-patterns**: client-side GraphQL libraries, cache normalization, optimistic updates
+- **documentation:openapi-spec-generation**: OpenAPI specs for SDK generation

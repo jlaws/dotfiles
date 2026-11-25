@@ -61,7 +61,7 @@ def test_integration_create_and_delete():
 - Gate behind env var (don't run in CI by default)
 - Clean up created resources in teardown
 - Use dedicated staging/sandbox environment
-- Tolerate latency -- use generous timeouts
+- Tolerate latency: use generous timeouts
 
 ## What to Test
 

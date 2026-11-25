@@ -135,6 +135,6 @@ For detailed monorepo patterns, see [references/devops/monorepo-tools.md](refere
 
 ## Cross-References
 
-- **devops:github-actions-patterns** -- deep GitHub Actions patterns: reusable workflows, OIDC, matrix strategies
-- **devops:docker-patterns** -- container build optimization, multi-stage builds for CI
-- **devops:gitops-workflow** -- ArgoCD/Flux deployment patterns, GitOps pipeline integration
+- **devops:github-actions-patterns**: deep GitHub Actions patterns: reusable workflows, OIDC, matrix strategies
+- **devops:docker-patterns**: container build optimization, multi-stage builds for CI
+- **devops:gitops-workflow**: ArgoCD/Flux deployment patterns, GitOps pipeline integration

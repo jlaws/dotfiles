@@ -50,11 +50,11 @@
 
 ### Gotchas
 
-- Field numbers are forever -- use `reserved` for deleted fields
-- Default values (0, "", false) not serialized -- can't distinguish unset from default
-- Streaming holds connections -- needs gRPC-aware LB (Envoy, Linkerd)
+- Field numbers are forever: use `reserved` for deleted fields
+- Default values (0, "", false) not serialized: can't distinguish unset from default
+- Streaming holds connections: needs gRPC-aware LB (Envoy, Linkerd)
 - gRPC-Web needs proxy for browser clients
-- Default max message 4MB -- set explicit limits, stream large payloads
+- Default max message 4MB: set explicit limits, stream large payloads
 
 > **Code examples**: `grpc-examples.md`
 
@@ -75,7 +75,7 @@
 | Pattern | Implementation |
 |---------|---------------|
 | **At-least-once** | Default everywhere; design consumers idempotent |
-| **Idempotent produce (Kafka)** | `enable.idempotence=True` + `acks=all` -- kills producer-retry duplicates only |
+| **Idempotent produce (Kafka)** | `enable.idempotence=True` + `acks=all`: kills producer-retry duplicates only |
 | **Exactly-once (Kafka)** | Idempotent produce + transactions (`transactional.id`, `send_offsets_to_transaction`) + `isolation.level=read_committed` consumers |
 | **Manual commit** | `enable.auto.commit=False`; commit after processing |
 | **Publisher confirms** | RabbitMQ `confirm_delivery()` before publish |
@@ -93,13 +93,13 @@
 
 ### Gotchas
 
-- Kafka orders only within a partition -- choose partition keys carefully
-- Poison messages block queues -- always configure DLQ
+- Kafka orders only within a partition: choose partition keys carefully
+- Poison messages block queues: always configure DLQ
 - Celery visibility timeout: task redelivered if processing exceeds timeout
-- RabbitMQ unbounded queues cause memory pressure -- set `x-max-length`
+- RabbitMQ unbounded queues cause memory pressure: set `x-max-length`
 - SQS FIFO: 300 msg/s per group ID, 3000/s per queue
 - Message size limits: SQS 256KB, Kafka 1MB default, RabbitMQ >128KB hurts
-- Broker is not a database -- process and persist, don't store long-term
+- Broker is not a database: process and persist, don't store long-term
 
 > **Code examples**: `message-queue-examples.md`
 
@@ -116,7 +116,7 @@
 
 ### Event Store Guardrails
 
-- **Immutability**: Never UPDATE/DELETE events -- add compensating events
+- **Immutability**: Never UPDATE/DELETE events: add compensating events
 - **Optimistic concurrency**: Check `expected_version` on append
 - **Event size**: Keep <10KB; reference large payloads via URL/S3 key
 - **Idempotency**: Use `event_id` for deduplication
@@ -157,16 +157,16 @@
 
 ### Workflow Engine Constraints (Temporal-style)
 
-- **Workflow code**: Deterministic only -- no `datetime.now()`, `random()`, I/O
+- **Workflow code**: Deterministic only: no `datetime.now()`, `random()`, I/O
 - **Activity code**: Idempotent, always has timeout, heartbeat if >30s
 - **Error classification**: Retryable (network) vs non-retryable (validation)
 - **Versioning**: Never modify running workflow logic; use version gates
 
 ### Gotchas
 
-- Eventual consistency needs SLAs -- define acceptable lag and monitor breaches
-- Don't query in command handlers -- breaks CQRS separation
-- Projection lag can snowball -- needs backpressure or scaling
+- Eventual consistency needs SLAs: define acceptable lag and monitor breaches
+- Don't query in command handlers: breaks CQRS separation
+- Projection lag can snowball: needs backpressure or scaling
 - Choreography still needs saga ID for correlation across events
 - Business logic belongs in workflows, not activities (I/O adapters)
 
@@ -201,4 +201,4 @@ def generate_idempotency_key(entity_id: str, action: str, timestamp: str) -> str
     return hashlib.sha256(f"{entity_id}:{action}:{timestamp}".encode()).hexdigest()
 ```
 
-Redis-backed check: `SET idempotency:{key} 1 NX EX 86400` -- returns None if duplicate.
+Redis-backed check: `SET idempotency:{key} 1 NX EX 86400`: returns None if duplicate.

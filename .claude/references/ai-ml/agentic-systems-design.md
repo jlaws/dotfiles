@@ -78,7 +78,7 @@ Always return structured errors. Models recover better from `{"status": "error",
 
 ### Supervisor Pattern
 
-One orchestrator agent delegates to specialist agents. Expose delegation as a single `delegate` tool whose `specialist` property is an `enum` of the available specialist names -- this constrains routing to real specialists instead of letting the model invent one.
+One orchestrator agent delegates to specialist agents. Expose delegation as a single `delegate` tool whose `specialist` property is an `enum` of the available specialist names: this constrains routing to real specialists instead of letting the model invent one.
 
 ### Debate Pattern
 

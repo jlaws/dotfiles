@@ -2,12 +2,12 @@
 
 ## Critical Rules
 
-- **Never** store JWTs in localStorage -- vulnerable to XSS; use httpOnly cookies
-- **Always** validate auth server-side -- client-side checks are bypassable
+- **Never** store JWTs in localStorage: vulnerable to XSS; use httpOnly cookies
+- **Always** validate auth server-side: client-side checks are bypassable
 - **Always** set token expiration (15-30min access, 7d refresh) and rate-limit login endpoints
-- **Never** implement custom password hashing -- use bcrypt/scrypt/argon2 with cost factor >= 12
+- **Never** implement custom password hashing: use bcrypt/scrypt/argon2 with cost factor >= 12
 - **Always** hash refresh tokens before storing them in the database
-- **Always** use secure, expiring tokens for password reset -- never email a reusable link
+- **Always** use secure, expiring tokens for password reset: never email a reusable link
 
 ## JWT Authentication
 

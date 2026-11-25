@@ -40,8 +40,8 @@ marts/            Final analytics tables (dim_/fct_ prefix)
 - **`insert_overwrite`**: Partition-based. Best for date-partitioned events on BigQuery/Spark. 3-day minimum lookback.
 
 ### Incremental Guard Rails
-- Always set `unique_key` -- prevents duplicates on partial failures
-- Add `on_schema_change: 'append_new_columns'` -- prevents silent column drops
+- Always set `unique_key`: prevents duplicates on partial failures
+- Add `on_schema_change: 'append_new_columns'`: prevents silent column drops
 - Use `{{ this }}` lookback with buffer: `where created_at > (select max(created_at) - interval '3 days' from {{ this }})`
 - Run `--full-refresh` on schema changes and quarterly
 
@@ -58,9 +58,9 @@ marts/            Final analytics tables (dim_/fct_ prefix)
 - Freshness tests: `error_after: {count: 24, period: hour}`
 
 ### Testing Anti-Patterns
-- Testing every column for `not_null` -- only test what matters
-- No tests on intermediate models -- they're implementation details
-- Skipping relationship tests -- broken FKs cause silent data issues
+- Testing every column for `not_null`: only test what matters
+- No tests on intermediate models: they're implementation details
+- Skipping relationship tests: broken FKs cause silent data issues
 
 ## dbt Project Organization
 

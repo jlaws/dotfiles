@@ -7,7 +7,7 @@ argument-hint: "<system-description>"
 Load skill `design-first` for design-before-implementation discipline.
 
 Parse arguments: `$ARGUMENTS` is a freeform system description that may contain file or directory references inline.
-- The entire string is the system description -- do not strip paths from it.
+- The entire string is the system description: do not strip paths from it.
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.
 - If `$ARGUMENTS` is empty, ask the user for a system description.
 
@@ -17,23 +17,23 @@ Parse arguments: `$ARGUMENTS` is a freeform system description that may contain 
 
 ### Phase 1: Discovery
 
-**Step 1 -- Scan for candidate documentation:**
+**Step 1: Scan for candidate documentation:**
 1. Glob for common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
 2. Glob for root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
 3. Glob for design doc patterns: `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`
 4. Include any file or directory paths found inline in `$ARGUMENTS`
 
-**Step 2 -- Filter by relevance to the system description:**
-1. First pass: filter candidates by file/directory names and paths -- keep files whose names relate to the described system
+**Step 2: Filter by relevance to the system description:**
+1. First pass: filter candidates by file/directory names and paths: keep files whose names relate to the described system
 2. Second pass: for ambiguous candidates, use Grep to search file contents for keywords from the system description
 3. Discard files that are clearly unrelated (e.g. skip `docs/billing.md` when designing an auth system)
 
-**Step 3 -- Read selected files and explore the codebase:**
+**Step 3: Read selected files and explore the codebase:**
 1. Read the relevant documentation files selected above
 2. Read the project structure and key source files
 3. Identify existing architecture patterns, APIs, data models
 
-**Step 4 -- Delegate perspectives to specialist agents (recommended when the system is large):**
+**Step 4: Delegate perspectives to specialist agents (recommended when the system is large):**
 Hand each Phase 2 perspective to its agent, in parallel; they load the relevant skills + `~/.agents/references/` libraries and return findings:
 - Component Architecture, API Design -> `architecture-specialist`
 - Data Architecture -> `data-engineer`

@@ -82,7 +82,7 @@ description: "Use when [specific trigger scenario]. Also applies to [related sce
 ```
 
 **Description rules:**
-- Always start with "Use when" -- this is the trigger phrase Claude matches on
+- Always start with "Use when": this is the trigger phrase Claude matches on
 - Be specific: "Use when writing database migrations" not "Use for database stuff"
 - Include 2-3 trigger scenarios separated by commas or "or"
 - Keep under 200 characters
@@ -233,7 +233,7 @@ Each maps to a rule already in the harness config (verify-before-claiming, clari
 ## Gotchas
 
 - **Context bloat**: Every line in CLAUDE.md consumes context window. Ruthlessly prune. If Claude already knows it (general programming, language syntax), don't restate it.
-- **Over-engineering skills**: A skill should solve a recurring problem. If you've only needed it once, it's not a skill -- it's a conversation. Wait for the third occurrence.
+- **Over-engineering skills**: A skill should solve a recurring problem. If you've only needed it once, it's not a skill: it's a conversation. Wait for the third occurrence.
 - **Stale instructions**: CLAUDE.md that references deleted files, old conventions, or deprecated workflows actively misleads. Review quarterly.
 - **Description mismatch**: If the skill description doesn't match what the skill actually does, Claude will invoke it at the wrong time or skip it when needed. Test trigger phrases.
 - **Skill overlap**: Two skills with similar descriptions cause unpredictable invocation. Deduplicate or make descriptions clearly distinct.

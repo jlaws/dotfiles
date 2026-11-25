@@ -213,9 +213,9 @@ def walk_forward_cv(series: np.ndarray, model_fn, train_size: int,
 
 - **Data leakage in features**: Rolling features must use `.shift(1)` before `.rolling()`; without shift, current value leaks into its own features
 - **Prophet on sub-daily data**: Set `daily_seasonality=True` and ensure `ds` has timezone info; naive timestamps cause silent offset errors
-- **ARIMA stationarity**: Auto-ARIMA handles differencing, but extreme outliers before differencing distort estimation -- clip or transform first
+- **ARIMA stationarity**: Auto-ARIMA handles differencing, but extreme outliers before differencing distort estimation: clip or transform first
 - **PatchTST channel independence**: Each channel processed independently; cross-channel dependencies require explicit fusion layers
-- **Fourier feature period mismatch**: Using `period=365` on hourly data (should be `365*24`) creates meaningless features -- match data frequency
+- **Fourier feature period mismatch**: Using `period=365` on hourly data (should be `365*24`) creates meaningless features: match data frequency
 - **Anomaly threshold drift**: Static thresholds degrade as distributions shift; recalibrate monthly or use adaptive percentile on rolling window
 - **Walk-forward gap**: With delayed labels, add a gap between train/test windows to simulate real production delay
 - **TimesFM context length**: Foundation models have fixed context windows; truncating history loses long-range patterns

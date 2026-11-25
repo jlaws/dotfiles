@@ -55,10 +55,10 @@ See references/languages/uv-workflows.md for uv commands, Docker multi-stage bui
 
 ## Project Scaffolding
 
-- **Always use `src/` layout** -- prevents importing uninstalled code, cleaner test isolation
+- **Always use `src/` layout**: prevents importing uninstalled code, cleaner test isolation
 - **Single source of truth**: `pyproject.toml` for everything (no setup.py, setup.cfg)
 - **Version**: `setuptools-scm` for git-tag-based, or `__version__` in `__init__.py`
-- **Dependency ranges**: `"requests>=2.28,<3"` -- avoid exact pins except in lockfiles
+- **Dependency ranges**: `"requests>=2.28,<3"`: avoid exact pins except in lockfiles
 - **Type stubs**: include `py.typed` marker for PEP 561
 
 ### Project Type Selection

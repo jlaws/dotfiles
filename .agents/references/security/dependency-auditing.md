@@ -2,11 +2,11 @@
 
 ## Critical Rules
 
-- **Always** commit lock files to Git -- without them, CI resolves different versions than local
+- **Always** commit lock files to Git: without them, CI resolves different versions than local
 - **Never** automerge production dependency updates without passing tests and human review
-- **Always** pin CI/CD actions to SHA digests, not tags -- tags can be force-pushed by compromised maintainers
+- **Always** pin CI/CD actions to SHA digests, not tags: tags can be force-pushed by compromised maintainers
 - **Always** fix critical CVEs (CVSS 9.0+) within 24 hours; high (7.0+) within 7 days
-- **Never** run `npm install` in CI -- use `npm ci` (installs from lock file exactly)
+- **Never** run `npm install` in CI: use `npm ci` (installs from lock file exactly)
 
 ## The Principle
 
@@ -81,7 +81,7 @@ Not all CVEs are exploitable in your context. Ask:
 
 ## SBOM Generation
 
-Software Bill of Materials -- inventory of all components in your software.
+Software Bill of Materials: inventory of all components in your software.
 
 ### Why SBOM Matters
 - Required by US Executive Order 14028 for government contracts
@@ -155,6 +155,6 @@ See references/security/ci-and-supply-chain.md for CI pipeline integration, seve
 
 ## Cross-References
 
-- **security:security-analysis** -- SAST scanning, vulnerability detection, threat modeling
-- **security:secrets-management** -- preventing secrets from leaking into dependencies
-- **migration:dependency-upgrade** -- strategies for upgrading major dependency versions
+- **security:security-analysis**: SAST scanning, vulnerability detection, threat modeling
+- **security:secrets-management**: preventing secrets from leaking into dependencies
+- **migration:dependency-upgrade**: strategies for upgrading major dependency versions

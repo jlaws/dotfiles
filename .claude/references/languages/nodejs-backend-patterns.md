@@ -77,9 +77,9 @@ const validate = (schema: AnyZodObject) => async (req: Request, res: Response, n
 
 ## Database Gotchas
 
-- **Always use connection pooling** -- `max: 20`, `idleTimeoutMillis: 30000`
+- **Always use connection pooling**: `max: 20`, `idleTimeoutMillis: 30000`
 - **Transactions**: `BEGIN` -> operations -> `COMMIT`/`ROLLBACK`, always in `try/finally` with `client.release()`
-- **Parameterized queries always** -- `$1, $2` (Postgres) or `?` (MySQL), never string interpolation
+- **Parameterized queries always**: `$1, $2` (Postgres) or `?` (MySQL), never string interpolation
 
 ## Security Checklist
 
@@ -91,8 +91,8 @@ const validate = (schema: AnyZodObject) => async (req: Request, res: Response, n
 
 ## Key Opinions
 
-- **TypeScript always** -- no plain JS for backends
-- **Structured logging** -- `pino` (faster than Winston)
-- **`node:` prefix** for built-in modules -- `import { readFile } from 'node:fs/promises'`
-- **Graceful shutdown** -- handle SIGTERM, drain connections
-- **Health check endpoint** -- `/health` returning `{ status: 'ok' }`
+- **TypeScript always**: no plain JS for backends
+- **Structured logging**: `pino` (faster than Winston)
+- **`node:` prefix** for built-in modules: `import { readFile } from 'node:fs/promises'`
+- **Graceful shutdown**: handle SIGTERM, drain connections
+- **Health check endpoint**: `/health` returning `{ status: 'ok' }`

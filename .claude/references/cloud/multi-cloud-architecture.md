@@ -27,13 +27,13 @@
 
 ## Architecture Patterns
 
-**Single Provider with DR** -- Primary workload in one cloud, DR in another. Database replication + automated failover.
+**Single Provider with DR**: Primary workload in one cloud, DR in another. Database replication + automated failover.
 
-**Best-of-Breed** -- AI/ML on GCP, Enterprise apps on Azure, General compute on AWS. Pick strengths per provider.
+**Best-of-Breed**: AI/ML on GCP, Enterprise apps on Azure, General compute on AWS. Pick strengths per provider.
 
-**Geographic Distribution** -- Serve from nearest region, data sovereignty compliance, global load balancing.
+**Geographic Distribution**: Serve from nearest region, data sovereignty compliance, global load balancing.
 
-**Cloud-Agnostic Abstraction** -- Portable stack to reduce lock-in:
+**Cloud-Agnostic Abstraction**: Portable stack to reduce lock-in:
 | Layer | Portable Choice |
 |-------|----------------|
 | Compute | Kubernetes (EKS/AKS/GKE) |
@@ -80,7 +80,7 @@ On-Premises Datacenter
 ### BGP Essentials
 - On-prem router advertises internal CIDRs (e.g., 10.0.0.0/8) with private ASN (64512-65534)
 - Cloud-side ASNs: AWS default 64512, Azure fixed 65515, GCP configurable
-- Always run dual tunnels for HA -- active/active with ECMP or active/passive
+- Always run dual tunnels for HA: active/active with ECMP or active/passive
 - Monitor: tunnel status, BGP session state, packet loss, latency, bytes in/out
 
 ## Cost Optimization
@@ -121,11 +121,11 @@ On-Premises Datacenter
 
 ## Gotchas and Anti-Patterns
 
-- **Lift-and-shift everything** -- Re-platform or re-architect where ROI justifies it
-- **Ignoring egress costs** -- Data transfer between clouds/regions adds up fast; design data gravity around primary provider
-- **Multi-cloud for the sake of it** -- Real multi-cloud adds operational complexity; have a concrete reason (DR, best-of-breed, compliance)
-- **No abstraction layer** -- Without Terraform/K8s, multi-cloud becomes multi-headache
-- **Skipping tagging** -- Impossible to optimize costs or enforce governance without consistent tags
-- **Single tunnel** -- Always deploy redundant VPN tunnels; single tunnel = single point of failure
-- **Overlapping CIDRs** -- Plan IP address space across all environments upfront; retrofitting is painful
-- **No network monitoring** -- Hybrid connectivity issues are invisible without proactive tunnel/BGP monitoring
+- **Lift-and-shift everything**: Re-platform or re-architect where ROI justifies it
+- **Ignoring egress costs**: Data transfer between clouds/regions adds up fast; design data gravity around primary provider
+- **Multi-cloud for the sake of it**: Real multi-cloud adds operational complexity; have a concrete reason (DR, best-of-breed, compliance)
+- **No abstraction layer**: Without Terraform/K8s, multi-cloud becomes multi-headache
+- **Skipping tagging**: Impossible to optimize costs or enforce governance without consistent tags
+- **Single tunnel**: Always deploy redundant VPN tunnels; single tunnel = single point of failure
+- **Overlapping CIDRs**: Plan IP address space across all environments upfront; retrofitting is painful
+- **No network monitoring**: Hybrid connectivity issues are invisible without proactive tunnel/BGP monitoring

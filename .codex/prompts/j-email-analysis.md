@@ -1,6 +1,6 @@
 ---
 name: j-email-analysis
-description: "Process AI research newsletter emails (TLDR AI, The Batch, Import AI, etc.) -- extract links, categorize, download paper PDFs, and produce a structured summary. Use when processing research newsletters. Do NOT use for non-research emails (handle manually instead)."
+description: "Process AI research newsletter emails (TLDR AI, The Batch, Import AI, etc.): extract links, categorize, download paper PDFs, and produce a structured summary. Use when processing research newsletters. Do NOT use for non-research emails (handle manually instead)."
 argument-hint: "<email-body-file>"
 ---
 
@@ -12,21 +12,21 @@ If no arguments provided, ask for the path to the email body file.
 
 Load skills, in order:
 
-1. `verification-before-completion` -- required before claiming a PDF downloaded or a link resolves
+1. `verification-before-completion`: required before claiming a PDF downloaded or a link resolves
 
 ## Pre-processing (before producing output)
 
 1. **Parse arguments**: The argument is the file path to the email body (read the file to extract content).
-2. **Load seen links**: First check if the email body file contains a `<!-- SEEN LINKS (already processed, skip these):` header block -- if present, parse URLs from that block (these are pre-filtered by the caller and only contain links relevant to this email). Only if NO embedded header is found, fall back to reading `.seen-links` from the current working directory. All seen URLs will be skipped during processing.
+2. **Load seen links**: First check if the email body file contains a `<!-- SEEN LINKS (already processed, skip these):` header block: if present, parse URLs from that block (these are pre-filtered by the caller and only contain links relevant to this email). Only if NO embedded header is found, fall back to reading `.seen-links` from the current working directory. All seen URLs will be skipped during processing.
 3. **Extract all links** from the email body. De-duplicate within this run.
-4. **Filter**: Remove any URLs present in the seen-links file. This applies to ALL URLs encountered during processing -- including redirect/resolved URLs discovered when fetching. If a redirect target is already in seen-links, skip that link entirely and exclude it from the report.
-5. **Exclude dangerous/administrative URLs** -- discard, never navigate to or fetch:
+4. **Filter**: Remove any URLs present in the seen-links file. This applies to ALL URLs encountered during processing, including redirect/resolved URLs discovered when fetching. If a redirect target is already in seen-links, skip that link entirely and exclude it from the report.
+5. **Exclude dangerous/administrative URLs**: discard, never navigate to or fetch:
    - Unsubscribe links (URLs containing `unsubscribe`, `opt-out`, `manage-subscription`, `email-preferences`, `list-unsubscribe`)
-   - True tracking pixels / web beacons -- i.e. URLs that serve a 1x1 image or empty body purely for open-tracking (e.g. `open.gif`, `pixel.png`, `beacon` endpoints with no readable destination)
+   - True tracking pixels / web beacons, i.e. URLs that serve a 1x1 image or empty body purely for open-tracking (e.g. `open.gif`, `pixel.png`, `beacon` endpoints with no readable destination)
    - `mailto:` links
    - Generic email-client links (e.g., "view in browser")
 
-   **Do NOT exclude click-tracking redirector URLs** (e.g. `link.mail.beehiiv.com/ss/c/...`, `tracking.tldrnewsletter.com/...`, `click.convertkit-mail.com/...`). These resolve to real content (articles, papers, products) and ARE the link the newsletter is citing. Keep them verbatim. If you can resolve the redirect to a final destination, prefer the resolved URL -- but if not, use the redirector URL as-is. Never write placeholder text in place of one.
+   **Do NOT exclude click-tracking redirector URLs** (e.g. `link.mail.beehiiv.com/ss/c/...`, `tracking.tldrnewsletter.com/...`, `click.convertkit-mail.com/...`). These resolve to real content (articles, papers, products) and ARE the link the newsletter is citing. Keep them verbatim. If you can resolve the redirect to a final destination, prefer the resolved URL: but if not, use the redirector URL as-is. Never write placeholder text in place of one.
 6. **Categorize** each remaining link:
    - **Papers**: arxiv.org, openreview.net, direct PDF links, semanticscholar.org
    - **Repositories**: github.com, gitlab.com, huggingface.co (model/dataset/space repos)
@@ -58,7 +58,7 @@ Process AI research newsletter emails into structured, actionable summaries with
 | Papers | `arxiv.org`, `openreview.net`, `*.pdf`, `semanticscholar.org` | Convert arxiv abs URLs to PDF URLs for download |
 | Repositories | `github.com`, `gitlab.com`, `huggingface.co` (repos/models/datasets/spaces) | Fetch stars, language, description |
 | Products & Tools | Product launches, API announcements, SaaS tools, platform updates | Identify by context (not URL pattern alone) |
-| Blog Posts | Articles, tutorials, news, opinion pieces -- everything else | Includes substacks, medium, org blogs |
+| Blog Posts | Articles, tutorials, news, opinion pieces: everything else | Includes substacks, medium, org blogs |
 
 ### PDF Download Convention
 
@@ -72,7 +72,7 @@ Process AI research newsletter emails into structured, actionable summaries with
 
 ### Link Format Convention
 
-All URLs in the rendered report MUST be markdown links `[text](url)`. Never emit a bare URL in any section of the output -- including tables, `## Summary`, and `## Topic Overview`. Use a short, content-revealing label as link text:
+All URLs in the rendered report MUST be markdown links `[text](url)`. Never emit a bare URL in any section of the output, including tables, `## Summary`, and `## Topic Overview`. Use a short, content-revealing label as link text:
 
 | Source | Label format | Example |
 |---|---|---|
@@ -82,7 +82,7 @@ All URLs in the rendered report MUST be markdown links `[text](url)`. Never emit
 | PDF direct | `{filename}` or `{domain}/{path}` | `[example.com/paper.pdf](https://example.com/paper.pdf)` |
 | Other | `{domain}/{path}` (strip scheme, trim long paths) | `[openai.com/blog/foo](https://openai.com/blog/foo)` |
 
-The downloaded-PDF status cell in the Research Papers table is plain text (`downloaded` or `failed: <reason>`) -- it is NOT a link to the local file in `backlog/`.
+The downloaded-PDF status cell in the Research Papers table is plain text (`downloaded` or `failed: <reason>`); it is NOT a link to the local file in `backlog/`.
 
 ### Output Template
 
@@ -137,17 +137,17 @@ The downloaded-PDF status cell in the Research Papers table is plain text (`down
 
 ### Guidelines
 
-- **Never emit bare URLs in the report** -- every URL in the rendered output MUST be wrapped as `[text](url)` per the Link Format Convention above. This applies to all tables, `## Summary`, `## Topic Overview`, and any other prose.
-- **Every item must include its source URL** -- no entry should lack a clickable link
-- **Inline-link every prose claim that references a specific item** -- every mention of a paper, repo, product, or article in `## Summary` and `## Topic Overview` MUST include an inline markdown `[text](url)` pointing to the external URL that the email cited. Prose without links is not acceptable when a specific item is being discussed.
-- **Never substitute placeholder text for a URL** -- phrases like `(beehiiv tracking link)`, `(tracking link)`, `(see email)`, or `(link omitted)` are not acceptable substitutes. If you reference a specific item, the actual URL must appear inline. If the URL is a click-tracking redirector, include the redirector URL verbatim -- it is still the link.
-- **No redundant links in table description cells** -- tables (Research Papers, Open Source Repositories, Products & Tools, Blog Posts & Articles) already have a URL column. Do not embed a second link inside the same row's description/summary cell. Every *other* cell or prose sentence needs a link.
-- **Omit empty sections** -- if no repos found, skip that section entirely
-- **Practitioner-focused** -- descriptions should answer "why should I care?"
-- **De-duplicate** -- same URL appearing in multiple newsletter sections counts once
-- **Download failures** -- note in the PDF column (e.g., "failed: 403"), don't retry
-- **Redirect tracking** -- when fetching URLs (PDFs, repo metadata), record any redirect/resolved URLs. Check each against seen-links; if already seen, skip entirely. Prefer the resolved URL when available
-- **Ambiguous categorization** -- prefer the more specific category (paper > blog)
+- **Never emit bare URLs in the report**: every URL in the rendered output MUST be wrapped as `[text](url)` per the Link Format Convention above. This applies to all tables, `## Summary`, `## Topic Overview`, and any other prose.
+- **Every item must include its source URL**: no entry should lack a clickable link
+- **Inline-link every prose claim that references a specific item**: every mention of a paper, repo, product, or article in `## Summary` and `## Topic Overview` MUST include an inline markdown `[text](url)` pointing to the external URL that the email cited. Prose without links is not acceptable when a specific item is being discussed.
+- **Never substitute placeholder text for a URL**: phrases like `(beehiiv tracking link)`, `(tracking link)`, `(see email)`, or `(link omitted)` are not acceptable substitutes. If you reference a specific item, the actual URL must appear inline. If the URL is a click-tracking redirector, include the redirector URL verbatim: it is still the link.
+- **No redundant links in table description cells**: tables (Research Papers, Open Source Repositories, Products & Tools, Blog Posts & Articles) already have a URL column. Do not embed a second link inside the same row's description/summary cell. Every *other* cell or prose sentence needs a link.
+- **Omit empty sections**: if no repos found, skip that section entirely
+- **Practitioner-focused**: descriptions should answer "why should I care?"
+- **De-duplicate**: same URL appearing in multiple newsletter sections counts once
+- **Download failures**: note in the PDF column (e.g., "failed: 403"), don't retry
+- **Redirect tracking**: when fetching URLs (PDFs, repo metadata), record any redirect/resolved URLs. Check each against seen-links; if already seen, skip entirely. Prefer the resolved URL when available
+- **Ambiguous categorization**: prefer the more specific category (paper > blog)
 
 ---
 

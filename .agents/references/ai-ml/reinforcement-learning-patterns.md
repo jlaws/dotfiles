@@ -260,7 +260,7 @@ trainer = CPOTrainer(model=model, config=cpo_config)  # plus dataset, tokenizer,
 - KL ~ 0: model isn't learning, increase LR or decrease beta
 
 ### Reference Model Management
-- DPO with LoRA: set `ref_model=None` in TRL -- it uses the frozen base weights automatically
+- DPO with LoRA: set `ref_model=None` in TRL: it uses the frozen base weights automatically
 - PPO: reference model must be a separate copy, kept frozen. Don't share weights
 - Memory trick: load ref model in 8-bit quantization if GPU-constrained
 
@@ -270,8 +270,8 @@ trainer = CPOTrainer(model=model, config=cpo_config)  # plus dataset, tokenizer,
 - **Prevention**: validate on held-out prompts every N steps; track output diversity metrics (distinct-n, entropy)
 
 ### Common Mistakes
-- Training reward model for >1 epoch -- overfits fast on preference data
-- Using SFT learning rates (2e-5) for DPO/PPO -- too high; use 5e-7 to 5e-6
-- Not filtering preference data for ties/ambiguous pairs -- degrades signal
-- Forgetting `max_prompt_length` in DPO -- prompts eat into generation budget
-- Running PPO without reward model normalization -- unstable training
+- Training reward model for >1 epoch: overfits fast on preference data
+- Using SFT learning rates (2e-5) for DPO/PPO: too high; use 5e-7 to 5e-6
+- Not filtering preference data for ties/ambiguous pairs: degrades signal
+- Forgetting `max_prompt_length` in DPO: prompts eat into generation budget
+- Running PPO without reward model normalization: unstable training

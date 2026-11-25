@@ -1,6 +1,6 @@
 ---
 name: j-retro
-description: "Engineering retrospective from git history -- metrics, patterns, and insights for a time window. Use when reviewing what shipped, what blocked, and high-churn areas. Do NOT use for team retrospectives (single-person focused)."
+description: "Engineering retrospective from git history: metrics, patterns, and insights for a time window. Use when reviewing what shipped, what blocked, and high-churn areas. Do NOT use for team retrospectives (single-person focused)."
 ---
 
 # Retro
@@ -13,11 +13,11 @@ Load skill `analysis-output-patterns` for output structure rules.
 
 ## Engineering Retrospective
 
-### Step 1 -- Determine Time Window
+### Step 1: Determine Time Window
 - Parse arguments into `--since` range (support `14d`, `30d`, `since v1.2.0`)
 - Calculate "previous period" of same length for comparison
 
-### Step 2 -- Gather Metrics (both periods)
+### Step 2: Gather Metrics (both periods)
 
 | Metric | Command |
 |--------|---------|
@@ -27,22 +27,22 @@ Load skill `analysis-output-patterns` for output structure rules.
 | Merge commits | `git log --merges` count |
 | Active hours | Commit timestamp spread |
 
-### Step 3 -- Identify Patterns
+### Step 3: Identify Patterns
 
-**What Shipped** -- Group commits by theme (feature, fix, refactor, docs, chore) from message prefixes or conventional commits. List major changes with brief descriptions.
+**What Shipped**: Group commits by theme (feature, fix, refactor, docs, chore) from message prefixes or conventional commits. List major changes with brief descriptions.
 
-**What Blocked** -- Identify:
+**What Blocked**: Identify:
 - Reverted commits (`git log --grep="revert"`)
-- High-churn files (changed >3 times in window) -- potential instability
+- High-churn files (changed >3 times in window): potential instability
 - Long-lived branches that didn't merge
 
-**High-Churn Areas** -- Top 10 most-modified files. Flag files with both significant additions and deletions (refactoring signals).
+**High-Churn Areas**: Top 10 most-modified files. Flag files with both significant additions and deletions (refactoring signals).
 
-### Step 4 -- Period Comparison
+### Step 4: Period Comparison
 
 Compare current vs previous period: commits (up/down/flat), code churn (growing/shrinking), churn concentration (spreading or focusing).
 
-### Step 5 -- Present Report
+### Step 5: Present Report
 
 ```markdown
 ## Retro -- {start_date} to {end_date}
@@ -67,7 +67,7 @@ Compare current vs previous period: commits (up/down/flat), code churn (growing/
 ```
 
 ### Rules
-- Single-person focused -- no team breakdowns
+- Single-person focused: no team breakdowns
 - Facts from git, not speculation
 - Flag high-churn files as **potential** instability, not definitive problems
-- Keep report concise -- summary, not exhaustive log
+- Keep report concise: summary, not exhaustive log

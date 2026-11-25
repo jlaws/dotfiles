@@ -189,7 +189,7 @@ ds_config = {
 ## Layer-wise Learning Rate Decay (LLRD)
 
 Scale each layer's LR by `layer_decay ** (depth_from_top)` so early layers move least.
-Group by **layer depth**, not by position in `named_parameters()` -- the two are not the
+Group by **layer depth**, not by position in `named_parameters()`: the two are not the
 same, and indexing off the parameter enumeration produces negative exponents (and so LRs
 *above* `base_lr`) for every parameter past the module count. Exclude bias and norm
 parameters from weight decay.

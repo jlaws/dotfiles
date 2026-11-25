@@ -22,9 +22,9 @@ app/
 
 ## Architecture Opinions
 
-- **Service layer is mandatory** -- no business logic in route handlers
-- **Repository pattern** -- separate data access from business logic
-- **Pydantic schemas for everything** -- request, response, internal DTOs
+- **Service layer is mandatory**: no business logic in route handlers
+- **Repository pattern**: separate data access from business logic
+- **Pydantic schemas for everything**: request, response, internal DTOs
 - **`pydantic-settings`** for config with `.env` loading
 - **Async SQLAlchemy** with `AsyncSession` (not sync drivers)
 
@@ -104,14 +104,14 @@ async def client(db_session):
 
 ## Gotchas
 
-- **Blocking in async handlers** -- never use sync DB drivers; use `run_in_executor` for blocking libs
-- **Missing type hints** -- FastAPI loses validation/docs without them
-- **Direct DB in routes** -- always go through service layer
-- **`on_event` deprecated** -- use lifespan context manager
-- **`obj.dict()` deprecated** -- use `obj.model_dump()` (Pydantic v2)
+- **Blocking in async handlers**: never use sync DB drivers; use `run_in_executor` for blocking libs
+- **Missing type hints**: FastAPI loses validation/docs without them
+- **Direct DB in routes**: always go through service layer
+- **`on_event` deprecated**: use lifespan context manager
+- **`obj.dict()` deprecated**: use `obj.model_dump()` (Pydantic v2)
 
 ## Cross-References
 
-- **languages:pydantic-and-data-validation** -- model design, validators, serialization patterns
-- **languages:python-patterns** -- asyncio patterns, structured concurrency, event loop debugging
-- **architecture:api-design-principles** -- REST/GraphQL design, pagination, error handling conventions
+- **languages:pydantic-and-data-validation**: model design, validators, serialization patterns
+- **languages:python-patterns**: asyncio patterns, structured concurrency, event loop debugging
+- **architecture:api-design-principles**: REST/GraphQL design, pagination, error handling conventions

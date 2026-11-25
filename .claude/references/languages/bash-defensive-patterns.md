@@ -137,8 +137,8 @@ log_debug() { [[ "${DEBUG:-0}" == "1" ]] && echo "[$(date +'%Y-%m-%d %H:%M:%S')]
 
 ## Key Gotchas
 
-- **Use `[[ ]]` not `[ ]`** -- safer, supports `&&`, `||`, regex
-- **Use `command -v` not `which`** -- POSIX-compliant, no path surprises
-- **Use `printf` not `echo`** -- predictable across systems (echo -n, -e vary)
+- **Use `[[ ]]` not `[ ]`**: safer, supports `&&`, `||`, regex
+- **Use `command -v` not `which`**: POSIX-compliant, no path surprises
+- **Use `printf` not `echo`**: predictable across systems (echo -n, -e vary)
 - **Use `local -r`** for function-scoped constants
-- **Idempotent design** -- scripts should be safe to rerun (`mkdir -p`, check before create)
+- **Idempotent design**: scripts should be safe to rerun (`mkdir -p`, check before create)

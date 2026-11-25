@@ -79,7 +79,7 @@ Perfectionism (blocking for style) | Scope creep ("while you're at it...") | Del
 
 Self-review workflow for current branch changes vs origin/main. Catch issues before reviewers do.
 
-**Steps 1-5 use local git only -- no `gh` or any GitHub CLI. All review evidence must come from local git.** Step 7 is the exception, and only after the report is written.
+**Steps 1-5 use local git only: no `gh` or any GitHub CLI. All review evidence must come from local git.** Step 7 is the exception, and only after the report is written.
 
 #### Step 1: Identify Changes
 
@@ -91,7 +91,7 @@ git rev-parse HEAD
 
 FAIL FAST if current branch IS main or has no commits ahead of origin/main.
 
-Keep that HEAD SHA -- it goes in the dispatch packet so each agent can confirm it is reading the tree you meant. If the command fails, carry on without it; this is a tripwire, not a gate.
+Keep that HEAD SHA: it goes in the dispatch packet so each agent can confirm it is reading the tree you meant. If the command fails, carry on without it; this is a tripwire, not a gate.
 
 Keep the full diff out of this session; the reviewers read it themselves in Step 4.
 
@@ -387,7 +387,7 @@ your own assumptions than the work seems to warrant.
 Quick-reference of common language-specific issues to watch for during code review.
 
 #### Python
-- Mutable default arguments (`def fn(items=[])` -- use `None`)
+- Mutable default arguments (`def fn(items=[])`: use `None`)
 - Bare `except:` catching everything
 - Mutable class attributes shared across instances
 - Late binding closures in loops
@@ -512,7 +512,7 @@ Agent:     Agent reports -> Check VCS diff -> Verify changes -> Report actual st
 #### What NOT to Unit Test
 - Simple getters/setters, pass-through functions
 - Framework internals (React rendering, Express routing)
-- Implementation details -- test behavior, not structure
+- Implementation details: test behavior, not structure
 - Config/settings values (defaults, env var assignments, constants)
 - Constructor assignments (`this.x = x` tests the language, not your code)
 - Route/endpoint registration (test handler logic instead)
@@ -525,7 +525,7 @@ Agent:     Agent reports -> Check VCS diff -> Verify changes -> Report actual st
 
 #### Test User Stories, Not Internals
 - Focus tests on verifying key **user stories / user needs**, not implementation details
-- Test **public interfaces / APIs** -- not private methods or internal state
+- Test **public interfaces / APIs**: not private methods or internal state
 - Coverage hierarchy: **important user story coverage > branch coverage > line coverage**
 - Write a failing test for user-reported bugs **before** fixing
 - Avoid testing trivial functionality (framework-generated getters/setters, `@ConfigurationProperties` classes, constructor assignments)
@@ -560,7 +560,7 @@ function createUser(overrides?: Partial<User>): User {
 }
 ```
 
-**Why**: Returns a callable -- tests create exactly what they need. Avoids "magic values" scattered across tests.
+**Why**: Returns a callable: tests create exactly what they need. Avoids "magic values" scattered across tests.
 
 ### Testing Pyramid (Shift Left)
 
@@ -592,8 +592,8 @@ When writing libraries or shared components, provide test utilities that make it
 
 For detailed language-specific patterns, see the corresponding reference files:
 
-- **Python (pytest)**: See `~/.agents/references/testing/python-testing-patterns.md` -- fixtures, monkeypatch, parametrize, conftest strategy, CI markers
-- **JavaScript/TypeScript (Vitest/Jest)**: See `~/.agents/references/testing/javascript-testing-patterns.md` -- DI over module mocking, async testing, component testing, msw, mock hygiene
+- **Python (pytest)**: See `~/.agents/references/testing/python-testing-patterns.md`: fixtures, monkeypatch, parametrize, conftest strategy, CI markers
+- **JavaScript/TypeScript (Vitest/Jest)**: See `~/.agents/references/testing/javascript-testing-patterns.md`: DI over module mocking, async testing, component testing, msw, mock hygiene
 
 #### Python Quick Reference
 - pytest + pytest-asyncio + pytest-cov

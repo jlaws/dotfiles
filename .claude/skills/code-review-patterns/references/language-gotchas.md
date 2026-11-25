@@ -3,7 +3,7 @@
 Quick-reference of common language-specific issues to watch for during code review.
 
 ## Python
-- Mutable default arguments (`def fn(items=[])` -- use `None`)
+- Mutable default arguments (`def fn(items=[])`: use `None`)
 - Bare `except:` catching everything
 - Mutable class attributes shared across instances
 - Late binding closures in loops

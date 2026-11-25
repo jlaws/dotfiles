@@ -2,10 +2,10 @@
 
 ## Critical Rules
 
-- **Never** run containers as root -- add `USER` directive with a non-root user in every Dockerfile
-- **Never** pass secrets via `ARG` or `ENV` in Dockerfiles -- they persist in image layers; mount at runtime
-- **Always** use `COPY` instead of `ADD` -- `ADD` auto-extracts tarballs and fetches URLs, creating attack surface
-- **Always** pin base image versions and dependency versions -- unpinned tags drift and break builds silently
+- **Never** run containers as root: add `USER` directive with a non-root user in every Dockerfile
+- **Never** pass secrets via `ARG` or `ENV` in Dockerfiles: they persist in image layers; mount at runtime
+- **Always** use `COPY` instead of `ADD`: `ADD` auto-extracts tarballs and fetches URLs, creating attack surface
+- **Always** pin base image versions and dependency versions: unpinned tags drift and break builds silently
 - **Always** scan images with `trivy` or equivalent before pushing to a registry
 
 ## Base Image Selection
@@ -190,6 +190,6 @@ Note: GPU images are amd64-only. Do not attempt multi-platform for CUDA-based im
 
 ## Cross-References
 
-- **devops:pipeline-design** -- CI/CD pipeline structure, deployment strategies, security scanning
-- **devops:github-actions-patterns** -- container build actions, GHA cache for Docker layers
-- **devops:gitops-workflow** -- ArgoCD/Flux image update automation, GitOps deployment
+- **devops:pipeline-design**: CI/CD pipeline structure, deployment strategies, security scanning
+- **devops:github-actions-patterns**: container build actions, GHA cache for Docker layers
+- **devops:gitops-workflow**: ArgoCD/Flux image update automation, GitOps deployment

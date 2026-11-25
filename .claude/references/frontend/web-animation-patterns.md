@@ -25,7 +25,7 @@ Call `document.startViewTransition(() => updateDOM())` with feature detection fa
 
 ## FLIP Technique
 
-First, Last, Invert, Play -- animate layout changes at 60fps.
+First, Last, Invert, Play: animate layout changes at 60fps.
 
 ```typescript
 function flipAnimate(el: HTMLElement, update: () => void) {
@@ -69,7 +69,7 @@ const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').mat
 ## Gotchas
 
 - **Layout thrashing**: batch reads before writes; never interleave `getBoundingClientRect()` with DOM mutations
-- **Compositor-only**: only `transform` and `opacity` avoid layout/paint -- animating `width`, `height`, `top`, `left` is expensive
+- **Compositor-only**: only `transform` and `opacity` avoid layout/paint: animating `width`, `height`, `top`, `left` is expensive
 - **`will-change`**: add before animation, remove after; permanent `will-change` wastes GPU memory
 - **Framer Motion bundle**: ~30KB min+gz; use `LazyMotion` + `domAnimation` feature for code splitting
 - **AnimatePresence**: requires direct children with stable `key` props; fragments break exit animations
@@ -77,5 +77,5 @@ const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').mat
 
 ## Cross-References
 
-- **frontend:responsive-web-design** -- media queries and layout context for animation breakpoints
-- **frontend:accessibility-testing** -- testing reduced-motion compliance and focus management
+- **frontend:responsive-web-design**: media queries and layout context for animation breakpoints
+- **frontend:accessibility-testing**: testing reduced-motion compliance and focus management

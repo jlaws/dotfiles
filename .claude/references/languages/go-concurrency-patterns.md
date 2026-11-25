@@ -89,10 +89,10 @@ go func() { <-sigCh; cancel() }()
 
 ## Channel Gotchas
 
-- **Close from sender only** -- closing from receiver causes panic
-- **Buffer channels when count is known** -- avoids goroutine leak on early return
+- **Close from sender only**: closing from receiver causes panic
+- **Buffer channels when count is known**: avoids goroutine leak on early return
 - **`select` with `default`** for non-blocking send/receive
-- **Priority select** -- nest two selects (check high-priority channel in default case)
+- **Priority select**: nest two selects (check high-priority channel in default case)
 
 ## Race Detection
 
@@ -109,8 +109,8 @@ go build -race .       # for development builds
 
 ## Key Don'ts
 
-- **Don't leak goroutines** -- every goroutine needs an exit path (context, done channel)
-- **Don't `time.Sleep` for synchronization** -- use proper primitives
-- **Don't share memory without synchronization** -- even "read-only" maps aren't safe during concurrent writes
-- **Don't ignore `ctx.Done()`** -- check it in long-running loops
-- **Don't forget loop variable capture** -- `url := url` before goroutine (fixed in Go 1.22+ but be explicit)
+- **Don't leak goroutines**: every goroutine needs an exit path (context, done channel)
+- **Don't `time.Sleep` for synchronization**: use proper primitives
+- **Don't share memory without synchronization**: even "read-only" maps aren't safe during concurrent writes
+- **Don't ignore `ctx.Done()`**: check it in long-running loops
+- **Don't forget loop variable capture**: `url := url` before goroutine (fixed in Go 1.22+ but be explicit)

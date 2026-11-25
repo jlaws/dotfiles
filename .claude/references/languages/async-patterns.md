@@ -1,6 +1,6 @@
 # Async Patterns
 
-When to reach for async -- and when not to:
+When to reach for async, and when not to:
 
 | Workload | Async? | Why |
 |----------|--------|-----|
@@ -13,8 +13,8 @@ When to reach for async -- and when not to:
 | CLI scripts | **Usually no** | Overhead not worth it for sequential tasks |
 
 ## gather vs TaskGroup
-- `asyncio.gather(*tasks, return_exceptions=True)` -- fan-out, collect all results
-- `asyncio.TaskGroup()` (3.11+) -- structured concurrency, cancels siblings on first exception
+- `asyncio.gather(*tasks, return_exceptions=True)`: fan-out, collect all results
+- `asyncio.TaskGroup()` (3.11+): structured concurrency, cancels siblings on first exception
 - **Prefer `TaskGroup`** for correctness; use `gather` when you need partial results
 
 ## Semaphore for rate limiting
@@ -68,4 +68,4 @@ queue: asyncio.Queue[dict] = asyncio.Queue(maxsize=100)
 - **Cancellation**: always catch `CancelledError`, clean up, then re-raise
 - **Mixing sync/async ORMs**: SQLAlchemy async requires `AsyncSession`; can't use sync session without `run_in_executor`
 
-> **Deep dive**: async context managers, generators, ML serving, batched inference, testing -- see `references/languages/async-deep-dive.md`
+> **Deep dive**: async context managers, generators, ML serving, batched inference, testing: see `references/languages/async-deep-dive.md`

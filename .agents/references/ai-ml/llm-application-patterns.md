@@ -285,7 +285,7 @@ Information in the middle of long contexts is retrieved less reliably. Put criti
 
 **Decision rule**: Use provider-native structured outputs first. Use Instructor for cross-provider compatibility or complex Pydantic validation. Use Outlines for local/open-source models.
 
-### Quick Start -- Anthropic
+### Quick Start: Anthropic
 
 Pass a Pydantic model; `messages.parse` constrains the output to its schema and validates it. That guarantees shape, not truth: required fields get filled even on empty or adversarial input, so validate values too.
 
@@ -314,7 +314,7 @@ if result is None:
     raise ValueError(f"no structured output (stop_reason={response.stop_reason})")
 ```
 
-### Quick Start -- OpenAI
+### Quick Start: OpenAI
 
 ```python
 from openai import OpenAI
@@ -350,7 +350,7 @@ For anti-patterns catalog and Pydantic validation strategies, see [ai-ml/llm-app
 
 ### Structured Output Gotchas
 
-- **OpenAI strict mode** requires `additionalProperties: false` and all fields in `required`. Use Pydantic defaults -- fields still appear in `required` but the model can output `null`.
+- **OpenAI strict mode** requires `additionalProperties: false` and all fields in `required`. Use Pydantic defaults: fields still appear in `required` but the model can output `null`.
 - **Forced `tool_choice`** (`any` / `tool`) returns a 400 on Claude Opus 5.5, Sonnet 5.5, and Fable 5.1; use structured outputs for extraction, or `strict: true` under `tool_choice: auto` when a real tool is involved.
 - **Temperature**: On providers and models that accept sampling parameters, use `temperature=0` for extraction. Current Claude models (Opus 4.7 and later, Sonnet 5 and later, Fable) reject non-default sampling values; rely on the schema for shape and validate values.
 - **Nested arrays (3+ levels)**: Models struggle. Flatten or extract in multiple passes.
@@ -361,8 +361,8 @@ For retry strategies and provider fallback patterns, see [ai-ml/llm-application-
 
 ## Cross-References
 
-- **ai-ml:rag-and-vector-search** -- retrieval-augmented generation, chunking, embedding strategies
-- **ai-ml:agentic-systems-design** -- tool use, multi-agent orchestration, planning loops
-- **languages:pydantic-and-data-validation** -- Pydantic v2 models for extraction schemas
-- **ai-ml:llmops-production-monitoring** -- cache-hit rate, token cost tracking, batch discounts
-- **workflow:context-efficiency** -- token reduction, KV cache, U-shaped attention for Claude Code workflows
+- **ai-ml:rag-and-vector-search**: retrieval-augmented generation, chunking, embedding strategies
+- **ai-ml:agentic-systems-design**: tool use, multi-agent orchestration, planning loops
+- **languages:pydantic-and-data-validation**: Pydantic v2 models for extraction schemas
+- **ai-ml:llmops-production-monitoring**: cache-hit rate, token cost tracking, batch discounts
+- **workflow:context-efficiency**: token reduction, KV cache, U-shaped attention for Claude Code workflows

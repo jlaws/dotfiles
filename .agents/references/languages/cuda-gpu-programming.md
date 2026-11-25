@@ -229,7 +229,7 @@ __global__ void tiled_matmul(float* A, float* B, float* C, int N) {
 - Launching a kernel costs ~5-10us. Tiny kernels (< 1000 elements) spend more time launching than computing. Fuse small operations into a single kernel. For very small tensors, consider CPU. Profile with nsys to see launch gaps.
 
 ### Ignoring Occupancy
-- Low occupancy means SMs idle during memory stalls. Use the CUDA occupancy calculator. Aim for >50%. Adjust block size, reduce shared memory/registers if needed. Not always the bottleneck -- check nsight first.
+- Low occupancy means SMs idle during memory stalls. Use the CUDA occupancy calculator. Aim for >50%. Adjust block size, reduce shared memory/registers if needed. Not always the bottleneck: check nsight first.
 
 ### Synchronization Overkill
 - `__syncthreads()` in loops/conditionals stalls the entire block. Sync only when shared memory is read by a thread that didn't write it. Never place inside divergent branches (deadlock). Use `__syncwarp()` for warp-level coordination.

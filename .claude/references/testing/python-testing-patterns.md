@@ -98,7 +98,7 @@ tests/
 **conftest.py Strategy**:
 - Root: DB engine, app config, shared factories
 - Directory-level: scope-specific fixtures
-- Never import from conftest -- pytest injects automatically
+- Never import from conftest: pytest injects automatically
 - A test that checks parallel output equals serial output proves the results match, not that work ran concurrently, in the workers, or in order.
 - Pin concurrency with a rendezvous that completes only if two jobs overlap, and assert which process emitted each record.
 

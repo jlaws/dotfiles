@@ -37,7 +37,7 @@ For complete Python and TypeScript server examples including resources, prompts,
 
 **Schema rules**:
 - Use Python type hints; FastMCP converts them to JSON Schema automatically
-- Docstring becomes the tool description -- make it count
+- Docstring becomes the tool description: make it count
 - Use `str | None` for optional fields, never `Optional[str]` (deprecated style)
 - Constrain values: use `Literal["low", "medium", "high"]` or enums
 - Keep parameter count under 7; group related params into a nested object if needed
@@ -80,9 +80,9 @@ For full resource implementation examples, see [server-examples.md](server-examp
 
 | Primitive | Purpose | Model Controls? |
 |-----------|---------|-----------------|
-| **Tools** | Actions, mutations, computations | Yes -- model decides when to call |
-| **Resources** | Data/context loading | No -- host/application decides |
-| **Prompts** | Reusable prompt templates | No -- user selects explicitly |
+| **Tools** | Actions, mutations, computations | Yes: model decides when to call |
+| **Resources** | Data/context loading | No: host/application decides |
+| **Prompts** | Reusable prompt templates | No: user selects explicitly |
 
 ## Integration
 

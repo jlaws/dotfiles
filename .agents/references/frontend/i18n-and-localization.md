@@ -248,7 +248,7 @@ Object.entries(messages).forEach(([key, msg]) => {
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|
-| String concatenation | `"Hello, " + name` -- can't reorder for other languages | Use ICU: `"Hello, {name}"` |
+| String concatenation | `"Hello, " + name`: can't reorder for other languages | Use ICU: `"Hello, {name}"` |
 | Hardcoded date format | `MM/DD/YYYY` is US-only | Use `Intl.DateTimeFormat` |
 | Splitting sentences | `"Click " + <a>here</a> + " to continue"` | Use rich text: `"Click <link>here</link> to continue"` |
 | Assuming text direction | CSS `margin-left` | Use `margin-inline-start` |
@@ -259,16 +259,16 @@ Object.entries(messages).forEach(([key, msg]) => {
 
 ## Gotchas
 
-- English has 2 plural forms; Arabic has 6, Polish has 4. Never hardcode plural logic -- use ICU plural rules
+- English has 2 plural forms; Arabic has 6, Polish has 4. Never hardcode plural logic: use ICU plural rules
 - `Intl.DateTimeFormat` output varies by browser/OS version; snapshot tests on dates will be brittle
 - RTL languages aren't just mirrored; phone numbers, URLs, and code remain LTR even in RTL context
-- ICU MessageFormat `#` in plural rules refers to the plural value, not a literal `#` -- escape with `'#'`
+- ICU MessageFormat `#` in plural rules refers to the plural value, not a literal `#`: escape with `'#'`
 - Some languages (Chinese, Japanese) don't use spaces between words; CSS `word-break: break-all` may be needed
 - Translation memory tools (Crowdin, Lokalise) require stable keys; changing keys invalidates existing translations
 - Next.js App Router and `next-intl` require server components for async message loading; client components need the provider wrapper
-- Currency formatting must use the user's locale for number format but the transaction's currency code -- these are independent
+- Currency formatting must use the user's locale for number format but the transaction's currency code: these are independent
 
 ## Cross-References
 
-- **frontend:nextjs-app-router-patterns** -- routing patterns for locale-based paths, middleware setup
-- **frontend:react-state-management** -- managing locale state, context providers for i18n
+- **frontend:nextjs-app-router-patterns**: routing patterns for locale-based paths, middleware setup
+- **frontend:react-state-management**: managing locale state, context providers for i18n

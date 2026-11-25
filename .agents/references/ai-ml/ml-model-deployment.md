@@ -235,5 +235,5 @@ torchserve --start --model-store model_store --models llm=llm.mar
 - [ ] Set `max_model_len` to actual max, not model's theoretical max (saves KV cache)
 - [ ] AWQ/GPTQ quantization for 2x throughput with minimal quality loss
 - [ ] Speculative decoding for latency-sensitive workloads (draft model + verify)
-- [ ] Tune `gpu_memory_utilization` -- too high causes thrashing, too low wastes capacity
+- [ ] Tune `gpu_memory_utilization`: too high causes thrashing, too low wastes capacity
 - [ ] Profile with `nsys` or `torch.profiler` to find actual bottleneck before optimizing

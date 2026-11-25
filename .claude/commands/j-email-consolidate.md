@@ -11,7 +11,7 @@ Two arguments: `<emails-dir>` and `<output-path>`.
 
 ## Setup (always do first)
 
-Load skill `output-completeness` via the Skill tool -- the digest must account for every source with real signal; no silently dropped items, no truncated sections.
+Load skill `output-completeness` via the Skill tool: the digest must account for every source with real signal; no silently dropped items, no truncated sections.
 
 You will build the consolidated weekly digest **incrementally**: write a skeleton first, then extend it as you read each source file. Do NOT batch all reads before writing. The output file must grow monotonically and visibly as you work.
 

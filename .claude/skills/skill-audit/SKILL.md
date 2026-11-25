@@ -70,7 +70,7 @@ Read the limits it prints before the table, because they decide what the numbers
 `--active-days`. Neither means unused, and neither is on its own a reason to delete anything. Use
 them as evidence for the **Orphans** judgment below: an asset that is both unreferenced and
 unmentioned is a strong removal candidate, while one that is unmentioned but well-referenced is more
-likely a discoverability problem. A `cold` asset has positive evidence -- treat it as used.
+likely a discoverability problem. A `cold` asset has positive evidence: treat it as used.
 
 Two Claude Code commands add to this report. `/skill-doctor` (v2.1.252 or later) reports what each
 skill costs in the listing and how often it is invoked. `/claude-api prompt-audit` (v2.1.221 or
@@ -159,7 +159,7 @@ cannot tell a claim from a threshold or a rollout stage, so it flags far more le
 real ones and the only way to green is to reword them.
 
 **Evidence rule:** the axis covers four failure shapes, not one. A number with no provenance. A
-*counterfactual* saving -- "this saved N tokens" about work never done the other way -- stated as
+*counterfactual* saving: "this saved N tokens" about work never done the other way, stated as
 measured rather than estimated. Behavior shipped on a hunch with no label saying so, and its mirror
 image, a rule the repo advertises that nothing enforces. And a best-case figure printed without the
 general one beside it. Full rules in `writing-skills`, Claims and evidence; this axis is where they

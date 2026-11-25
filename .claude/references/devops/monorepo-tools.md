@@ -48,10 +48,10 @@ Turborepo -> Nx (when you need boundaries) -> Bazel (when Nx can't scale)
 ## Turborepo Key Opinions
 
 ### Pipeline Configuration
-- Always specify `inputs` -- default hashes everything, including test files for build tasks
-- Set `outputs` precisely -- `["dist/**"]` not `["dist"]`
-- `env` must list all env vars that affect output -- missing one = stale cache
-- `"dev": { "cache": false, "persistent": true }` -- dev servers are never cacheable
+- Always specify `inputs`: default hashes everything, including test files for build tasks
+- Set `outputs` precisely: `["dist/**"]` not `["dist"]`
+- `env` must list all env vars that affect output: missing one = stale cache
+- `"dev": { "cache": false, "persistent": true }`: dev servers are never cacheable
 
 ### Filtering
 ```bash
@@ -103,11 +103,11 @@ Add `scope:web`, `scope:api`, `scope:shared` to prevent cross-platform leaks.
 - Use granular exports, not barrel files with everything
 
 ### Dependency Management (pnpm preferred)
-- pnpm workspaces for JS/TS monorepos -- strict, fast, disk-efficient
-- `pnpm add react --filter @repo/ui` -- add to specific package
+- pnpm workspaces for JS/TS monorepos: strict, fast, disk-efficient
+- `pnpm add react --filter @repo/ui`: add to specific package
 - Use `catalog:` in pnpm-workspace.yaml to pin shared dependency versions
 
 ### Changesets for Publishing
 - `@changesets/cli` for version management and npm publishing
-- Changeset per PR -- enforced via CI check
+- Changeset per PR: enforced via CI check
 - Auto-merge minor/patch updates, manual review for major

@@ -2,11 +2,11 @@
 
 ## Critical Rules
 
-- **Never** run containers as root -- set `runAsNonRoot: true` and `allowPrivilegeEscalation: false` on every pod
-- **Always** set memory requests/limits -- pods without limits can OOMKill neighbors and crash nodes
-- **Never** use the `default` ServiceAccount -- create dedicated SAs with `automountServiceAccountToken: false`
+- **Never** run containers as root: set `runAsNonRoot: true` and `allowPrivilegeEscalation: false` on every pod
+- **Always** set memory requests/limits: pods without limits can OOMKill neighbors and crash nodes
+- **Never** use the `default` ServiceAccount: create dedicated SAs with `automountServiceAccountToken: false`
 - **Always** apply default-deny NetworkPolicies per namespace before adding allow rules
-- **Never** make liveness probes check external dependencies -- a database blip will cascade-restart all pods
+- **Never** make liveness probes check external dependencies: a database blip will cascade-restart all pods
 
 ## Manifest Generation Workflow
 
@@ -31,7 +31,7 @@
 
 **Rules:**
 - Always set requests. Limits optional but recommended for memory.
-- CPU limits cause throttling -- omit for latency-sensitive services; use only requests.
+- CPU limits cause throttling: omit for latency-sensitive services; use only requests.
 - Memory limits 1.5-2x requests. OOMKill is worse than throttling.
 - Never set requests = limits unless you want Guaranteed QoS (rare).
 
@@ -124,7 +124,7 @@ See `references/devops/security-policies.md` for NetworkPolicy YAML examples.
 | CI/CD deployer | deployments, services, configmaps | get, list, create, update, patch |
 | Secret reader (scoped) | secrets (by resourceNames) | get |
 
-**Key opinion**: CI/CD service accounts should NOT have `delete` on pods -- let the deployment controller handle pod lifecycle.
+**Key opinion**: CI/CD service accounts should NOT have `delete` on pods: let the deployment controller handle pod lifecycle.
 
 ## Labels (Standard K8s Labels)
 
@@ -163,7 +163,7 @@ overlays/
 
 **Helm** (when you need templating + packaging):
 - Use `values.schema.json` to validate inputs
-- Template helpers in `_helpers.tpl` -- keep DRY
+- Template helpers in `_helpers.tpl`: keep DRY
 - Always support `resources`, `nodeSelector`, `tolerations`, `affinity` in values
 - Use `helm template --dry-run --debug` to verify before install
 
@@ -197,8 +197,8 @@ Use for policies Pod Security Standards can't enforce:
 
 ## Service Mesh mTLS
 
-- `STRICT` in production -- reject all non-mTLS traffic
-- `PERMISSIVE` during mesh rollout -- accept both
+- `STRICT` in production: reject all non-mTLS traffic
+- `PERMISSIVE` during mesh rollout: accept both
 - Use `AuthorizationPolicy` for fine-grained service-to-service access control
 
 ## Validation Pipeline

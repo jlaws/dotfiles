@@ -100,8 +100,8 @@ Write the run's final report yourself: the `$cmd-j-diff-review` report, plus the
 
 ### Cross-References
 
-- **skill:cmd-j-execute-plan** -- executes a plan from its first part; this command resumes at a later PR boundary
-- **skill:cmd-j-rebase** -- refreshes an already-open PR; this command opens the next one
-- **skill:writing-plans** -- PR Boundaries, and the between-PRs reset sequence Phase 3 runs
-- **skill:executing-plans** -- the living-document ledger Phase 4 maintains
-- **skill:cmd-j-diff-review** -- closes the part and opens its PR
+- **skill:cmd-j-execute-plan**: executes a plan from its first part; this command resumes at a later PR boundary
+- **skill:cmd-j-rebase**: refreshes an already-open PR; this command opens the next one
+- **skill:writing-plans**: PR Boundaries, and the between-PRs reset sequence Phase 3 runs
+- **skill:executing-plans**: the living-document ledger Phase 4 maintains
+- **skill:cmd-j-diff-review**: closes the part and opens its PR

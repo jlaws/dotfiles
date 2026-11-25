@@ -35,13 +35,13 @@
 ### 1. Fail Fast and Fail Loud
 - Validate inputs at system boundaries immediately
 - Don't propagate bad data deep into business logic
-- Startup: **fail the service** if illegal state, missing config, or missing secrets are encountered -- don't limp along in a broken state
-- Requests: **fail immediately** if invalid arguments or unexpected state is encountered -- don't let bad data propagate
+- Startup: **fail the service** if illegal state, missing config, or missing secrets are encountered: don't limp along in a broken state
+- Requests: **fail immediately** if invalid arguments or unexpected state is encountered: don't let bad data propagate
 - Connect to "make invalid states unrepresentable" (see `workflow:code-quality`): validate early at boundaries, convert to constrained types, and pass constrained types downstream so invalid states can't reach business logic
 
 ### 2. Handle at the Right Level
 - Catch where you can meaningfully handle (retry, fallback, user message)
-- Don't catch just to log and re-throw -- that creates duplicate logs
+- Don't catch just to log and re-throw: that creates duplicate logs
 - Low-level code: propagate errors. High-level code: handle them.
 
 ### 3. Preserve Context
@@ -83,7 +83,7 @@ except SpecificError as e:
 ### 6. Log Appropriately
 - **Error**: Unexpected failures requiring investigation
 - **Warning**: Expected failures handled gracefully
-- **Don't log**: Every caught exception -- only log when you handle or propagate
+- **Don't log**: Every caught exception: only log when you handle or propagate
 
 ## Resilience Patterns
 
@@ -91,7 +91,7 @@ except SpecificError as e:
 - Only retry transient errors (network, 503, 429)
 - Never retry: 400, 401, 403, 404, 422
 - Exponential backoff: `delay * 2^attempt` with jitter
-- Max 3 attempts -- more adds latency without improving success rate
+- Max 3 attempts: more adds latency without improving success rate
 - Use `tenacity` (Python), `p-retry` (JS), or language-native constructs
 
 ### Circuit Breaker
@@ -198,8 +198,8 @@ class RateLimitError(APIError):
 
 ### Design Principles
 
-- **Typed exceptions** -- users catch specific errors: `except NotFoundError` not `except Exception`
-- **Preserve API context** -- include status code, error code, and message from API response
-- **Factory pattern** -- `from_response()` maps status codes to subclasses automatically
-- **Never swallow** -- always surface errors to SDK consumers; log internally only if adding value
-- **Rate limit metadata** -- `RateLimitError` should expose `retry_after` for caller-driven backoff
+- **Typed exceptions**: users catch specific errors: `except NotFoundError` not `except Exception`
+- **Preserve API context**: include status code, error code, and message from API response
+- **Factory pattern**: `from_response()` maps status codes to subclasses automatically
+- **Never swallow**: always surface errors to SDK consumers; log internally only if adding value
+- **Rate limit metadata**: `RateLimitError` should expose `retry_after` for caller-driven backoff

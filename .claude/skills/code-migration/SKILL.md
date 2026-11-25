@@ -11,7 +11,7 @@ description: "Use when moving an application or service to a different framework
 ASSESS BEFORE PLANNING. PLAN BEFORE CODING. TEST BEFORE CUTTING OVER.
 ```
 
-Complete the assessment phase before migrating any code -- skipping it leads to mid-migration surprises that blow timelines.
+Complete the assessment phase before migrating any code: skipping it leads to mid-migration surprises that blow timelines.
 
 ## Phase 1: Migration Assessment
 
@@ -35,7 +35,7 @@ find src/ -name "*.test.*" -o -name "*_test.*" | wc -l  # Test coverage proxy
 | **Business Logic** | Simple CRUD, straightforward rules | Moderate domain logic, some edge cases | Complex rules, financial calcs, compliance |
 | **Data** | Schema unchanged or trivial mapping | Schema changes needed, data transformable | Schema redesign, lossy transformations, large volumes |
 
-Judge overall complexity from the worst factor, not an average -- one High on Data or Coupling can dominate effort even if everything else is Low. There's no valid formula that collapses five independent risk dimensions into a single number; naming the riskiest factor is more useful than a score.
+Judge overall complexity from the worst factor, not an average: one High on Data or Coupling can dominate effort even if everything else is Low. There's no valid formula that collapses five independent risk dimensions into a single number; naming the riskiest factor is more useful than a score.
 
 ### Step 3: Identify Risk Patterns
 
@@ -118,7 +118,7 @@ Pick ONE strategy. Do not combine them.
 | Incremental | Module-by-module migration with comparison tests after each |
 | Cutover | Remove legacy code, optimize, final validation, rollback drill |
 
-Duration depends on team size, module count, and how much of the touched code already has tests -- estimate from the scope numbers gathered in Step 1, not from a calendar guess.
+Duration depends on team size, module count, and how much of the touched code already has tests: estimate from the scope numbers gathered in Step 1, not from a calendar guess.
 
 ### Migration Order
 
@@ -166,9 +166,9 @@ This catches behavioral regressions that unit tests miss.
 | Condition | Threshold | Detection |
 |-----------|-----------|-----------|
 | Critical functionality broken | Any P0 feature fails | Automated smoke tests |
-| Performance degradation | Set relative to your own measured pre-migration p95 baseline -- a guessed percentage has no provenance | APM dashboard |
+| Performance degradation | Set relative to your own measured pre-migration p95 baseline: a guessed percentage has no provenance | APM dashboard |
 | Data corruption | Any integrity check failure | Validation job |
-| Error rate spike | Set relative to your own measured pre-migration baseline -- a guessed percentage has no provenance | Error tracking |
+| Error rate spike | Set relative to your own measured pre-migration baseline: a guessed percentage has no provenance | Error tracking |
 
 ### Rollback Procedures by Strategy
 

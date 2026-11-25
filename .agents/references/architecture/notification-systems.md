@@ -235,11 +235,11 @@ class NotificationRateLimiter:
 
 ## Gotchas
 
-- **SES sandbox mode** -- new accounts only send to verified addresses; request production access first
-- **FCM token rotation** -- device tokens expire; handle `UNREGISTERED` errors by removing stale tokens
-- **Webhook replay attacks** -- validate timestamp is within 5 minutes alongside signature
-- **Email deliverability** -- set up SPF, DKIM, and DMARC records or emails land in spam
-- **In-app notification bloat** -- add TTL or archival; millions of read notifications slow queries
-- **Provider rate limits** -- email providers enforce own limits (SES: 14/sec); push: FCM/APNs 4KB max payload
-- **Quiet hours timezone** -- check user timezone, not server; store as UTC offset
-- **Webhook idempotency** -- receivers may get duplicates; include idempotency key in headers
+- **SES sandbox mode**: new accounts only send to verified addresses; request production access first
+- **FCM token rotation**: device tokens expire; handle `UNREGISTERED` errors by removing stale tokens
+- **Webhook replay attacks**: validate timestamp is within 5 minutes alongside signature
+- **Email deliverability**: set up SPF, DKIM, and DMARC records or emails land in spam
+- **In-app notification bloat**: add TTL or archival; millions of read notifications slow queries
+- **Provider rate limits**: email providers enforce own limits (SES: 14/sec); push: FCM/APNs 4KB max payload
+- **Quiet hours timezone**: check user timezone, not server; store as UTC offset
+- **Webhook idempotency**: receivers may get duplicates; include idempotency key in headers

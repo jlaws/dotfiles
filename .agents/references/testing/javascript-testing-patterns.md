@@ -21,15 +21,15 @@ class UserService {
 
 ## Testing Async Properly
 - Always `await` assertions on promises: `await expect(fn()).rejects.toThrow()`
-- Never use `done()` callbacks -- use async/await
+- Never use `done()` callbacks: use async/await
 - Mock timers with `vi.useFakeTimers()`, clean up with `vi.useRealTimers()`
 
 ## Frontend Component Testing
 - **Query priority**: `getByRole` > `getByLabelText` > `getByPlaceholderText` > `getByTestId`
 - `data-testid` is a last resort, not first choice
-- Use `userEvent` over `fireEvent` -- simulates real behavior (focus, blur, etc.)
+- Use `userEvent` over `fireEvent`: simulates real behavior (focus, blur, etc.)
 - Test what user sees, not component internals
-- Avoid snapshot tests for components -- catch everything and nothing
+- Avoid snapshot tests for components: catch everything and nothing
 
 ## Integration Test Boundaries
 - API integration: use `supertest` with real app + test database
@@ -40,7 +40,7 @@ class UserService {
 ## Mocking Strategies
 | Scenario | Approach |
 |----------|----------|
-| External APIs | `msw` (Mock Service Worker) -- intercepts at network level |
+| External APIs | `msw` (Mock Service Worker): intercepts at network level |
 | Database | Test containers or in-memory DB |
 | Time/dates | `vi.useFakeTimers()` |
 | Modules | DI first; `vi.mock()` only if no other option |
@@ -48,7 +48,7 @@ class UserService {
 
 ## Mock Hygiene
 - `vi.clearAllMocks()` in `beforeEach`, not `afterEach`
-- Prefer `mockResolvedValueOnce` over `mockResolvedValue` -- forces explicit setup per test
+- Prefer `mockResolvedValueOnce` over `mockResolvedValue`: forces explicit setup per test
 - Verify with `toHaveBeenCalledWith`, not just `toHaveBeenCalled`
 
 ## Test Organization

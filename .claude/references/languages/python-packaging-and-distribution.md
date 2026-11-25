@@ -123,7 +123,7 @@ my-package/
     └── test_core.py
 ```
 
-**Use src layout** -- prevents accidentally importing the local package instead of the installed one during testing.
+**Use src layout**: prevents accidentally importing the local package instead of the installed one during testing.
 
 ## Dependency Management
 
@@ -241,7 +241,7 @@ twine upload dist/*
 twine check dist/*
 ```
 
-### Trusted Publishers (GitHub Actions -- recommended)
+### Trusted Publishers (GitHub Actions: recommended)
 
 ```yaml
 # .github/workflows/publish.yml
