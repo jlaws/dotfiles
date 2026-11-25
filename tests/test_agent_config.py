@@ -2712,6 +2712,40 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertIn("untrusted TeX", path.read_text(encoding="utf-8"))
 
+    def test_eval_audit_asset_fixes_hold(self):
+        def read(rel):
+            return (REPO / rel).read_text(encoding="utf-8")
+
+        for tree in (".claude", ".agents", ".gemini/antigravity-cli"):
+            rel = f"{tree}/skills/using-git-worktrees/SKILL.md"
+            with self.subTest(row="using-git-worktrees", path=rel):
+                text = read(rel)
+                self.assertIn("-- .gitignore", text)
+                self.assertIn(".git/info/exclude", text)
+                self.assertNotIn("Add to .gitignore, commit, then proceed", text)
+        for tree in (".claude", ".agents"):
+            ref = f"{tree}/references"
+            with self.subTest(row="uv-workflows", tree=tree):
+                text = read(f"{ref}/languages/uv-workflows.md")
+                self.assertIn("`--locked` in CI", text)
+                self.assertNotIn("MUST use --frozen", text)
+            with self.subTest(row="python-packaging", tree=tree):
+                text = read(f"{ref}/languages/python-packaging-and-distribution.md")
+                self.assertNotIn("pydantic>=2.0,<3.0", text)
+            with self.subTest(row="js-ts-patterns", tree=tree):
+                text = read(f"{ref}/languages/js-ts-patterns.md")
+                lines = [ln for ln in text.splitlines() if '"import"' in ln and '"types"' in ln]
+                self.assertTrue(lines)
+                for line in lines:
+                    self.assertLess(line.index('"types"'), line.index('"import"'))
+            with self.subTest(row="scope-review", tree=tree):
+                text = read(f"{ref}/product/scope-review-methodology.md")
+                self.assertIn("missing capabilities", text)
+                self.assertNotIn("10x version", text)
+            with self.subTest(row="file-storage-patterns", tree=tree):
+                text = read(f"{ref}/cloud/file-storage-patterns.md")
+                self.assertIn("sign each part on demand", text)
+
 
 if __name__ == "__main__":
     unittest.main()

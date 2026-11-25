@@ -48,10 +48,10 @@ uv remove requests
 ## CI/CD Deployment
 
 ```bash
-# MUST use --frozen in CI (fail if lockfile stale)
-uv sync --frozen
-uv sync --frozen --no-dev  # production: skip dev deps
-uv sync --frozen --all-extras  # include optional deps
+# MUST use --locked in CI (fail if lockfile stale)
+uv sync --locked
+uv sync --locked --no-dev  # production: skip dev deps
+uv sync --locked --all-extras  # include optional deps
 ```
 
 **Critical**: Always commit `uv.lock`; regenerate only on dependency changes.
@@ -141,7 +141,7 @@ FROM python:3.12-slim AS builder
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --no-editable
+RUN uv sync --locked --no-dev --no-editable
 
 FROM python:3.12-slim
 WORKDIR /app
@@ -160,7 +160,7 @@ CMD ["python", "app.py"]
     python-version: "3.12"
     cache-dependency-glob: "**/uv.lock"
 
-- run: uv sync --frozen --all-extras --dev
+- run: uv sync --locked --all-extras --dev
 - run: uv run pytest
 - run: uv run ruff check .
 - run: uv run ty check .
@@ -186,7 +186,7 @@ uv add -p api requests@^2.30.0
 
 - **Always commit `uv.lock`** -- reproducible builds, deterministic deploys
 - **Use `uv run`** instead of activating venvs -- works in CI, Docker, scripts
-- **`--frozen` in CI** -- fail if lockfile is stale; catch accidental changes
+- **`--locked` in CI**: fails when `uv.lock` is stale; `--frozen` skips that check and installs from the lockfile as it is
 - **Pin Python version** with `uv python pin 3.12`
 - **Export for compatibility**: `uv export > requirements.txt` for legacy tooling
 
