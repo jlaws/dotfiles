@@ -95,7 +95,7 @@ Scale the process to the task's complexity:
 
 | Task Size | Questions | Approaches | Design Document |
 |-----------|-----------|------------|-----------------|
-| Tiny (utility function, config) | 1-2 quick questions | 1-2 sentences each | Skip (inline approval is fine) |
+| Tiny (utility function, config) | 0-1, only if blocking | 1-2 sentences each | Skip (inline approval is fine) |
 | Small (single component, endpoint) | 2-3 questions | 2-3 brief approaches | Optional (user's choice) |
 | Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes (save to the harness plan file) |
 | Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes (save to the harness plan file before proceeding) |
@@ -105,7 +105,7 @@ The process is the same regardless of size; the depth scales, not the steps. A t
 ## Red Flags
 
 - Writing code before design approval
-- Skipping the question phase ("I know what they want")
+- Skipping a question the code cannot answer ("I know what they want")
 - Presenting only one approach
 - Over-designing before asking clarifying questions
 - Assuming requirements instead of asking

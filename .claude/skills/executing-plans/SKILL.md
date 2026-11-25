@@ -96,7 +96,8 @@ These conditions, and the diff-review report at a PR boundary, are the only reas
 - You've hit 3+ consecutive unexpected issues
 - A decision-gate result matches no branch the plan defined
 - A non-idempotent step partially executed (e.g., half a migration ran). Stop immediately - re-running may corrupt state. Report exactly what happened and what state you're in.
-- A test failure or missing dependency is still unresolved after you diagnosed it and two fixes failed, or the fix would change something the plan decided
+- A test failure or missing dependency is still unresolved after you diagnosed it and two fixes failed, or the fix would change something the plan decided, add a dependency, or loosen a test
+- The work needs credentials, access, or a decision only the user has
 
 A failing test, a missing dependency, a timeout, or a tool error is an ordinary obstacle: diagnose it and work through it before stopping. Ask rather than guess at what the plan means.
 

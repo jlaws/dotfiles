@@ -26,8 +26,8 @@ present.
 
 ## When output genuinely will not fit
 
-Write it to a file, in as many edits as it takes, and report the path; a file has no response
-limit. A dispatched agent returns what is complete and names each missing section and why, because
+In a session that can write files and owns the artifact, write it to a file, in as many edits as
+it takes, and report the path; a file has no response limit. A dispatched agent returns what is complete and names each missing section and why, because
 nobody can reply "continue" to it. Only in a chat reply with nowhere to write, stop at a clean
 breakpoint (the end of a function or a section, never mid-sentence) and say what is left. Silent
 truncation and placeholder characters are never a handoff, because the reader cannot tell what is

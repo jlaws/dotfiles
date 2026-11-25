@@ -62,8 +62,7 @@ description: "Use when reviewing someone's pull request or diff, deciding how se
 
 #### Phase 4: Summary
 1. Summarize key concerns
-2. Highlight what worked well
-3. Clear decision: Approve / Comment / Request Changes
+2. Clear decision: Approve / Comment / Request Changes
 
 ### Feedback Severity Labels
 
