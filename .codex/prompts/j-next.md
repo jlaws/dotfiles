@@ -56,12 +56,14 @@ git fetch origin main
 git reset --hard origin/main
 ```
 
-`git branch -d` cannot see a squash merge, so the loop compares each branch's whole diff with `origin/main` by patch id and force-deletes only on a match.
+`git branch -d` cannot see a squash merge, so the loop compares each branch's whole diff with `origin/main` by patch id and force-deletes only on a match and prints each branch it keeps.
 
 ```bash
-git for-each-ref --format='%(refname:short)' refs/heads/ | grep -vxE 'main|master' | while read -r b; do
+git for-each-ref --format='%(refname:short)' refs/heads/ | while read -r b; do
+  case "$b" in main|master) continue ;; esac
   if git merge-base --is-ancestor "$b" origin/main; then git branch -d "$b"
   elif [ "$(git cherry origin/main "$(git commit-tree --no-gpg-sign "$b^{tree}" -p "$(git merge-base origin/main "$b")" -m squash)" | cut -c1)" = "-" ]; then git branch -D "$b"
+  else echo "kept: $b (no merge or squash match on origin/main)"
   fi
 done
 ```

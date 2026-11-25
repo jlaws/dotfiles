@@ -1056,54 +1056,67 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertNotEqual(start, -1, "'git for-each-ref' not found")
                 end = lines.index("done", start)
                 blocks.append("\n".join(lines[start : end + 1]))
-        self.assertEqual(len(blocks), 7)
+        self.assertEqual(len(blocks), len(J_NEXT_COMMANDS) + len(WRITING_PLANS_SKILLS))
         self.assertEqual(len(set(blocks)), 1)
-        env = {
-            **os.environ,
-            "GIT_CONFIG_GLOBAL": "/dev/null",
-            "GIT_CONFIG_NOSYSTEM": "1",
-            "GIT_AUTHOR_NAME": "t",
-            "GIT_AUTHOR_EMAIL": "t@example.com",
-            "GIT_COMMITTER_NAME": "t",
-            "GIT_COMMITTER_EMAIL": "t@example.com",
-        }
+        env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        env.update(
+            {
+                "GIT_CONFIG_GLOBAL": "/dev/null",
+                "GIT_CONFIG_NOSYSTEM": "1",
+                "GIT_AUTHOR_NAME": "t",
+                "GIT_AUTHOR_EMAIL": "t@example.com",
+                "GIT_COMMITTER_NAME": "t",
+                "GIT_COMMITTER_EMAIL": "t@example.com",
+            }
+        )
+
+        def run(argv, cwd):
+            try:
+                return subprocess.run(
+                    argv,
+                    cwd=cwd,
+                    env=env,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    stdin=subprocess.DEVNULL,
+                ).stdout
+            except subprocess.CalledProcessError as exc:
+                self.fail(f"{argv} failed ({exc.returncode})\nstdout: {exc.stdout}\nstderr: {exc.stderr}")
 
         def git(*args, cwd):
-            return subprocess.run(
-                ["git", *args],
-                cwd=cwd,
-                env=env,
-                check=True,
-                capture_output=True,
-                text=True,
-                stdin=subprocess.DEVNULL,
-            ).stdout
+            return run(["git", *args], cwd)
+
+        def commit_file(tmp, name, label):
+            Path(tmp, name).write_text(label, encoding="utf-8")
+            git("add", ".", cwd=tmp)
+            git("commit", "-q", "-m", label, cwd=tmp)
 
         with tempfile.TemporaryDirectory() as tmp:
             git("init", "-q", "-b", "main", cwd=tmp)
             git("commit", "-q", "--allow-empty", "-m", "base", cwd=tmp)
             for name in ("feat/ff", "feat/squash", "feat/open"):
                 git("checkout", "-q", "-b", name, "main", cwd=tmp)
+                slug = name.replace("/", "_")
                 for i in (1, 2) if name == "feat/squash" else (1,):
-                    slug = name.replace("/", "_")
-                    Path(tmp, f"{slug}{i}.txt").write_text(name, encoding="utf-8")
-                    git("add", ".", cwd=tmp)
-                    git("commit", "-q", "-m", f"{name} {i}", cwd=tmp)
+                    commit_file(tmp, f"{slug}{i}.txt", f"{name} {i}")
+            git("checkout", "-q", "-b", "feat/squash-plus", "feat/squash", cwd=tmp)
+            commit_file(tmp, "extra.txt", "extra unmerged")
             git("checkout", "-q", "main", cwd=tmp)
             git("merge", "-q", "--ff-only", "feat/ff", cwd=tmp)
             git("merge", "-q", "--squash", "feat/squash", cwd=tmp)
             git("commit", "-q", "-m", "squash", cwd=tmp)
             git("update-ref", "refs/remotes/origin/main", "HEAD", cwd=tmp)
-            subprocess.run(
-                ["bash", "-c", blocks[0]],
-                cwd=tmp,
-                env=env,
-                check=True,
-                capture_output=True,
-                stdin=subprocess.DEVNULL,
-            )
+            out = run(["bash", "-c", f"set -eo pipefail\n{blocks[0]}"], tmp)
+            self.assertIn("kept: feat/open", out)
             left = git("for-each-ref", "--format=%(refname:short)", "refs/heads/", cwd=tmp).split()
-        self.assertEqual(set(left), {"main", "feat/open"})
+        self.assertEqual(set(left), {"main", "feat/open", "feat/squash-plus"})
+
+        with tempfile.TemporaryDirectory() as tmp:
+            git("init", "-q", "-b", "main", cwd=tmp)
+            git("commit", "-q", "--allow-empty", "-m", "base", cwd=tmp)
+            git("update-ref", "refs/remotes/origin/main", "HEAD", cwd=tmp)
+            run(["bash", "-c", f"set -eo pipefail\n{blocks[0]}"], tmp)
 
     def test_j_next_edits_the_plan_after_the_new_branch_exists(self):
         for path in J_NEXT_COMMANDS:
