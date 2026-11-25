@@ -1082,7 +1082,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     stdin=subprocess.DEVNULL,
                 ).stdout
             except subprocess.CalledProcessError as exc:
-                self.fail(f"{argv} failed ({exc.returncode})\nstdout: {exc.stdout}\nstderr: {exc.stderr}")
+                self.fail(
+                    f"{argv} failed ({exc.returncode})\nstdout: {exc.stdout}\nstderr: {exc.stderr}"
+                )
 
         def git(*args, cwd):
             return run(["git", *args], cwd)
@@ -1125,7 +1127,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertGreater(text.index("collapse its phases"), text.index("git checkout -b"))
 
     def test_create_pr_branch_case_grades_the_convention_not_the_prompt(self):
-        case = REPO / "evals" / "cases" / "effects" / "create-pr--effect-derive-branch-and-skip-debris"
+        case = (
+            REPO / "evals" / "cases" / "effects" / "create-pr--effect-derive-branch-and-skip-debris"
+        )
         prompt = (case / "prompt.md").read_text(encoding="utf-8")
         grader = (case / "graders" / "branch.md").read_text(encoding="utf-8")
         self.assertNotIn("any prefix is fine", prompt)
@@ -1144,7 +1148,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertIn("type/short-description", text)
                 self.assertIn("origin/main..", text)
                 self.assertIn("git fetch origin main", text)
-                self.assertIn("`type` is `feat`, `fix`, `docs`, `chore`, `refactor`, or `test`", text)
+                self.assertIn(
+                    "`type` is `feat`, `fix`, `docs`, `chore`, `refactor`, or `test`", text
+                )
                 self.assertNotIn("<username>", text)
                 self.assertIsNone(re.search(r"(?<![\w/])main\.\.", text))
 
