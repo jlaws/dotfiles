@@ -62,4 +62,4 @@ The alignment layer (not architecture) is the primary constraint. Models *can* g
 ## Cross-References
 
 - **workflow:completeness-principle**: project-level completeness standards
-- **workflow:output-completeness**: skill for enforcing complete output in active sessions
+- **skill:output-completeness**: skill for enforcing complete output in active sessions

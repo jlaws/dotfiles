@@ -46,5 +46,5 @@ test suite where skeleton tests would give false confidence.
 
 - `verification-before-completion`: how to weigh and report evidence. This skill governs whether the
   output is whole; that one governs how you characterize it.
-- `workflow:llm-output-completeness`: root-cause research and parameter tuning for truncation
-- `workflow:completeness-principle`: project-level completeness standards
+- `${CLAUDE_SKILL_DIR}/../../references/workflow/llm-output-completeness.md`: root-cause research and parameter tuning for truncation
+- `${CLAUDE_SKILL_DIR}/../../references/workflow/completeness-principle.md`: project-level completeness standards
