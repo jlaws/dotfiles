@@ -13,7 +13,8 @@ idiomatic usage, tooling, and project scaffolding.
 
 Reference library at ~/.claude/references/languages/:
 - async-deep-dive, async-patterns, bash-defensive-patterns
-- browser-extension-development, cli-tool-development, cuda-gpu-programming
+- browser-extension-development, cli-tool-development, concurrency-patterns
+- cuda-gpu-programming
 - fastapi-templates, go-concurrency-patterns, js-ts-patterns
 - memory-management, nodejs-backend-patterns, pydantic-and-data-validation
 - python-packaging-and-distribution, python-patterns, python-performance

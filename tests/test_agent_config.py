@@ -554,6 +554,36 @@ CONSULT_AGENTS = {
         "devops-engineer",
     ),
 }
+# Agents whose `Reference library at` block lists only part of its directory, and why.
+CURATED_REFERENCE_INDEXES: dict[str, str] = {
+    "workflow-architect": (
+        "single-purpose: works from workflow-specification; "
+        "architecture-specialist indexes the directory"
+    ),
+    "scope-reviewer": (
+        "single-purpose: applies scope-review-methodology; product-manager indexes the directory"
+    ),
+    "code-reviewer": "workflow/ is a mixed directory; the reviewer indexes the review files",
+}
+AGENT_INDEX_TREES = ((".claude", ".claude"), (".gemini/config", ".agents"))
+LIBRARY_BLOCK = re.compile(r"^Reference library at `?([^`\n]+?)`?:$")
+
+
+def library_gaps(agent_text: str, references: Path) -> dict[str, set[str]]:
+    """Return, per `Reference library at` directory, the files the block does not name."""
+    gaps: dict[str, set[str]] = {}
+    lines = agent_text.splitlines()
+    for index, line in enumerate(lines):
+        match = LIBRARY_BLOCK.match(line.strip())
+        if match is None:
+            continue
+        directory = match.group(1).rstrip("/").rsplit("/", 1)[-1]
+        named = reference_names("\n".join([line.strip(), *lines[index + 1 :]]))
+        listed = {name.split("/", 1)[1] for name in named if name.startswith(f"{directory}/")}
+        gaps[directory] = {p.stem for p in (references / directory).glob("*.md")} - listed
+    return gaps
+
+
 REFERENCE_BLOCK = re.compile(r"^(?:Reference library at|Also see) `?([^`\n]+?)`?:$")
 
 
@@ -2468,6 +2498,24 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=str(gemini.relative_to(REPO))):
                 got = reference_names(gemini.read_text(encoding="utf-8"))
                 self.assertEqual(got, agent_reference_names(agent))
+
+    def test_agent_reference_indexes_cover_their_directory(self):
+        for tree, refs in AGENT_INDEX_TREES:
+            for path in sorted((REPO / tree / "agents").glob("*.md")):
+                if path.stem in CURATED_REFERENCE_INDEXES:
+                    continue
+                gaps = library_gaps(path.read_text(encoding="utf-8"), REPO / refs / "references")
+                with self.subTest(path=str(path.relative_to(REPO))):
+                    self.assertEqual({k: v for k, v in gaps.items() if v}, {})
+
+    def test_curated_reference_indexes_are_live(self):
+        for agent in CURATED_REFERENCE_INDEXES:
+            path = REPO / ".claude" / "agents" / f"{agent}.md"
+            with self.subTest(agent=agent):
+                gaps = library_gaps(
+                    path.read_text(encoding="utf-8"), REPO / ".claude" / "references"
+                )
+                self.assertTrue(any(gaps.values()), f"{agent} indexes its whole directory")
 
     def test_no_kb_asset_cites_a_project_relative_reference(self):
         """A tool resolves a relative path against the user's project, where a cloned repo can

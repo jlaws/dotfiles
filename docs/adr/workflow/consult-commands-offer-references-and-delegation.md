@@ -34,8 +34,8 @@ sync expands the `~` forms to the absolute home path, see
 [KB reference paths never resolve against the project](kb-reference-paths-never-resolve-against-the-project.md)); the delegation sentence reads "you may
 instead delegate to". j-system-design carries each perspective agent's index the same way. The full
 index, not a curated j-observe-style shortlist: it carries everything the agent would load and can
-be tested for equality. It inherits the agent index's own gaps (some agents omit files in their
-directory).
+be tested for equality. Every agent index lists its whole directory unless the agent is in
+`CURATED_REFERENCE_INDEXES`, so the copies inherit no gaps.
 
 ## Rationale
 
@@ -57,12 +57,15 @@ index drifts from the `.claude` agent.
 | Unconditional delegation | A subagent rebuilds context for every consult, and agents pin their own tier (`commands-inherit-the-session-model.md`); small consults do not need it | 2026-11-16 |
 | Delegation-only (the old wording) | Declined in all 84 baseline kb runs, so the library was named only on a path never taken | 2026-11-16 |
 | Strip delegation | Removes a path the pilot saw fire | 2026-11-16 |
+| Leave agent indexes with gaps | Neither the agent nor its commands named files that sat in the directory; the curated agents are listed with a reason instead | 2026-11-25 |
 | Point at `agents/<agent>.md` | Costs an extra Read, and agent paths differ by tool and install | 2026-11-16 |
 
 ## Enforcement
 - Owner: `.claude/commands/j-{arch,cloud,devops,docs,frontend,lang,data,system-design}.md` and their
   `.agents/`, `.codex/`, `.gemini/` twins
 - Pinned by: `tests/test_agent_config.py::AgentConfigArchitectureTests::test_consult_commands_list_their_agent_references`
+- Pinned by: `tests/test_agent_config.py::AgentConfigArchitectureTests::test_agent_reference_indexes_cover_their_directory`
+  and `::test_curated_reference_indexes_are_live`
 
 ## Reversal Conditions
 Across a later baseline, inline `read-refs` passes in under 1 of 6 kb runs, pooled over both models, for at

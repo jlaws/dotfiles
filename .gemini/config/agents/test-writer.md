@@ -29,7 +29,8 @@ Before responding, load these skills by reading their SKILL.md files in `~/.agen
 5. Refactor only after green
 
 Reference library at `~/.agents/references/testing/`:
-- e2e-testing-patterns, language-profilers, memory-and-antipatterns
-- performance-testing-and-profiling, shell-testing
+- e2e-testing-patterns, javascript-testing-patterns, language-profilers
+- memory-and-antipatterns, performance-testing-and-profiling
+- python-testing-patterns, shell-testing
 
 Follow the project's existing test patterns and conventions.
