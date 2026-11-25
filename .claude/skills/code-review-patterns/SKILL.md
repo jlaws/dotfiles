@@ -23,15 +23,15 @@ description: "Use when reviewing someone's pull request or diff, deciding how se
 
 ## Giving Reviews
 
-### Review Process (time-boxed)
+### Review Process
 
-#### Phase 1: Context (2-3 min)
+#### Phase 1: Context
 1. Read PR description and linked issue
 2. Check PR size (well over the 3-5k changed-line target with no stated reason? Ask to split)
 3. CI/CD status passing?
 4. Understand the business requirement
 
-#### Phase 2: High-Level (5-10 min)
+#### Phase 2: High-Level
 - Does solution fit the problem? Simpler approaches?
 - Consistent with existing patterns? Will it scale?
 - Are there tests? Do they cover edge cases?
@@ -39,7 +39,7 @@ description: "Use when reviewing someone's pull request or diff, deciding how se
 - Trace each factual claim in a commit message, PR body, design record, or code comment to the diff: resolve named symbols, check quoted text, count enumerated values.
 - Treat an unsupported claim as a finding; its severity follows its impact.
 
-#### Phase 3: Line-by-Line (10-20 min)
+#### Phase 3: Line-by-Line
 - **Logic**: Edge cases, off-by-one, null checks, race conditions
 - **Security**: Input validation, SQL injection, XSS, data exposure
 - **Performance**: N+1 queries, unnecessary loops, memory leaks, blocking ops
@@ -60,11 +60,9 @@ description: "Use when reviewing someone's pull request or diff, deciding how se
   - A kill by a test that cannot reach the mutated line is a flake signal: loop that test on clean code.
 - **Hand-rolled mutation runs**: disable bytecode caching and clear cache directories between mutants. Same-size replacements within one second can reuse the prior mutant's compiled code.
 
-#### Phase 4: Summary (2-3 min)
+#### Phase 4: Summary
 1. Summarize key concerns
-2. Highlight what worked well
-3. Clear decision: Approve / Comment / Request Changes
-4. Offer to pair if complex
+2. Clear decision: Approve / Comment / Request Changes
 
 ### Feedback Severity Labels
 
@@ -82,8 +80,6 @@ Tag a finding `(pre-existing)` when no hunk in the diff introduces it, exposes i
 
 ### Feedback Techniques
 
-- **Ask questions** instead of stating problems: "What happens if `items` is empty?"
-- **Suggest, don't command**: "Would it make sense to extract this? It appears in 3 places."
 - **Be specific and actionable**: "Race condition when concurrent access; consider a mutex here."
 
 ### Handling Disagreements
@@ -100,7 +96,6 @@ Tag a finding `(pre-existing)` when no hunk in the diff introduces it, exposes i
 |---|---|---|
 | **Perfectionism** | Blocking for style preferences | Use linters; only block for correctness |
 | **Scope creep** | "While you're at it..." | File separate issues for unrelated improvements |
-| **Delayed reviews** | PRs stale for days | Review within 4 business hours |
 | **Rubber stamping** | Approving without reading | Use the phased review process above |
 | **Bike shedding** | Debating trivial choices at length | Time-box; default to author's preference |
 | **Drip-feed comments** | Incomplete feedback across multiple rounds | Give complete feedback in one round; forces thorough upfront analysis |

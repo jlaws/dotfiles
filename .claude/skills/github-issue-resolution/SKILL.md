@@ -67,24 +67,15 @@ Fixes #${ISSUE_NUMBER} by implementing proper error handling.
 - Updated unit and integration tests
 
 ## Testing
-- [x] All existing tests pass
-- [x] Added new unit tests
-- [x] Manual testing completed
+- [x] <verification that ran, and its result>
 
 ## Merge Danger
 - Door: <one-way or two-way>; blast radius: <one word>
 - Revert: <how to undo it>
-
-## Checklist
-- [x] Code follows project style guidelines
-- [x] Self-review completed
-- [x] No new warnings introduced
-- [x] Documentation updated (or N/A)
 EOF
 )" \
   --base main \
-  --assignee @me \
-  --label "bug,needs-review"
+  --assignee @me
 ```
 
 ## Post-Implementation
@@ -93,7 +84,6 @@ EOF
 gh run list --workflow=deploy
 gh issue comment ${ISSUE_NUMBER} \
   --body "Fixed in PR #${PR_NUMBER}. Root cause: improper token validation."
-gh issue close ${ISSUE_NUMBER} --comment "Resolved via #${PR_NUMBER}"
 ```
 
 ## Examples
