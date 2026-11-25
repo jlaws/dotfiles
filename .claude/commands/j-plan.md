@@ -28,6 +28,8 @@ write a plan into the repository.** From here through Step 5 everything is read-
 one file. Outside plan mode (the tool is unavailable or the user declines it), create
 `~/.claude/plans/<repo-name>-<feature>.md` and hold to the same rule: that file is the only thing
 written through Step 5.
+`<repo-name>` is `basename "$(git rev-parse --show-toplevel)"`; `<feature>` is a lowercase kebab slug
+(`[a-z0-9-]`), never a path.
 
 `$ARGUMENTS` is freeform and may carry paths inline (commonly a design doc from /j-brainstorm). The
 whole string is the spec - do not strip paths from it. Scan for path-like tokens (containing `/`, or

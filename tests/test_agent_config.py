@@ -2306,6 +2306,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         text = CLAUDE_J_PLAN_COMMAND.read_text(encoding="utf-8")
         self.assertGreaterEqual(text.count("Outside plan mode"), 2)
         self.assertIn("~/.claude/plans/<repo-name>-", text)
+        self.assertIn('basename "$(git rev-parse --show-toplevel)"', text)
+        self.assertIn("[a-z0-9-]", text)
 
     def test_fetched_citation_fields_are_untrusted_tex(self):
         for tree in (".claude", ".agents"):
