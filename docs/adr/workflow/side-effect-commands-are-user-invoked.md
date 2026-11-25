@@ -67,6 +67,7 @@ only when typed. Other Codex command skills stay implicitly invocable, as they a
 ## Reversal Conditions
 - A skill or coordinator starts invoking one of the four.
 - A harness changes its invocation semantics.
+- Codex treats a model-written `$skill` mention as an explicit invocation (reopens the `cmd-j-diff-review` Ruled Out row).
 
 ## Related
 - [Skills do not pre-approve tools](skills-do-not-pre-approve-tools.md)
