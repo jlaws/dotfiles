@@ -164,12 +164,13 @@ An interrupt leaves the cap charged because the cost of runs in flight is unknow
 releases it for you. The runner prints the command that closes it once you know the real cost:
 
 ```bash
-python3 -m evals.kbeval settle --purpose P --staging S --model M --suite X --batch B --actual-usd N
+python3 -m evals.kbeval settle --purpose P --staging S --model M --suite X --batch B --id R --actual-usd N
 ```
 
 A reserve row carries an `id`, and a `replaces` field when it reruns a batch the ledger already
 holds; a settle row carries `settles`, the `id` it closes. `settle` closes exactly one open
-reservation and refuses when none or several match. If the runner and `settle` both close the
+reservation and refuses when none or several match; after an interrupt and a rerun of one batch two
+reservations match, so the printed command names the reservation with `--id R`. If the runner and `settle` both close the
 same reservation, the first row stands.
 
 One CLI version holds for a whole invocation. The runner resolves `claude` once to its real path

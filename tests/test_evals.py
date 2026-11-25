@@ -3013,6 +3013,33 @@ class RunnerSafetyTests(RunnerCase):
         self.assertIn("python3 -m evals.kbeval settle", text)
         self.assertIn("--purpose test", text)
         self.assertIn("--batch j-demo", text)
+        self.assertIn(f"--id {self.entries()[0]['id']}", text)
+
+    def test_interrupt_rerun_then_settle_by_id_succeeds(self):
+        def responder(args):
+            raise KeyboardInterrupt
+
+        self.budget["ceilingUsd"] = 1000
+        hints = []
+        for _ in range(2):
+            messages = []
+            with (
+                mock.patch.object(krunner, "_err", messages.append),
+                self.assertRaises(KeyboardInterrupt),
+            ):
+                self.run_suite(FakeCli(responder))
+            hints.append("\n".join(messages))
+        ids = [e["id"] for e in self.entries()]
+        self.assertEqual(len(ids), 2)
+        key = {k: self.entries()[0][k] for k in
+               ("period", "purpose", "staging", "model", "suite", "batch")}  # fmt: skip
+        with self.assertRaisesRegex(kledger.LedgerError, "2 open reservations"):
+            kledger.settle_open(key, 1.0, "interrupted", self.ledger_path)
+        for text, reservation_id in zip(hints, ids):
+            self.assertIn(f"--id {reservation_id}", text)
+        kledger.settle_open(key, 1.0, "interrupted", self.ledger_path, reservation_id=ids[0])
+        kledger.settle_open(key, 1.0, "interrupted", self.ledger_path, reservation_id=ids[1])
+        self.assertEqual(kledger.open_reservations("p", self.ledger_path), [])
 
     def test_runner_does_not_settle_a_reservation_twice(self):
         def responder(args):
@@ -3256,6 +3283,36 @@ class LedgerSafetyTests(unittest.TestCase):
         with self.assertRaisesRegex(kledger.LedgerError, "2 open reservations"):
             kledger.settle_open(self.KEY, 1.0, "interrupted", self.path)
 
+    def test_settle_open_by_id_closes_exactly_that_reservation(self):
+        first = self.reserve(10.0)
+        second = self.reserve(10.0)
+        row = kledger.settle_open(
+            self.KEY, 1.0, "interrupted", self.path, reservation_id=first["id"]
+        )
+        self.assertEqual(row["settles"], first["id"])
+        self.assertEqual(
+            [r["id"] for r in kledger.open_reservations("p", self.path)], [second["id"]]
+        )
+        with self.assertRaisesRegex(kledger.LedgerError, "not open"):
+            kledger.settle_open(self.KEY, 1.0, "x", self.path, reservation_id=first["id"])
+        with self.assertRaisesRegex(kledger.LedgerError, "not open"):
+            kledger.settle_open(self.KEY, 1.0, "x", self.path, reservation_id="nope")
+
+    def test_settle_open_by_id_refuses_a_reservation_of_another_batch(self):
+        other = self.reserve(10.0, batch="other")
+        with self.assertRaisesRegex(kledger.LedgerError, "not open"):
+            kledger.settle_open(self.KEY, 1.0, "x", self.path, reservation_id=other["id"])
+
+    def test_several_match_error_lists_each_id_and_names_the_flag(self):
+        first = self.reserve(10.0)
+        second = self.reserve(10.0)
+        with self.assertRaises(kledger.LedgerError) as raised:
+            kledger.settle_open(self.KEY, 1.0, "interrupted", self.path)
+        text = str(raised.exception)
+        self.assertIn(first["id"], text)
+        self.assertIn(second["id"], text)
+        self.assertIn("--id", text)
+
     def test_settle_open_pairs_legacy_rows_last_in_first_out(self):
         reserved = {**self.KEY, "costUsd": 10.0, "charged": "reserved"}
         settle = {**self.KEY, "costUsd": -9.0, "charged": "settle"}
@@ -3420,6 +3477,25 @@ class EntryPointTests(OrchestrateTests):
         with contextlib.redirect_stderr(err):
             self.assertEqual(kmain.main(args), 1)
         self.assertIn("settle: ", err.getvalue())
+
+    def test_settle_subcommand_takes_an_id_when_several_match(self):
+        key = {"period": self.budget["period"], "purpose": "fanout-x", "staging": "kb",
+               "model": "claude-opus-5-5", "suite": "effects", "batch": "j-demo"}  # fmt: skip
+        rows = [
+            kledger.reserve({**key, "costUsd": 30.0, "charged": "reserved", "capUsd": 30.0}, 1000, 0)
+            for _ in range(2)
+        ]
+        args = ["settle", "--purpose", "fanout-x", "--staging", "kb", "--model", "claude-opus-5-5",
+                "--suite", "effects", "--batch", "j-demo", "--actual-usd", "4.5"]  # fmt: skip
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.assertEqual(kmain.main(args), 1)
+        self.assertIn("--id", err.getvalue())
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(kmain.main([*args, "--id", rows[1]["id"]]), 0)
+        self.assertEqual(
+            [r["id"] for r in kledger.open_reservations(self.budget["period"])], [rows[0]["id"]]
+        )
 
     def test_run_cap_is_the_purpose_remainder(self):
         kledger.append({"period": self.budget["period"], "purpose": "fanout-x", "costUsd": 2.0})

@@ -306,11 +306,12 @@ class _Batches:
             self.invocation_spent += float(by_hand.get("actualUsd", cap))
             _err(f"{label}: reservation already settled by hand; that row stands")
 
-    def settle_command(self, label: str) -> str:
-        """Return the command that settles one of this run's reservations by hand."""
+    def settle_command(self, label: str, reserved: dict) -> str:
+        """Return the command that settles exactly this reservation by hand."""
         return (
             f"python3 -m evals.kbeval settle --purpose {self.purpose} --staging {self.staging} "
-            f"--model {self.model} --suite {self.suite} --batch {label} --actual-usd <N>"
+            f"--model {self.model} --suite {self.suite} --batch {label} "
+            f"--id {reserved.get('id') or reserved.get('ts')} --actual-usd <N>"
         )
 
     def quarantine(
@@ -415,7 +416,7 @@ class _Batches:
             _err(
                 f"{label}: interrupted; its ${cap:.2f} reservation stays charged. Once the real "
                 f"cost is known, settle it:\n"
-                f"  {self.settle_command(label)}"
+                f"  {self.settle_command(label, reserved)}"
             )
             raise
         log = out_dir / "cli.log"

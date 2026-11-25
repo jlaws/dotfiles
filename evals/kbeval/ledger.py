@@ -8,7 +8,7 @@ the batch then settles the reservation to its actual cost. A crash leaves the re
 A reserve row carries an `id` (and `replaces`, the earlier reservation of the same batch it
 follows); a settle row carries `settles`, the `id` it closes. `open_reservations` lists the ones
 no settle row names. `settle_open` closes one by hand at a stated real cost, the only way out of
-an interrupted run, because the cost of runs in flight is unknown and is never released for you.
+an interrupted run (with `reservation_id` when a rerun left several open), because the cost of runs in flight is unknown and is never released for you.
 `settle_id` appends a settle row only if none already names that reservation.
 """
 
@@ -167,13 +167,22 @@ def open_reservations(period: str, path: Optional[Path] = None) -> List[dict]:
 MATCH_FIELDS = ("period", "purpose", "staging", "model", "suite", "batch")
 
 
+def _ref(row: dict) -> str:
+    return str(row.get("id") or row.get("ts"))
+
+
 def settle_open(
-    match: Dict[str, str], actual: float, reason: str, path: Optional[Path] = None
+    match: Dict[str, str],
+    actual: float,
+    reason: str,
+    path: Optional[Path] = None,
+    reservation_id: Optional[str] = None,
 ) -> dict:
     """Settle the one open reservation `match` names to its real cost `actual` (USD).
 
-    `match` holds period, purpose, staging, model, suite, and batch. Raises LedgerError when no
-    reservation or several match. Returns the appended settle row.
+    `match` holds period, purpose, staging, model, suite, and batch. With `reservation_id`, settle
+    exactly that open reservation, which must also match; without it, exactly one must match.
+    Raises LedgerError when none or several do. Returns the appended settle row.
     """
 
     def decide(items: List[dict]) -> Optional[dict]:
@@ -182,10 +191,19 @@ def settle_open(
             for r in _open(items, match["period"])
             if all(r.get(f) == match[f] for f in MATCH_FIELDS)
         ]
+        if reservation_id is not None:
+            found = [r for r in found if _ref(r) == reservation_id]
+            if not found:
+                raise LedgerError(
+                    f"reservation {reservation_id} is not open or does not match "
+                    f"{json.dumps(match, sort_keys=True)}"
+                )
         if len(found) != 1:
+            listed = ", ".join(f"{_ref(r)} (ts {r.get('ts')})" for r in found)
             raise LedgerError(
                 f"{len(found)} open reservations match {json.dumps(match, sort_keys=True)}; "
                 "expected exactly one"
+                + (f": {listed}; pass --id <reservation id> to pick one" if found else "")
             )
         held = found[0]
         cap = float(held.get("capUsd", held.get("costUsd", 0.0)))

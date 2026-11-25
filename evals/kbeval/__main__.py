@@ -188,7 +188,9 @@ def _settle(args: argparse.Namespace) -> int:
         "batch": args.batch,
     }
     try:
-        row = kledger.settle_open(match, args.actual_usd, args.reason)
+        row = kledger.settle_open(
+            match, args.actual_usd, args.reason, reservation_id=args.id
+        )
     except kledger.LedgerError as error:
         print(f"settle: {error}", file=sys.stderr)
         return 1
@@ -343,6 +345,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     settle.add_argument("--batch", required=True)
     settle.add_argument("--actual-usd", type=_nonnegative, required=True)
     settle.add_argument("--reason", default="interrupted")
+    settle.add_argument("--id", help="the reservation id, when several open ones match")
     settle.set_defaults(func=_settle)
 
     headroom = sub.add_parser("headroom", help="list cases that cannot show a change")
