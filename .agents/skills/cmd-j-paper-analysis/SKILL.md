@@ -341,4 +341,4 @@ Create a file named `{paper-short-title}.md`. Use this template:
 - **Omit N/A sections** rather than filling them with "Not applicable" placeholders
 - **Novelty assessment:** compare against the closest specific prior work, not the field in general
 - **TL;DR:** draft after Pass 1, refine after Pass 3
-- **Resource links:** require genuine search effort: use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos) A confidential manuscript skips the search; write "Not searched (confidential manuscript)" instead.
+- **Resource links:** require genuine search effort: use "Not available" for expected resources (official code) and "None found" for optional ones (blog posts, videos). A confidential manuscript skips the search; write "Not searched (confidential manuscript)" instead.

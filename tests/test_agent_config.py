@@ -1681,10 +1681,11 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertEqual(dashes, [], "\n".join(dashes))
 
     def test_kb_prose_contains_no_double_hyphen_dash(self):
-        """A prose ` -- ` is a dash typed as two hyphens; use a comma, semicolon, colon, or
-        parentheses. Code spans, fenced blocks, and table placeholder cells are exempt, so a CLI
-        argument separator stays in a code span. Frontmatter descriptions and TOML strings are
-        prose."""
+        """A prose ` -- ` is a dash typed as two hyphens, padded or wrapped at a line end; use a
+        comma, semicolon, colon, or parentheses. Code spans, fenced blocks, and table placeholder
+        cells are exempt, so a CLI argument separator stays in a code span. Frontmatter
+        descriptions and TOML strings are prose. Scope: tracked `.md` and `.toml` files under the
+        four trees only; shell and Python comments are out of scope."""
 
         def flagged(text):
             hits = []
@@ -1731,7 +1732,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             if has_unterminated_fence(text):
                 problems.append(f"{name}: unterminated fence hides prose from the check")
             problems.extend(
-                f"{name}:{n}: prose ' -- '; use a colon, semicolon, or parentheses"
+                f"{name}:{n}: prose ' -- '; use a comma, colon, semicolon, or parentheses"
                 for n in flagged(text)
             )
         self.assertGreater(scanned, 0, "no KB files scanned; the check is vacuous")
