@@ -1773,6 +1773,15 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 f"Antigravity rule {rule} has trailing '/**' which is invalid path syntax",
             )
 
+        translated_claude_allow = set()
+        for rule in claude_allow:
+            if rule.startswith("Bash(") and rule.endswith(")"):
+                cmd = rule[len("Bash(") : -1].removesuffix(" *")
+                if cmd == "grep:*":
+                    cmd = "grep"
+                translated_claude_allow.add(f"command({cmd})")
+        self.assertEqual(agy_allow, translated_claude_allow)
+
         # Check command translations: Bash(cmd) -> command(prefix)
         for rule in claude_allow:
             if rule.startswith("Bash(") and rule.endswith(")"):
@@ -1793,6 +1802,43 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     continue  # non-absolute paths are rejected by the Antigravity sandbox
                 expected = f"read_file({path})"
                 self.assertIn(expected, agy_deny, f"Missing denied read_file: {expected}")
+
+    def test_no_agent_config_allows_a_retired_entry(self):
+        """No allow list or Codex allow rule may hold an entry that runs arbitrary code."""
+        from macos_setup.dotfiles import RETIRED_PERMISSIONS
+
+        for relative, retired in RETIRED_PERMISSIONS.items():
+            allow = json.loads((REPO / relative).read_text())["permissions"]["allow"]
+            for entry in retired:
+                self.assertNotIn(entry, allow, f"{relative} still allows {entry}")
+
+        banned = [
+            f'"{t}"'
+            for t in (
+                "npx xargs awk env chmod open tee eslint prettier clone clean just cargo ci"
+            ).split()
+        ]
+        rules = (REPO / ".codex" / "rules" / "default.rules").read_text()
+        blocks = re.split(r"(?m)^(?=prefix_rule\()", rules)
+        gh_patterns = []
+        for block in blocks:
+            if not block.startswith("prefix_rule(") or not re.search(
+                r'decision\s*=\s*"allow"', block
+            ):
+                continue
+            start = block.index("pattern")
+            decision = re.search(r"decision\s*=", block)
+            assert decision is not None
+            pattern = block[start : decision.start()]
+            for token in banned:
+                self.assertNotIn(token, pattern, f"allow rule holds {token}: {pattern.strip()}")
+            for path in ("/private/", "/tmp/", ".venv/"):
+                self.assertNotIn(path, pattern, f"allow rule names {path}: {pattern.strip()}")
+            if re.search(r'pattern\s*=\s*\[\s*"gh"', pattern):
+                gh_patterns.append(pattern)
+        self.assertTrue(gh_patterns, "no gh allow rule found")
+        for pattern in gh_patterns:
+            self.assertRegex(pattern, r'"gh"\s*,', f"gh rule pattern is a bare prefix: {pattern}")
 
     def test_legacy_gemini_artifacts_are_not_tracked(self):
         """Legacy Gemini CLI policy engine, hooks, commands, and agents must not be present in .gemini/."""

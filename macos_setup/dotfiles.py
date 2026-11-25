@@ -8,6 +8,7 @@ sha, leaving anything edited after setup untouched.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import os
 import shutil
@@ -67,6 +68,50 @@ CONFIG_MERGE_POLICIES: dict[str, str] = {
     ".claude/settings.json": "json",
     ".codex/config.toml": "toml",
     ".gemini/antigravity-cli/settings.json": "json",
+}
+
+# Allow entries that run arbitrary code, launch apps, or reach a remote. The merge unions the
+# target's allow list with the repo's, so a removed repo entry would otherwise live on in `~`.
+# Keep a retired entry here for good; a user who wants one back adds it to settings.local.json.
+RETIRED_PERMISSIONS: dict[str, tuple[str, ...]] = {
+    ".claude/settings.json": (
+        "Bash(git clone *)",
+        "Bash(git clean *)",
+        "Bash(gh *)",
+        "Bash(awk *)",
+        "Bash(npm test *)",
+        "Bash(npx *)",
+        "Bash(eslint *)",
+        "Bash(prettier *)",
+        "Bash(chmod *)",
+        "Bash(open *)",
+        "Bash(xargs *)",
+        "Bash(tee *)",
+        "Bash(env)",
+    ),
+    ".gemini/antigravity-cli/settings.json": (
+        "command(git clone)",
+        "command(git clean)",
+        "command(gh)",
+        "command(awk)",
+        "command(npm test)",
+        "command(npx)",
+        "command(eslint)",
+        "command(prettier)",
+        "command(chmod)",
+        "command(open)",
+        "command(xargs)",
+        "command(tee)",
+        "command(env)",
+        "command(python3)",
+        "command(python)",
+        "command(uv)",
+        "command(cargo)",
+        "command(make)",
+        "command(ruff)",
+        "command(rg)",
+        "command(find)",
+    ),
 }
 
 # Stale files removed from the target after syncing (archived first so uninstall can restore).
@@ -184,6 +229,24 @@ def apply_file(src: Path, dest: Path, archive: Archive) -> None:
     archive.record_file(str(dest), action, sha256_file(src))
 
 
+def _retired_for(dest: Path) -> tuple[str, ...]:
+    posix = dest.as_posix()
+    for key, entries in RETIRED_PERMISSIONS.items():
+        if posix.endswith("/" + key):
+            return entries
+    return ()
+
+
+def _log_retired(dest: Path, target_text: str, retired: tuple[str, ...]) -> None:
+    try:
+        held = json.loads(target_text)["permissions"]["allow"]
+    except (ValueError, KeyError, TypeError):
+        return
+    for entry in retired:
+        if entry in held:
+            _LOG.info("retired %s from %s", entry, dest)
+
+
 def apply_merged_file(src: Path, dest: Path, archive: Archive, format_type: str) -> str:
     """Merge ``src`` into ``dest``, archiving any replaced original and recording dest SHA-256.
 
@@ -208,11 +271,16 @@ def apply_merged_file(src: Path, dest: Path, archive: Archive, format_type: str)
 
     repo_text = src.read_text(encoding="utf-8")
     dest.parent.mkdir(parents=True, exist_ok=True)
+    retired = _retired_for(dest) if format_type == "json" else ()
 
     if dest.exists():
         try:
             target_text = dest.read_text(encoding="utf-8")
-            merged_text = merger(repo_text, target_text)
+            if format_type == "json":
+                merged_text = merge_json(repo_text, target_text, retired)
+                _log_retired(dest, target_text, retired)
+            else:
+                merged_text = merger(repo_text, target_text)
             action = "replaced"
         except (ConfigMergeError, UnicodeDecodeError) as exc:
             if "Malformed source" in str(exc):

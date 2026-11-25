@@ -26,7 +26,7 @@ prefix_rule(
 prefix_rule(
     pattern = ["git", ["add", "commit", "stash", "fetch", "pull", "checkout",
                         "switch", "merge", "rebase", "cherry-pick", "restore",
-                        "clone", "rm", "mv", "reset", "clean"]],
+                        "rm", "mv", "reset"]],
     decision = "allow",
     justification = "Local git write operations allowed to match Claude Code permissions.",
     match = [
@@ -41,11 +41,9 @@ prefix_rule(
         "git rebase main",
         "git cherry-pick abc123",
         "git restore --staged file.txt",
-        "git clone https://github.com/user/repo",
         "git rm old-file.txt",
         "git mv old.txt new.txt",
         "git reset --soft HEAD~1",
-        "git clean -fd",
     ],
     not_match = [],
 )
@@ -62,21 +60,65 @@ prefix_rule(
 )
 
 # =============================================================================
-# GitHub CLI - all operations allowed (matches Claude Code: Bash(gh *))
+# GitHub CLI - read and PR workflow only (matches Claude Code: Bash(gh pr view *), ...)
 # =============================================================================
 
 prefix_rule(
-    pattern = ["gh"],
+    pattern = ["gh", "pr", ["view", "list", "diff", "checks", "create", "edit"]],
     decision = "allow",
-    justification = "All GitHub CLI operations allowed to match Claude Code permissions.",
+    justification = "Pull request inspection and creation allowed to match Claude Code permissions.",
     match = [
-        "gh pr create --title Test --body Body",
-        "gh pr merge 123 --squash",
         "gh pr view 123",
-        "gh issue list",
-        "gh api repos/owner/repo/pulls",
+        "gh pr list",
+        "gh pr diff 123",
+        "gh pr checks 123",
+        "gh pr create --title Test --body Body",
+        "gh pr edit 123 --title Test",
     ],
-    not_match = [],
+    not_match = [
+        "gh pr merge 123",
+        "gh api user",
+    ],
+)
+
+prefix_rule(
+    pattern = ["gh", "issue", ["view", "list"]],
+    decision = "allow",
+    justification = "Issue inspection allowed to match Claude Code permissions.",
+    match = [
+        "gh issue view 12",
+        "gh issue list",
+    ],
+    not_match = [
+        "gh issue close 12",
+        "gh issue comment 12 --body hi",
+    ],
+)
+
+prefix_rule(
+    pattern = ["gh", "run", ["list", "view"]],
+    decision = "allow",
+    justification = "Workflow run inspection allowed to match Claude Code permissions.",
+    match = [
+        "gh run list",
+        "gh run view 123",
+    ],
+    not_match = [
+        "gh api user",
+    ],
+)
+
+prefix_rule(
+    pattern = ["gh", "repo", "view"],
+    decision = "allow",
+    justification = "Repository inspection allowed to match Claude Code permissions.",
+    match = [
+        "gh repo view",
+        "gh repo view owner/repo",
+    ],
+    not_match = [
+        "gh api user",
+    ],
 )
 
 prefix_rule(
@@ -93,12 +135,12 @@ prefix_rule(
 )
 
 # =============================================================================
-# File utilities (matches Claude Code: cat, head, tail, sed, awk, etc.)
+# File utilities (matches Claude Code: cat, head, tail, sed, etc.)
 # =============================================================================
 
 prefix_rule(
-    pattern = [["cat", "head", "tail", "sed", "awk", "grep", "ls",
-                 "wc", "diff", "sort", "uniq", "tr", "xargs",
+    pattern = [["cat", "head", "tail", "sed", "grep", "ls",
+                 "wc", "diff", "sort", "uniq", "tr",
                  "jq", "file", "stat", "realpath", "dirname", "basename"]],
     decision = "allow",
     justification = "Read/transform utilities are safe for code inspection.",
@@ -107,7 +149,6 @@ prefix_rule(
         "head -20 src/main.py",
         "tail -f app.log",
         "sed 's/foo/bar/g' file.txt",
-        "awk '{print $1}' data.csv",
         "grep -r TODO src/",
         "ls -la",
         "wc -l src/*.py",
@@ -126,8 +167,7 @@ prefix_rule(
 )
 
 prefix_rule(
-    pattern = [["mkdir", "touch", "cp", "mv", "chmod", "open",
-                 "echo", "printf", "tee"]],
+    pattern = [["mkdir", "touch", "cp", "mv", "echo", "printf"]],
     decision = "allow",
     justification = "File manipulation utilities allowed to match Claude Code permissions.",
     match = [
@@ -135,25 +175,21 @@ prefix_rule(
         "touch newfile.txt",
         "cp src/a.txt src/b.txt",
         "mv old.txt new.txt",
-        "chmod +x script.sh",
-        "open .",
         "echo 'hello'",
         "printf '%s\n' hello",
-        "tee output.log",
     ],
     not_match = [],
 )
 
 # =============================================================================
-# Node.js / JS tooling (matches Claude Code: npm test, npx, eslint, etc.)
+# Node.js / JS tooling (matches Claude Code: npm list, npm audit, tsc, etc.)
 # =============================================================================
 
 prefix_rule(
-    pattern = ["npm", ["test", "list", "outdated", "audit", "info"]],
+    pattern = ["npm", ["list", "outdated", "audit", "info"]],
     decision = "allow",
     justification = "Read-only npm commands allowed to match Claude Code permissions.",
     match = [
-        "npm test",
         "npm list",
         "npm outdated",
         "npm audit",
@@ -161,27 +197,15 @@ prefix_rule(
     ],
     not_match = [
         "npm install express",
+        "npm test",
     ],
 )
 
 prefix_rule(
-    pattern = ["npx"],
+    pattern = ["tsc"],
     decision = "allow",
-    justification = "npx execution allowed to match Claude Code permissions.",
+    justification = "TypeScript type-check allowed.",
     match = [
-        "npx prettier --check .",
-        "npx tsc --noEmit",
-    ],
-    not_match = [],
-)
-
-prefix_rule(
-    pattern = [["eslint", "prettier", "tsc"]],
-    decision = "allow",
-    justification = "JS/TS lint and type-check tools allowed.",
-    match = [
-        "eslint src/",
-        "prettier --check .",
         "tsc --noEmit",
     ],
     not_match = [],
@@ -203,11 +227,11 @@ prefix_rule(
 )
 
 # =============================================================================
-# System info (matches Claude Code: which, uname, whoami, pwd, env, date)
+# System info (matches Claude Code: which, uname, whoami, pwd, date)
 # =============================================================================
 
 prefix_rule(
-    pattern = [["which", "uname", "whoami", "pwd", "env", "date"]],
+    pattern = [["which", "uname", "whoami", "pwd", "date"]],
     decision = "allow",
     justification = "Read-only system info commands are safe.",
     match = [
@@ -215,7 +239,6 @@ prefix_rule(
         "uname -a",
         "whoami",
         "pwd",
-        "env",
         "date",
     ],
     not_match = [],
@@ -254,25 +277,3 @@ prefix_rule(
     ],
     not_match = [],
 )
-
-prefix_rule(pattern=["just", "build"], decision="allow")
-prefix_rule(pattern=["just", "test"], decision="allow")
-prefix_rule(pattern=["cargo", "test"], decision="allow")
-prefix_rule(pattern=["just", "coverage-summary"], decision="allow")
-prefix_rule(pattern=["cargo", "llvm-cov"], decision="allow")
-prefix_rule(pattern=["just", "deny"], decision="allow")
-prefix_rule(pattern=["just", "frontend-lint"], decision="allow")
-prefix_rule(pattern=["just", "frontend-test"], decision="allow")
-prefix_rule(pattern=["just", "frontend-coverage-check"], decision="allow")
-prefix_rule(pattern=[".venv/bin/python", "-m", "benchmarks"], decision="allow")
-prefix_rule(pattern=[".venv/bin/python3", "-m", "benchmarks"], decision="allow")
-prefix_rule(pattern=["cd", "/private/tmp/cion-manual-escalated-3zEMPk"], decision="allow")
-prefix_rule(pattern=["ps"], decision="allow")
-prefix_rule(pattern=["ulimit", "-n", "4096"], decision="allow")
-prefix_rule(pattern=["just", "coverage-check"], decision="allow")
-prefix_rule(pattern=["ci"], decision="allow")
-prefix_rule(pattern=["ci", "cat"], decision="allow")
-prefix_rule(pattern=["ci", "log"], decision="allow")
-prefix_rule(pattern=["ci", "daemon", "start"], decision="allow")
-prefix_rule(pattern=["ci", "daemon", "stop"], decision="allow")
-prefix_rule(pattern=["ci", "daemon", "status"], decision="allow")

@@ -212,6 +212,12 @@ class MergeJsonTests(unittest.TestCase):
         self.assertEqual(data["env"]["LIMIT"], "20")
         self.assertEqual(data["env"]["ENABLE_FEATURE"], "true")
 
+    def test_merge_drops_retired_allow_entries_the_target_still_holds(self) -> None:
+        target = '{"permissions": {"allow": ["Bash(npx *)", "Bash(ls *)", "Bash(gh *)"]}}'
+        repo = '{"permissions": {"allow": ["Bash(git diff *)"]}}'
+        data = json.loads(merge_json(repo, target, retired=("Bash(npx *)", "Bash(gh *)")))
+        self.assertEqual(data["permissions"]["allow"], ["Bash(git diff *)", "Bash(ls *)"])
+
     def test_unions_permission_lists_without_duplicates(self) -> None:
         target = '{"permissions": {"allow": ["Bash(git diff *)", "Bash(custom)"], "deny": ["Read(~/.secret)"]}}'
         repo = '{"permissions": {"allow": ["Bash(git diff *)", "Bash(git log *)"], "deny": ["Read(~/.ssh/**)"]}}'

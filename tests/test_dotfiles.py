@@ -337,6 +337,25 @@ class SyncAgentsTests(unittest.TestCase):
         path.write_text(content)
         return path
 
+    def test_sync_logs_each_retired_permission(self) -> None:
+        repo_settings = self.repo / ".claude" / "settings.json"
+        repo_settings.parent.mkdir(parents=True, exist_ok=True)
+        repo_settings.write_text('{"permissions": {"allow": ["Bash(git diff *)"]}}\n')
+        target = self._write_target(
+            ".claude/settings.json",
+            '{"permissions": {"allow": ["Bash(npx *)", "Bash(gh *)", "Bash(ls *)"]}}\n',
+        )
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive)
+
+        output = "\n".join(captured.output)
+        self.assertIn(f"retired Bash(npx *) from {target}", output)
+        self.assertIn(f"retired Bash(gh *) from {target}", output)
+        self.assertNotIn("retired Bash(ls *)", output)
+        allow = json.loads(target.read_text())["permissions"]["allow"]
+        self.assertEqual(allow, ["Bash(git diff *)", "Bash(ls *)"])
+
     def test_sync_agents_merges_configs_and_replaces_skills(self) -> None:
         repo_skill = self.repo / ".agents" / "skills" / "cmd-j-tdd" / "SKILL.md"
         repo_skill.parent.mkdir(parents=True, exist_ok=True)

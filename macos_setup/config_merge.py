@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Sequence
 from typing import Any
 
 
@@ -55,12 +56,14 @@ def _merge_dict(
     return merged
 
 
-def merge_json(repo_content: str, target_content: str) -> str:
+def merge_json(repo_content: str, target_content: str, retired: Sequence[str] = ()) -> str:
     """Merge JSON repo updates into target machine settings, preserving target keys.
 
     Args:
         repo_content: Source configuration template from the repository.
         target_content: Existing host configuration to update in-place.
+        retired: ``permissions.allow`` entries dropped from the merged result, a
+            hand-added one included.
 
     Returns:
         The merged JSON configuration string ending in a newline.
@@ -81,6 +84,9 @@ def merge_json(repo_content: str, target_content: str) -> str:
         raise ConfigMergeError("JSON configuration root must be an object")
 
     merged = _merge_dict(repo_data, target_data)
+    permissions = merged.get("permissions")
+    if retired and isinstance(permissions, dict) and isinstance(permissions.get("allow"), list):
+        permissions["allow"] = [item for item in permissions["allow"] if item not in retired]
     return json.dumps(merged, indent=2, ensure_ascii=False) + "\n"
 
 
