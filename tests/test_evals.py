@@ -8,6 +8,7 @@ tests at the end run lint and coverage on the repo itself.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
@@ -3575,6 +3576,41 @@ class EntryPointTests(OrchestrateTests):
         self.assertEqual(
             [r["id"] for r in kledger.open_reservations(self.budget["period"])], [rows[0]["id"]]
         )
+
+    def settle_args(self, usd: str) -> list:
+        return ["settle", "--purpose", "fanout-x", "--staging", "kb", "--model",
+                "claude-opus-5-5", "--suite", "effects", "--batch", "j-demo",
+                "--actual-usd", usd]  # fmt: skip
+
+    def reserve_for_settle(self):
+        key = {"period": self.budget["period"], "purpose": "fanout-x", "staging": "kb",
+               "model": "claude-opus-5-5", "suite": "effects", "batch": "j-demo"}  # fmt: skip
+        kledger.reserve({**key, "costUsd": 30.0, "charged": "reserved", "capUsd": 30.0}, 1000, 0)
+
+    def test_settle_accepts_zero_and_writes_it_as_positive_zero(self):
+        self.reserve_for_settle()
+        for zero in ("0", "-0"):
+            with self.subTest(zero=zero):
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    self.assertEqual(kmain.main(self.settle_args(zero)), 0)
+                row = json.loads(out.getvalue())
+                self.assertEqual(row["actualUsd"], 0.0)
+                self.assertEqual(math.copysign(1.0, row["actualUsd"]), 1.0)
+                self.assertNotIn("-0.0", out.getvalue())
+                self.ledger_reset()
+                self.reserve_for_settle()
+
+    def ledger_reset(self):
+        kledger.default_path().unlink()
+
+    def test_settle_rejects_a_negative_or_nan_actual(self):
+        for bad in ("-1", "nan", "inf"):
+            with self.subTest(bad=bad):
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err), self.assertRaises(SystemExit) as raised:
+                    kmain.main(self.settle_args(bad))
+                self.assertEqual(raised.exception.code, 2)
 
     def test_run_cap_is_the_purpose_remainder(self):
         kledger.append({"period": self.budget["period"], "purpose": "fanout-x", "costUsd": 2.0})

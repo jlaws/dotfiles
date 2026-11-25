@@ -41,7 +41,7 @@ def _usd_arg(value: str, allow_zero: bool) -> float:
         raise argparse.ArgumentTypeError(message) from None
     if not math.isfinite(number) or number < 0 or (number == 0 and not allow_zero):
         raise argparse.ArgumentTypeError(message)
-    return number
+    return number + 0.0  # -0 parses to -0.0; adding 0.0 makes it 0.0
 
 
 def _usd(value: str) -> float:
