@@ -1,5 +1,5 @@
 ---
-description: "CLAUDE.md holds only what the model cannot infer, has no volatile content, links instead of restating, lists each command with its quiet flag and healthy-run line, and has a Compact instructions section; .claude/skills/code-agent-meta-patterns/SKILL.md; hard because timestamps and counts look harmless and the healthy-run line is not a common convention"
+description: "CLAUDE.md holds only what the model cannot infer, has no volatile content, links instead of restating, lists each command with its quiet flag and healthy-run line, and has a Compact instructions section; .claude/skills/code-agent-meta-patterns/SKILL.md; hard because timestamps and counts look harmless and generic advice reads as worth keeping"
 tags: [effects, effect]
 max_turns: 40
 timeout_seconds: 900
@@ -17,7 +17,7 @@ Always write clean, readable code and use meaningful variable names. Remember to
 ## Commands
 - Run tests: pytest
 - Lint: ruff check .
-- Start dev server: make dev
+- Start dev server: make dev (ready when it prints `Uvicorn running on http://127.0.0.1:8000`)
 
 ## Architecture
 Invoices are immutable once finalized; corrections are new credit-note rows, never edits (an audit requirement). The `ledger/` package is the only code allowed to write to the `entries` table.

@@ -203,7 +203,8 @@ and `refsMode` (`workspace`, or `add_dirs`).
   every other run learns that path. Measured on 2026-11-24 with
   architecture-specialist--effect-notification-fallbacks on Sonnet (purpose `audit-probe`, 1.65
   USD): without the line the agent read a reference in 0 of 3 runs and reported the file missing;
-  with it, 3 of 3. Agent kb runs in the 2026-11-16 baseline ran without the line.
+  with it, 3 of 3. Agent kb runs in the 2026-11-16 baseline ran without the line; those of the
+  2026-12 baseline carry it.
 
 **Grading contract.** The prompt states every graded criterion and every graded artifact path, such
 as "save the plan to ./plans/plan.md". A `regex` or `llm` result grader that reads a file names one
@@ -421,9 +422,10 @@ Which result is read:
 Suite aggregates carry a 95% bootstrap interval over cases (seed 0).
 It reads only results the runner accepted (those with a `.key`), and it checks before writing: if
 any case is missing runs or still holds an API error, it writes nothing and exits 1 (`--check` is
-accepted and changes nothing). It also refuses to write text holding an `sk-ant-` key, a local
-path (`/Users/`, `/home/`, `/var/folders/`), or an API request or message ID, because summaries
-are committed to a public repo.
+accepted and changes nothing). It also refuses to write text holding a key (`sk-ant-`, another
+`sk-` key, an AWS access key ID, a GitHub token), a local path (`/Users/`, `/home/`,
+`/var/folders/`, `/tmp/`, `/private/`, `~/`), or an API request or message ID, because summaries
+are committed to a public repo. Emails and hostnames are not checked.
 
 `make eval-compare OLD=... NEW=...` compares two summaries: the suite means with both intervals,
 cases whose `kbScore` dropped by at least 1/3, and pass/fail flips. Cases in only one file are
@@ -521,30 +523,186 @@ Per-case rows are in `evals/baselines/<model>/<suite>.json`. Cross-model, effect
 make eval-compare OLD=evals/baselines/claude-sonnet-5-5/effects.json NEW=evals/baselines/claude-opus-5-5/effects.json
 ```
 
+The reading of the 2026-11-16 numbers was replaced by the 2026-12 reading below; the earlier text is
+in the README at commit `2b21ea4` (`git show 2b21ea4:evals/README.md`).
+
+### Baseline 2026-12
+
+**Settings.** 160 trigger, 217 effect, and 4 workflow cases (84 should-fire triggers, 76 near-miss
+and noauto); three kb runs per case, and for effects and workflows three vanilla runs on both
+models (`VANILLA_RUNS=3`); no tags excluded; judge Fable 5.2. Run on 2026-11-24 EST (12:27 to
+22:43), all of it on Claude Code 2.1.331. A summary's `date` field is the UTC date of its last run,
+so the Opus effects and workflows summaries read 2026-11-25. The raw results of the 2026-11-16
+baseline were moved to `results/baseline-2026-11-16` first, so every run in this baseline is new.
+
+**Not comparable in the mean.** No row of the results table below is comparable with the same row of
+the 2026-11-16 table: every suite's case set changed. Three things are comparable and are reported
+under Reading the numbers: recall on the 60 should-fire cases both baselines share, the 117 effect
+cases the audit left alone, and the headroom counts. Since 2026-11-16 the suites grew from 290 to 381
+cases (36 tuning and held-out trigger cases, one `j-paper` effect case, and the case audit's 54
+`extended` effect cases), the audit changed 46 existing cases beyond their `description` line (45
+effect, 1 workflow), and kb agent prompts now carry the reference-path line (Prompts). Drift on the
+cases the audit left alone is reported separately below. The 2026-11-16 settings and results table
+above stay as that baseline's record.
+
+**Estimate.** Per-case prices are the 2026-11-16 spend divided by its case counts (Sonnet $0.20 a
+trigger case, $1.33 an effect case, $1.01 a workflow case; Opus $0.39, $2.23, $1.83): about $325
+Sonnet and $554 Opus, $878 in all, inside the 2,000 USD the plan for this work allowed the baseline
+(that allowance is recorded nowhere else in the repo; `evals/budget.json` holds only the 4,000 USD
+period ceiling). Purpose
+`baseline` had spent $661.44 before the run, so every paid command passes `CAP=2661.44`.
+
+**Spend,** from the ledger (965 rows for purpose `baseline` from 2026-11-24: 485 Opus, 480
+Sonnet). Sonnet half, first pass: $325.44 (the purpose went from $661.44 to $986.88), against the
+$325 estimate. Two repair rounds added $10.16, so the Sonnet half is $335.60 in the ledger. The
+Sonnet summaries total $324.44: they hold only the accepted runs, so they leave out the $11.15 of
+first-pass batches the repair rounds replaced. Opus half: $623.17 in the ledger (the purpose went
+from $997.04 to $1,620.21); its accepted runs cost $544.07, under the $554 estimate. In all the
+ledger shows $958.77 for this baseline, and the period stands at $2,037.89 of $4,000
+(`evals/spend.json`). Up to $60.00 of that was never spent: see the next paragraph.
+
+**The update during the Opus half.** Claude Code updated itself from 2.1.331 to 2.1.332 while the
+Opus vanilla effects step was running, though the run's shell had `DISABLE_AUTOUPDATER=1`. Each
+result file records the version that produced it: the first batch on 2.1.332 started at 20:45:45
+EST. `summarize` would have refused the mix; the ledger would not have shown it, because a step
+reads the version once, at its start, for its ledger rows. The run was stopped at about 21:01 EST.
+Eight finished batches (devops-engineer, dispatching-parallel-agents, documentation-validation,
+documentation-writer, executing-plans, finishing-branch, frontend-engineer,
+github-issue-resolution) and the directory of one interrupted batch (html-report-authoring) were
+moved to `~/.local/state/dotfiles-kbeval/quarantine/2026-11-24-cli-2.1.332/`, which holds a note of
+what and why. The run was then resumed with the old binary
+(`~/.local/share/claude/versions/2.1.331`) symlinked as `claude` in a directory placed first on
+`PATH`. All 468 accepted result files (234 per model) record 2.1.331. Of the $79.10 between the
+Opus ledger spend and its accepted runs, $19.10 is the eight quarantined batches and $60.00 is the
+interrupted batch's reservation, which an interrupt leaves at the full batch allowance (Budget);
+its real cost is unknown and at most that. The harness gaps this exposed are in
+`tasks/kbeval-run-integrity.md`.
+
+**Cases that failed in both arms (Sonnet).** After the first pass, 14 effect cases scored below
+2/3 in both arms. Each was judged from its stored run outputs by checks A2 to A4. Three were
+changed in their own directories and rerun, in the two rounds the plan allowed: round 1 reran the
+`code-agent-meta-patterns` and `j-data` asset batches, round 2 the `j-cloud` batch. A rerun covers
+the whole asset batch in both arms, so the other cases of those three assets got a second draw too.
+
+| Case | Fault | Fix | Sonnet after (kb, vanilla) |
+|---|---|---|---|
+| code-agent-meta-patterns--effect-trim-claudemd | A4: the grader requires each command's healthy output line, and the input never gave one for `make dev` | the input states the line | 1.00, 0.67 |
+| j-data--effect-late-events-incremental | A4: "3 days back" had two readings (three daily partitions, or a 3-day interval) | the claim accepts both and still fails a one-day or two-partition re-read | 0.67, 0.00 |
+| j-cloud--effect-large-upload-path | judged A3: the claim required a 1-hour expiry on every part URL | the claim now also accepts part URLs signed on demand | 1.00, 1.00 |
+
+The `j-cloud` change was a mistake and is not a repair. The reference says to "set generous expiry
+(1h+) for large files" and says nothing about part URLs or signing on demand, so the new claim
+grades a rule the reference does not state, and the case's hard part is gone: all 12 runs on both
+models now pass it. Two reviewers read the rerun outputs against the old claim and found it would
+have separated the arms on Sonnet (kb 2 of 3, vanilla 1 of 3). Both repair rounds were used, so the
+case stays as measured here, and restoring the 1-hour claim with a rerun of that asset is filed in
+`tasks/kbeval-case-defects.md`.
+
+Ten of the other eleven are dead and valid on Sonnet: the case is sound and both arms failed it.
+The eleventh, using-git-worktrees--effect-land-uncommitted-work, is unexplained: 4 of its 6 runs
+stopped after about 18 seconds without a tool call, and results keep no transcript, so whether the
+case, the skill, or the sandbox stops them is not known (`tasks/kbeval-case-defects.md`). All
+eleven stay as they are.
+
+| Case | What the runs did |
+|---|---|
+| business-analyst--effect-tracking-reset | every failing plan starts with 20 to 30 events against the reference's 10 to 15; one kb run read the rule and overrode it |
+| code-quality--effect-marker-audit | the skill loaded in 0 of 3 kb runs, and every run in both arms called the login shortcut sanctioned (`tasks/kb-asset-defects-from-eval-audit.md`) |
+| code-review-patterns--effect-receiving-comments | all 6 runs asked about the unclear comment but implemented a clear one first, including the kb run that loaded the skill |
+| dependency-upgrade--effect-multi-major-plan | all 6 plans upgrade jest before express and mongoose; the skill loaded in all 3 kb runs |
+| j-devops--effect-latency-api-resources | failing runs set the memory limit equal to the request; no kb run read the reference |
+| j-system-design--effect-tenant-isolation | failing runs gave each HIPAA tenant a database on a shared cluster; one kb run read the infra-per-tenant rule and rejected it |
+| language-testing-patterns--effect-coverage-gate-config | every setting right but the threshold (kb 90 three times; vanilla 55, 90, 60); the skill loaded in 0 of 3 kb runs |
+| skill-audit--effect-judgment-pass | one kb run named two next changes, one counted by hand; vanilla has no checker to run |
+| skill-lookup-discipline--effect-feature-order | the skill loaded in 0 of 3 kb runs and every kb list put test-driven-development first |
+| test-writer--effect-speed-regression-test | runs took 15 to 21 samples and compared minimums or allowed 25%; the agent never read the reference |
+| using-git-worktrees--effect-land-uncommitted-work | not judged valid: 4 of 6 runs stopped after 3 turns with no file written; Opus passed this case 6 of 6 on 2026-11-16 |
+
+Which claim failed is inferred from the graded file each result stores; results do not keep the
+judge's reasons. The "what the runs did" cells come from reading those stored outputs, not from a
+command.
+
+**Results** (2026-11-24, Claude Code 2.1.331, judge Fable 5.2). Same conventions as the
+2026-11-16 table: per-case means on result graders, case-level bootstrap 95% CIs, delta is kb minus
+vanilla per case. Spend is the cost of the accepted runs, from the summaries.
+
+| Model | Suite | Cases | kb | Vanilla | Delta | Spend |
+|---|---|---|---|---|---|---|
+| Opus 5.5 | Triggers, should fire | 84 | 0.74 [0.65, 0.82] | n/a (kb only) | n/a | |
+| Opus 5.5 | Triggers, near and noauto | 76 | 1.00 | n/a (kb only) | n/a | |
+| Opus 5.5 | Triggers, all | 160 | 0.86 [0.81, 0.91] | n/a (kb only) | n/a | $64.70 |
+| Opus 5.5 | Effects | 217 | 0.95 [0.93, 0.98] | 0.90 [0.87, 0.94] | +0.05 [+0.03, +0.08] | $471.27 |
+| Opus 5.5 | Workflows | 4 | 1.00 | 0.94 (n=4, no usable CI) | +0.06 (n=4) | $8.10 |
+| Sonnet 5.5 | Triggers, should fire | 84 | 0.58 [0.48, 0.67] | n/a (kb only) | n/a | |
+| Sonnet 5.5 | Triggers, near and noauto | 76 | 1.00 | n/a (kb only) | n/a | |
+| Sonnet 5.5 | Triggers, all | 160 | 0.78 [0.72, 0.84] | n/a (kb only) | n/a | $31.82 |
+| Sonnet 5.5 | Effects | 217 | 0.93 [0.91, 0.96] | 0.86 [0.82, 0.90] | +0.07 [+0.04, +0.10] | $288.07 |
+| Sonnet 5.5 | Workflows | 4 | 1.00 | 0.94 (n=4, no usable CI) | +0.06 (n=4) | $4.55 |
+
+Per-case rows are in `evals/baselines/<model>/<suite>.json`.
+
 **Reading the numbers**
 - Triggers: near-miss and noauto cases sit at the ceiling, so the all-triggers mean overstates
-  recall. The should-fire rows are the trigger signal. Recall is 72.2% to 72.8% on Opus (130 of 180
-  runs loaded the skill; the lower bound counts the one censored run as a miss, the upper as a fire)
-  and 60.0% on Sonnet (108 of 180, no censored run), so descriptions miss about 28% and 40% of
-  requests they should catch.
-- Effects: the gain is small, and it comes from cases where the asset loaded. Of 162 cases, 95
-  carry a load grader for their own asset. Where `loadRate` is above 0, delta is +0.093 (Opus, 69
-  cases) and +0.090 (Sonnet, 59); where it is 0, delta is +0.000 (26 cases) and -0.019 (36), which
-  is noise. The 67 cases with no load grader (`loadRate` null) average +0.036 and +0.044. The kb arm
-  is the whole plugin, not only the named asset.
-- Effects headroom is thin: 122 of 162 cases have delta 0 on both models (130 on each model), and
-  111 score 1.0 in both arms on both models (120 on Opus, 118 on Sonnet). The gain rests on about 25 cases. Grouping each asset's cases in the bootstrap leaves
-  the delta CI above zero: [+0.02, +0.09] Opus, [+0.02, +0.08] Sonnet.
-- Workflows show no headroom: plain Claude also completes all four, and n=4 gives no usable CI.
-- Capped runs: 26 Opus and 20 Sonnet trigger runs hit the 6-turn cap or the 120 s timeout
-  (should-fire 24 and 18, near-miss 2 and 2), and one Opus effect run hit 900 s; each case's
-  `cappedRuns` counts them. Capped runs are still scored: a run that loaded the skill before the
-  cap counts as fired. Censored runs, capped before the skill loaded, are 3 on Opus (one
-  should-fire, two near-miss) and 2 on Sonnet (both near-miss); `censoredRuns` counts them.
-- Five effect cases change pass state from Sonnet to Opus (four to pass, one to fail). With three
-  runs and a 2/3 pass line, flips this few are within run-to-run noise.
+  recall. Should-fire recall is 73.8% on Opus (186 of 252 runs loaded the skill) and 57.5% on
+  Sonnet (145 of 252); no should-fire run was censored, so the bounds coincide. On the 60 should
+  cases that existed on 2026-11-16, recall is 80.0% on Opus (144 of 180; it was 130) and 63.3% on
+  Sonnet (114 of 180; it was 108). The five tuned descriptions went from 8 to 15 of 15 fired runs
+  on Opus and from 2 to 15 on Sonnet. Those five cases were the ones tuned on and were chosen for
+  being low, so the size of that rise overstates the gain; the held-out counts in the next bullet
+  are the cleaner figure. The other 55 cases moved from 122 to 129 on Opus and from 106 to 99 on
+  Sonnet, in opposite directions and untested for significance. Descriptions still miss about a
+  quarter (Opus) and two fifths (Sonnet) of the requests they should catch.
+- Held-out should-fire cases of the five adopted descriptions, fired of 6 runs (3 per model):
+  code-agent-meta-patterns 6, code-migration 6, code-review-patterns 6, refactoring-and-debt 5,
+  subagent-driven-development 4 (Sonnet 1 of 3). None is below 3 of 6, so the tuning decision's
+  first reversal condition is not in question.
+- Effects: the gain is larger where the asset loaded, and absent where it did not. Of 217 cases,
+  129 carry a load grader for their own asset. Where `loadRate` is above 0, delta is +0.078 (Opus,
+  96 cases) and +0.112 (Sonnet, 83); where it is 0, no effect is detected: -0.010 (33 cases) and
+  +0.002 (46). The 88 cases with no load grader also gain, +0.049 and +0.071. This is an
+  association, not a cause: `loadRate` comes from the kb arm's own behavior, so the split also
+  sorts cases by type. The kb arm is the whole plugin, not only the named asset.
+- Headroom, from `make eval-headroom`: `217 cases: 154 saturated, 5 dead, 2 kb-below-vanilla, 56
+  discriminating, 0 unmeasured` (2026-11-16: 162 cases, 111 saturated, 5 dead, 3 kb-below-vanilla,
+  43 discriminating); workflows `4 cases: 3 saturated, 0 dead, 0 kb-below-vanilla, 1
+  discriminating, 0 unmeasured`. Assets with no discriminating case fell from 48 to 39. Delta is 0
+  on 179 (Opus) and 173 (Sonnet) of 217 cases, and 172 and 164 score 1.0 in both arms.
+- The 55 effect cases added since 2026-11-16 are harder than the rest: kb 0.92 and vanilla 0.86 on
+  Opus, kb 0.89 and vanilla 0.77 on Sonnet. Their per-case delta is +0.07 on Opus (older cases
+  +0.05) and +0.13 on Sonnet (older cases +0.05); the Opus difference is inside the interval.
+- Reference-grounded cases: the kb arm read a reference in 28 of 48 runs (Opus) and 25 of 48
+  (Sonnet) of the 16 agent cases, and in 5 of 27 and 9 of 27 runs of the 9 consult-command cases.
+  Scores: agents kb 0.85 against vanilla 0.74 (Opus) and 0.84 against 0.64 (Sonnet); consult
+  commands 0.81 against 0.70 and 0.70 against 0.41. The references are reached in about half of
+  agent runs and in a third or fewer of consult-command runs.
+- The five cases `make eval-headroom` lists as `dead` are all in the dead-and-valid table above.
+  Two more cases fail in both arms on Opus only: product-manager--effect-rollback-triggers (kb
+  0.00, vanilla 0.00; the agent was dispatched in 3 of 3 runs and read no reference in any;
+  Sonnet kb 0.67) and writing-skills--effect-fix-broken-skill (kb 0.00, vanilla 0.33; the skill
+  loaded in 0 of 3 runs; Sonnet kb 0.67). They were not judged for case faults.
+- Two new cases score kb below vanilla on both models: j-docs--effect-upgrade-warning-order and
+  workflow-architect--effect-hidden-entry-points. Neither was re-checked against A3 and A4 in this
+  baseline, so whether the case or the asset is at fault is open.
+- Workflows: wf--execute-plan-to-review now discriminates (vanilla 0.75 on both models, on the
+  review claim the audit added); the other three stay at 1.00 in both arms. n=4 gives no usable CI.
+- Capped runs: 28 Opus and 18 Sonnet trigger runs hit the 6-turn cap or the 120 s timeout; two on
+  each model were censored (capped before the skill loaded), none of them should-fire. No effect
+  run was capped.
+- Eleven effect cases change pass state from Sonnet to Opus (eight to pass, three to fail). With
+  three runs and a 2/3 pass line most such flips are one run's difference. The list is not like
+  for like: it includes cases edited after Sonnet's first pass.
+- Drift, not an effect of the audit: on the 117 effect cases whose only change since before the
+  audit is the added `description` line, mean kb went from 0.984 to 0.994 on Opus and from 0.974 to
+  0.977 on Sonnet, and mean vanilla from 0.943 to 0.942 and from 0.940 to 0.937. The set is the
+  effect cases present in both baselines whose files differ from commit `11677a9` (the last commit
+  before the audit) only by the added `description` line. Nothing here measures the cause: the KB edits (the tuned descriptions, the
+  agent reference-path line) and the Claude Code version (2.1.325 then, 2.1.331 now) both changed.
+  The movement is small against the per-case spread.
 
 ## Asset determination
+
+The raw results behind this section are under `results/baseline-2026-11-16`; `determination` and
+`hillclimb adopt` read `results/baseline`, so move that directory back to reproduce these figures.
 
 Which assets the baseline says to delete or fix (2026-11-16 baseline, KB 479cc63, 3 kb runs per
 case per model). Method: `python3 -m evals.kbeval.determination` (`check`, `figures`, `spend`, `triggers`)
@@ -560,7 +718,7 @@ references and delegation.
 
 **Deletion.** No asset meets the skill-audit bar, "both unreferenced and unmentioned": every asset
 is referenced. 122 of 162 effect cases have delta 0 on both models and 111 score 1.0 in both arms
-on both models (see Reading the numbers): those cases have no headroom, which says nothing about the asset.
+on both models (2026-11-16 baseline): those cases have no headroom, which says nothing about the asset.
 Every negative asset delta is a one- or two-run flip at 3 runs per arm.
 
 **Fixes.**
@@ -678,8 +836,8 @@ At that rerun `self-contained` caught `src`/`href` loads, `@import`, and `url()`
 `srcset`, `<object data>`, SVG `<image href>`, and script-issued requests, so 12/12 was a lower bar
 than the skill's zero-network-requests rule. The case audit widened the grader to those
 constructs, to module imports, workers, `poster` and `background` attributes, and to relative
-resource paths (Case audit, `j-explain` row). It still flags the text `fetch(` in prose. The
-widened grader has not been run.
+resource paths (Case audit, `j-explain` row). It still flags the text `fetch(` in prose. In the
+2026-12 baseline the widened grader passed in 12 of 12 kb runs.
 
 `no-regression` passed for every rerun asset. Per-case kb scores that moved (baseline -> post-fix):
 architecture-specialist catalog-cache-traps Opus 1.00 -> 0.67 (one model, under the 2/3 line);
@@ -771,8 +929,9 @@ house convention.
 
 **Hardening.** Each asset that `make eval-headroom` lists as `ASSET <asset> no discriminating case`
 gains one new effect case tagged `extended`, written by the hard-case rules above. `j-paper` is
-exempt: its `extended` case has not been measured yet. The list is computed from the stored
-baseline, so it keeps naming these assets until a baseline measures the new cases.
+exempt: it already had an `extended` case, unmeasured at the time of the audit. The 2026-12
+baseline measured every new case, and the list fell from 48 assets to 39; an asset still listed
+has its hard case and still shows no difference between the arms.
 
 **Reference-grounded cases.** Each consult command, and each agent that indexes a reference
 directory, gains one `extended` case whose answer comes from one reference file the asset lists,
@@ -791,9 +950,10 @@ requires (docs that match the change, a retired workaround), without naming the 
 case's content. Case slugs keep their `tune-` and `held-` prefixes. Every new llm grader has two to
 five claims with both `PASS if` and `FAIL if`. A `held-` case gets its `description` line and
 nothing else; a finding on one goes to `tasks/kbeval-case-defects.md`, because rewriting it would
-void the held-out comparison the next baseline makes.
+void the held-out comparison a later baseline makes.
 
-**Results.**
+**Results.** The Headroom class column is the class at the 2026-11-16 baseline, read when the
+asset was audited; `make eval-headroom` gives the current class.
 
 | Asset | Cases audited | A1-A4 and A6 verdicts | Headroom class | New case |
 |---|---|---|---|---|
@@ -962,7 +1122,9 @@ Step 0 as written may drop the steps that follow it. The harness as it stands th
 compare dispatched lenses with inline lenses, and nothing here applies to an interactive session.
 The case audit has since reworded both prompts: the plan still goes to `./plans/plan.md`, which
 the prompt now names as the plan file to use in place of plan mode and the fixture now git-ignores
-(Case audit, `j-plan` row). No run has measured dispatches on the changed cases.
+(Case audit, `j-plan` row). The 2026-12 baseline ran the reworded cases: the `lens-dispatches`
+indicator counted no dispatch in any of their 12 kb runs (two cases, three runs, both models), so
+removing the contradiction did not bring the lens dispatches back in this harness.
 
 Not incurred, and not tested:
 - No case carries the `fanout` tag, and the recurring cost in the design does not apply.
@@ -974,8 +1136,8 @@ The ceiling stays at 4000 USD for the 2026-12 baseline.
 
 The `lens-dispatches` grader stays on the two guard cases as an indicator. It is a process grader:
 it stays out of `kbScore`, which uses result graders only, and it enters `behaviorRate` and the raw
-run's pass flag. Adding it changed both cases' content, so their stored results predate it and the
-two cases rerun at the next baseline.
+run's pass flag. Adding it changed both cases' content; the 2026-12 baseline reran them with it
+(Result, last paragraph).
 
 ### Arm C text
 

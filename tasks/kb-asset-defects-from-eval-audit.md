@@ -11,7 +11,9 @@ here, so the fix can come with an eval case that fails before it.
   `git commit` commits them too. It should say to commit only `.gitignore`, or to use
   `.git/info/exclude`. Seen in using-git-worktrees--effect-isolated-from-origin.
 - `code-quality` loaded in none of the stored kb runs of code-quality--effect-marker-audit (a
-  review task its description should catch). The case is sound; the description's reach is the
+  review task its description should catch), on 2026-11-16 and again in the 2026-12 Sonnet
+  baseline (0 of 3). Every kb run then called the login shortcut sanctioned, which the skill's
+  "Never a security control" line forbids. The case is sound; the description's reach is the
   question.
 - `dependency-upgrade` states an upgrade order (SKILL.md:12). In the stored kb runs of
   dependency-upgrade--effect-multi-major-plan the skill loaded and the plan still put jest before
@@ -41,6 +43,11 @@ here, so the fix can come with an eval case that fails before it.
   for greenfield work; `.claude/agents/scope-reviewer.md` defines it as "the proposed scope is
   missing capabilities required for the stated goal". The agent reads the reference, so the two
   definitions meet in one run.
+- `references/cloud/file-storage-patterns.md` gives the presigned-expiry rule for a whole-file
+  URL only ("set generous expiry (1h+) for large files") and says nothing about multipart part
+  URLs. In the 2026-12 baseline most runs signed short-lived part URLs on demand, and one kb run
+  read the rule and set it aside as not applying to parts. The reference should say what it wants
+  for part URLs.
 
 ## Scope
 1. Fix each asset with an eval case that fails before the fix.
