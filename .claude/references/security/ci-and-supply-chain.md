@@ -140,3 +140,5 @@ Run static analysis in this order: code patterns first (cheapest, fastest), then
 # Good: SHA is immutable
 - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 ```
+
+- Do not call a make or script target read-only if its recipe runs a package-manager run command without a locked or frozen flag: it can re-resolve, rewrite the lockfile, and sync installs when the manifest is ahead; reproduce in an export of the tree

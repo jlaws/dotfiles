@@ -36,12 +36,18 @@ description: "Use when reviewing PRs or responding to review feedback."
 - Consistent with existing patterns? Will it scale?
 - Are there tests? Do they cover edge cases?
 - Does a refactor reduce complexity or only move it? Count the concepts a reader must hold before and after.
+- Trace each factual claim in a commit message, PR body, design record, or code comment to the diff: resolve named symbols, check quoted text, count enumerated values; an unsupported claim is a finding with the same severity as a code bug
 
 #### Phase 3: Line-by-Line (10-20 min)
 - **Logic**: Edge cases, off-by-one, null checks, race conditions
 - **Security**: Input validation, SQL injection, XSS, data exposure
 - **Performance**: N+1 queries, unnecessary loops, memory leaks, blocking ops
 - **Maintainability**: Clear names, SRP functions, magic numbers extracted
+- **Option side effects**: when a diff starts passing an existing option on one code path, search every condition in the callee keyed on that option's presence or value; it can switch sibling behavior (filters, pairing, refuse-vs-skip) the author did not intend, and tests that only check the constructed arguments miss it
+- **Vacuous tests**: for each new test, name the code change that would make it fail; if none exists, report it as vacuous. Also check configurations where it passes vacuously (an env var or config that overrides the guarded behavior). Typical shapes: assertions on a type the type system already fixes, loop-guarded assertions whose predicate is never true
+- **Coincident fixtures**: when code reads a value in two roles (min/max, low/high, first/second operand), check that some fixture makes the roles differ; if every fixture makes them coincide, a swap is invisible. The same holds for probabilities fixed at 0.5, one seed, one replicate, or dimensions that share a size
+- **Guarded assertions**: credit `if x is not None: assert ...` only after running the fixture and confirming which branch it takes; a branch that never runs asserts nothing
+- **Signal error handling**: suppressing one specific error class from process-group or signal calls can crash on another platform (a group of unreaped dead processes raises a permission error on some systems, a lookup error after reaping on others); review the suppression list per platform
 
 #### Phase 4: Summary (2-3 min)
 1. Summarize key concerns
@@ -161,6 +167,11 @@ Analyze each perspective independently, then synthesize: deduplicate, resolve co
 ## Verdict & Evidence
 
 Conclude every review with one standard verdict (**PASS / CONCERNS / FAIL / BLOCKED**) and tag each finding **P0-P3** (see `verification-before-completion`: Verdict Grammar). Weight findings by the Evidence Hierarchy (reproduced > static-traced > pattern-match) and cite a concrete `file:line` for every one. **BLOCKED means the review could not cover something (tool or coverage limit): never silently turn it into an approval or a product defect.** Reviewers work under the read-only contract: find and report, do not mutate.
+
+- Execute claims about a third-party library against the installed version instead of reading source or recalling docs: instantiate the class, run the formatter, probe each input kind. For a "strict decoder" claim, build a per-field-kind table of hostile inputs (overflow, truncation, malformed encoding) rather than reading the exception clauses
+- In a shared working directory, read disputed code from the resolved full commit hash (not a moving ref), and compare the file hash to the committed blob plus a clean status check before and after each measurement. Matching hash and clean status means the observation was spurious; a differing hash is a real edit to report as a tree anomaly. Re-derive any measurement taken while the question was open
+- When scoring mutants, require a nonzero passed count in the unmutated baseline (a whole-suite skip exits 0), run the baseline in the same copy and count only failures not in it, and name the killing tests per mutant; a kill by a test that cannot reach the mutated line is a flake signal, so loop that test on clean code
+- Hand-rolled mutation runs must disable bytecode caching and clear cache directories between mutants, because same-size replacements within one second can reuse the prior mutant's compiled code
 
 ## Adversarial Debate Mode (optional; high-risk or high-stakes diffs)
 

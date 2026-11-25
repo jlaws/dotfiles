@@ -7,6 +7,8 @@
 - **Always** rotate secrets on a schedule and immediately after any suspected compromise
 - **Never** pass secrets via build args (`ARG`) -- they persist in image layers; use runtime env or mounted secrets
 - **Always** encrypt secrets at rest and use dedicated secret stores (Vault, AWS SM), not env files in production
+- **Always** grade a new redaction walker with structured plants: a credential-keyed rule fails when key and value are scrubbed as separate leaves, parsing text into structure before scrubbing hides content from the scrubber, dispatch on an abstract sequence type sends bytes through unscrubbed, and two scrubbed keys can collide and drop entries
+- **Always** test a helper that renders a command line without the home directory against real arguments under a root whose path contains =, a space, a colon, and a parenthesis; count outputs that still contain the home directory, since the unclassified pass-through branch is the leak
 
 ## HashiCorp Vault
 
