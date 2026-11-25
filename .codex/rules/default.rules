@@ -202,6 +202,20 @@ prefix_rule(
 )
 
 prefix_rule(
+    pattern = ["npm", "audit", "fix"],
+    decision = "prompt",
+    justification = "npm audit fix runs an install, and its lifecycle scripts, so it needs approval.",
+    match = [
+        "npm audit fix",
+        "npm audit fix --force",
+    ],
+    not_match = [
+        "npm audit",
+        "npm audit --json",
+    ],
+)
+
+prefix_rule(
     pattern = ["tsc"],
     decision = "allow",
     justification = "TypeScript type-check allowed.",

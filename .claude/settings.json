@@ -88,6 +88,8 @@
     ],
     "deny": [
       "Bash(sudo *)",
+      "Bash(npm audit fix *)",
+      "Bash(npm audit fix)",
       "Read(./.git/config)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)"

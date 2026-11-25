@@ -1905,6 +1905,20 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             codex_gh.update(f"{first} {verb}" for verb in verbs)
         self.assertEqual(codex_gh, self.GH_ALLOWED)
 
+    def test_npm_audit_fix_is_denied_or_prompted_in_every_tree(self):
+        """`npm audit *` also matches `npm audit fix`, which runs an install and its scripts."""
+        claude = json.loads((REPO / ".claude" / "settings.json").read_text())
+        agy = json.loads((REPO / ".gemini" / "antigravity-cli" / "settings.json").read_text())
+        for rule in ("Bash(npm audit fix *)", "Bash(npm audit fix)"):
+            self.assertIn(rule, claude["permissions"]["deny"])
+        self.assertIn("command(npm audit fix)", agy["permissions"]["deny"])
+        rules = (REPO / ".codex" / "rules" / "default.rules").read_text()
+        self.assertRegex(
+            rules,
+            r'(?s)prefix_rule\(\s*pattern\s*=\s*\[\s*["\']npm["\']\s*,\s*["\']audit["\']\s*,'
+            r'\s*["\']fix["\']\s*\],\s*decision\s*=\s*"prompt"',
+        )
+
     def test_legacy_gemini_artifacts_are_not_tracked(self):
         """Legacy Gemini CLI policy engine, hooks, commands, and agents must not be present in .gemini/."""
         self.assertFalse(
