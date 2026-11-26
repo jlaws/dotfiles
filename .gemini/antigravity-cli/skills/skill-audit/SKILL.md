@@ -5,319 +5,72 @@ description: "Use when auditing agent knowledge-base integrity."
 
 # Knowledge Base Audit
 
-Full conformance audit of shared workflows and tool-native agent assets. `.agents/` is the Codex/Gemini source for skills and references; each tool owns its native agents and commands.
+Conformance and quality audit across shared workflows (`.agents/`) and tool-native agent trees (`.claude/`, `.codex/`, `.gemini/`).
 
 ## Scoping
 
 Determine scope from arguments:
-- **Empty** -> audit ALL asset types
+- **Empty** -> audit ALL asset types (`skills`, `commands`, `agents`, `references`, `config`)
 - **Asset type** (`skills`, `commands`, `agents`, `references`, `config`) -> audit only that type
 - **Name/path** (e.g., `skills/writing-plans`, `agents/code-reviewer`, `commands/j-arch`) -> audit only matching assets
-- **`adoption`** -> run the adoption pass below on its own. Never part of an unscoped run: it reads conversation history, so it happens only when asked for by name
-- **`memory`** -> Claude Code only. It checks Claude's auto-memory stores under `~/.claude` with a script that ships in the `.claude/` tree; Codex and Gemini have no such store, so this scope does nothing here
-
-## Phase 1: Discovery
-
-Enumerate all assets by type:
-
-| Type | Location | Pattern |
-|------|----------|---------|
-| Skills | `.agents/skills/{name}/SKILL.md`, `.claude/skills/{name}/SKILL.md`, `.gemini/antigravity-cli/skills/{name}/SKILL.md` | Folder with SKILL.md |
-| Commands | `.agents/skills/cmd-j-*/SKILL.md` (Codex), `.claude/commands/{name}.md`, `.gemini/antigravity-cli/skills/j-*/SKILL.md`; legacy `.codex/prompts/{name}.md` if shipped | Tool-specific entry points |
-| Agents | `.codex/agents/{name}.toml`, `.claude/agents/{name}.md`, `.gemini/config/agents/{name}.md` | Tool-specific role files |
-| References | `.agents/references/{category}/{name}.md`, `.claude/references/{category}/{name}.md` | Markdown files |
-| Config | `.codex/AGENTS.md`, `.codex/config.toml`, optional `.codex/hooks.json`, `.claude/CLAUDE.md`, `.claude/settings.json`, optional `.claude/settings.local.json`, `.gemini/GEMINI.md`, `.gemini/antigravity-cli/settings.json` | Config and hook registrations; inspect referenced hook scripts too |
-
-For each asset, record: type, category, name, file path, any supporting files.
-
-**Multi-tree scope.** Audit shared workflows and references in `.agents/` and each tool's assets. Shared non-command skills must be byte-identical to their Gemini copies. Claude skill bodies intentionally diverge; check asset-name parity and declared exceptions in `tests/test_agent_config.py`, not body equality. Reference twins share sections, not bytes; see docs/adr/workflow/reference-tree-section-parity.md. `cmd-j-*` skills are the Codex commands; check Claude and Gemini counterparts and only require Codex prompt fallbacks when the repo ships them. Native agent name sets follow the declared parity exceptions. The tables below describe Claude formats; apply tool-specific formats for Codex TOML roles and Gemini assets, using the cross-tree checks in `tests/test_agent_config.py`.
-
-## Phase 2: Automated Checks
-
-Track every result as PASS, WARN, or FAIL. Report actual values on failure.
-
----
-
-### 2A. Skill Checks
-
-For each skill directory under `.claude/skills/`:
-
-**Structural**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| SK-S1 | `SKILL.md` exists with exact casing | FAIL | Required file |
-| SK-S2 | No `README.md` in skill folder | FAIL | Must use SKILL.md |
-| SK-S3 | Folder name is kebab-case | FAIL | No spaces, underscores, capitals |
-
-**Frontmatter**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| SK-F1 | YAML frontmatter present (`---` delimiters) | FAIL | Required |
-| SK-F2 | `name` field exists | FAIL | Required |
-| SK-F3 | `name` is kebab-case | FAIL | Letters, numbers, hyphens only |
-| SK-F4 | `name` matches folder name | FAIL | Must be identical |
-| SK-F5 | `description` field exists | FAIL | Required |
-| SK-F6 | Repository-owned `description` at most 64 chars | FAIL | Codex metadata budget |
-| SK-F7 | No XML `<`/`>` in frontmatter fields | FAIL | Breaks YAML parsing |
-| SK-F8 | No "claude"/"anthropic" in `name` | FAIL | Reserved terms |
-| SK-F9 | Description has WHAT + WHEN (trigger phrase like "Use when") | WARN | Discoverability |
-| SK-F11 | no unscoped pre-approval of Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch | WARN | `allowed-tools` pre-approves for the turn and restricts nothing |
-
-**Content**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| SK-C1 | Body over 50 words | WARN | Too thin otherwise |
-| SK-C2 | Under 5,000 words | WARN | Split large skills |
-| SK-C3 | Supporting files referenced in SKILL.md | WARN | Bundled files must be used |
-| SK-C4 | At least one code block or example | WARN | Best practice |
-| SK-C5 | Error/edge-case guidance (workflow skills only) | WARN | Expected for procedural skills |
-
----
-
-### 2B. Agent Checks
-
-For each `.md` file under `.claude/agents/`:
-
-**Structural**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| AG-S1 | Filename is kebab-case (`.md` extension) | FAIL | Naming convention |
-| AG-S2 | No subdirectories under `agents/` | WARN | Agents are flat files |
-
-**Frontmatter**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| AG-F1 | YAML frontmatter present | FAIL | Required |
-| AG-F2 | `name` field exists | FAIL | Required |
-| AG-F3 | `name` matches filename (without `.md`) | FAIL | Must be identical |
-| AG-F4 | `description` field exists | FAIL | Required |
-| AG-F5 | `description` under 1024 chars | WARN | Keep concise |
-| AG-F6 | `tools` field exists | WARN | Should declare tool access |
-| AG-F7 | `tools` only lists valid tool names (Read, Grep, Glob, Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch, Agent, Skill) | WARN | Invalid tools ignored at runtime |
-| AG-F8 | `model` follows the tool's routing policy | WARN missing / FAIL invalid | Claude accepts `opus`, `sonnet`, `haiku`, `fable`, `inherit`; Gemini agents use `inherit`; repo-owned Codex roles omit `model` and `model_reasoning_effort`, which are selected for the task at dispatch |
-| AG-F9 | An agent with `memory:` lists `Write` and `Edit` in `tools` | WARN | Memory grants them silently |
-
-**Content**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| AG-C1 | Body over 20 words | WARN | Must provide role instructions |
-| AG-C2 | If `skills:` field references skills, each skill path resolves to an existing SKILL.md | FAIL | Broken skill ref |
-| AG-C3 | If body references `.claude/references/`, each path resolves | WARN | Broken reference link |
-
----
-
-### 2C. Command Checks
-
-For each `.md` file under `.claude/commands/`:
-
-**Structural**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| CM-S1 | Filename is kebab-case (`.md` extension) | FAIL | Naming convention |
-| CM-S2 | File is flat directly under `commands/` (no category subdir) | WARN | Expected: `commands/{name}.md` |
-| CM-S3 | Filename starts with `j-` prefix | WARN | Custom commands use `j-` prefix to disambiguate from built-ins |
-
-**Frontmatter**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| CM-F1 | YAML frontmatter present | FAIL | Required |
-| CM-F2 | `name` field exists | FAIL | Required |
-| CM-F3 | `name` matches filename (without `.md`) | FAIL | Must be identical |
-| CM-F4 | `description` field exists | FAIL | Required |
-| CM-F5 | `description` under 1024 chars | WARN | Keep concise |
-| CM-F6 | `description` includes WHAT + WHEN trigger | WARN | Discoverability |
-| CM-F7 | Claude commands do not set `model` | WARN | A command runs inside the conversation; a different model re-reads the whole history uncached. Shared Codex command skills and Gemini command skills carry no `model` |
-| CM-F8 | no unscoped pre-approval of Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch | WARN | `allowed-tools` pre-approves for the turn and restricts nothing |
-
-**Content**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| CM-C1 | Body over 10 words | WARN | Must provide instructions |
-| CM-C2 | If body uses `$ARGUMENTS`, frontmatter has `argument-hint` | WARN | Helps user know what to pass |
-| CM-C3 | If body invokes a skill (e.g., "load skill", "follow skill", "invoke skill"), skill exists | FAIL | Broken skill ref |
-| CM-C4 | If body invokes an agent, agent exists under `.claude/agents/` | WARN | Broken agent ref |
-
----
-
-### 2D. Reference Checks
-
-For each `.md` file under `.claude/references/`:
-
-**Structural**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| RF-S1 | Filename is kebab-case | FAIL | Naming convention |
-| RF-S2 | File lives inside a category subdirectory | WARN | Expected: `references/{category}/{name}.md` |
-
-**Content**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| RF-C1 | File has at least one markdown heading (`#`) | WARN | Should be structured |
-| RF-C2 | Over 50 words of content | WARN | Likely stub |
-| RF-C3 | Referenced by at least one agent, command, or skill | WARN | Orphan reference |
-
----
-
-### 2E. Config Checks
-
-**CLAUDE.md**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| CF-C1 | `.claude/CLAUDE.md` exists | FAIL | Required config |
-| CF-C2 | Has at least one heading | WARN | Should be structured |
-| CF-C3 | Under 10,000 words | WARN | Token budget; large files waste context |
-
-**Settings**
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| CF-S1 | `.claude/settings.json` exists | WARN | Expected for configured projects |
-| CF-S2 | `settings.json` is valid JSON | FAIL | Parse error breaks config |
-| CF-S3 | If `settings.local.json` exists, it is valid JSON | FAIL | Parse error breaks config |
-
----
-
-### 2F. Cross-Reference Integrity
-
-Verify links between assets resolve:
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| XR-1 | Agent `skills:` entries resolve to existing skill folders | FAIL | Broken skill ref |
-| XR-2 | Agent body reference paths (`.claude/references/...`) resolve | WARN | Broken ref link |
-| XR-3 | Command body skill invocations resolve | FAIL | Broken skill ref |
-| XR-4 | Command body agent references resolve | WARN | Broken agent ref |
-| XR-5 | Skill body cross-references to other skills resolve | WARN | Broken skill ref |
-| XR-6 | Skill supporting files in `references/` subdirs are referenced in SKILL.md | WARN | Orphan supporting file |
-
-### 2G. Documentation Currency
-
-| # | Check | Sev | Rule |
-|---|-------|-----|------|
-| DOC-1 | Parity: shared non-command skills match Gemini bytes; Claude skill asset names and native agents follow declared exceptions; reference twins share sections; Codex `cmd-j-*` skills have Claude/Gemini counterparts, with prompt fallbacks only if shipped | WARN | Apply `tests/test_agent_config.py`; intentional Claude body divergence is not drift |
-| DOC-2 | Description reflects behavior: the `description` still matches what the body does after edits (no stale/misleading trigger) | WARN | Stale description misroutes invocation |
-| DOC-3 | Registration: a new or renamed asset lives in a directory the harness config lists (`.claude/CLAUDE.md` Knowledge base, `.gemini/GEMINI.md` Knowledge Base Structure) (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
-
-## Phase 2H: Adoption (by hand, on request)
-
-Not one of the automated 2A-2G checks: this tree ships no `scripts/` directory, so nothing here runs
-by itself. Only on request, and only where the harness keeps readable transcripts. The question,
-answered by hand: for each skill, agent, and command, is there evidence in recent sessions that
-anything named it?
-
-Five limits decide what an answer means. The first three were each measured wrong before they were
-measured right, so take them literally:
-
-- Count conversation prose only. Tool output is stored as ordinary conversation records, so a naive
-  pass counts a file the agent merely read as a mention of everything named inside it.
-- Do not count the record envelope. A branch or directory named after an asset otherwise scores once
-  per turn for a whole session.
-- Look in nested session directories too, not just the top level of each project. Subagent
-  transcripts live one or two levels deeper and are most of the corpus.
-- Sessions that edited the knowledge base name every asset in it. Exclude them.
-- Transcripts are pruned, so a last-seen date is bounded by retention, not by real last use.
-
-The cost of counting prose only: an asset invoked through a tool call and never discussed leaves no
-mention. So no evidence means no evidence was found. It does not mean unused, and on its own it is
-not a reason to delete anything. Use it as input to the orphan call, alongside whether anything
-references the asset at all.
-
-## Phase 3: Report
-
-### Summary
-
-```
-Knowledge Base Audit
-====================
-Skills:     {n} audited  |  {pass} pass  |  {warn} warn  |  {fail} fail
-Agents:     {n} audited  |  {pass} pass  |  {warn} warn  |  {fail} fail
-Commands:   {n} audited  |  {pass} pass  |  {warn} warn  |  {fail} fail
-References: {n} audited  |  {pass} pass  |  {warn} warn  |  {fail} fail
-Config:     {n} checks   |  {pass} pass  |  {warn} warn  |  {fail} fail
-Cross-Refs: {n} checks   |  {pass} pass  |  {warn} warn  |  {fail} fail
-Adoption:   {n} assets   |  {active} active | {cold} cold | {none} no evidence   (on request only)
-─────────────────────────────────────────────────────────────────────────
-Total:      {N} checks   |  {P} pass     |  {W} warn     |  {F} fail
-```
-
-### Failures (grouped by asset type, then category)
-
-```
-## Skills / {category}
-### {skill-name}
-- [FAIL] SK-F4: `name` ("my-skill") does not match folder ("myskill")
-
-## Agents
-### {agent-name}
-- [FAIL] AG-F3: `name` ("reviewer") does not match filename ("code-reviewer")
-
-## Commands
-### {command-name}
-- [FAIL] CM-C3: References skill "nonexistent" - not found
-
-## Cross-References
-- [FAIL] XR-1: Agent "ml-engineer" → skill "ai-ml/training" - not found
-```
-
-### Warnings Only
-
-Same format, for assets with zero FAILs but one or more WARNs.
-
-### Clean Assets
-
-Comma-separated list per type:
-```
-Skills: code-quality, code-review-patterns, ...
-Agents: ml-engineer, test-writer, ...
-Commands: j-arch, j-new, ...
-References: auth-implementation-patterns, ...
-```
-
-## Health Score (qualitative)
-
-Beyond PASS/WARN/FAIL, rate the KB on five axes and name the weakest; that is where to invest next.
+- **`adoption`** -> run the transcript adoption pass alone (never part of an unscoped run, because it reads conversation history)
+- **`memory`** -> Claude Code auto-memory stores under `~/.claude` only (Codex and Antigravity have no such store)
+
+## Phase 1: Discovery & Automated Checks
+
+Enumerate assets across the repository's trees:
+
+| Type | Location |
+|------|----------|
+| Skills | `.agents/skills/{name}/SKILL.md`, `.claude/skills/{name}/SKILL.md`, `.gemini/antigravity-cli/skills/{name}/SKILL.md` |
+| Commands | `.agents/skills/cmd-j-*/SKILL.md` (Codex), `.claude/commands/{name}.md`, `.gemini/antigravity-cli/skills/j-*/SKILL.md` |
+| Agents | `.codex/agents/{name}.toml`, `.claude/agents/{name}.md`, `.gemini/config/agents/{name}.md` |
+| References | `.agents/references/{category}/{name}.md`, `.claude/references/{category}/{name}.md` |
+| Config | `.codex/AGENTS.md`, `.codex/config.toml`, `.claude/CLAUDE.md`, `.claude/settings.json`, `.gemini/GEMINI.md`, `.gemini/antigravity-cli/settings.json` |
+
+When the repository ships `.claude/skills/skill-audit/scripts/audit.py` and `tests/test_agent_config.py`, run them first instead of re-deriving mechanical checks by hand:
+- `audit.py` checks naming (kebab-case, `j-` command prefix, no `README.md` in skill folders), YAML frontmatter (`name` == stem/folder, quoted `description`, no `<`/`>`, valid tool names, no unscoped tool pre-approvals, floating model aliases on Claude agents, no `model` on commands), `SKILL.md` size (`<= 20,000` bytes so compaction keeps the body), reference/skill/agent link resolution, anchor resolution, orphan references, and JSON config validity.
+- `tests/test_agent_config.py` enforces multi-tree parity and safety invariants:
+  - Shared non-command skills in `.agents/skills/` and `.gemini/antigravity-cli/skills/` are byte-identical across all files, carry only `name` and `description` in frontmatter, and keep `.agents/` descriptions `<= 64` chars starting with `"Use when"`.
+  - `.gemini/config/agents/*.md` declare `subagent: true`, `mainAgent: true`, `model: inherit`, and match body skill lists to frontmatter `skills:`.
+  - `.codex/agents/*.toml` declare `name`, `description`, and non-empty `developer_instructions`, omitting `model` and `model_reasoning_effort`.
+  - `.claude/references/` and `.agents/references/` hold the same files and expose the exact same ordered Markdown headings (`docs/adr/workflow/reference-tree-section-parity.md`).
+  - Reference citations use `~/.agents/references/<category>/` in `.agents`, `.codex`, and `.gemini`, never project-relative paths or `.claude/references/` in shared assets.
+  - Always-loaded configs stay under `ALWAYS_LOADED_CEILINGS` while keeping safety lines, and KB prose contains no em dashes, no ` -- ` prose dashes, and no inline source credits.
+
+In a repository without those scripts (this shared skill ships no `scripts/` directory), walk the rules above directly across every discovered asset and classify each check as `PASS`, `WARN`, or `FAIL` with actual values cited.
+
+## Phase 2: Adoption (On Request Only)
+
+Only when explicitly invoked with `adoption`, inspect readable session transcripts by hand (or via `.claude/skills/skill-audit/scripts/adoption.py . --exclude dotfiles` when auditing a Claude tree that ships it). Five limits govern what counts:
+- Count conversation prose only: exclude tool calls, tool output, hook output, per-session skill catalogs, and record envelopes (`cwd`, `gitBranch`).
+- Scan nested subagent session directories as well as top-level project transcripts.
+- Exclude sessions from the repository that edits the knowledge base itself, which name every asset.
+- Transcripts are pruned, so `last_seen` is bounded by retention.
+- An asset invoked solely via tool calls leaves zero prose mentions: `no evidence` means not found in prose, not unused. Weigh it alongside reference reachability when judging orphans; treat `cold` (found outside the active window) as positive evidence of use.
+
+## Phase 3: Judge What Scripts Cannot
+
+Rate the knowledge base across five qualitative axes and name the weakest (where to invest next):
 
 | Axis | Question |
 |------|----------|
-| Groundedness | Do skills/refs use concrete repo paths and repo-specific examples, or generic advice? |
-| Coverage | Are the common task types covered by a skill, with no large gaps? |
-| Freshness | Any asset unreferenced by an agent/command/config, or pointing at deleted files? |
-| Structure | Frontmatter valid, cross-references resolve, naming conventions hold, within line budgets? |
-| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Is a third party's number left out of the asset, with its source credited in `REFERENCES.md`? Is a counterfactual saving labelled an estimate? Is behavior shipped on a hunch labelled speculative? |
+| Groundedness | Do skills and references use real repo paths and repo-specific examples, or generic advice that would fit any codebase? |
+| Coverage | Is each common task type served by some asset, with no large gap? |
+| Freshness | Does anything describe retired models, renamed tools, or deleted files, or have a `description` that drifted from its body? |
+| Structure | Do assets read as goals, reasons, and interfaces rather than pre-frontier rulebooks? |
+| Evidence | Does every quantitative claim carry how it was measured, or say it is unmeasured? Are third-party numbers left out with sources in `REFERENCES.md`? Are counterfactual savings labeled estimates and hunches labeled speculative? |
 
-**Documentation currency:** mirror parity across trees and description-behavior match are part of freshness; see checks DOC-1..3.
+### High-Signal Defects to Flag
 
-**Evidence rule:** the axis covers four failure shapes, not one. A number with no provenance. A
-*counterfactual* saving: "this saved N tokens" about work never done the other way, stated as
-measured rather than estimated. Behavior shipped on a hunch with no label saying so, and its mirror
-image, a rule the repo advertises that nothing enforces. And a best-case figure printed without the
-general one beside it. Full rules in `writing-skills`, Claims and evidence; this axis is where they
-get checked.
+- **Generic content**: sections a strong model already knows unprompted (textbook taxonomies, framework tours, restated SOLID/DRY definitions). Keep only version-gated facts, numbers with provenance, opinionated tie-breakers, and repo-specific gotchas.
+- **Rules where goals belong**: all-caps "Iron Laws", pre-refuted excuse tables, and "Red Flags: STOP" banners that prevent judgment on valid edge cases (`writing-skills`, The Four Shifts).
+- **Repetition across surfaces**: the same rule restated across `CLAUDE.md`/`AGENTS.md`/`GEMINI.md`, a command, and a skill instead of one owner plus pointers.
+- **Inlined skill bodies**: commands pasting methodology instead of loading the skill.
+- **Stale model or tool facts**: retiring model IDs, outdated effort flags, or tool names belonging to another harness (`WebFetch`/`Explore` in Gemini/Codex skills, legacy `@google/gemini-cli` tools in Antigravity).
+- **Unsourced numbers**: guessed percentages, multipliers, or week estimates stated without measurement provenance (`writing-skills`, Claims and Evidence).
+- **Orphans & registration**: references unreachable from any agent, command, or skill, or renamed/new assets missing from harness structure docs or `MEMORY.md` (when present).
 
-**Groundedness rule:** prefer concrete file paths and repo-specific examples over generic advice; a skill that could apply to any repo teaches little about this one. Flag generic-only skills for grounding.
+## Phase 4: Report
 
-**Staleness:** an asset never referenced by any agent, command, or config across all trees is a removal/merge candidate; report it.
-
-## Execution Notes
-
-- Read each file fully before evaluating
-- Parse frontmatter between first and second `---` lines
-- For description WHAT+WHEN checks, accept varied phrasing (don't require exact "Use when")
-- For SK-C5, only flag workflow/procedural skills, not reference/catalog skills
-- For RF-C3 (orphan check), search all agents, commands, and skills for the reference filename
-- For cross-ref checks, normalize paths (strip `.claude/`, `.md`, leading/trailing slashes)
-- Count words by splitting on whitespace after stripping markdown syntax
-- Report actual values on every failure (show expected vs actual)
-- When scoped to a single asset type, still run cross-reference checks relevant to that type
+Lead with automated check counts (`PASS` / `WARN` / `FAIL`), then judgment findings grouped by axis (worst first), citing `file:line`, quoted text, and failed criterion. Close with the weakest axis and the single highest-value next change.

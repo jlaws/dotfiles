@@ -3,123 +3,88 @@ name: verification-before-completion
 description: "Use when verifying evidence before claiming work complete."
 ---
 
-# Verification Before Completion
+# Weighing and Reporting Evidence
 
-**Core principle:** Evidence before claims, always.
+Shared vocabulary for review and audit output. Use it so a verdict means the same thing everywhere.
 
-**Violating the letter of this rule is violating the spirit of this rule.**
+This is about how to *weigh and report* what you found. It is not a checklist for re-running your own
+work: frontier reasoning models verify their own work natively, and adding a separate ritual pass on
+top wastes tokens without improving the result.
 
-## The Iron Law
+## Green Is Not Enough: Ask Why It Passed
 
-```
-NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
-```
-
-If you haven't run the verification command in this message, you cannot claim it passes.
-
-## The Gate Function
-
-```
-BEFORE claiming any status:
-1. IDENTIFY: What command proves this claim?
-2. RUN: Execute the FULL command (fresh, complete)
-3. READ: Full output, check exit code, count failures
-4. VERIFY: Does output confirm the claim?
-   - If NO: State actual status with evidence
-   - If YES: State claim WITH evidence
-5. ONLY THEN: Make the claim
-```
-
-## Common Failures
-
-| Claim | Requires | Not Sufficient |
-|-------|----------|----------------|
-| Tests pass | Test output: 0 failures | Previous run, "should pass" |
-| Linter clean | Linter output: 0 errors | Partial check, extrapolation |
-| Build succeeds | Build: exit 0 | Linter passing |
-| Bug fixed | Original symptom: passes | Code changed, assumed fixed |
-| Agent completed | VCS diff shows changes | Agent reports "success" |
-| Requirements met | Line-by-line checklist | Tests passing |
-| UI/web renders | Fresh page evidence: screenshot or asserted URL/title/DOM/a11y snapshot | "The code should render it" |
-| Docs current | Docs updated for the change, or N/A stated with reason | "Code works, docs later" |
-| Absence (not found, unused) | The scope searched: queries, sections read, filters applied | "Not found" from a capped or ignore-respecting search |
-
-For UI/web changes, prefer an accessibility-tree snapshot over raw HTML: semantic and far cheaper in tokens.
-
-## Green Is Not Enough: Why Did It Pass?
-
-A passing check counts only if it exercised the target. Judge *why* it is green:
+A passing check counts only if it exercised the target.
 
 | Verdict | Meaning |
 |---------|---------|
 | PASS-hardening | The assertion ran the changed path and held |
-| INCONCLUSIVE | Green, but the assertion never exercised the target (dead test, wrong path, mocked away) |
+| INCONCLUSIVE | Green, but the assertion never touched the target: dead test, wrong path, mocked away |
 
-- A green result must cite the oracle output **and** evidence the target condition actually ran (log line, coverage, instrumented print).
-- Never judge on pre-action evidence. Capture a **fresh post-action observation**; if it disagrees with the claim, report a **DEVIATION**; do not retro-fit the claim to stale state.
-- Judge iteration by a mechanical metric (count, exit code, measured value), never "seems better".
+A green result is worth citing only alongside evidence the target condition actually ran: a log line,
+coverage, an instrumented print. Judge iteration by a mechanical metric (a count, an exit code, a
+measured value), not "seems better".
+
+Observations made before the change do not support a claim about the state after it. If a fresh
+observation disagrees with what you expected, report the deviation rather than fitting the claim to
+stale state.
 
 ## Verdict Grammar
-
-Report review/verification status with one standard verdict plus severity:
 
 | Verdict | Meaning |
 |---------|---------|
 | PASS | Verified, no blocking issues |
 | CONCERNS | Works, but non-blocking issues found (list them) |
 | FAIL | A defect is proven with evidence |
-| BLOCKED | Could not verify: a coverage or tooling limit |
+| BLOCKED | Could not verify, because of a coverage or tooling limit |
 
-- Findings carry a priority: **P0** (must fix now) through **P3** (nice to have).
-- **BLOCKED is a limitation of the check, never a product defect.** Do not downgrade BLOCKED into FAIL or PASS; state what you could not verify and why.
+Findings carry a priority from **P0** (must fix now) to **P3** (nice to have).
+
+**BLOCKED describes the check, not the product.** It means you could not look, so it cannot be
+downgraded into FAIL or PASS. Say what you could not verify and why.
 
 ## Evidence Hierarchy
 
-Weight evidence by strength; prefer the strongest available:
+Prefer the strongest available, and say which one you have:
 
-1. **Reproduced**: a deterministic run or observation of the behavior (strongest)
-2. **Static-traced**: followed the code path by reading, no run
-3. **Pattern-match**: "looks like" a known issue (weakest; verify before claiming)
+1. **Reproduced**: a deterministic run or direct observation of the behavior
+2. **Static-traced**: followed the code path by reading, without running it
+3. **Pattern-match**: resembles a known issue; the weakest, so confirm before asserting it
+
+Cite a concrete `file:line` for every finding.
 
 ## Read-Only Reviewer Contract
 
-A review or audit agent MUST NOT mutate the code it inspects. Declare the boundary up front and keep findings evidence-only. Fixing is a separate, later step by a different actor.
+A review or audit agent does not mutate the code it inspects. Declare that boundary up front and keep
+findings evidence-only. Fixing is a separate step by a different actor: mixing them means the review
+loses its independence and the diff no longer shows what was wrong.
 
-## Red Flags - STOP
+The tree can move under a review, so pin what you review:
 
-- Using "should", "probably", "seems to"
-- Expressing satisfaction before verification
-- About to commit/push/PR without verification
-- Trusting agent success reports
-- Relying on partial verification
-- **ANY wording implying success without having run verification**
-- Claiming a change complete without a documentation decision (update or explicit N/A)
+- **Review a frozen SHA.** Record `git rev-parse HEAD` before reading, and run it again before
+  reporting. On drift, `git diff <frozen-sha> -- <reviewed files>` and
+  `git diff --name-only <frozen-sha> HEAD`: an empty diff and no new paths mean the findings stand;
+  changed hunks get re-checked; a path outside the reviewed set is BLOCKED, named in the report.
+- **Never stash, revert, or switch branches to look at something.** Read old content with
+  `git show <sha>:<path>`, or extract a tree with `git archive <sha> | tar -x -C <scratch>`. When a
+  finding needs the tree restored, hand over the exact `git checkout --` or `git switch` command.
+- **A change notice is a claim, not an observation.** When told a file changed (or that it did not),
+  compare `git show <sha>:<path> | md5` with `md5 -q <path>`. Equal hashes mean the notice is wrong:
+  say so, even when it asks you not to call it out.
+- **Byte-scan added files.** One NUL byte makes `git diff` print "Binary files differ", makes grep
+  print `Binary file X matches` instead of the line, and makes a directory-walk `rg` skip the file
+  with exit 1 and no output. Tells: `Bin 0 -> N bytes` in `--stat`, a `- -` row in `--numstat`, or
+  `file` reporting `data`. Re-grep with `-a`.
 
-## Rationalization Prevention
+## What Counts as Proof of a Claim
 
-| Excuse | Reality |
-|--------|---------|
-| "Should work now" | RUN the verification |
-| "I'm confident" | Confidence is not evidence |
-| "Just this once" | No exceptions |
-| "Linter passed" | Linter is not compiler |
-| "Agent said success" | Verify independently |
-| "Partial check is enough" | Partial proves nothing |
-
-## Key Patterns
-
-```
-Tests:     Run -> See "34/34 pass" -> THEN claim "All tests pass"
-Red-Green: Write -> Run (pass) -> Revert -> Run (MUST FAIL) -> Restore -> Run (pass)
-Build:     Run build -> See exit 0 -> THEN claim "Build passes"
-Requirements: Re-read plan -> Checklist -> Verify each -> Report
-Agent:     Agent reports -> Check VCS diff -> Verify changes -> Report actual state
-```
-
-## When To Apply
-
-**Run the gate before:** any success/completion claim, any positive statement about work state, committing, PR creation, task completion, moving to next task, delegating to agents.
-
-For any change that ships (feature, behavior change, refactor/rename, new KB asset), a documentation decision is part of "complete"; see `documentation-validation`.
-
-**Claim a result only after reading the output of the command that proves it; a claim without that output is a guess.**
+| Claim | What supports it |
+|-------|------------------|
+| Tests pass | Test output showing zero failures |
+| Build succeeds | Exit 0 from the build, not from the linter |
+| Bug fixed | The original symptom, re-observed |
+| Delegated work done | The VCS diff, not the agent's summary |
+| A number or claim you write down | Recomputed from the artifact at the time of writing, never copied from a plan, a summary line, or someone else's framing; recount instead of incrementing a count |
+| Requirements met | The requirements, checked one by one |
+| UI renders | A fresh accessibility-tree snapshot: semantic and far cheaper than raw HTML |
+| Docs current | Docs updated, or an explicit N/A with a reason (see `documentation-validation`) |
+| Absence (not found, unused, not addressed) | The scope searched: queries run, sections read, filters and ignore rules applied. A filtered or partial search says what it excluded |

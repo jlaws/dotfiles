@@ -118,7 +118,8 @@ Reply with a clear, concise answer in the thread. Don't make unnecessary code ch
 
 ## Step 5: Verify & Push
 
-Cross-reference `verification-before-completion`: evidence before claims.
+When replying to a reviewer, say what you actually observed rather than that you addressed it: see
+`verification-before-completion` for the evidence hierarchy.
 
 ```
 1. Run project tests (identify test command from package.json, Makefile, etc.)
@@ -174,5 +175,5 @@ Do not auto-file issues for deferred items. List them for the user to decide.
 ## Cross-References
 
 - `code-review-patterns`: Severity labels, comment response patterns
-- `verification-before-completion`: Verification gate before any completion claims
+- `verification-before-completion`: verdict grammar and evidence hierarchy for reply wording
 - `~/.agents/references/languages/`: language-specific implementation guidance for the detected language

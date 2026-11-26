@@ -23,15 +23,15 @@ description: "Use when reviewing PRs or responding to review feedback."
 
 ## Giving Reviews
 
-### Review Process (time-boxed)
+### Review Process
 
-#### Phase 1: Context (2-3 min)
+#### Phase 1: Context
 1. Read PR description and linked issue
 2. Check PR size (well over the 3-5k changed-line target with no stated reason? Ask to split)
 3. CI/CD status passing?
 4. Understand the business requirement
 
-#### Phase 2: High-Level (5-10 min)
+#### Phase 2: High-Level
 - Does solution fit the problem? Simpler approaches?
 - Consistent with existing patterns? Will it scale?
 - Are there tests? Do they cover edge cases?
@@ -39,7 +39,7 @@ description: "Use when reviewing PRs or responding to review feedback."
 - Trace each factual claim in a commit message, PR body, design record, or code comment to the diff: resolve named symbols, check quoted text, count enumerated values.
 - Treat an unsupported claim as a finding; its severity follows its impact.
 
-#### Phase 3: Line-by-Line (10-20 min)
+#### Phase 3: Line-by-Line
 - **Logic**: Edge cases, off-by-one, null checks, race conditions
 - **Security**: Input validation, SQL injection, XSS, data exposure
 - **Performance**: N+1 queries, unnecessary loops, memory leaks, blocking ops
@@ -60,11 +60,9 @@ description: "Use when reviewing PRs or responding to review feedback."
   - A kill by a test that cannot reach the mutated line is a flake signal: loop that test on clean code.
 - **Hand-rolled mutation runs**: disable bytecode caching and clear cache directories between mutants. Same-size replacements within one second can reuse the prior mutant's compiled code.
 
-#### Phase 4: Summary (2-3 min)
+#### Phase 4: Summary
 1. Summarize key concerns
-2. Highlight what worked well
-3. Clear decision: Approve / Comment / Request Changes
-4. Offer to pair if complex
+2. Clear decision: Approve / Comment / Request Changes
 
 ### Feedback Severity Labels
 
@@ -76,14 +74,12 @@ description: "Use when reviewing PRs or responding to review feedback."
 [learning]    - Educational, no action needed
 ```
 
-In comments meant for a human, cap `[nit]` at five and count the rest ("plus 7 more nits"). In the reviewed project, a finding that recurs becomes a CLAUDE.md line or a lint or test check.
+In comments meant for a human, cap `[nit]` at five and count the rest ("plus 7 more nits"). In the reviewed project, a finding that recurs becomes an instruction-file line (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`) or a lint or test check.
 
 Tag a finding `(pre-existing)` when no hunk in the diff introduces it, exposes it, or makes it stale (the same test as "unrelated" in `j-diff-review` Step 6). It keeps its severity; the tag only stops a base-branch bug from reading as this change's fault.
 
 ### Feedback Techniques
 
-- **Ask questions** instead of stating problems: "What happens if `items` is empty?"
-- **Suggest, don't command**: "Would it make sense to extract this? It appears in 3 places."
 - **Be specific and actionable**: "Race condition when concurrent access; consider a mutex here."
 
 ### Handling Disagreements
@@ -100,7 +96,6 @@ Tag a finding `(pre-existing)` when no hunk in the diff introduces it, exposes i
 |---|---|---|
 | **Perfectionism** | Blocking for style preferences | Use linters; only block for correctness |
 | **Scope creep** | "While you're at it..." | File separate issues for unrelated improvements |
-| **Delayed reviews** | PRs stale for days | Review within 4 business hours |
 | **Rubber stamping** | Approving without reading | Use the phased review process above |
 | **Bike shedding** | Debating trivial choices at length | Time-box; default to author's preference |
 | **Drip-feed comments** | Incomplete feedback across multiple rounds | Give complete feedback in one round; forces thorough upfront analysis |
@@ -194,7 +189,7 @@ For risky changes, run reviewers as a debate instead of a single pass:
 3. **Cross-critique, 1-2 rounds**: broadcast round-1 findings; each reviewer may revise. Any change of position **must state a technical reason**; "good point" is banned.
 4. **Report survivors and disputes**: findings that survive cross-critique are high-confidence; flag unresolved disputes for the human rather than forcing consensus.
 
-Every finding cites `file:line`. Run this with the harness Workflow / `deep-research` primitives (independent subagents plus adversarial verification) rather than re-implementing orchestration here.
+Every finding cites `file:line`. Run this with the harness workflow / subagent primitives rather than re-implementing orchestration here.
 
 ## Cross-References
 
@@ -205,7 +200,7 @@ Load these skills, or read these references, if the review scope requires them:
 - `~/.agents/references/security/secrets-management.md`: if the diff contains credentials, tokens, or env var handling
 - `language-testing-patterns`: if assessing test coverage or test quality
 - `test-driven-development`: if evaluating test design or TDD compliance
-- `verification-before-completion`: if implementing fixes discovered during review
+- `verification-before-completion`: verdict grammar, evidence hierarchy, read-only reviewer contract
 - `pr-comment-resolution`: if responding to reviewer feedback on your own PR
 - `~/.agents/references/languages/`: read the file matching the primary language in the diff
 - `documentation-validation`: if the diff changes public surface or documented behavior and docs may be stale

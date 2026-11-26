@@ -1,6 +1,6 @@
 # Context Efficiency Best Practices
 
-Actionable patterns for minimizing token waste and maximizing context window effectiveness in Claude Code workflows.
+Actionable patterns for minimizing token waste and maximizing context window effectiveness in Claude Code, Codex, and Google Antigravity workflows.
 
 ## U-Shaped Attention
 
@@ -12,7 +12,7 @@ LLMs attend most strongly to content at the **beginning** and **end** of the con
 | Middle | Reference material, examples, supporting details |
 | End | Current task, most recent instructions, action items |
 
-**Implications for CLAUDE.md**: Put #1 rules and behavioral defaults at top. Put communication style and knowledge base structure (reference material) toward the middle. Current task context naturally lands at the end via conversation.
+**Implications for CLAUDE.md / AGENTS.md / GEMINI.md**: Put #1 rules and behavioral defaults at top. Put communication style and knowledge base structure (reference material) toward the middle. Current task context naturally lands at the end via conversation.
 
 ## Token Density by Format
 
@@ -49,7 +49,7 @@ elsewhere, unmeasured here), so a rule targeting those behaviors carries input c
 output. Do not add such a rule to a Claude-facing config without evidence the behavior still occurs.
 
 Scope any such finding to the model it was measured on. `.claude/CLAUDE.md` carries none of these
-rules; `.codex/AGENTS.md` does, and that stays, because a finding on Claude says nothing about what
+rules; `.codex/AGENTS.md` and `.gemini/GEMINI.md` keep concise positive defaults, because a finding on Claude says nothing about what
 another harness's model emits.
 
 **A terseness ruleset loses money on short interactions.** The ruleset is re-sent as input on every
@@ -64,28 +64,26 @@ Search first, read second. Never bulk-read files speculatively.
 
 | Phase | Tool | Purpose |
 |-------|------|---------|
-| 1. Search | Glob, Grep | Identify which files are relevant |
-| 2. Read | Read | Load only confirmed-relevant files |
+| 1. Search | Dedicated search tools or bounded `rg` / `rg --files` | Identify which files and line numbers are relevant |
+| 2. Read | `read_file` / `Read` with line range | Load only confirmed-relevant files |
 
 **Anti-patterns:**
-- Reading 10 files "just in case" when Grep could narrow to 2
-- Reading an entire file when only one function is relevant (use `offset`/`limit`)
-- Using Read to scan for keywords (use Grep instead)
+- Reading 10 files "just in case" when `rg -l` could narrow to 2
+- Reading an entire file when only one function is relevant (pass `StartLine`/`EndLine` or `offset`/`limit`)
+- Reading files end-to-end to scan for keywords instead of searching first
 
-**Delta reads:** when re-reading a file you just changed, read only the changed range (`git diff`, or Read with `offset`/`limit`) instead of the whole file. For a large unfamiliar file, read signatures/imports first, then Grep to the exact symbol and read only that range.
+**Delta reads:** when re-reading a file you just changed, read only the changed range (`git diff`, or `read_file` with a line range) instead of the whole file. For a large unfamiliar file, read signatures/imports first, then `rg -n` to the exact symbol and read only that range.
 
 **Tool priority.** Climb only when the rung below cannot answer it:
 
 | Rung | Tool | Use when |
 |---|---|---|
-| 1 | Grep | you know the symbol or string |
-| 2 | Glob | you know the path shape but not the contents |
-| 3 | Read with `offset`/`limit` | you have located the file and need one range |
-| 4 | a dispatched search subagent | the naming convention itself is unknown, or you want judgement too |
+| 1 | `rg -n` / content search | you know the symbol or string |
+| 2 | `rg --files` / file search | you know the path shape but not the contents |
+| 3 | `read_file` with line range | you have located the file and need one range |
+| 4 | a dispatched search subagent (`research`) | the naming convention itself is unknown, or you want judgement too |
 
-Do not search with Bash. `find`, `grep`, and `rg` in a Bash call return unbounded output straight into
-context; the dedicated tools bound it. Bash search is for what the tools cannot do: `git grep` over
-history, or `git log -S`.
+When searching via shell (`rg`, `git grep`, `git log -S`), bound the output (`-l`, `-c`, `-m`, or redirect large results to a scratch file) rather than streaming thousands of matching lines straight into context.
 
 ## Data Cleaning
 
@@ -98,9 +96,9 @@ External content (web pages, logs, API responses) carries significant bloat. Cle
 | API responses | Metadata, pagination, null fields | Relevant data fields |
 | Documentation | Boilerplate headers, version badges | Content sections, examples |
 
-**HTML to Markdown conversion cuts tokens substantially** (unmeasured here; depends on markup density). WebFetch does this automatically; when processing raw HTML, strip tags before reasoning.
+**HTML to Markdown conversion cuts tokens substantially** (unmeasured here; depends on markup density). Strip HTML boilerplate and tags before reasoning over fetched pages.
 
-**Fetch-tool selection (cheapest first):** WebFetch for public/static pages (does HTML to Markdown for free); the agent-browser CLI when a page is JS-rendered or behind an auth wall; `pdftotext` for PDFs rather than the Read tool, which spends vision tokens on document pages.
+**Fetch-tool selection (cheapest first):** a plain static fetch (`curl -fsSL` or built-in URL fetch) for public/static pages; `/browser` or the `agent-browser` CLI when a page is JS-rendered or behind an auth wall; `pdftotext` for PDFs rather than `read_file`, which spends vision tokens on document pages.
 
 ## Command Output Shaping
 
@@ -111,18 +109,18 @@ Shape tool and command output before it enters context: most of it is noise.
 | Strip noise | Remove ANSI colors, progress bars, spinners |
 | Collapse passing runs | A green suite becomes one line: "142 passed, 0 failed" |
 | Dedupe | Fold repeated log lines / stack frames to first occurrence + count |
-| Cap large output | Write big output to a scratch file, then Grep it: do not inline megabytes |
+| Cap large output | Write big output to a scratch file, then search it: do not inline megabytes |
 | Prefer compact flags | `git status --porcelain`, `git log --oneline`, `ls -1`, `--quiet` |
 
 **Hard constraint:** preserve failures, exit codes, and error strings **verbatim**. Shaping is for noise, never for evidence: `verification-before-completion` depends on the real output.
 
 **Filtered output proves nothing about what it hid.** A capped, ignore-respecting, or narrowed command cannot support "unused" or "not present". Say what was excluded, and re-run without the filter (`rg -uu`, no `head`) before claiming an absence.
 
-**Shaping applies to command output, never to file reads.** A `Read` result's exact bytes feed the
-`old_string` of a later `Edit`, so shaping one makes you edit against text you never saw. This is a
+**Shaping applies to command output, never to file reads.** A file read's exact bytes feed the
+target text of a later `edit_file` / `Edit`, so shaping one makes you edit against text you never saw. This is a
 correctness rule, not an efficiency preference: lossy-compressing file reads makes agents re-read
 the same file (`cat` then `cat -A` then `cat -n`) to recover exact detail, and lose the content
-outright when recovery fails. Narrow the read at the source instead (`offset`/`limit`, `sed -n`),
+outright when recovery fails. Narrow the read at the source instead (`StartLine`/`EndLine` or `offset`/`limit`),
 which shrinks what you fetch rather than what you keep.
 
 **Two indicators, not one, before you treat output as an error.** A single keyword false-positives
@@ -134,12 +132,12 @@ thereby preserving nothing.
 
 | Layer | Line Limit | Review Cadence |
 |-------|-----------|---------------|
-| CLAUDE.md (global) | <150 lines | Quarterly |
-| CLAUDE.md (project) | <150 lines | Monthly |
+| `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` (global) | <150 lines (and under `ALWAYS_LOADED_CEILINGS`) | Quarterly |
+| `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` (project) | <150 lines | Monthly |
 | Skills | 150-300 lines | On modification |
 | References | 200-400 lines | On modification |
 
-**Over budget?** Extract detail into a reference file and link to it. Never inline >50 lines of reference material into CLAUDE.md or skills.
+**Over budget?** Extract detail into a reference file and link to it instead of inlining long reference blocks into always-loaded configs or skills.
 
 ## Context Isolation
 
@@ -193,21 +191,21 @@ delete the answer, and no further.
 
 ## CLAUDE.md as Stable Prefix
 
-CLAUDE.md content is prepended to every conversation. Identical content across sessions enables KV cache hits (provider-side optimization).
+Always-loaded instruction files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) are prepended to every conversation. Identical content across sessions enables KV cache hits (provider-side optimization).
 
-**Avoid in CLAUDE.md:**
+**Avoid in always-loaded instruction files:**
 - Timestamps or dates that change per session
 - Counters or metrics that update frequently
 - Dynamic content that varies between conversations
 
-**Keep in CLAUDE.md:**
+**Keep in always-loaded instruction files:**
 - Stable conventions, rules, preferences
 - Static file maps and architecture descriptions
 - Permanent workflow instructions
 
 ## Compaction-Friendly Patterns
 
-When context pressure builds, Claude Code compacts (summarizes) earlier conversation turns. Structure your work to survive compaction gracefully.
+When context pressure builds, harnesses compact (summarize) earlier conversation turns (`/compact`). Structure your work to survive compaction gracefully.
 
 | Pattern | Why |
 |---------|-----|
@@ -218,11 +216,11 @@ When context pressure builds, Claude Code compacts (summarizes) earlier conversa
 
 ### Session Boundaries
 
-Start a fresh session between unrelated tasks. Choose the model before starting; a mid-session model change re-reads the whole history.
+Start a fresh session between unrelated tasks, or use `/compact` at clean phase boundaries. Choose the session model up front when possible; a mid-session model family switch re-reads conversation history uncached, whereas effort adjustments (`/effort`) are lightweight on first-party models.
 
 ## Cross-References
 
-- **skill:code-agent-meta-patterns**: CLAUDE.md design, context management
+- **skill:code-agent-meta-patterns**: instruction-file design, context management
 - **skill:session-handoff**: handoff file creation before context pressure
 - **reference:llm-application-patterns**: token reduction, prompt caching, and cost levers in LLM applications
 - **reference:code-efficiency-ladder**: the same economy applied to what gets built rather than what enters context

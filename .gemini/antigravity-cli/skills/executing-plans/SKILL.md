@@ -24,7 +24,8 @@ For each task in the batch:
 1. Announce which task you're starting
 2. Follow each step exactly as written in the plan
 3. Run all verification commands specified
-4. Apply `verification-before-completion` - confirm each step passes before moving on
+4. Run the task's stated verification command and read the result before moving on: a step whose check
+   never ran is not done
 5. Commit once per phase, when the phase's last task passes (or as the plan specifies); tasks in a phase share its commit
 
 #### Living Document Maintenance
@@ -89,16 +90,16 @@ before the next boundary rather than running on.
 
 These conditions, and the diff-review report at a PR boundary, are the only reasons to stop.
 
-**STOP executing immediately when:**
-- A test fails and the fix isn't obvious from the plan
-- A dependency is missing or unavailable
+**Stop and ask when:**
 - An instruction in the plan is unclear or ambiguous
 - The plan's assumptions don't match reality (file doesn't exist, API changed, etc.)
 - You've hit 3+ consecutive unexpected issues
 - A decision-gate result matches no branch the plan defined
-- A non-idempotent step partially executed (e.g., half a migration ran). Stop immediately - re-running may corrupt state. Report exactly what happened and what state you're in.
+- A non-idempotent step partially executed (e.g., half a migration ran). Stop immediately: re-running may corrupt state. Report exactly what happened and what state you're in.
+- A test failure or missing dependency is still unresolved after you diagnosed it and two fixes failed, or the fix would change something the plan decided, add a dependency, or loosen a test
+- The work needs credentials, access, or a decision only the user has
 
-**Ask for clarification rather than guessing.** Don't force through blockers.
+A failing test, a missing dependency, a timeout, or a tool error is an ordinary obstacle: diagnose it and work through it before stopping. Ask rather than guess at what the plan means.
 
 ## Batch Size Adjustment
 
@@ -138,5 +139,5 @@ Starting Task 4 (Write API endpoints)...
 
 **Receives plans from:** `writing-plans`
 **Hands off to:** the diff-review command when all tasks complete; its Step 7 opens the PR without asking
-**Uses:** `verification-before-completion` for each verification step
+**Uses:** `verification-before-completion` for verdict grammar when reporting step outcomes
 **Alternative mode:** `subagent-driven-development` - dispatches a fresh subagent per task instead of executing inline. Its Execution Mode section decides between the two. Both share the same living-document ledger.

@@ -52,7 +52,7 @@ and the magnitudes as unverified.
 | Setting | Guidance |
 |---------|----------|
 | Temperature | ≤ 0.5 for code generation; higher temps increase creative shortcuts |
-| Gemini `thinking_level` | `medium` or `high` for complex multi-part tasks |
+| Gemini reasoning effort (`--effort` / `thinking_level`) | `medium` or `high` for complex multi-part generation so reasoning tokens do not starve output budget |
 | Max output tokens | Always set to model maximum for large generation tasks |
 
 ## Key Insight

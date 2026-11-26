@@ -70,11 +70,11 @@ No helper scripts required; `git diff` + a scratch file is the whole mechanism.
 
 Follow the active environment's delegation policy first (for example, task-based routing where routine work and final reviews do not automatically escalate to the top tier). When the environment defines no tool-specific policy, fall back to this table:
 
-Always specify the model explicitly when dispatching (subagents otherwise inherit an expensive default).
+Always specify the model explicitly when dispatching, and judge the tier by cost per completed task: a cheaper tier that fails also pays for the retry.
 
 | Task complexity | Model tier |
 |-----------------|-----------|
-| Mechanical, 1-2 files, complete spec | cheap/fast |
+| Mechanical, 1-2 files, complete spec, tests check the result | cheap/fast |
 | Multi-file integration, routine review | standard |
 | Architecture, ambiguous, complex diagnosis | most capable |
 

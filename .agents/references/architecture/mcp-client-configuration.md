@@ -1,15 +1,15 @@
 # MCP Client Configuration
 
-How to consume MCP (Model Context Protocol) servers from an agent CLI (Claude Code, Codex, Gemini). This is the consumer side; for building a server, see `mcp-server-development.md`.
+How to consume MCP (Model Context Protocol) servers from an agent CLI (Claude Code, Codex, Google Antigravity). This is the consumer side; for building a server, see `mcp-server-development.md`.
 
 ## Config scopes & precedence
 
 Servers are declared in config; scope sets precedence (most specific wins):
 
-| Scope | Location (Claude Code) | Applies to |
-|-------|------------------------|-----------|
-| Local / project | `.mcp.json` or project settings | This repo |
-| User / global | user settings (`~`) | All projects |
+| Scope | Claude Code | Codex | Google Antigravity (`agy`) | Applies to |
+|-------|-------------|-------|----------------------------|-----------|
+| Local / project | `.mcp.json` or project settings | `.codex/config.toml` (`[mcp_servers]`) | `<workspace>/.agents/mcp_config.json` | This repo |
+| User / global | user settings (`~`) | `~/.codex/config.toml` | `~/.gemini/config/mcp_config.json` | All projects |
 
 Precedence: local/project > user. Keep secrets out of committed project config.
 
@@ -17,8 +17,8 @@ Precedence: local/project > user. Keep secrets out of committed project config.
 
 | Transport | Use | Notes |
 |-----------|-----|-------|
-| stdio | Local process | Simplest; server runs as a child process |
-| HTTP / SSE | Remote server | Needs URL + auth; a network dependency |
+| stdio | Local process | Simplest; server runs as a child process (`command` + `args`) |
+| HTTP / SSE | Remote server | Needs URL + auth (`serverUrl` in Antigravity `mcp_config.json`); a network dependency |
 | Docker | Isolation | Run an untrusted or heavy server in a container |
 
 ## Credential hygiene
@@ -30,22 +30,22 @@ Precedence: local/project > user. Keep secrets out of committed project config.
 
 ## Verify & troubleshoot
 
-- List configured servers and their status: `claude mcp list`.
-- Confirm the tools a server exposes before relying on them.
+- List configured servers and their status: `claude mcp list`, `codex mcp list`, or `agy mcp list`.
+- Confirm the tools a server exposes before relying on them (in Antigravity, check `enableMcpTools` in `~/.gemini/antigravity-cli/settings.json` if MCP tools are disabled globally).
 
 | Problem | Fix |
 |---------|-----|
 | Server not found | Check scope/precedence; a user-scope server may be shadowed by project config |
 | Auth failure | Verify the env var is set in the launching shell; check token scopes |
 | Tools missing | Server started but registered no tools: check its logs/stderr |
-| Slow every turn | Too many servers enabled; each injects tool definitions each turn |
+| Slow every turn | Too many servers enabled; each injects tool definitions when active |
 
 ## Context cost
 
-Each enabled MCP server injects its tool definitions into context every turn. So:
+Enabled MCP servers add tool-definition overhead when active. So:
 
 - Enable servers **per-project**, not globally, unless you use one everywhere.
-- Prefer lazy-loading / tool-search over always-on tool definitions when the client supports it.
+- Prefer lazy-loading / on-demand tool discovery over always-on tool definitions (Antigravity lazy-loads MCP tools by default; enable tool search where configurable).
 - Prefer **official** servers over community ones for security and stability; vet community servers before enabling.
 
 ## Cross-References
