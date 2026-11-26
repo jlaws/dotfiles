@@ -26,19 +26,19 @@ A name must be lowercase letters, numbers, and single internal hyphens, and must
 Ask for a one-line purpose for every type; it drives the description. Then, by type:
 
 **Command:** what input does it take, and what is the fallback when no input is supplied? Which skills does it invoke,
-and which agents does it delegate to? List candidates with `Glob("~/.gemini/antigravity-cli/skills/*/SKILL.md")` and
-`Glob("~/.gemini/config/agents/*.md")`.
+and which agents does it delegate to? List candidates under `~/.gemini/antigravity-cli/skills/*/SKILL.md` and
+`~/.gemini/config/agents/*.md`.
 
 **Skill:** does it run a bundled script, and what file operations does it need? Does it depend on other skills? Should it load from task matching, or only from an explicit invocation? Keep tool permissions and invocation policy in the owning tool's supported configuration, outside shared skill frontmatter.
 
 **Agent:** which tools, which skills to preload, and which `~/.agents/references/` categories should it
-consult (`Glob("~/.agents/references/*/")`)? Leave persistent memory unset: agents here are dispatched with a frozen, report-only packet.
+consult (`~/.agents/references/*/`)? Leave persistent memory unset: agents here are dispatched with a frozen, report-only packet.
 
 Gemini role definitions use `model: inherit`. Codex TOML roles omit both `model` and `model_reasoning_effort`; the caller selects them for the assigned task at dispatch. Preserve each tool's native role requirements. Shared and Gemini skill frontmatter carries only `name` and `description`.
 
 ## Phase 3: Draft the description
 
-A skill description is **triggering conditions only**: never a workflow summary, because Claude will
+A skill description is **triggering conditions only**: never a workflow summary, because the model will
 follow the summary instead of reading the body. Commands and agents describe what they are and when to
 reach for them, and may scope out near-misses to keep routing clean.
 
@@ -114,7 +114,7 @@ consequence instead.
 ---
 name: {name}
 description: "{description}"
-tools: {tools}
+tools: [read_file, run_command]
 subagent: true
 mainAgent: true
 model: inherit

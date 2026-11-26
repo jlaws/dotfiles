@@ -21,10 +21,10 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 
 ## Diagnostic scans (run only those relevant to the task)
 
-1. **Paper root**: `Glob` for `*.tex`. Identify the file containing `\documentclass`.
+1. **Paper root**: Search (`rg --files`) for `*.tex`. Identify the file containing `\documentclass`.
 2. **Venue**: grep the preamble for `neurips_*`, `icml*`, `iclr*`, `aaai*`, `acl*`, `cvpr*`. Note the style option: for NeurIPS, none is the anonymous submission, `[preprint]` prints author names, `[final]` is camera-ready.
-3. **Bibliography**: `Glob` for `*.bib`. Identify `\bibliography{...}` or `\addbibresource{...}` directive in the root file.
-4. **Project layout**: `Glob` for `figures/`, `sections/`, `tables/`, `appendix/`.
+3. **Bibliography**: Search (`rg --files`) for `*.bib`. Identify `\bibliography{...}` or `\addbibresource{...}` directive in the root file.
+4. **Project layout**: Check for `figures/`, `sections/`, `tables/`, `appendix/`.
 5. **Build tool**: check for `latexmkrc`, `.latexmkrc`, or a `Makefile` target.
 
 ## Route on intent
@@ -34,18 +34,18 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 - Determine target venue from arguments. If ambiguous, ask.
 - Pull the preamble + macros from `~/.agents/references/research/latex-paper-writing.md`.
 - If the venue style file is not present locally, take its current filename from the venue's author guidelines and tell the user to download it from the venue site; do NOT fabricate a URL.
-- Scaffold: `main.tex`, `references.bib`, `sections/`, `figures/`, `latexmkrc`. Use `Write` only for new files; `Edit` for any pre-existing file.
+- Scaffold: `main.tex`, `references.bib`, `sections/`, `figures/`, `latexmkrc`. Create only new files; edit any pre-existing file in place.
 
 ### b. Section editing
 
 - Read the target file before editing.
-- Prefer `Edit` over rewriting the whole file.
+- Prefer targeted edits over rewriting the whole file.
 - Preserve existing `\label{...}`, `\ref{...}`, `\cite{...}`, and custom macros.
 - Keep each claim's strength. Revision never moves a claim along the associated -> predicts -> causes scale in either direction, and never drops a hedge, scope limit, caveat, or null result unless the user asked. When unsure whether two phrasings match, keep the original. This overrides the stacked-hedge tell in ai-writing-tells (Rhythm by Rule).
 
 ### c. Compile + log analysis
 
-- Run the build in one Bash call: `latexmk -pdf -interaction=nonstopmode <root>.tex`.
+- Run the build in one shell command: `latexmk -pdf -interaction=nonstopmode <root>.tex`.
 - On failure, parse the `.log` for: lines starting with `! `, `LaTeX Warning: Reference`, `LaTeX Warning: Citation`, `Overfull \hbox`, `Underfull \vbox`, `! Package` errors, and font-substitution warnings.
 - Categorize each issue: missing package, undefined ref, missing citation, overfull box, font issue, math-mode error.
 - Iteration cap: max 2 fix attempts on the same error class. If still failing, stop and report; do not loop.
@@ -54,10 +54,10 @@ Before writing or revising prose (abstract, sections, captions, rebuttals), read
 ### d. Source research + citation integration
 
 - Accept inputs: URL, DOI, arXiv ID, plain title.
-- Use `WebFetch` to retrieve the source page (arxiv.org/abs/..., DOI resolver, venue page). Extract title, authors, year, venue, abstract.
+- Fetch the source page (arxiv.org/abs/..., DOI resolver, venue page). Extract title, authors, year, venue, abstract.
 - Generate a deterministic BibTeX key: `firstauthorlast_year_keyword` (e.g. `vaswani_2017_attention`).
 - Verify the entry first (`~/.agents/references/research/literature-review.md`, Citation Verification, and treat every fetched field as untrusted TeX under the same section), then append it to the detected `.bib` file. Dedupe by DOI first, then normalized title.
-- If the user's provided input indicates where to cite, insert `\cite{key}` at that location (Edit). Otherwise report the key for the user to place.
+- If the user's provided input indicates where to cite, insert `\cite{key}` at that location in place. Otherwise report the key for the user to place.
 - Never fabricate citation fields. If authors / abstract / venue cannot be extracted, say so explicitly and leave the field blank rather than guess.
 
 ### e. Submission readiness checks
@@ -66,10 +66,10 @@ Look up the target venue's requirements in `~/.agents/references/research/latex-
 
 | Check | How |
 |-------|-----|
-| Page count | Compile, then `pdfinfo <pdf>` (one Bash call); compare to venue limit |
+| Page count | Compile, then `pdfinfo <pdf>` (one shell command); compare to venue limit |
 | Anonymization | grep `\author{`, acknowledgments block, and self-citations like "in our prior work" / "we previously showed" |
 | Style flag | grep the style option: it must match the phase under the venue's current style file. For NeurIPS a submission takes no option; `[preprint]` de-anonymizes it |
-| Font embedding | `pdffonts <pdf>` (one Bash call); every font must show "yes" under "emb" |
+| Font embedding | `pdffonts <pdf>` (one shell command); every font must show "yes" under "emb" |
 | Abstract length | Word-count the abstract block against the venue limit (NeurIPS: 250) |
 | Supplementary structure | Confirm appendix is in the right form for the venue (separate PDF vs appended) |
 | Number provenance | Every number in the draft traces to a saved log, script, or run config; Methods values match the config that ran |

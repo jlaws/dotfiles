@@ -19,14 +19,14 @@ Parse the user's provided input: it is a freeform system description that may co
 ### Phase 1: Discovery
 
 **Step 1: Scan for candidate documentation:**
-1. Glob for common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
-2. Glob for root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
-3. Glob for design doc patterns: `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`
+1. Scan common doc directories: `docs/`, `doc/`, `documents/`, `documentation/`, `design/`, `adr/`, `adrs/`, `architecture/`
+2. Scan root markdown files: `*.md` in project root (README, CONTRIBUTING, ARCHITECTURE, etc.)
+3. Scan design doc patterns (`rg --files`): `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`
 4. Include any file or directory paths found inline in the user's provided input
 
 **Step 2: Filter by relevance to the system description:**
 1. First pass: filter candidates by file/directory names and paths; keep files whose names relate to the described system
-2. Second pass: for ambiguous candidates, use Grep to search file contents for keywords from the system description
+2. Second pass: for ambiguous candidates, use `rg` to search file contents for keywords from the system description
 3. Discard files that are clearly unrelated (e.g. skip `docs/billing.md` when designing an auth system)
 
 **Step 3: Read selected files and explore the codebase:**
@@ -189,27 +189,6 @@ These four fields map one-to-one onto an ADR; persist each significant decision 
 - "It depends" is the answer to most questions about the design
 
 ---
-
-## Self-Review Before Presenting
-
-Review your work with fresh eyes before presenting to the user:
-
-**Completeness:**
-- Did I analyze every perspective thoroughly?
-- Did I miss any requirements or constraints?
-- Are there edge cases or failure modes I didn't consider?
-
-**Quality:**
-- Is the design document clear and actionable?
-- Are diagrams/descriptions precise enough to implement from?
-- Did I follow existing codebase patterns where appropriate?
-
-**Discipline:**
-- Did I avoid overbuilding (YAGNI)?
-- Is the design the simplest thing that could work?
-- Did I only design what was requested?
-
-Fix any issues found during self-review before presenting.
 
 ## Report Format
 

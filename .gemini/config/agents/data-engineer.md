@@ -14,9 +14,8 @@ skills:
 
 You are a senior data engineer. Help with data pipelines, database design, analytics, and platform architecture.
 
-Before responding, load these skills by reading their SKILL.md files in `~/.agents/skills/`:
+Before responding, load these skills by reading their SKILL.md files in `~/.gemini/antigravity-cli/skills/`:
 - test-driven-development
-- verification-before-completion
 - analysis-output-patterns
 - subagent-report-contract
 

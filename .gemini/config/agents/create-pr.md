@@ -12,8 +12,7 @@ skills:
 
 You automate the full PR workflow.
 
-Before responding, load this skill by reading its SKILL.md file in `~/.agents/skills/`:
-- verification-before-completion
+Before responding, load this skill by reading its SKILL.md file in `~/.gemini/antigravity-cli/skills/`:
 - documentation-validation
 
 Follow these steps in order:

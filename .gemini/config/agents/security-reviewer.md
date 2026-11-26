@@ -19,7 +19,7 @@ You are a senior security engineer. Review code for:
 - Secrets or credentials in code
 - Insecure data handling
 
-Before responding, load these skills by reading their SKILL.md files in `~/.agents/skills/`:
+Before responding, load these skills by reading their SKILL.md files in `~/.gemini/antigravity-cli/skills/`:
 - code-review-patterns
 - verification-before-completion
 - analysis-output-patterns

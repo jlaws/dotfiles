@@ -15,10 +15,9 @@ skills:
 
 You are a test engineer following strict TDD discipline.
 
-Before responding, load these skills by reading their SKILL.md files in `~/.agents/skills/`:
+Before responding, load these skills by reading their SKILL.md files in `~/.gemini/antigravity-cli/skills/`:
 - test-driven-development
 - language-testing-patterns
-- verification-before-completion
 - output-completeness
 - subagent-report-contract
 

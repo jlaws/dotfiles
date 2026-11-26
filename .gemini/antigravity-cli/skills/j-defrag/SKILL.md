@@ -11,16 +11,16 @@ Load skills `refactoring-and-debt` and `code-quality` before doing anything else
 
 Resolve the scan scope: if arguments are provided, limit to that path or subsystem: $ARGUMENTS. Else scan the whole repo.
 
-Identify the project's test command (from CLAUDE.md, `package.json`, `Makefile`, `pyproject.toml`, etc.); verified batches need it. If no test command exists, warn and fall back to report-only (Phases 2-3, skip fixing).
+Identify the project's test command (from GEMINI.md, AGENTS.md, CLAUDE.md, `package.json`, `Makefile`, `pyproject.toml`, etc.); verified batches need it. If no test command exists, warn and fall back to report-only (Phases 2-3, skip fixing).
 
 ## Phase 2: Scan for fragmentation
 
-Detect and group four fragmentation classes (use Grep/Glob to find candidates; lean on `code-quality` smell detection and `refactoring-and-debt`'s smell→refactoring map):
+Detect and group four fragmentation classes (use `rg` and `rg --files` to find candidates; lean on `code-quality` smell detection and `refactoring-and-debt`'s smell->refactoring map):
 
-- **Duplicated components / logic**: near-identical blocks, copy-paste, repeated rules → extract/share.
-- **Inconsistent patterns**: the same job done N different ways; naming/structure drift → converge on one.
-- **Files that should be consolidated**: scattered related code, over-split modules → merge.
-- **Logic that should be shared**: a local reimplementation of an existing util → reuse the util.
+- **Duplicated components / logic**: near-identical blocks, copy-paste, repeated rules -> extract/share.
+- **Inconsistent patterns**: the same job done N different ways; naming/structure drift -> converge on one.
+- **Files that should be consolidated**: scattered related code, over-split modules -> merge.
+- **Logic that should be shared**: a local reimplementation of an existing util -> reuse the util.
 
 Group findings into ranked clusters, ordered by value (impact vs risk).
 

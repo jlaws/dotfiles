@@ -1943,6 +1943,56 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             self.assertRegex(content, name, f"{agent_file.name} name does not match its filename")
             self.assertRegex(content, GEMINI_DESCRIPTION, f"{agent_file.name} description is empty")
 
+    def test_gemini_agent_skill_loads_are_scoped_and_consistent(self):
+        verdict_agents = {
+            "code-reviewer",
+            "documentation-writer",
+            "scope-reviewer",
+            "security-reviewer",
+        }
+        agents_dir = REPO / ".gemini" / "config" / "agents"
+        agents = sorted(agents_dir.glob("*.md"))
+        self.assertGreater(len(agents), 0)
+        with_vbc = set()
+        for agent_file in agents:
+            text = agent_file.read_text(encoding="utf-8")
+            fm = frontmatter_block(agent_file)
+            fm_skills = re.findall(r"^\s*-\s+([a-z0-9-]+)\s*$", fm, re.MULTILINE)
+            body = text.split("---\n", 2)[2]
+            match = re.search(
+                r"Before responding, load (?:these skills|this skill)[^\n]*`~/.gemini/antigravity-cli/skills/`:\n((?:- [a-z0-9-]+\n)+)",
+                body,
+            )
+            with self.subTest(agent=agent_file.stem):
+                self.assertIsNotNone(match, f"{agent_file.name}: missing Antigravity skill block")
+                assert match is not None
+                body_skills = [line[2:].strip() for line in match.group(1).strip().splitlines()]
+                self.assertEqual(
+                    set(body_skills),
+                    set(fm_skills),
+                    f"{agent_file.name}: body skill list {body_skills} != frontmatter {fm_skills}",
+                )
+            if "verification-before-completion" in text:
+                with_vbc.add(agent_file.stem)
+        self.assertEqual(with_vbc, verdict_agents)
+
+    def test_gemini_command_skills_omit_claude_only_tools(self):
+        commands = sorted((REPO / ".gemini" / "antigravity-cli" / "skills").glob("j-*/SKILL.md"))
+        self.assertGreater(len(commands), 0)
+        banned = (
+            "`Explore` agent",
+            "plan-mode plan file",
+            "WebFetch",
+            "Glob(",
+            "Grep/Glob",
+            "`Edit`/`Write`",
+        )
+        for path in commands:
+            collapsed = " ".join(path.read_text(encoding="utf-8").split())
+            for phrase in banned:
+                with self.subTest(command=path.parent.name, phrase=phrase):
+                    self.assertNotIn(phrase, collapsed)
+
     def test_antigravity_permissions_cover_claude_baseline(self):
         """Antigravity settings.json permissions must cover all Claude allowed commands and denied paths."""
         claude_settings = json.loads((REPO / ".claude" / "settings.json").read_text())
