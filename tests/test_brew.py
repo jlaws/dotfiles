@@ -92,10 +92,7 @@ class InstallPackagesTests(unittest.TestCase):
             argvs.index(["agent-browser", "install"]),
         )
 
-    def test_installs_jq_because_the_prompt_log_hook_requires_it(self):
-        """`log-prompt.sh` parses its stdin payload with `jq` to read `.prompt`. It fails silently
-        on a machine without it, so setup has to install it rather than assume it.
-        """
+    def test_installs_jq_for_json_tooling(self):
         runner = FakeRunner(_brew_ok)
         install_packages(runner)
 

@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-09-28
-updated: 2026-11-25
+updated: 2026-11-26
 ---
 # Merge agent machine configs during setup, overwrite skills and commands
 
@@ -12,14 +12,14 @@ updated: 2026-11-25
 
 Previously, `macos_setup/dotfiles.py:apply_file` unconditionally overwrote target files via `shutil.copy2`. Re-running `./setup.sh` clobbered machine-specific customizations, such as local environment settings, device permissions, and host-tailored model or tool overrides, stored in `.claude/settings.json` and `.codex/config.toml`.
 
-At the same time, executable knowledge assets (skills under `.agents/skills` and `.gemini/antigravity-cli/skills`, commands under `.claude/commands`, and prompts under `.codex/prompts`) represent repository code that must match upstream definitions. Leaving stale or removed skills in the destination leads to phantom command discovery and broken references.
+At the same time, executable knowledge assets (skills under `.agents/skills` and `.gemini/antigravity-cli/skills`, commands under `.claude/commands`, and native agents) represent repository code that must match upstream definitions. Leaving stale or removed skills in the destination leads to phantom command discovery and broken references. Codex uses the shared `$cmd-j-*` skills; its deprecated prompt copies are retired assets.
 
 The setup runner must execute on bare macOS system Python (Python 3.9.6 floor) without third-party dependencies (`tomllib` was added in Python 3.11; `pip` packages are prohibited at runtime).
 
 ## Decision Drivers
 
 * **Must preserve machine-local configuration** across `./setup.sh` runs without manual backup or re-entry.
-* **Must keep skills, commands, prompts, and agent definitions authoritative** to ensure removed or refactored tools stay in sync.
+* **Must keep skills, commands, and agent definitions authoritative** to ensure removed or refactored tools stay in sync.
 * **Must run in Python 3.9 standard library** without virtual environments or runtime pip packages.
 * **Must preserve guarded uninstall and rollback integrity** via `macos_setup.archive`.
 
@@ -27,15 +27,19 @@ The setup runner must execute on bare macOS system Python (Python 3.9.6 floor) w
 
 We will divide agent synchronization into two lifecycle policies:
 
-1. **Executable Knowledge Assets (Overwrite)**: Skills, slash commands, agent personas, prompts, hooks, and references are copied directly from the repository, replacing destination files. Stale removed commands and legacy directories are cleaned up via `AGENT_REMOVALS` and `AGENT_REMOVAL_GLOBS`. Commands deleted from the repository are pruned per tree: any `j-*` entry the repo does not ship is removed from `.agents/skills` (`cmd-j-*`), `.claude/commands/`, `.codex/prompts/`, and `.gemini/antigravity-cli/skills/` (`AGENT_ORPHAN_GLOBS`). Prompts retired under other names are listed in `AGENT_REMOVALS`.
+1. **Executable Knowledge Assets (Overwrite)**: Skills, slash commands, agent personas, and references are copied directly from the repository, replacing destination files. Stale removed commands and legacy directories are cleaned up via `AGENT_REMOVALS` and `AGENT_REMOVAL_GLOBS`. Commands deleted from the repository are pruned per active tree: any `j-*` entry the repo does not ship is removed from `.agents/skills` (`cmd-j-*`), `.claude/commands/`, and `.gemini/antigravity-cli/skills/` (`AGENT_ORPHAN_GLOBS`). Retired Codex `j-*` prompt copies are removed even though the repository no longer ships that root. Other retired prompt names and repo-owned hook scripts are listed for removal. Unrelated local prompts and hook scripts are preserved.
 2. **Machine Configuration Files (Deep Key Merge)**: Target configuration files (`.claude/settings.json`, `.codex/config.toml`, and `.gemini/antigravity-cli/settings.json`) are merged when the target already exists:
    - Repository-managed keys update or insert into the target.
    - User-defined or machine-local keys and sections absent from the repository template are preserved.
-   - For `.json`, merging uses Python stdlib `json` with recursive dictionary updates and order-preserving permission list unions (`permissions.allow`, `permissions.deny`). Hooks are replaced with repo hooks. After the union, the merge strips every entry in `RETIRED_PERMISSIONS` (`macos_setup/dotfiles.py`) from the target's `permissions.allow` on every sync, a hand-added one included, and logs `retired <entry> from <dest>`. A user who wants one back puts it in `settings.local.json`.
-   - For `.toml`, merging uses a minimal stdlib-only section/key parser and serializer that preserves existing machine tables, keys, and comments without requiring `tomllib` or external packages. Hooks are replaced with repo hooks.
+   - For `.json`, merging uses Python stdlib `json` with recursive dictionary updates and order-preserving permission list unions (`permissions.allow`, `permissions.deny`). Retired repo-owned logging handlers are removed while unrelated local hooks are preserved. After the union, the merge strips every entry in `RETIRED_PERMISSIONS` (`macos_setup/dotfiles.py`) from the target's `permissions.allow` on every sync, a hand-added one included, and logs `retired <entry> from <dest>`. A user who wants one back puts it in `settings.local.json`.
+   - For `.toml`, merging uses a minimal stdlib-only section/key parser and serializer that preserves existing machine tables, keys, and comments without requiring `tomllib` or external packages. Retired repo-owned logging handlers and unsupported legacy Codex agent settings are removed; unrelated local hooks and settings are preserved.
    - If a target configuration file contains invalid syntax, it is archived to `~/.dotfile-archive/` with a warning, and overwritten with the clean repository template.
 
 When a target configuration file is absent, it is copied directly and recorded as `"added"`. When present, before applying the merge, the existing destination file is copied to the run's archive (`<archive>/files/`) and tracked in `manifest.json` with action `"replaced"` (or `"reset"` if malformed) and the SHA256 of the applied result. Revert via `./setup.sh --uninstall` restores the user's pre-merge configuration if the file has not been altered post-setup.
+
+The repository registers no custom Claude or Codex loggers. Retiring their registrations and scripts
+does not authorize deleting log history: setup never purges historical logs. Any one-time cleanup on
+the current Mac is separate from the installer.
 
 ## Rationale
 

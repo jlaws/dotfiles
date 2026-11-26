@@ -216,5 +216,5 @@ that copies references into each run's workspace.
 - [ ] `description` is a trigger, and any `.agents/` copy fits the 64-character budget
 - [ ] Each supporting file has a pointer in SKILL.md that says when to load it
 - [ ] KB self-docs current: the MEMORY.md index if the asset set changed
-- [ ] `cmd-j-*` skills have Claude, Codex, and Gemini command counterparts
+- [ ] Commands have a canonical `.agents/skills/cmd-j-*` skill for Codex, a Claude `/j-*` command, and a Gemini `j-*` skill; no deprecated Codex prompt copy
 - [ ] The repo's lint and test commands pass

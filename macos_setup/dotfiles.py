@@ -48,14 +48,11 @@ AGENT_SYNC = [
     (".claude/settings.json", ".claude/settings.json"),
     (".claude/agents", ".claude/agents"),
     (".claude/commands", ".claude/commands"),
-    (".claude/hooks", ".claude/hooks"),
     (".claude/skills", ".claude/skills"),
     (".claude/references", ".claude/references"),
     (".codex/AGENTS.md", ".codex/AGENTS.md"),
     (".codex/config.toml", ".codex/config.toml"),
     (".codex/agents", ".codex/agents"),
-    (".codex/prompts", ".codex/prompts"),
-    (".codex/hooks", ".codex/hooks"),
     (".codex/rules", ".codex/rules"),
     (".gemini/GEMINI.md", ".gemini/GEMINI.md"),
     (".gemini/antigravity-cli/settings.json", ".gemini/antigravity-cli/settings.json"),
@@ -122,11 +119,47 @@ AGENT_REMOVALS = [
     ".gemini/hooks/lessons-learned.sh",
     ".claude/hooks/guard-bash-output.sh",
     ".codex/hooks/guard-bash-output.sh",
+    ".claude/hooks/log-prompt.sh",
+    ".codex/hooks/log-prompt.sh",
     ".gemini/hooks",
     ".gemini/policies",
     ".gemini/settings.json",
     ".gemini/commands",
     ".gemini/agents",
+    # Codex slash prompts retired in favor of the shared command skills.
+    ".codex/prompts/j-arch.md",
+    ".codex/prompts/j-audit.md",
+    ".codex/prompts/j-brainstorm.md",
+    ".codex/prompts/j-cloud.md",
+    ".codex/prompts/j-config-audit.md",
+    ".codex/prompts/j-create-pr.md",
+    ".codex/prompts/j-data.md",
+    ".codex/prompts/j-debug.md",
+    ".codex/prompts/j-defrag.md",
+    ".codex/prompts/j-devops.md",
+    ".codex/prompts/j-diff-review.md",
+    ".codex/prompts/j-doc-sync.md",
+    ".codex/prompts/j-docs.md",
+    ".codex/prompts/j-email-analysis.md",
+    ".codex/prompts/j-email-consolidate.md",
+    ".codex/prompts/j-execute-plan.md",
+    ".codex/prompts/j-explain.md",
+    ".codex/prompts/j-frontend.md",
+    ".codex/prompts/j-init.md",
+    ".codex/prompts/j-lang.md",
+    ".codex/prompts/j-new.md",
+    ".codex/prompts/j-next.md",
+    ".codex/prompts/j-observe.md",
+    ".codex/prompts/j-paper-analysis.md",
+    ".codex/prompts/j-paper.md",
+    ".codex/prompts/j-plan.md",
+    ".codex/prompts/j-pr-fix.md",
+    ".codex/prompts/j-rebase.md",
+    ".codex/prompts/j-retro.md",
+    ".codex/prompts/j-review-claudemd.md",
+    ".codex/prompts/j-skill-audit.md",
+    ".codex/prompts/j-system-design.md",
+    ".codex/prompts/j-tdd.md",
     # Category-named Codex prompts deleted from the repo in #51.
     ".codex/prompts/ai-ml-experiment.md",
     ".codex/prompts/ai-ml-ml.md",
@@ -164,6 +197,11 @@ AGENT_REMOVALS = [
     ".codex/prompts/workflow-write-plan.md",
 ]
 
+# This generic filename can belong to the user. Retire only the README the repo shipped.
+RETIRED_CODEX_PROMPTS_README_SHA256 = (
+    "f4bc3a8324982c882acc8c7547b9cfa696008843e6d5debcb43d847f6b98887f"
+)
+
 AGENT_REMOVAL_GLOBS = [
     ".agents/skills/agent-*",
 ]
@@ -172,7 +210,6 @@ AGENT_REMOVAL_GLOBS = [
 AGENT_ORPHAN_GLOBS: list[tuple[str, str]] = [
     (".agents/skills", "cmd-j-*"),
     (".claude/commands", "j-*.md"),
-    (".codex/prompts", "j-*.md"),
     (".gemini/antigravity-cli/skills", "j-*"),
 ]
 
@@ -324,9 +361,18 @@ def apply_merged_file(src: Path, dest: Path, archive: Archive, format_type: str)
         try:
             target_text = dest.read_text(encoding="utf-8")
             if format_type == "json":
-                merged_text = merge_json(repo_text, target_text, retired)
+                merged_text = merge_json(
+                    repo_text,
+                    target_text,
+                    retired,
+                    retire_claude_prompt_hook=dest.parts[-2:] == (".claude", "settings.json"),
+                )
             else:
-                merged_text = merge_toml(repo_text, target_text)
+                merged_text = merge_toml(
+                    repo_text,
+                    target_text,
+                    migrate_codex=dest.parts[-2:] == (".codex", "config.toml"),
+                )
             action = "replaced"
         except (ConfigMergeError, UnicodeDecodeError) as exc:
             if "Malformed source" in str(exc):
@@ -456,6 +502,13 @@ def _behind_symlink(path: Path, target: Path) -> bool:
 def _agent_removal_paths(repo: Path, target: Path) -> Iterator[tuple[Path, str]]:
     """Yield ``(path, reason)`` for stale managed paths, including commands the repo dropped."""
     candidates: list[tuple[Path, str]] = [(target / r, "retired") for r in AGENT_REMOVALS]
+    readme = target / ".codex/prompts/README.md"
+    if not readme.is_symlink() and not _behind_symlink(readme, target) and readme.is_file():
+        try:
+            if sha256_file(readme) == RETIRED_CODEX_PROMPTS_README_SHA256:
+                candidates.append((readme, "retired repository README"))
+        except OSError as exc:
+            _LOG.warning("could not inspect retired README %s: %s", readme, exc)
     for pattern in AGENT_REMOVAL_GLOBS:
         candidates.extend((match, "retired glob") for match in sorted(target.glob(pattern)))
 
@@ -479,6 +532,9 @@ def _agent_removal_paths(repo: Path, target: Path) -> Iterator[tuple[Path, str]]
             candidates.append((entry, "not shipped"))
 
     for path, reason in candidates:
+        if path.is_symlink():
+            _LOG.warning("not removing %s: keeping symlinked entry", path)
+            continue
         if _behind_symlink(path, target):
             _LOG.warning("not removing %s: a parent directory is a symlink out of %s", path, target)
             continue

@@ -60,7 +60,7 @@ Everything you paste into a dispatch prompt stays resident in your context. Hand
 
 - **Task brief** -> `scratchpad/briefs/task-NN.md` (extracted from the plan).
 - **Review package** -> `git diff <base>..<head>` captured to a scratch file; pass the path.
-- **Findings** -> reviewer writes findings to a file; fix subagent reads it.
+- **Findings** -> reviewer returns its concise report (`subagent-report-contract`); when a fix or later handoff needs a file, the orchestrator saves that report and passes its path. Ask the reviewer for missing evidence before saving an incomplete report.
 
 No helper scripts required; `git diff` + a scratch file is the whole mechanism.
 

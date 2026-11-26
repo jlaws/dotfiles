@@ -13,6 +13,7 @@ If no arguments provided, analyzes both global and local CLAUDE.md against last 
 
 Before analyzing, consult:
 - the `code-agent-meta-patterns` skill: CLAUDE.md design patterns, context budget rules
+- the `verification-before-completion` skill: evidence-before-claims methodology
 - the `writing-skills` skill: skill creation and testing methodology
 - `~/.agents/references/workflow/context-efficiency`: context management patterns
 - `~/.agents/references/workflow/task-execution-checklists`: implementation and review checklists

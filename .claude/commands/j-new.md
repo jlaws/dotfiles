@@ -152,11 +152,13 @@ otherwise get wrong or vague? Cut what does not.
 
 Show the file, get approval, write it, and confirm the path.
 
-Then register it. A new command needs its Codex and Gemini counterparts plus the shared `cmd-j-*` skill;
-a new agent needs native definitions in all three tool trees; a shared workflow skill needs an
+Then register it. A new command needs a canonical `.agents/skills/cmd-j-*` skill for Codex, a Claude
+`/j-*` command, and a Gemini `j-*` skill. Do not create a deprecated Codex prompt copy. A new agent
+needs native definitions in all three tool trees; a shared workflow skill needs an
 `.agents/skills/` source. `.claude/` skill and reference *bodies* have intentionally diverged from
-`.agents/` and are not kept in sync; only the asset sets are. Where a parity test guards those
-sets, the repo's own CLAUDE.md names it; declare any single-tree asset in that test's exception list.
+`.agents/`. Asset sets stay in parity, and reference twins expose the same ordered headings.
+Where a parity test guards those sets, the repo's own CLAUDE.md names it; declare any single-tree
+asset in that test's exception list.
 
 Update the MEMORY.md index (if present) if the asset set changed, then run the repo's
 lint and test commands. See `documentation-validation`.

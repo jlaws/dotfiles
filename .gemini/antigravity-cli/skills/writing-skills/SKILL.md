@@ -274,5 +274,5 @@ Process graders are indicators and stay out of the score. A should-not-fire chec
 
 **Deployment:**
 - [ ] Update KB self-docs: `description` frontmatter and cross-references current; the harness config's Knowledge Base Structure section and MEMORY.md index (if present) updated if the asset set changed (see `documentation-validation`)
-- [ ] Sync shared workflow bodies to `.claude`; ensure `cmd-j-*` skills have Claude, Codex, and Gemini command counterparts
+- [ ] Keep shared non-command skills byte-identical in `.agents/` and `.gemini/antigravity-cli/skills/`. Claude bodies may diverge; check asset-name parity and the declared exceptions in `tests/test_agent_config.py`. Reference twins share sections. `cmd-j-*` skills are Codex commands; check their Claude and Gemini counterparts, with Codex prompt fallbacks only when shipped.
 - [ ] Commit and push

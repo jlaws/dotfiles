@@ -22,15 +22,15 @@ Enumerate all assets by type:
 
 | Type | Location | Pattern |
 |------|----------|---------|
-| Skills | `.claude/skills/{name}/SKILL.md` | Folder with SKILL.md |
-| Commands | `.claude/commands/{name}.md` | Flat markdown files |
-| Agents | `.claude/agents/{name}.md` | Markdown files |
-| References | `.claude/references/{category}/{name}.md` | Markdown files |
-| Config | `.claude/CLAUDE.md`, `.claude/settings.json`, `.claude/settings.local.json` | Fixed paths |
+| Skills | `.agents/skills/{name}/SKILL.md`, `.claude/skills/{name}/SKILL.md`, `.gemini/antigravity-cli/skills/{name}/SKILL.md` | Folder with SKILL.md |
+| Commands | `.agents/skills/cmd-j-*/SKILL.md` (Codex), `.claude/commands/{name}.md`, `.gemini/antigravity-cli/skills/j-*/SKILL.md`; legacy `.codex/prompts/{name}.md` if shipped | Tool-specific entry points |
+| Agents | `.codex/agents/{name}.toml`, `.claude/agents/{name}.md`, `.gemini/config/agents/{name}.md` | Tool-specific role files |
+| References | `.agents/references/{category}/{name}.md`, `.claude/references/{category}/{name}.md` | Markdown files |
+| Config | `.codex/AGENTS.md`, `.codex/config.toml`, optional `.codex/hooks.json`, `.claude/CLAUDE.md`, `.claude/settings.json`, optional `.claude/settings.local.json`, `.gemini/GEMINI.md`, `.gemini/antigravity-cli/settings.json` | Config and hook registrations; inspect referenced hook scripts too |
 
 For each asset, record: type, category, name, file path, any supporting files.
 
-**Multi-tree scope.** Audit shared workflows and references in `.agents/`, their Claude copies, and each tool's native agents and commands. Shared workflow bodies duplicated in `.claude/` should differ only by supported frontmatter. Reference bodies are held to section parity, not byte parity; see docs/adr/workflow/reference-tree-section-parity.md. Every `cmd-j-*` skill must have Claude, Codex, and Gemini command counterparts. Native agent name sets must match across the three tools.
+**Multi-tree scope.** Audit shared workflows and references in `.agents/` and each tool's assets. Shared non-command skills must be byte-identical to their Gemini copies. Claude skill bodies intentionally diverge; check asset-name parity and declared exceptions in `tests/test_agent_config.py`, not body equality. Reference twins share sections, not bytes; see docs/adr/workflow/reference-tree-section-parity.md. `cmd-j-*` skills are the Codex commands; check Claude and Gemini counterparts and only require Codex prompt fallbacks when the repo ships them. Native agent name sets follow the declared parity exceptions. The tables below describe Claude formats; apply tool-specific formats for Codex TOML roles and Gemini assets, using the cross-tree checks in `tests/test_agent_config.py`.
 
 ## Phase 2: Automated Checks
 
@@ -99,7 +99,7 @@ For each `.md` file under `.claude/agents/`:
 | AG-F5 | `description` under 1024 chars | WARN | Keep concise |
 | AG-F6 | `tools` field exists | WARN | Should declare tool access |
 | AG-F7 | `tools` only lists valid tool names (Read, Grep, Glob, Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch, Agent, Skill) | WARN | Invalid tools ignored at runtime |
-| AG-F8 | `model` is a floating alias, never a pinned ID | WARN missing / FAIL pinned | A pinned ID degrades to an older model the day it is retired. Claude accepts `opus`, `sonnet`, `haiku`, `fable`, `inherit`; Gemini agents use `inherit`; Codex tunes `model_reasoning_effort` instead |
+| AG-F8 | `model` follows the tool's routing policy | WARN missing / FAIL invalid | Claude accepts `opus`, `sonnet`, `haiku`, `fable`, `inherit`; Gemini agents use `inherit`; repo-owned Codex roles omit `model` and `model_reasoning_effort`, which are selected for the task at dispatch |
 | AG-F9 | An agent with `memory:` lists `Write` and `Edit` in `tools` | WARN | Memory grants them silently |
 
 **Content**
@@ -134,7 +134,7 @@ For each `.md` file under `.claude/commands/`:
 | CM-F4 | `description` field exists | FAIL | Required |
 | CM-F5 | `description` under 1024 chars | WARN | Keep concise |
 | CM-F6 | `description` includes WHAT + WHEN trigger | WARN | Discoverability |
-| CM-F7 | Claude commands do not set `model` | WARN | A command runs inside the conversation; a different model re-reads the whole history uncached. Codex and Gemini command copies carry no `model` |
+| CM-F7 | Claude commands do not set `model` | WARN | A command runs inside the conversation; a different model re-reads the whole history uncached. Shared Codex command skills and Gemini command skills carry no `model` |
 | CM-F8 | no unscoped pre-approval of Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch | WARN | `allowed-tools` pre-approves for the turn and restricts nothing |
 
 **Content**
@@ -206,7 +206,7 @@ Verify links between assets resolve:
 
 | # | Check | Sev | Rule |
 |---|-------|-----|------|
-| DOC-1 | Parity: shared workflow/reference bodies match Claude copies; every `cmd-j-*` has three native command counterparts; native agent name sets match | WARN | Drift means one tool's assets are stale |
+| DOC-1 | Parity: shared non-command skills match Gemini bytes; Claude skill asset names and native agents follow declared exceptions; reference twins share sections; Codex `cmd-j-*` skills have Claude/Gemini counterparts, with prompt fallbacks only if shipped | WARN | Apply `tests/test_agent_config.py`; intentional Claude body divergence is not drift |
 | DOC-2 | Description reflects behavior: the `description` still matches what the body does after edits (no stale/misleading trigger) | WARN | Stale description misroutes invocation |
 | DOC-3 | Registration: a new or renamed asset lives in a directory the harness config lists (`.claude/CLAUDE.md` Knowledge base, `.gemini/GEMINI.md` Knowledge Base Structure) (and MEMORY index if the repo has one); no lingering references to a renamed/removed asset | WARN | Unregistered or dangling asset |
 

@@ -2,7 +2,7 @@
 status: accepted
 topic: context-efficiency
 created: 2026-09-21
-updated: 2026-11-23
+updated: 2026-11-26
 ---
 # Hooks do not restate always-loaded guidance
 
@@ -37,9 +37,10 @@ attributable, and the Knowledge base section says to check `skills/` before impl
 Hook output is for information the model does not already have. Guidance that already lives in an
 always-loaded config does not get a second delivery channel.
 
-Concretely: the repo registers no `PreToolUse` hook and no `SessionStart` hook, and ships no
-`guard-bash-output.sh`. `UserPromptSubmit` / `log-prompt.sh` stays -- it writes a log to disk and
-emits nothing into the conversation, so it is not subject to this rule.
+Concretely: the repo registers no Claude or Codex hooks and ships no custom prompt or tool logger.
+The advisory guard and session banner remain retired. The silent `UserPromptSubmit` logger did not
+repeat guidance, but was removed as a separate maintenance decision on 2026-11-26. Harness-native
+history remains available without a custom logging layer.
 
 ## Rationale
 
@@ -67,6 +68,10 @@ only as prose in `references/workflow/context-efficiency.md` and the Bash sectio
 the skill-lookup reminder lives only as the Knowledge base line in `.claude/CLAUDE.md`, which is
 terser than the bullet `.gemini/GEMINI.md` carries. If the model ignores prose, nothing catches it.
 
+Sync removes retired repo-owned logging registrations and scripts while preserving unrelated local
+hooks. Setup does not purge historical logs. A one-time log cleanup on the current Mac is outside
+the installer and does not become a recurring setup action.
+
 ## Ruled Out
 
 | Idea | Why ruled out | When |
@@ -77,11 +82,13 @@ terser than the bullet `.gemini/GEMINI.md` carries. If the model ignores prose, 
 | Secrets, protected-path, and test-file guards as registered hooks | Owner decision: correct the reference only. Each guard duplicates `permissions.deny`, is stack-specific in a config that loads in every repo, or needs task state a hook cannot see. | 2026-11-23 |
 
 ## Enforcement
-- `tests/test_agent_config.py::test_no_hook_restates_always_loaded_guidance` pins that
-  `.claude/settings.json` declares `UserPromptSubmit` and nothing else, that `.codex/config.toml`
-  declares no `[[hooks.PreToolUse]]`, and that neither hook tree ships `guard-bash-output.sh`.
+- `tests/test_agent_config.py` pins that the checked-in Claude and Codex settings register no
+  custom hooks and that retired hook scripts are absent.
 - `macos_setup/dotfiles.py`'s `AGENT_REMOVALS` deletes the installed copies under `~` on the next
   `setup.sh -c`, archived first so `--uninstall` can restore them.
+- `macos_setup/config_merge.py` removes the shipped logger handlers from `.claude/settings.json`
+  and `.codex/config.toml` while preserving unrelated local hook registrations. Standalone Codex
+  `hooks.json` files are machine-owned and are left untouched.
 
 ## Reversal Conditions
 

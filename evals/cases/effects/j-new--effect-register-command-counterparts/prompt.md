@@ -1,5 +1,5 @@
 ---
-description: "register a new command with its Codex and Gemini counterparts plus the shared cmd-j skill, in the layout the repo already uses; .claude/commands/j-new.md; hard because the obvious deliverable is the one command file, and the shared cmd-j-demo skill under .agents/ reads as a separate skill rather than part of a command"
+description: "register a new Claude command with its shared Codex command skill and Gemini counterpart; .claude/commands/j-new.md; hard because the command must work across three different layouts"
 tags: [effects, effect, extended]
 max_turns: 40
 timeout_seconds: 900

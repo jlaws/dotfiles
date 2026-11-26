@@ -92,8 +92,8 @@ Steps run in privilege order, so a standard (non-admin) user can apply everythin
 
 ### 1. Sync Dotfiles
 Copies dotfiles and agent workflows to your home directory:
-- **Executable knowledge assets** (skills, commands, prompts, and agent roles under `.claude/`, `.agents/`, `.codex/`, and `.gemini/`) are fully replaced with the latest versions from the repository. Commands the repository no longer ships are removed from `~`.
-- **Machine configuration files** (`.claude/settings.json`, `.codex/config.toml`, `.gemini/antigravity-cli/settings.json`) are **merged**: incoming keys from the repository are updated, while machine-specific settings, local overrides, and unrecognized keys are preserved.
+- **Executable knowledge assets** (skills, commands, and agent roles under `.claude/`, `.agents/`, `.codex/`, and `.gemini/`) are fully replaced with the latest versions from the repository. Commands the repository no longer ships are removed from `~`. Retired Codex prompt copies and repo-owned Claude/Codex logging hooks are removed while unrelated local prompts and hooks are preserved. Setup does not purge historical logs.
+- **Machine configuration files** (`.claude/settings.json`, `.codex/config.toml`, `.gemini/antigravity-cli/settings.json`) are merged. Repo values take precedence for managed settings such as the default model. Setup preserves machine-only settings.
 - **Root dotfiles** (`.zshrc`, `.gitconfig`, `.vimrc`, etc.) are installed to `~`.
 
 Before modifying or overwriting any existing file, the original is saved into the run's archive; newly created files are tracked so they can be removed on uninstall. The Vim runtime tree includes the Solarized colorscheme and creates `~/.vim/backup`, `~/.vim/undo`, and `~/.vim/swap`.
@@ -229,7 +229,7 @@ cd ~/Workspace/dotfiles
 ./setup.sh
 ```
 
-Re-running setup replaces skills, slash commands, prompts, and agent personas with upstream updates, but merges configuration files (`.claude/settings.json`, `.codex/config.toml`, `.gemini/antigravity-cli/settings.json`) in-place so machine-specific customizations (such as local API keys, device permissions, or custom model overrides) are not lost. Each re-run creates its own timestamped archive, so you can always roll back to the state before the most recent run with `./setup.sh --uninstall`.
+Re-running setup updates skills, commands, and agents. It merges repo-owned settings into each harness configuration and removes retired assets. Each run archives the files it changes. Use `./setup.sh --uninstall` to roll back the most recent run.
 
 ### Claude
 
@@ -243,15 +243,18 @@ The `.claude/` directory is self-contained with `/j-*` commands, specialist agen
 
 ### Codex
 
-The `.codex/` directory contains Codex-native agents, prompts, hooks, and command rules. Reusable workflows and `$cmd-j-*` command skills live under `.agents/`, which Codex discovers directly. For example, invoke `$cmd-j-tdd` or `$cmd-j-plan` in Codex. The files under `.codex/prompts/` remain available through `/prompts:j-tdd` style slash commands.
+The `.codex/` directory contains Codex-native agents and command rules, configured for Codex CLI
+0.172.0. Reusable workflows and the canonical `$cmd-j-*` command skills live under `.agents/`,
+which Codex discovers directly. For example, invoke `$cmd-j-plan` in Codex. Deprecated
+`/prompts:j-*` copies are no longer shipped and are removed by sync.
 
-Codex subagents default to `gpt-6.1-sol` with `medium` reasoning effort through the
-`[agents]` defaults in `.codex/config.toml`. Select `gpt-6-astra` with `high` effort
-for substantive planning, architecture decisions, or complex diagnosis across systems.
-Selection follows the assigned task rather than the agent role; routine work and final reviews
-use Sol unless they meet those criteria. Native roles set high effort and leave the model unset
-so task-specific model overrides can take effect. See `.codex/AGENTS.md`, Task Delegation.
-Parent-agent model and planning effort are configured separately.
+The parent uses `gpt-6.2-astra` at `medium` effort, with `xhigh` in plan mode. Subagents default to
+`gpt-6.2-sol` at `medium` effort for routine work. Use `gpt-6.2-astra` at `high` for demanding
+planning, architecture, or diagnosis, `gpt-6.1-terra` at `medium` for visual work, and `gpt-6-luna`
+at `low` for repeatable tasks with clear checks. Selection follows the assigned task rather than
+the role. Native role files omit both model and effort so these defaults and task overrides apply.
+V2 permits six concurrent spawned threads. The Task Delegation instructions in `.codex/AGENTS.md`
+limit nesting to three levels below the parent.
 
 In Codex and Gemini, `j-plan` saves its working plan under the gitignored `scratchpad/plans/`
 directory. It falls back to a private

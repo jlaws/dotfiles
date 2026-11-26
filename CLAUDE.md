@@ -47,7 +47,7 @@ python3 -m evals.kbeval summarize # free: check results and write evals/baseline
 ### What setup.sh does:
 Steps run in privilege order: every per-user change first (archive saved), then Homebrew (needs an admin-group account; skipped with a warning otherwise), then one `sudo` prompt for system-wide settings. Cancelling the prompt keeps the per-user changes; uninstall follows the same order.
 
-1. **Syncs dotfiles and agent configurations** to `~` (root dotfiles, `.vim/` runtime, and agent skills/commands/prompts/agents replaced; machine-specific agent configuration files merged with repo keys; installed `.md`/`.toml` agent files get `~/.agents/references/` and `~/.claude/references/` expanded to absolute paths), archiving replaced or merged originals first
+1. **Syncs dotfiles and agent configurations** to `~` (root dotfiles, `.vim/` runtime, and agent skills/commands/agents replaced; machine-specific agent configuration files merged with repo keys; installed `.md`/`.toml` agent files get `~/.agents/references/` and `~/.claude/references/` expanded to absolute paths), archiving replaced or merged originals first. Deprecated Codex prompt copies and repo-owned Claude/Codex logging hooks are removed without deleting unrelated local prompts/hooks or historical logs
 2. **Installs tooling**: Homebrew packages (no Rust or Lean tooling: rustup, `rust-analyzer`, and elan are installed by the user or the project that needs them; the Claude Code, Codex, and Antigravity CLIs are not installed): coreutils, moreutils, findutils, fd, wget, just, vim, grep, jq, openssh, git, gh, autojump, mermaid-cli, poppler, agent-browser, uv, node, rg, mole; then symlinks `gsha256sum` to `sha256sum`, downloads the Chrome binary `agent-browser` drives, installs `typescript-language-server` and `typescript` via npm, and finishes with `brew cleanup`
 3. **Configures macOS**: ~200 `defaults` settings for Finder, Dock, Safari, security, etc., snapshotting each domain first; user/host-scope settings and `~/Library` apply with the per-user steps, `sudo`-scope settings and system items (`pmset`, `nvram`, firewall, `/Volumes`) after the `sudo` prompt
 
@@ -75,10 +75,10 @@ dotfiles/
 │   └── references/    # Shared domain knowledge by category
 ├── .claude/           # Claude Code (self-contained)
 │   ├── CLAUDE.md, settings.json
-│   ├── agents/, commands/, hooks/, skills/, references/
-├── .codex/            # Codex config + native agents/prompts
+│   ├── agents/, commands/, skills/, references/
+├── .codex/            # Codex config + native agents/rules
 │   ├── AGENTS.md, config.toml
-│   ├── agents/, prompts/, hooks/, rules/
+│   ├── agents/, rules/
 └── .gemini/           # Antigravity (skills/settings in antigravity-cli/, agents in config/agents/)
     ├── GEMINI.md
     ├── config/agents/, antigravity-cli/
@@ -116,6 +116,7 @@ dotfiles/
 - Follow TDD for `macos_setup` changes; add/adjust `tests/` and keep `make test` + `make check` green
 - Agent configuration merges (`.claude/settings.json`, `.codex/config.toml`, `.gemini/antigravity-cli/settings.json`) run during `sync_agents`; they must remain Python 3.9 stdlib-only with zero runtime pip dependencies. Skills and commands are overwritten in place. Sync prunes `j-*` entries the repo no longer ships from the trees in `AGENT_ORPHAN_GLOBS` (with `.agents/skills/cmd-j-*`), beside the `AGENT_REMOVAL_GLOBS` patterns. `j-` and `cmd-j-` names are reserved for repo-shipped commands; a symlinked entry is kept with a warning, and a root the repo ships nothing in is not pruned; any other renamed or deleted asset needs an `AGENT_REMOVALS` entry in `macos_setup/dotfiles.py`.
 - Agent skills follow the [agentskills.io](https://agentskills.io/specification) spec (SKILL.md with YAML frontmatter)
+- Codex commands use the canonical `.agents/skills/cmd-j-*` skills. Deprecated `.codex/prompts/j-*` copies are removed on sync. Codex role files omit model and effort; `.codex/config.toml` owns session and default delegate choices, and task dispatch supplies overrides. V2 permits six concurrent spawned threads; depth three remains prose guidance
 - `.claude/` is written for the Claude 5 generation and has intentionally diverged from `.agents/`, which serves Codex and Gemini. Asset sets are kept in parity, enforced by `tests/test_agent_config.py`. Declare any single-tree asset in that file's exception lists
 - **References are kept in parity too, by section rather than by byte.** Every file under `.claude/references/` has an `.agents/` twin at the same path exposing the same headings; bodies may differ, because the trees serve different tools. Edit one tree and you must edit the other. This check ships without an exception list by design — see `docs/adr/workflow/reference-tree-section-parity.md`
 - A shared reference must not cite `.claude/references/`: Codex and Gemini have no such checkout, so the pointer resolves nowhere. Cite `references/<category>/<file>.md`, which is also the form `audit.py`'s XR-7 validates from the reference root. Citing assets use one form per tree and kind (`REFERENCE_FORMS` in `tests/test_agent_config.py`): `~/.agents/references/<category>/` in `.agents`, `.codex`, and `.gemini` (sync expands `~` to the home path), `~/.claude/references/<category>/` in `.claude/commands` and `.claude/agents`, and `${CLAUDE_SKILL_DIR}/../../references/<category>/` in `.claude/skills`; never a path that resolves against the project

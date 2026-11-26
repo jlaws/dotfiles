@@ -2,7 +2,7 @@
 status: accepted
 topic: workflow
 created: 2026-09-12
-updated: 2026-11-14
+updated: 2026-11-26
 ---
 # Reference trees share a section set, not a body
 
@@ -83,9 +83,9 @@ and pass.
 
   | Reference | Pasted into | Pinned by |
   |---|---|---|
-  | `workflow/existing-code-discipline.md` | `.codex/prompts/j-diff-review.md`, `.agents/skills/cmd-j-diff-review/SKILL.md` | `test_existing_code_discipline_is_one_document_in_every_tree`, section set **and** body |
-  | `security/security-analysis.md` | `.agents/skills/cmd-j-audit/SKILL.md`, `.codex/prompts/j-audit.md` | nothing |
-  | `research/output-template.md` | `.agents/skills/cmd-j-paper-analysis/SKILL.md`, `.codex/prompts/j-paper-analysis.md` | nothing |
+  | `workflow/existing-code-discipline.md` | `.agents/skills/cmd-j-diff-review/SKILL.md` | `test_existing_code_discipline_is_one_document_in_every_tree`, section set **and** body |
+  | `security/security-analysis.md` | `.agents/skills/cmd-j-audit/SKILL.md` | nothing |
+  | `research/output-template.md` | `.agents/skills/cmd-j-paper-analysis/SKILL.md` | nothing |
 
   The last two are a known gap, not a claim of coverage. They re-express their source rather than
   copying it verbatim, so the byte-comparison used for the first one does not transfer as-is.

@@ -171,13 +171,16 @@ is the evidence for that call where the asset is a skill, agent, or command.
 
 ## Tree layout
 
-`.agents/` is the Codex and Gemini source for shared skills and references. Each tool owns its own
-agents and commands.
+`.agents/` is the Codex and Gemini source for shared skills and references. Codex commands use the
+canonical `.agents/skills/cmd-j-*` skills; Claude commands and Gemini command skills have native
+counterparts. Each tool owns its native agent definitions. Deprecated Codex prompt copies are not
+part of the command set.
 
 **`.claude/` has intentionally diverged.** Its skill and reference bodies are written for the Claude 5
 generation and no longer mirror `.agents/`. Body and description differences between the two trees are
 expected and are not findings. A parity test, named in the repo's own CLAUDE.md where one exists, pins
-only which assets exist in each tree, with single-tree assets declared explicitly.
+which assets exist in each tree, with single-tree assets declared explicitly. Reference twins also
+expose the same ordered headings.
 
 Still worth checking by hand, because no test covers it:
 

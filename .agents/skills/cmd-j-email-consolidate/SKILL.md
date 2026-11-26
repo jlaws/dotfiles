@@ -9,15 +9,19 @@ Build a consolidated weekly digest from: the user's provided input
 
 Two arguments: `<emails-dir>` and `<output-path>`.
 
+## Setup (always do first)
+
+Load skill `output-completeness`: the digest must account for every source with real signal; no silently dropped items, no truncated sections.
+
 You will build the consolidated weekly digest **incrementally**: write a skeleton first, then extend it as you read each source file. Do NOT batch all reads before writing. The output file must grow monotonically and visibly as you work.
 
 ### Step 1: Enumerate
 
-Glob `<emails-dir>/*.md`. EXCLUDE any file whose name ends in `-summary.md`. Hold the resulting list; you will iterate through it in Step 3.
+Enumerate files matching `<emails-dir>/*.md`. EXCLUDE any file whose name ends in `-summary.md`. Hold the resulting list; you will iterate through it in Step 3.
 
-### Step 2: Write the skeleton (your FIRST Write call)
+### Step 2: Write the skeleton (your first output-file write)
 
-Before reading any source files, Write `<output-path>` with this exact structure (date in the header is today's date inferred from the file basenames or the current date):
+Before reading any source files, write `<output-path>` with this exact structure (date in the header is today's date inferred from the file basenames or the current date):
 
 ```markdown
 # AI Newsletter Weekly Digest - <YYYY-MM-DD>
@@ -49,21 +53,21 @@ The `<!-- END SECTION:<name> -->` lines are sentinels. They MUST remain unique a
 
 For each source file from Step 1:
 
-1. **Read** the source file.
+1. **Read** the source file in full.
 2. **Classify each item** in it into one of the six sections above. A single source file usually contributes to multiple sections.
-3. **Insert each item** by calling Edit on `<output-path>`. Use `old_string = "<!-- END SECTION:<name> -->"` and `new_string = "<item-as-tight-markdown>\n<!-- END SECTION:<name> -->"`. The sentinel stays in place so subsequent Edits keep working.
-4. **Merge-on-insert**: before inserting, check whether the item already exists in the summary (from a previous source file in this same iteration). If a near-duplicate is already there, either skip it or do a small Edit to enrich the existing entry; do NOT add a second copy. Prefer skipping over enriching when the new info adds nothing material.
-5. **End-of-source self-check**: after the last Edit for this source, write one short text line in the form `Finished <source-basename>: inserted N, merged M, skipped K`. This is a forcing function for full enumeration, not output; it is not part of the digest.
+3. **Insert each item** by replacing the unique `<!-- END SECTION:<name> -->` anchor in `<output-path>` with the item followed by the same anchor. Keep the anchor in place so later insertions target the same section.
+4. **Merge-on-insert**: before inserting, check whether the item already exists in the summary (from a previous source file in this same iteration). If a near-duplicate is already there, either skip it or make a small file edit to enrich the existing entry; do NOT add a second copy. Prefer skipping over enriching when the new info adds nothing material.
+5. **End-of-source self-check**: after the last file edit for this source, write one short text line in the form `Finished <source-basename>: inserted N, merged M, skipped K`. This is a forcing function for full enumeration, not output; it is not part of the digest.
 
-**Critical: process one source per cycle.** Each source file gets its own complete Read → classify → Edit → self-check loop before you touch the next file. Do NOT issue multiple Read tool calls in parallel or in rapid succession across different source files, even for short scholar alerts, small product roundups, or files that look similar. The "let me batch-read several at once to speed up" shortcut is the exact failure mode this prompt is designed to prevent: it produces silent topic drops, especially in the last 20% of files. There is no time budget pressure that justifies it: process every source individually, even if there are 80+ of them.
+**Critical: process one source per cycle.** Each source file gets its own complete read → classify → edit → self-check loop before you touch the next file. Do NOT read multiple source files in parallel or in rapid succession, even for short scholar alerts, small product roundups, or files that look similar. The "let me batch-read several at once to speed up" shortcut is the exact failure mode this workflow is designed to prevent: it produces silent topic drops, especially in the last 20% of files. There is no time budget pressure that justifies it: process every source individually, even if there are 80+ of them.
 
-You may interleave Read and Edit calls **within a single source's cycle**. Do not accumulate many items in memory before writing: Write/Edit as you go so the file grows visibly.
+You may interleave source reads and output-file edits **within a single source's cycle**. Do not accumulate many items in memory before writing: write or edit as you go so the file grows visibly.
 
 ### Step 4: Final cleanup pass
 
-**Before starting cleanup**, scan the Glob output from Step 1 one last time. For each source file, recall what you inserted from it. If any source produced zero or near-zero insertions and is not a known low-signal type (sponsor-only mailer, off-topic non-AI content), revisit it now: re-Read it and add what you missed. Do not enter cleanup until every source has been honestly accounted for.
+**Before starting cleanup**, scan the file list from Step 1 one last time. For each source file, recall what you inserted from it. If any source produced zero or near-zero insertions and is not a known low-signal type (sponsor-only mailer, off-topic non-AI content), revisit it now: read it again and add what you missed. Do not enter cleanup until every source has been honestly accounted for.
 
-**Sources-touched audit.** Walk the Glob list from Step 1 one more time. For each source file, identify at least one URL or named entity from that source present in the output. If a source contributed zero entries AND is not in the known low-signal types below, re-Read it and add what you missed.
+**Sources-touched audit.** Walk the file list from Step 1 one more time. For each source file, identify at least one URL or named entity from that source present in the output. If a source contributed zero entries AND is not in the known low-signal types below, read it again and add what you missed.
 
 Known low-signal source types where zero contribution is acceptable:
 - Pure sponsor mailers (no AI-research content beyond sponsor placements)
@@ -72,7 +76,7 @@ Known low-signal source types where zero contribution is acceptable:
 
 Do not use numeric section-count thresholds; bullet count is not a quality signal. The audit is per-source: did every source that had real signal contribute at least one item?
 
-Once every source file has been read and its items inserted, do one Edit per section to:
+Once every source file has been read and its items inserted, make one file edit per section to:
 - Tighten prose where adjacent items overlap.
 - Remove the `<!-- END SECTION:<name> -->` sentinel for that section.
 
@@ -121,6 +125,6 @@ After the cleanup pass, the file must contain zero `<!-- END SECTION:...` string
 
 ### Operational rules
 
-- **Do not print** the consolidated report to stdout. Everything goes through Write/Edit on `<output-path>`.
-- **Tools allowed**: Glob, Read, Write, Edit. Do not call any other tools.
+- **Do not print** the consolidated report to stdout. Write the digest only to `<output-path>`.
+- **Operations allowed**: enumerate local files, read the requested sources and required workflow instructions, and create or edit `<output-path>`. Use the available filesystem tools or commands for those operations. Do not browse the web, send messages, mutate source files, or run unrelated commands.
 - Do not stop until every source file from Step 1 has been read AND the Step 4 cleanup pass has removed every sentinel.

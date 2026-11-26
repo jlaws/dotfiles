@@ -13,8 +13,8 @@ Scan every configuration surface across all trees. The repo root is the base.
 
 | Tree | Files |
 |------|-------|
-| Claude | `.claude/CLAUDE.md`, `.claude/settings.json`, `.claude/settings.local.json`, `.claude/hooks/`, `.claude/agents/`, `.claude/commands/` |
-| Codex | `.codex/AGENTS.md`, `.codex/config.toml`, `.codex/rules/`, `.codex/hooks/`, `.codex/agents/`, `.codex/prompts/` |
+| Claude | `.claude/CLAUDE.md`, `.claude/settings.json`, `.claude/settings.local.json`, `.claude/agents/`, `.claude/commands/`; local `.claude/hooks/` if present |
+| Codex | `.codex/AGENTS.md`, `.codex/config.toml`, `.codex/rules/`, `.codex/agents/`; local `.codex/hooks/`, `.codex/hooks.json`, `.codex/prompts/` if present |
 | Gemini | `.gemini/GEMINI.md`, `.gemini/antigravity-cli/settings.json`, `.gemini/antigravity-cli/skills/`, `.gemini/config/agents/`; legacy `.gemini/settings.json`, `.gemini/hooks/`, `.gemini/agents/`, `.gemini/commands/` if present |
 | Shared | `.agents/skills/`, `.agents/references/`, any MCP server config |
 

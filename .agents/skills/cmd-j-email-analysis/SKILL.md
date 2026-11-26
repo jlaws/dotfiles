@@ -9,6 +9,10 @@ Process the AI research newsletter email at: the user's provided input
 
 If no arguments provided, ask for the path to the email body file.
 
+## Setup (always do first)
+
+Load `verification-before-completion` before claiming a PDF downloaded or a link resolves.
+
 ## Pre-processing (before producing output)
 
 1. **Parse arguments**: The argument is the file path to the email body (read the file to extract content).

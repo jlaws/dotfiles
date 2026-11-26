@@ -40,7 +40,7 @@ stale. This table decides *which* docs to open per change.
 | Add feature | README feature list, API reference, CHANGELOG, usage/quickstart | (usually N/A unless a KB asset is added) |
 | Modify behavior | API reference, config/CLI reference, CHANGELOG, any doc describing the old behavior | - |
 | Refactor / rename | Public names in README/API docs, import paths, config keys, CLI flags | cross-references that name the renamed asset |
-| Add new KB asset | - | `description` frontmatter + body, KB-structure docs, MEMORY.md index (if present), cross-references, native command/agent parity, and shared workflow/reference mirror parity |
+| Add new KB asset | - | `description` frontmatter + body, KB-structure docs, MEMORY.md index (if present), cross-references, canonical command/native agent parity, and shared workflow/reference mirror parity |
 
 Product docs = README / API / CHANGELOG / usage. KB self-docs = the asset's own
 `description` and body, the KB-structure index, native asset parity, and any

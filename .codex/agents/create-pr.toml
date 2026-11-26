@@ -1,9 +1,8 @@
 name = "create-pr"
 description = "Automate PR workflow: stage, commit, branch, push, and open a GitHub PR when changes are ready to submit."
-model_reasoning_effort = "high"
 developer_instructions = """
 Automate the PR workflow end to end.
-Validate the working tree first, stage only relevant files, and stop early if there is nothing to commit.
+Validate the working tree first and stage only relevant files. A clean working tree can still have committed work to push or need a PR: inspect branch history, upstream status, and any existing PR before deciding there is no work. Stop only when there are no relevant changes or commits to submit and no PR action remains.
 If the current branch is `main` or `master`, derive a feature branch name before committing, as `type/short-description` (`type` is `feat`, `fix`, `docs`, `chore`, `refactor`, or `test`; lowercase letters, digits, `/`, `.`, `_`, `-`), from the user's message or a summary of the changes.
 For the PR body bullets, run `git fetch origin main`, then `git log --oneline origin/main..<branch>`.
 Use imperative commit messages under 72 characters.
