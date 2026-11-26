@@ -2199,8 +2199,12 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             "pr checks",
             "pr create",
             "pr edit",
+            "pr merge",
             "issue view",
             "issue list",
+            "issue comment",
+            "issue close",
+            "api",
             "run list",
             "run view",
             "repo view",
@@ -2240,6 +2244,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             if head is None:
                 self.fail(f"gh rule has no subcommand: {pattern}")
             first = head.group(1)
+            if re.fullmatch(r'\[\s*["\']gh["\']\s*,\s*["\']\w+["\']\s*\]', pattern):
+                codex_gh.add(first)
+                continue
             rest = re.match(r'\[\s*["\']gh["\']\s*,\s*["\']\w+["\']\s*,\s*(.+)\]$', pattern, re.S)
             if rest is None:
                 self.fail(f"gh rule has no third element: {pattern}")

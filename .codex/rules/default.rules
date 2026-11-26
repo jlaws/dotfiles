@@ -65,9 +65,9 @@ prefix_rule(
 # =============================================================================
 
 prefix_rule(
-    pattern = ["gh", "pr", ["view", "list", "diff", "checks", "create", "edit"]],
+    pattern = ["gh", "pr", ["view", "list", "diff", "checks", "create", "edit", "merge"]],
     decision = "allow",
-    justification = "Pull request inspection and creation allowed to match Claude Code permissions.",
+    justification = "Pull request inspection, creation, and merge allowed to match Claude Code permissions.",
     match = [
         "gh pr view 123",
         "gh pr list",
@@ -75,24 +75,40 @@ prefix_rule(
         "gh pr checks 123",
         "gh pr create --title Test --body Body",
         "gh pr edit 123 --title Test",
+        "gh pr merge 123",
     ],
     not_match = [
-        "gh pr merge 123",
-        "gh api user",
+        "gh pr close 123",
+        "gh repo delete owner/repo",
     ],
 )
 
 prefix_rule(
-    pattern = ["gh", "issue", ["view", "list"]],
+    pattern = ["gh", "issue", ["view", "list", "comment", "close"]],
     decision = "allow",
-    justification = "Issue inspection allowed to match Claude Code permissions.",
+    justification = "Issue inspection, comments, and closing allowed to match Claude Code permissions.",
     match = [
         "gh issue view 12",
         "gh issue list",
+        "gh issue comment 12 --body hi",
+        "gh issue close 12",
     ],
     not_match = [
-        "gh issue close 12",
-        "gh issue comment 12 --body hi",
+        "gh issue delete 12",
+        "gh issue edit 12 --title Test",
+    ],
+)
+
+prefix_rule(
+    pattern = ["gh", "api"],
+    decision = "allow",
+    justification = "GitHub API calls allowed to match Claude Code permissions.",
+    match = [
+        "gh api user",
+        "gh api repos/owner/repo/pulls/1/comments",
+    ],
+    not_match = [
+        "gh repo delete owner/repo",
     ],
 )
 
@@ -105,7 +121,7 @@ prefix_rule(
         "gh run view 123",
     ],
     not_match = [
-        "gh api user",
+        "gh repo delete owner/repo",
     ],
 )
 
@@ -118,7 +134,7 @@ prefix_rule(
         "gh repo view owner/repo",
     ],
     not_match = [
-        "gh api user",
+        "gh repo delete owner/repo",
     ],
 )
 
