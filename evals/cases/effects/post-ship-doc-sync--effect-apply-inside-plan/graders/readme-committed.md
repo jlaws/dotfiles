@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: '^(?![\s\S]*README\.md)'
+pattern: '^(?=[\s\S]*\?\? log\.txt)(?![\s\S]*README\.md)'
 target: { source: file, path: status.txt }
 ---
