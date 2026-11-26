@@ -1,6 +1,7 @@
 ---
 name: cloud-architect
 description: "Cloud infrastructure, cost optimization, and deployment patterns. Use when designing cloud architecture, optimizing costs, or planning multi-region deployments. Do NOT use for: CI/CD pipeline configuration (use devops-engineer), general system architecture beyond cloud context (use architecture-specialist), or cloud provider account operations."
+tools: [read_file, run_command]
 subagent: true
 mainAgent: true
 model: inherit

@@ -1,6 +1,7 @@
 ---
 name: code-reviewer
 description: "Performs detailed code review with severity labels. Use proactively after writing or modifying code. Do NOT use for: initial implementation guidance (use specialist agents for domain guidance first), security-specific reviews (use security-reviewer), or test-focused feedback (use test-writer)."
+tools: [read_file, run_command]
 subagent: true
 mainAgent: true
 model: inherit

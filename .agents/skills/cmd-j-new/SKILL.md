@@ -77,7 +77,7 @@ Craft a trigger-only description:
 
 **Bad skill description** (summarizes workflow):
 ```
-description: "Use when executing plans -- executes tasks sequentially with code review between tasks"
+description: "Use when executing plans - executes tasks sequentially with code review between tasks"
 ```
 
 **Good skill description** (triggers only):
@@ -115,7 +115,7 @@ If no arguments provided, {fallback behavior}.
 
 ## Phase 2: {Second Phase Name}
 
-{Core methodology -- the main work}
+{Core methodology - the main work}
 
 ## Phase 3: {Third Phase Name}
 
@@ -125,8 +125,8 @@ If no arguments provided, {fallback behavior}.
 
 ### Cross-References
 
-- **skill:{skill-path}** -- {why referenced}
-- **agent:{agent-name}** -- {why referenced}
+- **skill:{skill-path}**: {why referenced}
+- **agent:{agent-name}**: {why referenced}
 ```
 
 For an explicit-only command, add `agents/openai.yaml` beside `SKILL.md` with:
@@ -176,25 +176,13 @@ description: "{generated description}"
 |-------------|-------------|
 | {Key point} | {Detail} |
 
-## Common Mistakes
+## Gotchas
 
-- **{Mistake 1}**: {What goes wrong} -- {Fix}
-- **{Mistake 2}**: {What goes wrong} -- {Fix}
+- **{Failure mode 1}**: {What goes wrong} - {Fix}
+- **{Failure mode 2}**: {What goes wrong} - {Fix}
 ```
 
-For **workflow/procedural skills**, also add:
-
-```markdown
-## Red Flags
-
-- {Warning sign that the skill is being bypassed}
-
-## The Iron Law
-
-```
-{NON-NEGOTIABLE RULE IN CAPS}
-```
-```
+Do not add rationalization tables, "Red Flags: STOP" banners, or all-caps "Iron Law" blocks; state the goal and consequence instead (`writing-skills`, The Four Shifts).
 
 ### 4C. Agent Template
 
@@ -255,7 +243,7 @@ After writing:
 1. Confirm the file was created at the correct path
 2. If skill: confirm the directory was created
 3. Suggest: "Run `$cmd-j-skill-audit {type}s` to verify full conformance"
-4. Register and document the new asset. Commands require the shared `cmd-j-*` skill (the Codex command), a native Claude command, and a Gemini command skill. Agents require native definitions in all three tool trees. Shared non-command skills must match their Gemini copies byte-for-byte. Claude skill bodies may differ; shared reference twins must expose the same headings. See `documentation-validation`.
+4. Register and document the new asset. Commands require the Codex `cmd-j-*` skill, a native Claude command, and an Antigravity `j-*` command skill. Agents require native definitions in all three tool trees. Workflow skills ship in `.agents/skills/`, `.gemini/antigravity-cli/skills/`, and `.claude/skills/` with matching supporting files between `.agents/skills/` and `.gemini/antigravity-cli/skills/`; skill bodies and descriptions adapt per harness while shared reference twins expose the same ordered headings. See `documentation-validation`.
 5. If the repository keeps an eval suite for its assets, add the new asset's cases (trigger and effect cases for a skill or command, effect cases for an agent). Offer to run its smoke target; it may bill.
 
 ---
@@ -276,10 +264,10 @@ After writing:
 | Type | Convention |
 |------|-----------|
 | Command | Shared skill accepts user input and is the Codex command; no prompt fallback |
-| Skill | Overview, When to Use, Core Pattern (with code example), Quick Reference table, Common Mistakes |
+| Skill | Overview, When to Use, Core Pattern (with code example), Quick Reference table, Gotchas |
 | Agent | Focused TOML `developer_instructions` with shared skill and reference pointers |
 
 ### Cross-References
 
-- **skill:writing-skills**: skill authoring TDD methodology, CSO, persuasion principles
+- **skill:writing-skills**: authoring criteria, frontmatter spec, discoverability
 - **skill:skill-audit**: validation rules for all asset types

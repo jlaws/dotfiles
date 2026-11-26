@@ -81,7 +81,7 @@ Search first, read second. Never bulk-read files speculatively.
 | 1 | `rg -n` / content search | you know the symbol or string |
 | 2 | `rg --files` / file search | you know the path shape but not the contents |
 | 3 | `read_file` with line range | you have located the file and need one range |
-| 4 | a dispatched search subagent (`research`) | the naming convention itself is unknown, or you want judgement too |
+| 4 | a dispatched search subagent (e.g., Antigravity `research`) | the naming convention itself is unknown, or you want judgement too |
 
 When searching via shell (`rg`, `git grep`, `git log -S`), bound the output (`-l`, `-c`, `-m`, or redirect large results to a scratch file) rather than streaming thousands of matching lines straight into context.
 

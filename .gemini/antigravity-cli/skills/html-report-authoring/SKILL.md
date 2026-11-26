@@ -15,7 +15,7 @@ When information has shape (comparisons, diffs, call-graphs, timelines, hierarch
 - Information reports: findings, analysis, or research synthesis on a topic
 - Spec and design docs: mockups, data flows, side-by-side approaches
 - Cross-source synthesis: pulling many inputs into one navigable page
-- Skip for: quick answers, inline code comments, or plain markdown docs (use `/j-docs` or `$cmd-j-docs`)
+- Skip for: quick answers, inline code comments, or plain markdown docs (use `/j-docs`)
 
 ## The Single-File Rule
 

@@ -36,7 +36,7 @@ Read the whole plan once before Task 1. Flag internal contradictions, inconsiste
 For each task in order:
 
 1. **Extract the task brief.** Write the single task's requirements (behavioral check, files, steps, acceptance) to a scratch file, e.g. `scratchpad/briefs/task-NN.md`. Do NOT paste the whole plan into the dispatch prompt.
-2. **Dispatch the implementer subagent** with: the brief file path, the model for this task (see Model Selection), explicit constraints (what NOT to touch), and the deliverable (code + passing tests, left uncommitted in the working tree). Answer clarifying questions if the implementer asks.
+2. **Dispatch the implementer subagent** via `invoke_subagent` with: the brief file path, explicit constraints (what NOT to touch), and the deliverable (code + passing tests, left uncommitted in the working tree). Answer clarifying questions via `send_message` if the implementer asks.
 3. **Implementer self-reviews.** It follows TDD (failing test -> implement -> pass) and reports the files it touched. It does not commit: the phase commits once, when its last task passes (`writing-plans`, PR Boundaries).
 4. **Generate the review package.** `git diff <phase-base>` scoped to the task's files: capture to a scratch file rather than pasting a large diff into the reviewer prompt.
 5. **Dispatch the task reviewer.** It MUST return **both** verdicts, **spec compliance first, then code quality**:
@@ -49,7 +49,7 @@ For each task in order:
 
 ### Step 2: Close the Boundary
 
-After all tasks, close the boundary as `executing-plans` Step 5 does: the diff-review command (`$cmd-j-diff-review` in Codex, /j-diff-review in Gemini) reviews the whole
+After all tasks, close the boundary as `executing-plans` Step 5 does: `/j-diff-review` reviews the whole
 branch, then opens the PR. Dispatch one fix subagent with all rung-1 findings, not one per finding; it commits each fix on its own, the
 orchestrator verifies each commit, and the two-attempt rule counts per finding. The ladder's two-attempt rule governs these fixes, not Step 1.6's
 two-round stop.

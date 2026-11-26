@@ -32,9 +32,9 @@ matters is that the shape is agreed before it is built, not that the document is
 ### Phase 2: Ask Clarifying Questions
 
 - One question at a time: don't overwhelm
-- Prefer multiple-choice questions when possible
+- Prefer multiple-choice questions via `ask_question` when possible
 - Each question carries your **recommended answer**: let the user confirm, not explain from scratch
-- **Research before asking**: if the codebase can answer it (`rg`, file search, `read_file`), find out first; only ask what the code can't tell you
+- **Research before asking**: if the codebase can answer it (`rg`, `rg --files`, `read_file`), find out first; only ask what the code can't tell you
 - **Filter for blocking**: ask when a wrong answer means throwing work away, not adjusting it.
   Anything a minute of searching answers is research you owe, not a question. If the codebase
   contradicts itself on one of those, that *is* worth raising.
@@ -62,7 +62,7 @@ matters is that the shape is agreed before it is built, not that the document is
 
 ### Phase 5: Document
 
-- When called by `j-plan`, save the validated design into that workflow's existing plan file. Otherwise
+- When called by `/j-plan`, save the validated design into that workflow's existing plan file. Otherwise
   use `scratchpad/plans/<topic>-design.md` only after `git check-ignore -q scratchpad/` confirms that
   directory is ignored. If it does not, follow `writing-plans`' private
   `${TMPDIR:-/tmp}/j-plan/<repo-id>/` fallback. Never keep the only copy in context or commit it

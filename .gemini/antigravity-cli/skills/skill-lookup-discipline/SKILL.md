@@ -15,10 +15,10 @@ expensive case is discovering halfway through that one applied.
 ## The Check
 
 1. **Identify** the kind of work: feature, bug, refactor, review, plan.
-2. **Scan** `~/.agents/skills/` (or `~/.gemini/antigravity-cli/skills/` in Antigravity) and `~/.agents/references/` for applicable patterns.
+2. **Scan** `~/.gemini/antigravity-cli/skills/` and `~/.agents/references/` for applicable patterns.
 3. **Prune** to the smallest set that covers the task. Loading extras dilutes attention, which costs
    quality and not just tokens.
-4. **Load** each matching `SKILL.md` with the file-reading tool.
+4. **Load** each matching `SKILL.md` with `read_file`.
 5. **Proceed**, following what they say.
 
 The check comes before exploration, because skills often tell you *how* to explore. "Let me look at the
@@ -36,7 +36,7 @@ change what the implementation skills are applied to:
 ## Announce It
 
 Say which skill and why before acting: **`Using [skill] to [purpose].`** This surfaces a wrong choice
-before you have built on it. If a skill carries a numbered process, track its steps as todos so none
+before you have built on it. If a skill carries a numbered process of 3-12 steps, track them with `update_steps` so none
 gets dropped.
 
 ## How Closely to Follow a Skill

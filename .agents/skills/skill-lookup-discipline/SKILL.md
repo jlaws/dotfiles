@@ -15,7 +15,7 @@ expensive case is discovering halfway through that one applied.
 ## The Check
 
 1. **Identify** the kind of work: feature, bug, refactor, review, plan.
-2. **Scan** `~/.agents/skills/` (or `~/.gemini/antigravity-cli/skills/` in Antigravity) and `~/.agents/references/` for applicable patterns.
+2. **Scan** `~/.agents/skills/` and `~/.agents/references/` for applicable patterns.
 3. **Prune** to the smallest set that covers the task. Loading extras dilutes attention, which costs
    quality and not just tokens.
 4. **Load** each matching `SKILL.md` with the file-reading tool.

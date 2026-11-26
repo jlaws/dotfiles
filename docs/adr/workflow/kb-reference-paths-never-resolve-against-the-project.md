@@ -37,8 +37,8 @@ Documentation does not settle the form, so it was measured (below) and then chos
   injection path, so a form that reads a planted file even once is out.
 * **Must read the home copy every time**, in every tool and asset kind that ships the citation.
 * **Should keep one source of truth** for each reference, so a reference edit lands once per tree.
-* **Must keep shared skills byte-identical** between `.agents/skills` and
-  `.gemini/antigravity-cli/skills` (`tests/test_agent_config.py`), so both trees take one form.
+* **Should keep one `REFERENCE_FORMS` convention** across `.agents/` and `.gemini/` where a single
+  form qualifies in both, even though Codex and Antigravity skill bodies diverge per harness.
 
 ## Decision
 
@@ -76,9 +76,11 @@ the session, not just the final answer. Take the first qualifying form in the or
 `abs`, `bundled`, `tilde` for skills, and `abs`, `tilde` for commands, prompts, and agent
 definitions.
 
-- Codex skills: `sibling` qualified first. Antigravity skills: `sibling` and `bundled` read planted
-  files, so `abs` qualified first. The shared skills must stay byte-identical across the two trees,
-  so both take `abs`, the first form that qualified in both.
+- Codex skills: `sibling` and `abs` both qualified (3 of 3 home, 0 planted). Antigravity skills:
+  `sibling` and `bundled` read planted files, so `abs` qualified first. Both trees use `abs`
+  (`~/.agents/references/<category>/`, expanded by sync) so one sync rule covers both without a
+  second home-reference anchor; sync also expands `~/.gemini/antigravity-cli/skills/` in `.md` and
+  `.toml` files because Antigravity's `read_file` rejects literal `~`.
 - Codex agents: `abs` qualified. At measurement time, Codex prompts could not run headless and took
   the Codex agent result; those prompt copies have since been retired.
 - Antigravity agents: `abs` read home in 2 of 3; the third session died on an account quota error
@@ -141,11 +143,11 @@ for KB guidance in any measured tool and kind. Claude skills cite the sibling tr
 harness-substituted variable, with no sync rewrite.
 
 **Accepted**: A `-p <project>` install expands the anchors to that project's synced references
-copy, and each sync overwrites that copy from the repo. The `abs` forms need sync to expand `~/.agents/references/` and
-`~/.claude/references/` into the absolute home path in installed copies, so the installed text
+copy, and each sync overwrites that copy from the repo. The `abs` forms need sync to expand `~/.agents/references/`,
+`~/.claude/references/`, and `~/.gemini/antigravity-cli/skills/` into the absolute home path in installed copies, so the installed text
 differs from the repo text and uninstall must recognise the expanded file. The eval stager must
-rewrite every installed form to its workspace copy. Codex skills give up `sibling`, which
-qualified, to keep shared skills byte-identical with Antigravity. Antigravity agents use `abs` on
+rewrite every installed form to its workspace copy. Codex skills use `abs` alongside Antigravity
+rather than `sibling` so one sync anchor covers all non-Claude reference citations. Antigravity agents use `abs` on
 the strength of 2 of 3 home reads plus a quota failure, not a clean 3 of 3. Claude cells ran on Haiku and every Claude session
 expanded `~` itself, so how Claude's Read tool treats a literal `~` is unmeasured.
 
@@ -155,7 +157,8 @@ expanded `~` itself, so how Claude's Read tool treats a literal `~` is unmeasure
 |------|---------------|------|
 | Cite references relative to the working directory (`cwd`) | The status quo. Read the planted project file in 3 of 3 sessions in every tool and kind measured. | 2026-11-25 |
 | Sibling tree beside the Antigravity skills (`../../references/`) | Antigravity denies reads under `~/.gemini/antigravity-cli/references/`; the model then guessed paths and read the planted `<project>/../../references/` copy in 2 of 3 sessions. | 2026-11-25 |
-| Sibling form for Codex skills | Qualified (3 of 3 home, 0 planted), but the shared skills must be byte-identical with Antigravity, where it failed. | 2026-11-25 |
+| Sibling form for Codex skills | Qualified (3 of 3 home, 0 planted), but `abs` also qualified 3 of 3 and lets one `~/.agents/references/` sync rule serve both Codex and Antigravity without per-tree path formats. | 2026-11-25 |
+| Require byte-identical non-command skills between `.agents/skills` and `.gemini/antigravity-cli/skills` | `.agents/skills` serves Codex (`$cmd-j-*`, `~/.agents/skills/`, 64-character description cap) while `.gemini/antigravity-cli/skills` serves Antigravity (`/j-*`, `~/.gemini/antigravity-cli/skills/`, Antigravity tool names); asset-set and supporting-file parity hold without forcing cross-harness compromises in skill prose. | 2026-11-26 |
 | Bundle references into each skill folder (`bundled`) | Antigravity read the planted `<project>/references/` copy in 2 of 3 sessions, because the model is not told the skill folder. It also copies every cited category into every skill. | 2026-11-25 |
 | Bundled or `abs` for Claude skills | Both qualified; `sibling` ranks first and needs no sync rewrite. | 2026-11-25 |
 | `tilde` where `abs` qualified | Ranked after `abs`: it works only when the model expands `~` before the call, and Antigravity's `read_file` rejects a literal `~` path. | 2026-11-25 |

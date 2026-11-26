@@ -15,7 +15,7 @@ Identify the project's test command (from AGENTS.md, `package.json`, `Makefile`,
 
 ## Phase 2: Scan for fragmentation
 
-Detect and group four fragmentation classes (use Grep/Glob to find candidates; lean on `code-quality` smell detection and `refactoring-and-debt`'s smell→refactoring map):
+Detect and group four fragmentation classes (use `rg` and `rg --files` to find candidates; lean on `code-quality` smell detection and `refactoring-and-debt`'s smell→refactoring map):
 
 - **Duplicated components / logic**: near-identical blocks, copy-paste, repeated rules → extract/share.
 - **Inconsistent patterns**: the same job done N different ways; naming/structure drift → converge on one.

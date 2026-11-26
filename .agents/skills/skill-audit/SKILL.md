@@ -31,8 +31,8 @@ Enumerate assets across the repository's trees:
 When the repository ships `.claude/skills/skill-audit/scripts/audit.py` and `tests/test_agent_config.py`, run them first instead of re-deriving mechanical checks by hand:
 - `audit.py` checks naming (kebab-case, `j-` command prefix, no `README.md` in skill folders), YAML frontmatter (`name` == stem/folder, quoted `description`, no `<`/`>`, valid tool names, no unscoped tool pre-approvals, floating model aliases on Claude agents, no `model` on commands), `SKILL.md` size (`<= 20,000` bytes so compaction keeps the body), reference/skill/agent link resolution, anchor resolution, orphan references, and JSON config validity.
 - `tests/test_agent_config.py` enforces multi-tree parity and safety invariants:
-  - Shared non-command skills in `.agents/skills/` and `.gemini/antigravity-cli/skills/` are byte-identical across all files, carry only `name` and `description` in frontmatter, and keep `.agents/` descriptions `<= 64` chars starting with `"Use when"`.
-  - `.gemini/config/agents/*.md` declare `subagent: true`, `mainAgent: true`, `model: inherit`, and match body skill lists to frontmatter `skills:`.
+  - Workflow skills in `.agents/skills/` and `.gemini/antigravity-cli/skills/` match by name and supporting files while adapting bodies per harness, carry only `name` and `description` in frontmatter, and keep `.agents/` descriptions `<= 64` chars starting with `"Use when"`.
+  - `.gemini/config/agents/*.md` declare `subagent: true`, `mainAgent: true`, `model: inherit`, explicit Antigravity `tools:`, and match body skill lists to frontmatter `skills:`.
   - `.codex/agents/*.toml` declare `name`, `description`, and non-empty `developer_instructions`, omitting `model` and `model_reasoning_effort`.
   - `.claude/references/` and `.agents/references/` hold the same files and expose the exact same ordered Markdown headings (`docs/adr/workflow/reference-tree-section-parity.md`).
   - Reference citations use `~/.agents/references/<category>/` in `.agents`, `.codex`, and `.gemini`, never project-relative paths or `.claude/references/` in shared assets.

@@ -8,7 +8,7 @@ description: "Use when creating, editing, or validating agent skills."
 A skill exists to teach what a strong model does not already know. Everything else crowds out the
 task it was loaded to help with.
 
-**Codex reads `~/.agents/skills`, Gemini/Antigravity reads `~/.gemini/antigravity-cli/skills`, and Claude reads `~/.claude/skills`.** Shared non-command skills in `.agents/skills/` and `.gemini/antigravity-cli/skills/` are kept byte-identical; `.claude/skills/` may diverge for Claude-specific frontmatter and paths while keeping asset-set parity (`tests/test_agent_config.py`).
+**Codex reads `~/.agents/skills`, Gemini/Antigravity reads `~/.gemini/antigravity-cli/skills`, and Claude reads `~/.claude/skills`.** Each tree adapts its skill bodies and descriptions to its own harness while keeping workflow skill-set parity (and supporting-file parity between `.agents/skills/` and `.gemini/antigravity-cli/skills/`) in `tests/test_agent_config.py`.
 
 ## What Earns a Place in a Skill
 
@@ -117,9 +117,9 @@ not skill prose.
 
 ## Frontmatter
 
-Shared skills under `.agents/skills/` and `.gemini/antigravity-cli/skills/` carry **only** `name` (kebab-case) and `description`:
-- `.agents/skills/` descriptions must be **at most 64 characters** and start with `"Use when"` (`tests/test_agent_config.py`).
-- Codex user-only command policy lives in `.agents/skills/cmd-j-*/agents/openai.yaml` (`policy.allow_implicit_invocation: false`), never in `SKILL.md` frontmatter.
+Skills under `.gemini/antigravity-cli/skills/` and `.agents/skills/` carry **only** `name` (kebab-case) and `description`:
+- `.gemini/antigravity-cli/skills/` (Antigravity) descriptions use one quoted line (`<= 1,024` chars) without Codex's 64-character cap.
+- `.agents/skills/` (Codex) descriptions must be **at most 64 characters** and start with `"Use when"` (`tests/test_agent_config.py`), with user-only command policy in `.agents/skills/cmd-j-*/agents/openai.yaml` (`policy.allow_implicit_invocation: false`).
 - Claude-native skills under `.claude/skills/` use a single quoted description (`<= 200` chars) and may add scoped `allowed-tools`, `paths`, `disable-model-invocation`, or `context: fork`. No skill in any tree declares `skills:` in frontmatter; name dependencies in the body.
 
 **Description = triggering conditions only.** Never summarize the workflow there; models follow a description shortcut instead of reading the body.
@@ -151,7 +151,7 @@ Change one thing per round when hillclimbing evals (`~/.agents/references/ai-ml/
 
 - [ ] Every section passes one of the four tests in "What Earns a Place in a Skill"
 - [ ] Frontmatter in `.agents/` and `.gemini/` has only `name` and `description`, and `.agents/` fits `<= 64` chars starting with `"Use when"`
-- [ ] Shared non-command skills match byte-for-byte between `.agents/skills/` and `.gemini/antigravity-cli/skills/`; reference twins expose the same ordered headings
+- [ ] Workflow skill sets and supporting files match between `.agents/skills/` and `.gemini/antigravity-cli/skills/`; reference twins expose the same ordered headings
 - [ ] Commands have a `.agents/skills/cmd-j-*` skill, a Claude `.claude/commands/j-*.md` command, and a Gemini `.gemini/antigravity-cli/skills/j-*/SKILL.md` skill
 - [ ] Each supporting file has a pointer in `SKILL.md` saying when to load it, and KB self-docs match (`documentation-validation`)
 - [ ] The repo's lint and test commands pass

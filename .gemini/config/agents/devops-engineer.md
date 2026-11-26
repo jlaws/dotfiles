@@ -1,6 +1,7 @@
 ---
 name: devops-engineer
 description: "CI/CD, containers, infrastructure as code, and observability. Use when configuring pipelines, containerizing apps, or setting up monitoring. Do NOT use for: cloud architecture design (use cloud-architect), general system architecture (use architecture-specialist), or application code development."
+tools: [read_file, run_command]
 subagent: true
 mainAgent: true
 model: inherit

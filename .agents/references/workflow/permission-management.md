@@ -1,21 +1,32 @@
 # Permission Management
 
-Reference for Claude Code settings hierarchy and permission configuration. Controls which tools and paths Claude can access.
+Reference for settings hierarchy and permission configuration across Claude Code, Codex, and Google Antigravity (`agy`). Controls which tools, commands, and paths an agent can access without prompting.
 
 ## Settings Hierarchy
 
 Files are merged top-down; higher-priority files override lower ones.
 
 ```
-/Library/.../managed-settings.json   # Enterprise (highest priority, admin-managed)
-~/.claude/settings.json              # User global
-project/.claude/settings.json        # Project (committed to repo)
-project/.claude/settings.local.json  # Local (gitignored, personal overrides)
+# Claude Code
+/Library/.../managed-settings.json                # Enterprise (highest priority, admin-managed)
+~/.claude/settings.json                           # User global
+project/.claude/settings.json                     # Project (committed to repo)
+project/.claude/settings.local.json               # Local (gitignored, personal overrides)
+
+# Google Antigravity (agy)
+~/.gemini/antigravity-cli/settings.json           # User global
+project/.gemini/antigravity-cli/settings.json     # Project
+
+# Codex
+~/.codex/config.toml + ~/.codex/rules/*.rules     # User global posture + command prefix rules
+project/.codex/config.toml                        # Project posture (approval_policy, sandbox_mode)
 ```
 
 **Resolution rule:** deny > allow > default. If the same pattern appears in both allow and deny, deny wins.
 
 ## Permission Syntax
+
+**Claude Code** (`.claude/settings.json`, glob wildcards):
 
 ```json
 {
@@ -33,6 +44,22 @@ project/.claude/settings.local.json  # Local (gitignored, personal overrides)
 | `"Bash(npm run *)"` | Allow/deny Bash calls matching `npm run *` |
 | `"Edit(src/**/*.ts)"` | Allow/deny Edit for TypeScript files in `src/` |
 | `"Bash(git push --force*)"` | Deny force-push specifically |
+
+**Google Antigravity** (`.gemini/antigravity-cli/settings.json`, literal word-prefix matching without trailing ` *` or `/**`, and absolute or `~/` file paths):
+
+| Syntax | Meaning |
+|--------|---------|
+| `"command(git diff)"` | Allow/deny `run_command` calls starting with words `git diff` |
+| `"command(sudo)"` | Deny `sudo` invocations |
+| `"read_file(~/.ssh)"` | Deny `read_file` under `~/.ssh` |
+| `"write_file(/abs/path)"` / `"edit_file(/abs/path)"` | Scope writes/edits to an absolute path prefix |
+
+**Codex** (`.codex/rules/default.rules`, Starlark `prefix_rule` token lists):
+
+```python
+prefix_rule(pattern=["git", "status"], decision="allow")
+prefix_rule(pattern=["sudo"], decision="forbidden")
+```
 
 ## Common Permission Sets
 

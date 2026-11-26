@@ -1,6 +1,7 @@
 ---
 name: create-pr
 description: "Automate PR workflow: stage, commit, branch, push, and open a GitHub PR. Use when ready to submit changes for review. Do NOT use for: code review (use code-reviewer), test creation (use test-writer), or git troubleshooting (resolve conflicts manually first)."
+tools: [read_file, run_command]
 subagent: true
 mainAgent: true
 model: inherit

@@ -1,6 +1,7 @@
 ---
 name: ml-engineer
 description: "ML/AI architecture, model training, deployment, and optimization. Use when designing ML pipelines, fine-tuning models, or deploying inference services. Do NOT use for: data infrastructure pipelines without ML context (use data-engineer), general system architecture (use architecture-specialist), or research methodology (use research-analyst)."
+tools: [read_file, run_command]
 subagent: true
 mainAgent: true
 model: inherit

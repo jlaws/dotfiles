@@ -100,7 +100,7 @@ Use `find-polluter.sh` in the skill directory, one level above this reference. R
 project under test, using its installed path:
 
 ```bash
-bash ~/.agents/skills/debugging-methodology/find-polluter.sh 'tmp/unexpected-test-output' 'src/**/*.test.ts'
+bash ~/.gemini/antigravity-cli/skills/debugging-methodology/find-polluter.sh 'tmp/unexpected-test-output' 'src/**/*.test.ts'
 ```
 
 Runs tests one-by-one, stops at first polluter. Requires Bash, Python 3 (stdlib), and npm. A quoted

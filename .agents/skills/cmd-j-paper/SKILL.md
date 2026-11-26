@@ -13,8 +13,11 @@ If no arguments provided, ask what the user wants to do (init a new paper, edit 
 
 Load skills, in order:
 
-1. `verification-before-completion`: required before claiming "compiles cleanly" or "no errors"
+1. `analysis-output-patterns`: output structure rules
 2. `output-completeness`: for any generated section, template, or table (no truncation)
+
+"Compiles cleanly" means the build log shows it. LaTeX exits zero on plenty of broken output, so read the
+log for errors, undefined references, and overfull boxes rather than trusting the exit code. Use `verification-before-completion` when reporting readiness or build outcomes.
 
 Read the canonical reference before responding: `~/.agents/references/research/latex-paper-writing.md` (venue specs, preamble template, gotchas).
 Before writing or revising prose (abstract, sections, captions, rebuttals), read `~/.agents/references/documentation/ai-writing-tells.md` and finish with its Revision Pass.
@@ -109,5 +112,5 @@ Output a checklist: PASS / FAIL / NEEDS-REVIEW per item.
 - **~/.agents/references/research/paper-analysis-methodology.md**: when reading cited papers in depth
 - **agent:research-analyst**: for literature surveys or deep reading of cited papers, delegate to the `research-analyst` agent (it loads `~/.agents/references/research/`); verify its output
 - **skill:analysis-output-patterns**: output structure rules
-- **skill:verification-before-completion**: required before claiming compile-clean / submission-ready
+- **skill:verification-before-completion**: verdict grammar and evidence hierarchy when reporting readiness or build outcomes
 - **skill:output-completeness**: required when generating templates, sections, or tables

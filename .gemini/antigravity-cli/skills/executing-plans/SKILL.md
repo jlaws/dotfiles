@@ -80,7 +80,7 @@ After each batch, present evidence artifacts - not summaries:
 After all tasks are done and verified:
 - Run full test suite one final time
 - Validate documentation with the `documentation-validation` skill - product docs and KB self-docs current, or N/A with reason
-- Run the diff-review command (`$cmd-j-diff-review` in Codex, /j-diff-review in Gemini) on the branch and follow it through Step 7: it fixes what it finds, files large and unrelated items in the repository's tracker, opens the PR or pushes to the open one, and reports the PR URL and whether another PR remains
+- Run `/j-diff-review` on the branch and follow it through Step 7: it fixes what it finds, files large and unrelated items in the repository's tracker, opens the PR or pushes to the open one, and reports the PR URL and whether another PR remains
 
 A completed unit of plan work ends in a pull request, opened without being asked. For a plan with PR
 boundaries, that is the end of each boundary, not just the last one - push the PR, then wait for review

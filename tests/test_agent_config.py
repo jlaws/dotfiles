@@ -191,6 +191,7 @@ LADDER_CONSUMERS = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "code-quality" / "SKILL.md",
     REPO / ".claude" / "agents" / "code-reviewer.md",
     REPO / ".claude" / "commands" / "j-diff-review.md",
+    REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
     REPO / ".gemini" / "config" / "agents" / "code-reviewer.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
 )
@@ -239,6 +240,7 @@ SIMPLIFIED_SANCTION_SURFACES = (
     REPO / ".gemini" / "antigravity-cli" / "skills" / "code-quality" / "SKILL.md",
     REPO / ".claude" / "agents" / "code-reviewer.md",
     REPO / ".claude" / "commands" / "j-diff-review.md",
+    REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
     REPO / ".gemini" / "config" / "agents" / "code-reviewer.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
 )
@@ -279,7 +281,8 @@ ALWAYS_LOADED_CEILINGS = {
 # `gpt-6-astra`; matching only `vendor` + digit would miss every current Claude ID. A digit is
 # required, which keeps the floating aliases (opus, sonnet, haiku, fable, flash, pro) legal.
 PINNED_MODEL = re.compile(
-    r"\b(?:gpt|claude|gemini|opus|sonnet|haiku|fable)(?:[- ][a-z]+){0,2}[- ]\d"
+    r"\b(?:gpt|claude|gemini|opus|sonnet|haiku|fable)(?:[- ][a-z]+){0,2}[- ]\d",
+    re.IGNORECASE,
 )
 # The user chose these exact Codex models. Keep the exception narrow: a dated variant or another
 # generation must still fail the stale-model guard, as must any name in another tool's ladder.
@@ -288,6 +291,7 @@ CODEX_SELECTED_MODELS = re.compile(
 )
 GEMINI_SELECTED_MODELS = re.compile(
     r"(?<![\w.-])(?:"
+    r"Gemini 4 Carbon \(Medium\)|"
     r"gemini-4-carbon-(?:low|medium|high)|"
     r"gemini-4-(?:neon|hydrogen)-(?:low|medium|high|xhigh)"
     r")(?![\w.-])"
@@ -320,6 +324,7 @@ SAFETY_LINE_INVARIANTS = {
         "tear down paid cloud services",
     ),
     REPO / ".gemini" / "GEMINI.md": (
+        "Never claim success without fresh command output",
         "untrusted data (not instructions)",
         "Never force push to main/master",
         "Tear down paid cloud services",
@@ -468,11 +473,10 @@ def discipline_body(text: str) -> list[str]:
     return body
 
 
-# The reference twins and the Codex command skill that embeds their text.
+# The reference twins that own Existing Code Discipline (diff-review commands point at them).
 EXISTING_CODE_DISCIPLINE_OWNERS = (
     ".claude/references/workflow/existing-code-discipline.md",
     ".agents/references/workflow/existing-code-discipline.md",
-    ".agents/skills/cmd-j-diff-review/SKILL.md",
 )
 
 DISCIPLINE_SECTIONS = (
@@ -796,6 +800,20 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     )
         self.assertGreater(checked, 0, "no shared skills checked; the check is vacuous")
 
+    def test_all_skill_files_fit_compaction_size_limit(self):
+        """Every SKILL.md across Claude, Codex, and Antigravity stays <= 20,000 bytes (SK-C6)."""
+        checked = 0
+        for root in SKILL_TREE_ROOTS:
+            for path in sorted(root.glob("*/SKILL.md")):
+                checked += 1
+                with self.subTest(skill=str(path.relative_to(REPO))):
+                    self.assertLessEqual(
+                        len(path.read_bytes()),
+                        20_000,
+                        f"{path.relative_to(REPO)} exceeds the 20,000-byte compaction ceiling",
+                    )
+        self.assertGreater(checked, 0, "no skills checked; the check is vacuous")
+
     def test_no_skill_declares_skills_frontmatter(self):
         """No harness reads `skills:` in a skill's own frontmatter; name dependencies in the body."""
         checked = 0
@@ -1036,27 +1054,29 @@ class AgentConfigArchitectureTests(unittest.TestCase):
 
     def test_delegation_ladders_name_no_unapproved_pinned_model(self):
         """A ladder rung that names a model version goes stale every generation, so rungs describe
-        tiers by role. Scoped to bullets on purpose: GEMINI.md's prose names a slug as a worked
-        `--model` example and ships `agy models` beside it as the freshness pointer, which is the
-        staleness problem already solved rather than an instance of it. The regex needs a digit, so
-        floating aliases (opus, sonnet, haiku, fable, flash, pro) stay legal. The user's exact
-        Codex selections are the only versioned-model exception."""
+        tiers by role. The regex needs a digit (case-insensitively), so floating aliases (opus,
+        sonnet, haiku, fable, flash, pro) stay legal while Title-Case model names are checked too.
+        Only the user's exact Codex (`CODEX_SELECTED_MODELS`) and Gemini (`GEMINI_SELECTED_MODELS`)
+        selections are allowed."""
         for path in ALWAYS_LOADED_CEILINGS:
             lines = path.read_text(encoding="utf-8").splitlines()
             if path == REPO / ".codex" / "AGENTS.md":
                 lines = [CODEX_SELECTED_MODELS.sub("", line) for line in lines]
             elif path == REPO / ".gemini" / "GEMINI.md":
                 lines = [GEMINI_SELECTED_MODELS.sub("", line) for line in lines]
+            check_all_lines = path == REPO / ".gemini" / "GEMINI.md"
             pinned = [
                 line
                 for line in lines
-                if line.lstrip().startswith(("-", "*")) and PINNED_MODEL.search(line)
+                if (check_all_lines or line.lstrip().startswith(("-", "*")))
+                and PINNED_MODEL.search(line)
             ]
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertEqual(pinned, [], f"{path.name} pins an unapproved model version")
 
     def test_gemini_model_allowlist_matches_only_exact_selected_names(self):
         for name in (
+            "Gemini 4 Carbon (Medium)",
             "gemini-4-carbon-low",
             "gemini-4-carbon-medium",
             "gemini-4-carbon-high",
@@ -1076,14 +1096,22 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             "gemini-4-argon-medium",
             "gemini-4-carbon-xhigh",
             "gemini-4-neon-2026-11",
+            "gemini-4-neon-medium-2026-11",
+            "gemini-4-carbon-medium.1",
+            "my-gemini-4-carbon-low",
+            "Gemini 4 Argon (Medium)",
+            "Gemini 3.8 Pro",
             "gemini-1.5-pro",
             "gemini-4-carbon",
         ):
             with self.subTest(name=name):
+                self.assertEqual(GEMINI_SELECTED_MODELS.sub("", name), name)
                 self.assertIsNotNone(PINNED_MODEL.search(GEMINI_SELECTED_MODELS.sub("", name)))
 
     def test_antigravity_default_settings(self):
-        agy = json.loads((REPO / ".gemini" / "antigravity-cli" / "settings.json").read_text())
+        agy = json.loads(
+            (REPO / ".gemini" / "antigravity-cli" / "settings.json").read_text(encoding="utf-8")
+        )
         self.assertEqual(agy.get("$schema"), "https://antigravity.google/schemas/v1/settings.json")
         self.assertEqual(agy.get("model"), "Gemini 4 Carbon (Medium)")
         self.assertIs(agy.get("showFeedbackSurvey"), False)
@@ -1928,20 +1956,39 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertGreater(len(agents), 0, "must have Gemini agents in .gemini/config/agents")
         for path in agents:
             with self.subTest(path=path.relative_to(REPO)):
-                self.assertRegex(path.read_text(), GEMINI_INHERIT)
+                self.assertRegex(path.read_text(encoding="utf-8"), GEMINI_INHERIT)
 
     def test_antigravity_agents_have_valid_frontmatter(self):
-        """All Antigravity agents in .gemini/config/agents/ must declare subagent: true and mainAgent: true."""
+        """All Antigravity agents in .gemini/config/agents/ declare subagent/mainAgent: true and valid tools."""
+        valid_tools = {"read_file", "write_file", "edit_file", "run_command", "search_web"}
+        writer_agents = {"documentation-writer", "test-writer"}
+        web_agents = {"research-analyst"}
         agents_dir = REPO / ".gemini" / "config" / "agents"
         agents = sorted(agents_dir.glob("*.md"))
         self.assertGreater(len(agents), 0, "must have Antigravity agents in .gemini/config/agents")
         for agent_file in agents:
-            content = agent_file.read_text()
+            fm = frontmatter_block(agent_file)
             name = re.compile(rf"^name: {re.escape(agent_file.stem)}$", re.MULTILINE)
-            self.assertIn("subagent: true", content, f"{agent_file.name} missing subagent: true")
-            self.assertIn("mainAgent: true", content, f"{agent_file.name} missing mainAgent: true")
-            self.assertRegex(content, name, f"{agent_file.name} name does not match its filename")
-            self.assertRegex(content, GEMINI_DESCRIPTION, f"{agent_file.name} description is empty")
+            tools_match = re.search(r"^tools:\s*\[([^\]]+)\]\s*$", fm, re.MULTILINE)
+            with self.subTest(agent=agent_file.stem):
+                self.assertIn("subagent: true", fm, f"{agent_file.name} missing subagent: true")
+                self.assertIn("mainAgent: true", fm, f"{agent_file.name} missing mainAgent: true")
+                self.assertRegex(fm, name, f"{agent_file.name} name does not match its filename")
+                self.assertRegex(fm, GEMINI_DESCRIPTION, f"{agent_file.name} description is empty")
+                self.assertIsNotNone(tools_match, f"{agent_file.name} missing inline tools: [...]")
+                assert tools_match is not None
+                tools = [item.strip() for item in tools_match.group(1).split(",") if item.strip()]
+                self.assertEqual(len(tools), len(set(tools)), f"{agent_file.name} duplicate tools")
+                self.assertTrue(
+                    set(tools).issubset(valid_tools),
+                    f"{agent_file.name} declares unsupported Antigravity tools: {tools}",
+                )
+                expected = {"read_file", "run_command"}
+                if agent_file.stem in writer_agents:
+                    expected |= {"write_file", "edit_file"}
+                if agent_file.stem in web_agents:
+                    expected.add("search_web")
+                self.assertEqual(set(tools), expected, f"{agent_file.name} unexpected tool grant")
 
     def test_gemini_agent_skill_loads_are_scoped_and_consistent(self):
         verdict_agents = {
@@ -1951,54 +1998,102 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             "security-reviewer",
         }
         agents_dir = REPO / ".gemini" / "config" / "agents"
+        claude_agents_dir = REPO / ".claude" / "agents"
+        gemini_skills_dir = REPO / ".gemini" / "antigravity-cli" / "skills"
         agents = sorted(agents_dir.glob("*.md"))
         self.assertGreater(len(agents), 0)
         with_vbc = set()
         for agent_file in agents:
             text = agent_file.read_text(encoding="utf-8")
-            fm = frontmatter_block(agent_file)
-            fm_skills = re.findall(r"^\s*-\s+([a-z0-9-]+)\s*$", fm, re.MULTILINE)
-            body = text.split("---\n", 2)[2]
-            match = re.search(
-                r"Before responding, load (?:these skills|this skill)[^\n]*`~/.gemini/antigravity-cli/skills/`:\n((?:- [a-z0-9-]+\n)+)",
+            fm_match = FRONTMATTER_BLOCK.match(text)
+            self.assertIsNotNone(fm_match, f"{agent_file.name}: missing frontmatter")
+            assert fm_match is not None
+            fm = fm_match.group(1)
+            skills_block = re.search(r"(?m)^skills:\n((?:  - [^\n]+\n?)+)", fm)
+            body = text[fm_match.end() :]
+            body_match = re.search(
+                r"Before responding, load (?:these skills|this skill)[^\n]*`~/.gemini/antigravity-cli/skills/`:\n((?:- [^\n]+\n?)+)",
                 body,
             )
+            claude_fm = frontmatter_block(claude_agents_dir / agent_file.name)
+            claude_block = re.search(r"(?m)^skills:\n((?:  - [^\n]+\n?)+)", claude_fm)
             with self.subTest(agent=agent_file.stem):
-                self.assertIsNotNone(match, f"{agent_file.name}: missing Antigravity skill block")
-                assert match is not None
-                body_skills = [line[2:].strip() for line in match.group(1).strip().splitlines()]
+                self.assertIsNotNone(skills_block, f"{agent_file.name}: missing skills: block")
+                self.assertIsNotNone(body_match, f"{agent_file.name}: missing body skill block")
+                self.assertIsNotNone(claude_block, f"{agent_file.name}: missing Claude skills:")
+                assert (
+                    skills_block is not None and body_match is not None and claude_block is not None
+                )
+                fm_skills = [
+                    line.strip()[2:].strip() for line in skills_block.group(1).strip().splitlines()
+                ]
+                body_skills = [
+                    line.strip()[2:].strip() for line in body_match.group(1).strip().splitlines()
+                ]
+                claude_skills = [
+                    line.strip()[2:].strip() for line in claude_block.group(1).strip().splitlines()
+                ]
                 self.assertEqual(
-                    set(body_skills),
-                    set(fm_skills),
+                    body_skills,
+                    fm_skills,
                     f"{agent_file.name}: body skill list {body_skills} != frontmatter {fm_skills}",
                 )
+                self.assertEqual(
+                    len(fm_skills), len(set(fm_skills)), f"{agent_file.name}: duplicate skill"
+                )
+                for skill in fm_skills:
+                    self.assertRegex(
+                        skill, r"^[a-z0-9-]+$", f"{agent_file.name}: invalid {skill!r}"
+                    )
+                    self.assertTrue(
+                        (gemini_skills_dir / skill / "SKILL.md").is_file(),
+                        f"{agent_file.name}: skill {skill!r} missing from .gemini/antigravity-cli/skills",
+                    )
+                self.assertEqual(set(fm_skills), set(claude_skills))
             if "verification-before-completion" in text:
                 with_vbc.add(agent_file.stem)
         self.assertEqual(with_vbc, verdict_agents)
 
-    def test_gemini_command_skills_omit_claude_only_tools(self):
-        commands = sorted((REPO / ".gemini" / "antigravity-cli" / "skills").glob("j-*/SKILL.md"))
-        self.assertGreater(len(commands), 0)
-        banned = (
-            "`Explore` agent",
-            "plan-mode plan file",
-            "WebFetch",
-            "Glob(",
-            "Grep/Glob",
-            "`Edit`/`Write`",
+    def test_gemini_assets_omit_foreign_and_retired_tool_names(self):
+        skills = sorted((REPO / ".gemini" / "antigravity-cli" / "skills").glob("*/SKILL.md"))
+        agents = sorted((REPO / ".gemini" / "config" / "agents").glob("*.md"))
+        self.assertGreater(len(skills), 0)
+        self.assertGreater(len(agents), 0)
+        banned_patterns = (
+            re.compile(r"`Explore`"),
+            re.compile(r"plan-mode plan file"),
+            re.compile(r"\bWebFetch\b"),
+            re.compile(r"\bWebSearch\b"),
+            re.compile(r"\bAskUserQuestion\b"),
+            re.compile(r"\bGlob\b"),
+            re.compile(r"\bGrep\b"),
+            re.compile(r"`Edit`"),
+            re.compile(r"`Write`"),
+            re.compile(r"\brun_shell_command\b"),
+            re.compile(r"\bgrep_search\b"),
+            re.compile(r"\bgoogle_web_search\b"),
+            re.compile(r"\bweb_fetch\b"),
         )
-        for path in commands:
-            collapsed = " ".join(path.read_text(encoding="utf-8").split())
-            for phrase in banned:
-                with self.subTest(command=path.parent.name, phrase=phrase):
-                    self.assertNotIn(phrase, collapsed)
+        for path in (*skills, *agents):
+            text = path.read_text(encoding="utf-8")
+            if path.parent.name == "skill-audit":
+                # skill-audit explicitly names foreign/retired tools as audit defects to flag.
+                text = "\n".join(
+                    ln for ln in text.splitlines() if "Stale model or tool facts" not in ln
+                )
+            collapsed = " ".join(text.split())
+            for pattern in banned_patterns:
+                with self.subTest(asset=str(path.relative_to(REPO)), pattern=pattern.pattern):
+                    self.assertIsNone(pattern.search(collapsed))
 
     def test_antigravity_permissions_cover_claude_baseline(self):
         """Antigravity settings.json permissions must cover all Claude allowed commands and denied paths."""
-        claude_settings = json.loads((REPO / ".claude" / "settings.json").read_text())
+        claude_settings = json.loads(
+            (REPO / ".claude" / "settings.json").read_text(encoding="utf-8")
+        )
         agy_settings_path = REPO / ".gemini" / "antigravity-cli" / "settings.json"
         self.assertTrue(agy_settings_path.is_file(), "antigravity-cli/settings.json must exist")
-        agy_settings = json.loads(agy_settings_path.read_text())
+        agy_settings = json.loads(agy_settings_path.read_text(encoding="utf-8"))
 
         claude_allow = set(claude_settings.get("permissions", {}).get("allow", []))
         agy_allow = set(agy_settings.get("permissions", {}).get("allow", []))
@@ -2375,6 +2470,9 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         for rel in EXISTING_CODE_DISCIPLINE_OWNERS[1:]:
             with self.subTest(owner=rel):
                 self.assertEqual(bodies[source], bodies[rel], f"{rel} has drifted from {source}")
+        for path in DIFF_REVIEW_DISPATCHERS:
+            with self.subTest(dispatcher=str(path.relative_to(REPO))):
+                self.assertIn("existing-code-discipline.md", path.read_text(encoding="utf-8"))
 
     def test_design_first_and_writing_plans_reach_the_taxonomy(self):
         """A recommended answer makes a question cheap to answer; the filter is what keeps the
@@ -2406,10 +2504,10 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             "owner lists shrank; the check is vacuous",
         )
 
-    def test_shared_skills_are_byte_identical_in_the_gemini_tree(self):
-        """Gemini loads its own copy of every shared skill and nothing rewrites them on sync, so
-        the pair is supposed to be the same bytes. `cmd-j-*` is excluded: those are commands, and
-        each harness adapts their body. A convention 30 skills keep and no test held."""
+    def test_gemini_skills_ship_the_same_supporting_files_as_agents_skills(self):
+        """Codex (.agents/skills/) and Antigravity (.gemini/antigravity-cli/skills/) adapt their
+        SKILL.md and reference prose to each harness, while shipping the exact same supporting
+        file set (scripts, templates, references) per workflow skill."""
         agents_skills = REPO / ".agents" / "skills"
         gemini_skills = REPO / ".gemini" / "antigravity-cli" / "skills"
         compared = 0
@@ -2418,22 +2516,43 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             name = skill_dir.name
             if name.startswith("cmd-j-"):
                 continue
-            # Every file ships to Gemini, not just SKILL.md: a skill's references drift the same way.
-            for source in sorted(path for path in skill_dir.rglob("*") if path.is_file()):
-                rel = source.relative_to(agents_skills)
-                mirror = gemini_skills / rel
-                with self.subTest(file=str(rel)):
-                    self.assertTrue(mirror.is_file(), f"{rel} has no Gemini copy")
-                    self.assertEqual(
-                        source.read_bytes(),
-                        mirror.read_bytes(),
-                        f"{rel}: the .agents and .gemini copies have diverged",
-                    )
-                if source.name != "SKILL.md":
-                    supporting += 1
+            gemini_dir = gemini_skills / name
+            agents_files = {
+                path.relative_to(skill_dir) for path in skill_dir.rglob("*") if path.is_file()
+            }
+            gemini_files = {
+                path.relative_to(gemini_dir) for path in gemini_dir.rglob("*") if path.is_file()
+            }
+            with self.subTest(skill=name):
+                self.assertEqual(
+                    agents_files,
+                    gemini_files,
+                    f"{name}: supporting file set differs between .agents and .gemini",
+                )
+            supporting += len(agents_files - {"SKILL.md"})
             compared += 1
-        self.assertGreater(compared, 0, "no shared skills compared; the check is vacuous")
+        self.assertGreater(compared, 0, "no workflow skills compared; the check is vacuous")
         self.assertGreater(supporting, 0, "no supporting files compared; the rglob is vacuous")
+
+    def test_gemini_skill_descriptions_are_one_quoted_line(self):
+        """Antigravity skills carry a single-line quoted description (<= 1,024 chars) without
+        Codex's 64-character budget (owner: .gemini/antigravity-cli/skills/writing-skills/SKILL.md)."""
+        checked = 0
+        for path in sorted((REPO / ".gemini" / "antigravity-cli" / "skills").glob("*/SKILL.md")):
+            line = next(
+                (x for x in frontmatter_block(path).splitlines() if x.startswith("description:")),
+                "",
+            )
+            value = line[len("description:") :].strip()
+            checked += 1
+            with self.subTest(skill=path.parent.name):
+                self.assertRegex(
+                    value, r'^"[^"]+"$', f"{path.parent.name}: one non-empty quoted line"
+                )
+                self.assertLessEqual(
+                    len(value) - 2, 1024, f"{path.parent.name}: over 1,024 characters"
+                )
+        self.assertGreater(checked, 0, "no Gemini skills checked; the check is vacuous")
 
     def test_fix_loops_stop_after_two_rounds(self):
         """Fix loops end after two open rounds and halt rather than mark the task done.

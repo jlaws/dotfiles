@@ -2,7 +2,7 @@
 
 ## Antigravity Conventions
 - Slash commands: `~/.gemini/antigravity-cli/skills/j-*/SKILL.md` (native `/j-*` skills; `$cmd-j-*` in `~/.agents/skills/` is for Codex)
-- Subagents: `~/.gemini/config/agents/*.md` (`subagent: true`, `mainAgent: true`, `model: inherit`)
+- Subagents: `~/.gemini/config/agents/*.md` (`subagent: true`, `mainAgent: true`, `model: inherit`, explicit `tools:`)
 - Global skills: `~/.gemini/antigravity-cli/skills/<name>/SKILL.md`
 - Settings & permissions: `~/.gemini/antigravity-cli/settings.json`
 - References: `~/.agents/references/` (read on demand via `read_file`)
@@ -72,7 +72,7 @@ Every specialist agent in `~/.gemini/config/agents/` declares `model: inherit` s
 - **Neon** (`gemini-4-neon-low`, `gemini-4-neon-medium`, `gemini-4-neon-high`, `gemini-4-neon-xhigh`): balanced frontier engineering bridging deep reasoning with faster turnaround across multi-file changes.
 - **Hydrogen** (`gemini-4-hydrogen-low`, `gemini-4-hydrogen-medium`, `gemini-4-hydrogen-high`, `gemini-4-hydrogen-xhigh`): speed-optimized execution for bounded edits, boilerplate, and mechanical tasks.
 - **Orchestrator** (`Orchestrator (Carbon)` / `gemini-pro-orchestrator`, `Orchestrator (Neon)` / `gemini-pro-orchestrator-neon`): pairs a Carbon or Neon planner with a Hydrogen executor in one session, handing control back to the planner when verification fails (effort is fixed server-side; `/effort` and `--effort` do not apply).
-- **`invoke_subagent` tiers**: keep `Model: "inherit"` by default; pass `flash` or `flash_lite` only when explicitly requested for bounded/high-volume tasks (per-worker named Gemini 4 slugs apply only inside `/swarm`).
+- **`invoke_subagent` tiers**: keep `Model: "inherit"` by default; pass `flash` or `flash_lite` only when explicitly requested for bounded/high-volume tasks (per-worker named model slugs apply only inside `/swarm`).
 
 Caps:
 - A subagent doing bulk mechanical work never spawns further subagents: if it needs to, the task was wrong-sized.

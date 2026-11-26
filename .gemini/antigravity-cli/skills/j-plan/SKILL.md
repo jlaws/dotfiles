@@ -56,7 +56,7 @@ depends on it, so this does not run in parallel with Step 2.
 - **Architecture diagnostics**: project shape from config files and directory structure (monolith,
   services, serverless); API patterns from route definitions, `openapi.yaml`, `swagger`, or GraphQL
   schemas.
-- **Prior art**: Glob `docs/`, `doc/`, `design/`, `adr/`, `adrs/`, `architecture/`, root `*.md`, and
+- **Prior art**: Search (`rg --files`) across `docs/`, `doc/`, `design/`, `adr/`, `adrs/`, `architecture/`, root `*.md`, and
   `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`. Filter in two passes: by filename and path first,
   then by grepping contents for spec keywords for the ambiguous ones. Discard the clearly unrelated.
   Planning against a spec whose decisions were already settled in an ADR is the failure this prevents.

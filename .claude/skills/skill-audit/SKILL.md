@@ -171,15 +171,16 @@ is the evidence for that call where the asset is a skill, agent, or command.
 
 ## Tree layout
 
-`.agents/` is the Codex and Gemini source for shared skills and references. Codex commands use the
-canonical `.agents/skills/cmd-j-*` skills; Claude commands and Gemini command skills have native
-counterparts. Each tool owns its native agent definitions. Deprecated Codex prompt copies are not
-part of the command set.
+`.agents/` holds Codex workflow and `cmd-j-*` command skills plus the shared Codex and Antigravity
+reference tree, and `.gemini/antigravity-cli/skills/` holds Antigravity workflow and `j-*` command
+skills. Claude commands, skills, agents, and references live under `.claude/`, and each tool owns its
+native agent definitions. Deprecated Codex prompt copies are not part of the command set.
 
-**`.claude/` has intentionally diverged.** Its skill and reference bodies are written for the Claude 5
-generation and no longer mirror `.agents/`. Body and description differences between the two trees are
-expected and are not findings. A parity test, named in the repo's own CLAUDE.md where one exists, pins
-which assets exist in each tree, with single-tree assets declared explicitly. Reference twins also
+**Skill and reference bodies intentionally diverge per harness.** `.claude/`, `.agents/skills/`, and
+`.gemini/antigravity-cli/skills/` adapt prose, tool names, and descriptions to Claude 5, Codex (GPT-6.2),
+and Antigravity (Gemini 4). Body and description differences across trees are expected and are not
+findings. Parity tests, named in the repo's own CLAUDE.md where one exists, pin which assets (and
+supporting files) exist in each tree, with single-tree assets declared explicitly. Reference twins also
 expose the same ordered headings.
 
 Still worth checking by hand, because no test covers it:

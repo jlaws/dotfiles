@@ -49,7 +49,7 @@ For each doc file, cross-reference its content against the changed files to iden
 
 ## Step 5: Present for Approval
 
-Run as a standalone sweep (`/j-doc-sync` or `$cmd-j-doc-sync`): show a diff preview for each doc file
+Run as a standalone sweep (`$cmd-j-doc-sync`): show a diff preview for each doc file
 and wait for explicit approval before committing. Run inside a plan or a diff review that already owns
 the commit: apply the edits and let that workflow commit them.
 
