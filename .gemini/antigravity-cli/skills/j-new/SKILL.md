@@ -1,6 +1,6 @@
 ---
 name: j-new
-description: "Scaffold a new .claude/ command, skill, or agent with correct structure and best practices. Use when creating any new .claude/ asset. Do NOT use for editing existing assets (edit directly)."
+description: "Scaffold a new command, skill, or agent with correct structure and best practices. Use when creating a new agent asset. Do NOT use for editing existing assets (edit directly)."
 ---
 
 # New
@@ -25,26 +25,16 @@ A name must be lowercase letters, numbers, and single internal hyphens, and must
 
 Ask for a one-line purpose for every type; it drives the description. Then, by type:
 
-**Command:** does it take arguments (and what should `argument-hint` say)? Which skills does it invoke,
+**Command:** what input does it take, and what is the fallback when no input is supplied? Which skills does it invoke,
 and which agents does it delegate to? List candidates with `Glob("~/.gemini/antigravity-cli/skills/*/SKILL.md")` and
 `Glob("~/.gemini/config/agents/*.md")`.
 
-**Skill:** does it run a bundled script that must run without a prompt (then plan a scoped grant on that script, never bare `Bash`, `Write`, or `Edit`)? Does it depend on other skills? Should
-Claude invoke it automatically, or only the user (`disable-model-invocation: true`)? Does it apply only
-to certain files (`paths:`)?
+**Skill:** does it run a bundled script, and what file operations does it need? Does it depend on other skills? Should it load from task matching, or only from an explicit invocation? Keep tool permissions and invocation policy in the owning tool's supported configuration, outside shared skill frontmatter.
 
 **Agent:** which tools, which skills to preload, and which `~/.agents/references/` categories should it
 consult (`Glob("~/.agents/references/*/")`)? Leave persistent memory unset: agents here are dispatched with a frozen, report-only packet.
 
-Leave `model` unset on commands and inline skills. They run inside the conversation, so a `model`
-other than the session's makes that turn a model switch, and the switch re-reads the whole history
-uncached. Agents and `context: fork` skills start a fresh context, so a tier pin costs no cache
-there; use an alias (`opus`, `sonnet`, `haiku`, `fable`) or `inherit`, never a pinned ID, because
-aliases float across model generations (this tree's agents use `inherit`). Set `effort` on a command or inline skill only to lower it (`low`, `medium`) for reliably cheap,
-procedural work; otherwise leave it unset so it runs at the session's effort. Raising it buys little for its cost. The lowered tiers are set by judgment, not
-measured. On first-party Claude models that support per-message effort, an override keeps the
-prompt cache; on Bedrock, Vertex, and gateways it re-reads the history, so skip it there when the
-gain is marginal.
+Gemini role definitions use `model: inherit`. Codex TOML roles omit both `model` and `model_reasoning_effort`; the caller selects them for the assigned task at dispatch. Preserve each tool's native role requirements. Shared and Gemini skill frontmatter carries only `name` and `description`.
 
 ## Phase 3: Draft the description
 
@@ -64,7 +54,7 @@ Paths are flat. There are no category subdirectories:
 
 | Type | Path |
 |---|---|
-| Command | `.claude/commands/{name}.md` |
+| Command | `.gemini/antigravity-cli/skills/j-{name}/SKILL.md` |
 | Skill | `~/.gemini/antigravity-cli/skills/{name}/SKILL.md` |
 | Agent | `~/.gemini/config/agents/{name}.md` |
 
@@ -73,14 +63,13 @@ find yourself writing the methodology inline, it belongs in a skill instead:
 
 ```markdown
 ---
-name: {name}
+name: j-{name}
 description: "{description}"
-argument-hint: "{hint}"        # only if it reads $ARGUMENTS
 ---
 
 Load skill `{skill}` before starting.
 
-{Purpose}: $ARGUMENTS
+{Purpose}: the user's provided input
 
 If no arguments provided, {fallback}.
 
@@ -126,6 +115,9 @@ consequence instead.
 name: {name}
 description: "{description}"
 tools: {tools}
+subagent: true
+mainAgent: true
+model: inherit
 skills:
   - {skill}
 ---
@@ -148,7 +140,8 @@ This tree ships no audit script, so walk the rules before writing:
 - `name` matches the skill folder, the command filename, or the agent convention
 - `description` is a trigger, not a workflow summary, and carries no `<` or `>`
 - every skill, agent, and reference the body names resolves to a real file
-- a command body using `$ARGUMENTS` declares `argument-hint`
+- shared and Gemini command skills carry only `name` and `description` in frontmatter
+- Gemini roles use `model: inherit`; Codex TOML roles omit `model` and `model_reasoning_effort`
 - the body carries at least one concrete example, not only prose
 
 Then confirm by judgment: does every section teach something a strong model would otherwise get wrong
@@ -158,11 +151,7 @@ or vague? Cut what does not.
 
 Show the file, get approval, write it, and confirm the path.
 
-Then register it. A new command needs its Codex and Gemini counterparts plus the shared `cmd-j-*` skill;
-a new agent needs native definitions in all three tool trees; a shared workflow skill needs an
-`.agents/skills/` source. `.claude/` skill and reference *bodies* have intentionally diverged from
-`.agents/` and are not kept in sync; only the asset sets are. Where a parity test guards those
-sets, the repo's own CLAUDE.md names it; declare any single-tree asset in that test's exception list.
+Then register it. A new command needs its native Claude command, Gemini command skill, and shared `cmd-j-*` skill. That shared skill is the Codex command; do not create a Codex prompt fallback. Preserve explicit-only Codex command policy in its `agents/openai.yaml`. A new agent needs native definitions in all three tool trees. Shared non-command skills must match their Gemini copies byte-for-byte. Claude skill bodies may differ; shared reference twins must expose the same headings. Where a parity test guards asset sets, the repo's own CLAUDE.md names it; declare any single-tree asset in that test's exception list.
 
 Update the GEMINI.md Knowledge Base Structure section if a new asset directory was added, then run the repo's
 lint and test commands. See `documentation-validation`.
@@ -175,21 +164,14 @@ cases for a skill or command, effect cases for an agent). Offer to run its smoke
 | Field | Command | Skill | Agent |
 |-------|---------|-------|-------|
 | `name`, `description` | Required | Required | Required |
-| `argument-hint` | If `$ARGUMENTS` | Optional | N/A |
-| `allowed-tools` / `disallowed-tools` | Optional; scoped grants only | Optional; scoped grants only | N/A |
 | `tools` | N/A | N/A | Recommended |
 | `skills` | N/A | N/A (name dependencies in the body) | Optional (preload) |
-| `model` | Avoid | Only with `context: fork` | Alias or `inherit` |
-| `effort` | Lower only (`low`, `medium`) | Lower only inline; any with `context: fork` | Optional |
-| `paths` | N/A | Optional | N/A |
-| `disable-model-invocation`, `user-invocable` | Optional; `true` for a side-effect command no skill or coordinator invokes | Optional | N/A |
-| `context: fork`, `agent` | N/A | Optional | N/A |
-| `memory` | N/A | N/A | Avoid; see `code-agent-meta-patterns`, Agent memory |
-| `color`, `maxTurns`, `permissionMode` | N/A | N/A | Optional |
+| `model` | Omit | Omit | `inherit` |
+| `subagent`, `mainAgent` | N/A | N/A | `true` |
 
-A skill under `.gemini/antigravity-cli/skills/` or `.agents/skills/` carries only `name` and `description`; the other Skill-column rows apply to `.claude/skills/`.
+A skill under `.gemini/antigravity-cli/skills/` or `.agents/skills/` carries only `name` and `description`. Codex explicit-only invocation policy lives in `agents/openai.yaml` with `policy.allow_implicit_invocation: false`.
 
-Valid tool names: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch, NotebookEdit, Agent, Skill. Write `Agent`, not its retired name `Task`.
+Use only tool names supported by the target harness; do not copy Claude-only fields into shared or Gemini skills.
 
 Field semantics: `writing-skills`, SKILL.md Structure.
 

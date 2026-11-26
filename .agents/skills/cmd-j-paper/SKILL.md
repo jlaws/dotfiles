@@ -11,6 +11,11 @@ If no arguments provided, ask what the user wants to do (init a new paper, edit 
 
 ## Setup (always do first)
 
+Load skills, in order:
+
+1. `verification-before-completion`: required before claiming "compiles cleanly" or "no errors"
+2. `output-completeness`: for any generated section, template, or table (no truncation)
+
 Read the canonical reference before responding: `~/.agents/references/research/latex-paper-writing.md` (venue specs, preamble template, gotchas).
 Before writing or revising prose (abstract, sections, captions, rebuttals), read `~/.agents/references/documentation/ai-writing-tells.md` and finish with its Revision Pass.
 

@@ -1,23 +1,15 @@
 project_doc_fallback_filenames = ["CLAUDE.md", ".agents.md"]
 project_doc_max_bytes = 65536
-model = "gpt-6.1-sol"
+model = "gpt-6.2-astra"
 model_reasoning_effort = "medium"
 plan_mode_reasoning_effort = "xhigh"
 approvals_reviewer = "auto_review"
 
 [agents]
-default_subagent_model = "gpt-6.1-sol"
+default_subagent_model = "gpt-6.2-sol"
 default_subagent_reasoning_effort = "medium"
-max_threads = 6
-max_depth = 3
+max_concurrent_threads_per_session = 6
 
-# Codex reads hooks either here or in .codex/hooks.json. log-prompt.sh synced from day one but was
-# never registered, so it had never fired while its Claude twin was wired the whole time. This
-# matches .claude/settings.json, which also registers UserPromptSubmit and nothing else
-# (see docs/adr/context-efficiency/hooks-do-not-restate-loaded-guidance.md).
-[[hooks.UserPromptSubmit]]
-
-[[hooks.UserPromptSubmit.hooks]]
-type = "command"
-command = "bash ~/.codex/hooks/log-prompt.sh"
-timeout = 5
+[features.multi_agent_v2]
+enabled = true
+expose_spawn_agent_model_overrides = true

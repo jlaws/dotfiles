@@ -96,18 +96,6 @@
     ],
     "defaultMode": "plan"
   },
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/log-prompt.sh"
-          }
-        ]
-      }
-    ]
-  },
   "worktree": {
     "baseRef": "head"
   },

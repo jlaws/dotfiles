@@ -26,6 +26,54 @@ from macos_setup.dotfiles import (
     sync_dotfiles,
 )
 
+RETIRED_CODEX_PROMPTS = (
+    "j-arch.md",
+    "j-audit.md",
+    "j-brainstorm.md",
+    "j-cloud.md",
+    "j-config-audit.md",
+    "j-create-pr.md",
+    "j-data.md",
+    "j-debug.md",
+    "j-defrag.md",
+    "j-devops.md",
+    "j-diff-review.md",
+    "j-doc-sync.md",
+    "j-docs.md",
+    "j-email-analysis.md",
+    "j-email-consolidate.md",
+    "j-execute-plan.md",
+    "j-explain.md",
+    "j-frontend.md",
+    "j-init.md",
+    "j-lang.md",
+    "j-new.md",
+    "j-next.md",
+    "j-observe.md",
+    "j-paper-analysis.md",
+    "j-paper.md",
+    "j-plan.md",
+    "j-pr-fix.md",
+    "j-rebase.md",
+    "j-retro.md",
+    "j-review-claudemd.md",
+    "j-skill-audit.md",
+    "j-system-design.md",
+    "j-tdd.md",
+)
+RETIRED_CODEX_PROMPTS_README = """# Codex Slash Prompts
+
+These markdown files are the Codex slash-command registry.
+
+- Codex discovers custom slash completions from `~/.codex/prompts/`.
+- This repo keeps the active prompt files in `.codex/prompts/`.
+- Filenames match the Claude command names (`j-<name>.md`); Codex prompt discovery is flat.
+
+Sync removes `j-*.md` prompts the repo no longer ships.
+
+After syncing this repo into `~/.codex/`, these prompts should appear in Codex slash completion.
+"""
+
 
 class Sha256Tests(unittest.TestCase):
     def setUp(self):
@@ -647,6 +695,121 @@ class SyncAgentsTests(unittest.TestCase):
 
         self.assertTrue(readme.exists())
 
+    def test_upgrade_retires_prompt_assets_and_rollback_restores_them(self):
+        retired = [
+            self._write_target(f".codex/prompts/{name}", f"old {name}")
+            for name in RETIRED_CODEX_PROMPTS
+        ]
+        retired.extend(
+            [
+                self._write_target(".codex/prompts/README.md", RETIRED_CODEX_PROMPTS_README),
+                self._write_target(".claude/hooks/log-prompt.sh", "old Claude logger"),
+                self._write_target(".codex/hooks/log-prompt.sh", "old Codex logger"),
+            ]
+        )
+        kept = [
+            self._write_target(".codex/prompts/j-personal.md", "my prompt"),
+            self._write_target(".codex/prompts/personal.md", "my prompt"),
+            self._write_target(".claude/hooks/personal.sh", "my hook"),
+            self._write_target(".codex/hooks/personal.sh", "my hook"),
+            self._write_target(".claude/PROMPT_LOG.md", "historical Claude prompts"),
+            self._write_target(".codex/PROMPT_LOG.md.1", "historical Codex prompts"),
+        ]
+        original = {path: path.read_bytes() for path in retired + kept}
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        for path in retired:
+            self.assertFalse(path.exists(), path)
+        for path in kept:
+            self.assertEqual(path.read_bytes(), original[path])
+        removed = {
+            entry["dest"]
+            for entry in self.archive.manifest["files"]
+            if entry["action"] == "removed"
+        }
+        self.assertEqual(removed, {str(path) for path in retired})
+        for entry in self.archive.manifest["files"]:
+            self.assertNotIn("PROMPT_LOG", entry["dest"])
+
+        second_archive = Archive.create(self.tmp / "repeat", "ts2")
+        sync_agents(self.repo, self.target, second_archive)
+        self.assertFalse(
+            any(entry["action"] == "removed" for entry in second_archive.manifest["files"])
+        )
+
+        revert_files(self.archive)
+        for path in retired + kept:
+            self.assertEqual(path.read_bytes(), original[path])
+
+    def test_fresh_sync_does_not_install_retired_prompt_roots(self):
+        # Even a stale source checkout cannot install the retired roots.
+        for relative in (
+            ".claude/hooks/log-prompt.sh",
+            ".codex/hooks/log-prompt.sh",
+            ".codex/prompts/j-plan.md",
+            ".codex/prompts/README.md",
+        ):
+            self._write_repo(relative)
+
+        sync_agents(self.repo, self.target, self.archive)
+
+        for relative in (".claude/hooks", ".codex/hooks", ".codex/prompts"):
+            self.assertFalse((self.target / relative).exists(), relative)
+
+    def test_retired_prompt_cleanup_keeps_symlinked_entries(self):
+        outside = self.tmp / "personal"
+        outside.write_text(RETIRED_CODEX_PROMPTS_README)
+        links = []
+        for relative in (
+            ".claude/hooks/log-prompt.sh",
+            ".codex/hooks/log-prompt.sh",
+            ".codex/prompts/j-plan.md",
+            ".codex/prompts/README.md",
+        ):
+            link = self.target / relative
+            link.parent.mkdir(parents=True, exist_ok=True)
+            link.symlink_to(outside)
+            links.append(link)
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING"):
+            sync_agents(self.repo, self.target, self.archive)
+
+        for link in links:
+            self.assertTrue(link.is_symlink(), link)
+        self.assertEqual(outside.read_text(), RETIRED_CODEX_PROMPTS_README)
+
+    def test_retired_prompt_cleanup_keeps_symlinked_roots(self):
+        outside = self.tmp / "personal"
+        outside.mkdir()
+        (outside / "j-plan.md").write_text("my prompt")
+        (outside / "README.md").write_text(RETIRED_CODEX_PROMPTS_README)
+        (outside / "log-prompt.sh").write_text("my hook")
+        for relative in (".codex/prompts", ".codex/hooks", ".claude/hooks"):
+            link = self.target / relative
+            link.parent.mkdir(parents=True, exist_ok=True)
+            link.symlink_to(outside, target_is_directory=True)
+
+        with self.assertLogs("macos_setup.dotfiles", level="WARNING"):
+            sync_agents(self.repo, self.target, self.archive)
+
+        self.assertEqual((outside / "j-plan.md").read_text(), "my prompt")
+        self.assertEqual((outside / "README.md").read_text(), RETIRED_CODEX_PROMPTS_README)
+        self.assertEqual((outside / "log-prompt.sh").read_text(), "my hook")
+
+    def test_dry_run_previews_retired_prompt_cleanup_without_archiving(self):
+        prompt = self._write_target(".codex/prompts/j-plan.md")
+        readme = self._write_target(".codex/prompts/README.md", RETIRED_CODEX_PROMPTS_README)
+        hook = self._write_target(".claude/hooks/log-prompt.sh")
+
+        with self.assertLogs("macos_setup.dotfiles", level="INFO") as captured:
+            sync_agents(self.repo, self.target, self.archive, dry_run=True)
+
+        for path in (prompt, readme, hook):
+            self.assertTrue(path.exists())
+            self.assertTrue(any(f"would remove {path}" in line for line in captured.output))
+        self.assertEqual(self.archive.manifest["files"], [])
+
     def test_orphan_prune_keeps_a_symlinked_entry(self):
         real = self.tmp / "elsewhere"
         real.mkdir()
@@ -734,7 +897,7 @@ class SyncAgentsTests(unittest.TestCase):
             ".claude/hooks/guard-bash-output.sh", "#!/usr/bin/env bash"
         )
         codex_guard = self._write_target(".codex/hooks/guard-bash-output.sh", "#!/usr/bin/env bash")
-        kept = self._write_target(".claude/hooks/log-prompt.sh", "#!/usr/bin/env bash")
+        kept = self._write_target(".claude/hooks/personal.sh", "#!/usr/bin/env bash")
 
         sync_agents(self.repo, self.target, self.archive)
 
@@ -848,13 +1011,12 @@ class SyncAgentsTests(unittest.TestCase):
         self.assertFalse(later.exists())
         self.assertFalse(hook.exists())
 
-    def test_orphan_globs_cover_the_four_command_trees(self):
+    def test_orphan_globs_cover_the_active_command_trees(self):
         self.assertEqual(
             AGENT_ORPHAN_GLOBS,
             [
                 (".agents/skills", "cmd-j-*"),
                 (".claude/commands", "j-*.md"),
-                (".codex/prompts", "j-*.md"),
                 (".gemini/antigravity-cli/skills", "j-*"),
             ],
         )

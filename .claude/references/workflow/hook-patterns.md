@@ -90,8 +90,8 @@ proving the harness has none.
 | `.codex/` | **hook** | `[[hooks.<Event>]]` in `config.toml` or `hooks.json` | `hookSpecificOutput.additionalContext` |
 | `.gemini/` | **absent** | none | none |
 
-The first two rows state what the harness supports. This configuration registers only
-`UserPromptSubmit` in each.
+The first two rows state what the harness supports. This configuration registers no Claude or
+Codex hooks. Sync removes retired repo-owned logging handlers and preserves unrelated local hooks.
 
 The Gemini row is a property of this configuration: a parity test forbids a `hooks/` directory in
 that tree, the sync step deletes one if it appears, and its settings file carries only

@@ -2,13 +2,13 @@
 status: accepted
 topic: workflow
 created: 2026-11-25
-updated: 2026-11-25
+updated: 2026-11-26
 ---
 # KB reference paths never resolve against the project
 
 ## Context
 
-KB assets (skills, commands, prompts, agent definitions) cite shared references under a home tree:
+KB assets (skills, commands, agent definitions) cite shared references under a home tree:
 `~/.agents/references/` for Codex and Antigravity, `~/.claude/references/` for Claude Code. Many
 assets cite them by a path such as `.agents/references/<category>/<file>.md`. A tool resolves a
 relative path against the session's working directory, which is the user's project. A cloned,
@@ -47,12 +47,14 @@ Each (tree, kind) cites references in one form:
 | Tree and kind | Form | Text in the installed asset |
 |---|---|---|
 | `.agents/skills` and `.gemini/antigravity-cli/skills` | `abs` | `<home>/.agents/references/<category>/` (repo text `~/.agents/references/<category>/`, expanded by sync) |
-| `.codex/agents`, `.codex/prompts` | `abs` | `<home>/.agents/references/<category>/` (repo text `~/.agents/references/<category>/`, expanded by sync) |
+| `.codex/agents` | `abs` | `<home>/.agents/references/<category>/` (repo text `~/.agents/references/<category>/`, expanded by sync) |
 | `.gemini/config/agents` | `abs` | `<home>/.agents/references/<category>/` (repo text `~/.agents/references/<category>/`, expanded by sync) |
 | `.claude/skills` | `sibling` | `${CLAUDE_SKILL_DIR}/../../references/<category>/` |
 | `.claude/commands`, `.claude/agents` | `abs` | `<home>/.claude/references/<category>/` (repo text `~/.claude/references/<category>/`, expanded by sync) |
 
 No asset in any tree cites a reference by a path that resolves against the working directory.
+Codex commands use the canonical shared `$cmd-j-*` skills. Deprecated `.codex/prompts/` copies are
+no longer shipped; the prompt observations below describe the earlier measurement only.
 Two exemptions keep the relative form on purpose: `config-security-audit` (it names project-scope
 surfaces to audit) and the `skill-audit` copies in `.agents` and `.gemini` (they describe the
 repo layout). `tests/test_agent_config.py` lists them by exact path.
@@ -77,7 +79,8 @@ definitions.
 - Codex skills: `sibling` qualified first. Antigravity skills: `sibling` and `bundled` read planted
   files, so `abs` qualified first. The shared skills must stay byte-identical across the two trees,
   so both take `abs`, the first form that qualified in both.
-- Codex agents: `abs` qualified. Codex prompts cannot run headless and take the Codex agent result.
+- Codex agents: `abs` qualified. At measurement time, Codex prompts could not run headless and took
+  the Codex agent result; those prompt copies have since been retired.
 - Antigravity agents: `abs` read home in 2 of 3; the third session died on an account quota error
   (HTTP 429) before its first turn, which is not a path failure but still misses the 3-of-3 bar.
   By the literal rule `tilde` qualified, but the executor chose `abs` (see Decision): the miss is
@@ -160,7 +163,7 @@ expanded `~` itself, so how Claude's Read tool treats a literal `~` is unmeasure
 
 ## Enforcement
 
-- Owner: the citing assets under `.agents/skills`, `.codex/prompts`, `.codex/agents`,
+- Owner: the citing assets under `.agents/skills`, `.codex/agents`,
   `.gemini/antigravity-cli/skills`, `.gemini/config/agents`, `.claude/skills`, `.claude/commands`,
   and `.claude/agents`; `REFERENCE_FORMS` in `tests/test_agent_config.py` maps each (tree, kind) to
   its chosen prefix.

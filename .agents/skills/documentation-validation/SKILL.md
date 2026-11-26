@@ -46,6 +46,11 @@ Product docs = README / API / CHANGELOG / usage. KB self-docs = the asset's own
 `description` and body, the KB-structure index, native asset parity, and any
 required shared workflow or reference mirror.
 
+Apply the repository's declared parity rules: shared non-command skills match their Gemini copies
+byte for byte; Claude skill bodies may diverge while asset names match subject to declared
+exceptions; reference twins share sections. `cmd-j-*` skills are Codex command entry points, with
+Claude and Gemini counterparts and Codex prompt fallbacks only when shipped.
+
 ## Declaring N/A
 
 If a change genuinely needs no doc update, state it explicitly:

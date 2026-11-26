@@ -9,6 +9,13 @@ Analyze the ML/AI research paper at: the user's provided input
 
 If no arguments provided, ask for the paper URL, arxiv ID, or local file path.
 
+## Setup (always do first)
+
+Load skills, in order:
+
+1. `verification-before-completion`: required before claiming a resource link resolves or a finding is supported
+2. `output-completeness`: the full analysis template must be emitted without truncated sections
+
 ## Fetch and gather resources
 
 Before analyzing, resolve and fetch the paper, then gather its resources in parallel:

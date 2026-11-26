@@ -68,7 +68,46 @@ def permission_key(entry: Any) -> Any:
     return entry
 
 
-def merge_json(repo_content: str, target_content: str, retired: Sequence[str] | str = ()) -> str:
+def _retire_json_prompt_hook(data: dict[str, Any]) -> None:
+    """Drop only the retired shipped Claude handler, retaining local hook groups."""
+    hooks = data.get("hooks")
+    if not isinstance(hooks, dict):
+        return
+    groups = hooks.get("UserPromptSubmit")
+    if not isinstance(groups, list):
+        return
+    kept = []
+    for group in groups:
+        if not isinstance(group, dict) or not isinstance(group.get("hooks"), list):
+            kept.append(group)
+            continue
+        handlers = group["hooks"]
+        remaining = [
+            handler
+            for handler in handlers
+            if not (
+                isinstance(handler, dict)
+                and handler.get("type") == "command"
+                and handler.get("command") == "bash ~/.claude/hooks/log-prompt.sh"
+            )
+        ]
+        if len(remaining) == len(handlers):
+            kept.append(group)
+        elif remaining:
+            kept.append({**group, "hooks": remaining})
+    if kept:
+        hooks["UserPromptSubmit"] = kept
+    else:
+        hooks.pop("UserPromptSubmit", None)
+
+
+def merge_json(
+    repo_content: str,
+    target_content: str,
+    retired: Sequence[str] | str = (),
+    *,
+    retire_claude_prompt_hook: bool = False,
+) -> str:
     """Merge JSON repo updates into target machine settings, preserving target keys.
 
     Args:
@@ -76,6 +115,7 @@ def merge_json(repo_content: str, target_content: str, retired: Sequence[str] | 
         target_content: Existing host configuration to update in-place.
         retired: ``permissions.allow`` entries dropped from the merged result, a
             hand-added one included.
+        retire_claude_prompt_hook: Remove the retired shipped prompt logger handler.
 
     Returns:
         The merged JSON configuration string ending in a newline.
@@ -97,6 +137,8 @@ def merge_json(repo_content: str, target_content: str, retired: Sequence[str] | 
 
     if isinstance(retired, str):
         retired = (retired,)
+    if retire_claude_prompt_hook:
+        _retire_json_prompt_hook(target_data)
     merged = _merge_dict(repo_data, target_data)
     permissions = merged.get("permissions")
     if retired and isinstance(permissions, dict) and isinstance(permissions.get("allow"), list):
@@ -304,6 +346,33 @@ def _is_multiline_continuation(raw: str) -> bool:
     )
 
 
+_TOML_KEY_PART = r"""(?:[A-Za-z0-9_-]+|"[^"\\]*(?:\\.[^"\\]*)*"|'[^']*')"""
+_TOML_KEY_TOKEN = re.compile(_TOML_KEY_PART)
+_TOML_ASSIGNMENT = re.compile(rf"^\s*({_TOML_KEY_PART}(?:\s*\.\s*{_TOML_KEY_PART})*)\s*=")
+
+
+def _toml_key_path(key: str) -> tuple[str, ...]:
+    """Decode dotted keys without splitting dots inside quoted literal names."""
+    parts = []
+    for match in _TOML_KEY_TOKEN.finditer(key):
+        token = match.group()
+        if token.startswith('"'):
+            parts.append(json.loads(token))
+        elif token.startswith("'"):
+            parts.append(token[1:-1])
+        else:
+            parts.append(token)
+    return tuple(parts)
+
+
+def _toml_assignment(raw: str) -> tuple[str, str]:
+    """Separate an assignment at its unquoted equals sign."""
+    match = _TOML_ASSIGNMENT.match(raw)
+    if match is None:
+        raise ConfigMergeError(f"Malformed TOML assignment: {raw.strip()}")
+    return match.group(1), raw[match.end() :].lstrip()
+
+
 def _parse_toml_sections(content: str) -> list[dict[str, Any]]:
     sections: list[dict[str, Any]] = []
     current_header: str | None = None
@@ -329,7 +398,6 @@ def _parse_toml_sections(content: str) -> list[dict[str, Any]]:
     i = 0
     while i < len(lines):
         line = lines[i]
-        stripped = line.strip()
 
         header, header_type, name = _extract_header(line)
         if header is not None:
@@ -345,16 +413,9 @@ def _parse_toml_sections(content: str) -> list[dict[str, Any]]:
             i += 1
             continue
 
-        kv_match = re.match(
-            r'^(?:([A-Za-z0-9_-]+)|"([^"\\]*(?:\\.[^"\\]*)*)"|\'([^\']*)\')\s*=',
-            stripped,
-        )
+        kv_match = _TOML_ASSIGNMENT.match(line)
         if kv_match:
-            key = (
-                kv_match.group(1)
-                or (f'"{kv_match.group(2)}"' if kv_match.group(2) is not None else None)
-                or (f"'{kv_match.group(3)}'" if kv_match.group(3) is not None else None)
-            )
+            key = kv_match.group(1)
             raw = line
             while _is_multiline_continuation(raw) and i + 1 < len(lines):
                 i += 1
@@ -370,12 +431,261 @@ def _parse_toml_sections(content: str) -> list[dict[str, Any]]:
     return sections
 
 
-def merge_toml(repo_content: str, target_content: str) -> str:
+def _toml_string(raw: str) -> str | None:
+    """Read a single-line TOML string, leaving unsupported value forms untouched."""
+    _, value = _toml_assignment(raw)
+    value = value.strip()
+    if value.startswith("'") and not value.startswith("'''"):
+        end = value.find("'", 1)
+        if end >= 0 and (not value[end + 1 :].strip() or value[end + 1 :].lstrip().startswith("#")):
+            return value[1:end]
+    if value.startswith('"'):
+        try:
+            parsed, end = json.JSONDecoder().raw_decode(value)
+        except ValueError:
+            return None
+        if isinstance(parsed, str) and (
+            not value[end:].strip() or value[end:].lstrip().startswith("#")
+        ):
+            return parsed
+    return None
+
+
+def _inline_toml_entries(value: str) -> tuple[str, str] | None:
+    """Expand an inline table into assignments while retaining nested TOML values."""
+    if not value.startswith("{"):
+        return None
+    end = next(
+        (
+            index
+            for index, char in enumerate(value)
+            if char == "}" and not _is_multiline_continuation(value[: index + 1])
+        ),
+        None,
+    )
+    if end is None:
+        return None
+    trailing = value[end + 1 :].strip()
+    if trailing and not trailing.startswith("#"):
+        return None
+    entries = []
+    start = 1
+    for index in range(1, end):
+        if value[index] == "," and not _is_multiline_continuation(value[start:index]):
+            entries.append(value[start:index].strip())
+            start = index + 1
+    entries.append(value[start:end].strip())
+    return "\n".join(entry for entry in entries if entry) + "\n", trailing
+
+
+def _expand_codex_inline_ancestors(
+    target_sections: list[dict[str, Any]], path: tuple[str, ...]
+) -> None:
+    """Open only inline ancestors that block an explicitly managed Codex path."""
+    for section in target_sections:
+        if section["header_type"] == "array":
+            continue
+        section_path = _toml_key_path(section["name"]) if section["name"] else ()
+        if len(section_path) >= len(path) or section_path != path[: len(section_path)]:
+            continue
+        lines = []
+        for is_key, key, raw in section["lines"]:
+            ancestor = section_path + _toml_key_path(key) if is_key and key is not None else ()
+            if not ancestor or len(ancestor) >= len(path) or ancestor != path[: len(ancestor)]:
+                lines.append((is_key, key, raw))
+                continue
+            _, value = _toml_assignment(raw)
+            inline = _inline_toml_entries(value.strip())
+            if inline is None:
+                lines.append((is_key, key, raw))
+                continue
+            entries, comment = inline
+            parsed = _parse_toml_sections(entries)
+            canonical = ".".join(ancestor)
+            target_sections.append(
+                {
+                    "header": f"[{canonical}]",
+                    "header_type": "table",
+                    "name": canonical,
+                    "lines": parsed[0]["lines"] if parsed else [],
+                }
+            )
+            if comment:
+                lines.append((False, None, comment + "\n"))
+        section["lines"] = lines
+
+
+def _normalize_codex_table(
+    repo_sections: list[dict[str, Any]],
+    target_sections: list[dict[str, Any]],
+    path: tuple[str, ...],
+    retired: tuple[str, ...] = (),
+) -> None:
+    """Normalize managed table paths while preserving local values as raw TOML."""
+    source = next(
+        (
+            section
+            for section in repo_sections
+            if section["header_type"] == "table" and _toml_key_path(section["name"]) == path
+        ),
+        None,
+    )
+    if source is None:
+        return
+    _expand_codex_inline_ancestors(target_sections, path)
+    owned = {_toml_key_path(key) for is_key, key, _ in source["lines"] if is_key}
+    canonical = ".".join(path)
+    existing = None
+    promoted: list[tuple[bool, str | None, str]] = []
+
+    def normalized_line(key_path: tuple[str, ...], raw: str) -> tuple[bool, str | None, str]:
+        key = ".".join(
+            part if re.fullmatch(r"[A-Za-z0-9_-]+", part) else json.dumps(part) for part in key_path
+        )
+        _, value = _toml_assignment(raw)
+        return True, key, f"{key} = {value}"
+
+    for section in target_sections:
+        if section["header_type"] == "array":
+            continue
+        section_path = _toml_key_path(section["name"]) if section["name"] else ()
+        if len(section_path) > len(path):
+            continue
+        if section_path == path:
+            old_name = section["name"]
+            section["name"] = canonical
+            section["header"] = f"[{canonical}]" + section["header"][len(old_name) + 2 :]
+            existing = section
+        lines = []
+        for is_key, key, raw in section["lines"]:
+            if not is_key or key is None:
+                lines.append((is_key, key, raw))
+                continue
+            key_path = _toml_key_path(key)
+            full_path = section_path + key_path
+            if full_path[: len(path)] != path:
+                lines.append((is_key, key, raw))
+                continue
+            relative = full_path[len(path) :]
+            if len(relative) == 1 and relative[0] in retired:
+                continue
+            if not relative:
+                _, value = _toml_assignment(raw)
+                value = value.strip()
+                boolean = re.fullmatch(r"(?:true|false)\s*(#.*)?", value)
+                inline = _inline_toml_entries(value)
+                if boolean:
+                    comment = boolean.group(1)
+                elif inline is not None:
+                    entries, comment = inline
+                    for parsed in _parse_toml_sections(entries):
+                        for entry_key, entry_name, entry_raw in parsed["lines"]:
+                            if entry_key and entry_name is not None:
+                                entry_path = _toml_key_path(entry_name)
+                                if entry_path not in {(name,) for name in retired}:
+                                    promoted.append(normalized_line(entry_path, entry_raw))
+                else:
+                    lines.append((is_key, key, raw))
+                    continue
+                if comment:
+                    lines.append((False, None, comment + "\n"))
+            elif section_path == path:
+                lines.append(
+                    normalized_line(key_path, raw) if key_path in owned else (is_key, key, raw)
+                )
+            else:
+                promoted.append(normalized_line(relative, raw))
+        section["lines"] = lines
+    if not promoted:
+        return
+    if existing is not None:
+        existing_keys = {_toml_key_path(key) for is_key, key, _ in existing["lines"] if is_key}
+        existing["lines"].extend(
+            line
+            for line in promoted
+            if line[1] is None or _toml_key_path(line[1]) not in existing_keys
+        )
+    else:
+        target_sections.append(
+            {
+                "header": f"[{canonical}]",
+                "header_type": "table",
+                "name": canonical,
+                "lines": promoted,
+            }
+        )
+
+
+def _migrate_codex_sections(
+    repo_sections: list[dict[str, Any]], target_sections: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Retire shipped Codex settings without replacing user hook arrays."""
+    _normalize_codex_table(repo_sections, target_sections, ("features", "multi_agent_v2"))
+    canonical_agents = any(
+        section["name"] == "agents"
+        and any(
+            is_key and key == "max_concurrent_threads_per_session"
+            for is_key, key, _ in section["lines"]
+        )
+        for section in repo_sections
+    )
+    _normalize_codex_table(
+        repo_sections,
+        target_sections,
+        ("agents",),
+        ("max_threads", "max_depth") if canonical_agents else (),
+    )
+    kept: list[dict[str, Any]] = []
+
+    def preserve_comments(section: dict[str, Any]) -> None:
+        comments = [line for line in section["lines"] if not line[0]]
+        if not comments:
+            return
+        if not kept:
+            kept.append({"header": None, "header_type": None, "name": None, "lines": []})
+        kept[-1]["lines"].extend(comments)
+
+    parents: dict[int, list[int]] = {}
+    parent: int | None = None
+    removed: set[int] = set()
+    for index, section in enumerate(target_sections):
+        if section["header_type"] == "array" and section["name"] == "hooks.UserPromptSubmit":
+            parent = index
+            parents[parent] = []
+            continue
+        name = section["name"]
+        if (
+            parent is not None
+            and isinstance(name, str)
+            and name.startswith("hooks.UserPromptSubmit.")
+        ):
+            parents[parent].append(index)
+            values = {key: _toml_string(raw) for is_key, key, raw in section["lines"] if is_key}
+            if (
+                section["header_type"] == "array"
+                and name == "hooks.UserPromptSubmit.hooks"
+                and values.get("type") == "command"
+                and values.get("command") == "bash ~/.codex/hooks/log-prompt.sh"
+            ):
+                removed.add(index)
+    for parent, children in parents.items():
+        if children and all(child in removed for child in children):
+            removed.add(parent)
+    for index, section in enumerate(target_sections):
+        if index in removed:
+            preserve_comments(section)
+        else:
+            kept.append(section)
+    return kept
+
+
+def merge_toml(repo_content: str, target_content: str, *, migrate_codex: bool = False) -> str:
     """Merge TOML repo updates into target machine settings, preserving target keys and comments.
 
     Args:
         repo_content: Source configuration template from the repository.
         target_content: Existing host configuration to update in-place.
+        migrate_codex: Retire the shipped prompt logger and superseded agent limits.
 
     Returns:
         The merged TOML configuration string ending in a newline.
@@ -385,6 +695,8 @@ def merge_toml(repo_content: str, target_content: str) -> str:
     """
     repo_sections = _parse_toml_sections(repo_content)
     target_sections = _parse_toml_sections(target_content)
+    if migrate_codex:
+        target_sections = _migrate_codex_sections(repo_sections, target_sections)
 
     repo_root = next((s for s in repo_sections if s["header_type"] is None), None)
     repo_tables = {s["name"]: s for s in repo_sections if s["header_type"] == "table"}

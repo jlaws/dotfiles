@@ -96,13 +96,16 @@ npm test 2>&1 | grep 'DEBUG git init'
 
 If something appears during tests but you don't know which test:
 
-Use the bisection script `find-polluter.sh` in this directory:
+Use `find-polluter.sh` in the skill directory, one level above this reference. Run it from the
+project under test, using its installed path:
 
 ```bash
-./find-polluter.sh '.git' 'src/**/*.test.ts'
+bash ~/.agents/skills/debugging-methodology/find-polluter.sh 'tmp/unexpected-test-output' 'src/**/*.test.ts'
 ```
 
-Runs tests one-by-one, stops at first polluter. See script for usage.
+Runs tests one-by-one, stops at first polluter. Requires Bash, Python 3 (stdlib), and npm. A quoted
+recursive glob includes direct and nested matches. Choose a target that does not exist before the
+run. No matches, an existing target, or a failed test command without pollution exits 2 (inconclusive).
 
 ## Real Example: Empty projectDir
 

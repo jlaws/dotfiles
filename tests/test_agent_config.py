@@ -73,7 +73,6 @@ CLAUDE_ONLY_AGENTS: frozenset[str] = frozenset()
 
 J_PLAN_COMMANDS = (
     REPO / ".agents" / "skills" / "cmd-j-plan" / "SKILL.md",
-    REPO / ".codex" / "prompts" / "j-plan.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md",
 )
 
@@ -84,8 +83,6 @@ PLAN_STORAGE_SKILLS = (REPO / ".agents" / "skills" / "writing-plans" / "SKILL.md
 PLAN_EXECUTION_CONSUMERS = (
     REPO / ".agents" / "skills" / "cmd-j-execute-plan" / "SKILL.md",
     REPO / ".agents" / "skills" / "cmd-j-next" / "SKILL.md",
-    REPO / ".codex" / "prompts" / "j-execute-plan.md",
-    REPO / ".codex" / "prompts" / "j-next.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-execute-plan" / "SKILL.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-next" / "SKILL.md",
 )
@@ -127,7 +124,6 @@ MID_PR_PAUSE_PHRASES = (
 
 ACTIVE_PLAN_CONSUMERS = (
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
-    REPO / ".codex" / "prompts" / "j-diff-review.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
 )
 
@@ -212,13 +208,11 @@ LADDER_RUNG_MARKERS = (
 ADR_EDIT_IN_PLACE_CONSUMERS = (
     REPO / ".claude" / "commands" / "j-arch.md",
     REPO / ".agents" / "skills" / "cmd-j-arch" / "SKILL.md",
-    REPO / ".codex" / "prompts" / "j-arch.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-arch" / "SKILL.md",
     REPO / ".claude" / "skills" / "post-ship-doc-sync" / "SKILL.md",
     REPO / ".agents" / "skills" / "post-ship-doc-sync" / "SKILL.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "post-ship-doc-sync" / "SKILL.md",
     REPO / ".claude" / "commands" / "j-plan.md",
-    REPO / ".codex" / "prompts" / "j-plan.md",
     REPO / ".agents" / "skills" / "cmd-j-plan" / "SKILL.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-plan" / "SKILL.md",
     REPO / ".claude" / "skills" / "writing-plans" / "SKILL.md",
@@ -288,8 +282,10 @@ PINNED_MODEL = re.compile(
     r"\b(?:gpt|claude|gemini|opus|sonnet|haiku|fable)(?:[- ][a-z]+){0,2}[- ]\d"
 )
 # The user chose these exact Codex models. Keep the exception narrow: a dated variant or another
-# generation must still fail the stale-model guard, as must either name in another tool's ladder.
-CODEX_SELECTED_MODELS = re.compile(r"(?<![\w.-])(?:gpt-6\.1-sol|gpt-6-astra)(?![\w.-])")
+# generation must still fail the stale-model guard, as must any name in another tool's ladder.
+CODEX_SELECTED_MODELS = re.compile(
+    r"(?<![\w.-])(?:gpt-6\.2-(?:astra|sol)|gpt-6\.1-terra|gpt-6-luna)(?![\w.-])"
+)
 
 # Every asset whose run ends on a pull request. Each reports the URL; `create-pr` additionally has
 # to look for an already-open PR the way `finishing-branch` does, instead of always creating one.
@@ -342,7 +338,6 @@ WORKTREE_POINTERS = (
 DIFF_REVIEW_DISPATCHERS = (
     REPO / ".claude" / "commands" / "j-diff-review.md",
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
-    REPO / ".codex" / "prompts" / "j-diff-review.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-diff-review" / "SKILL.md",
 )
 
@@ -380,21 +375,18 @@ EXECUTION_CLOSE_OWNERS = tuple(
 J_NEXT_COMMANDS = (
     REPO / ".claude" / "commands" / "j-next.md",
     REPO / ".agents" / "skills" / "cmd-j-next" / "SKILL.md",
-    REPO / ".codex" / "prompts" / "j-next.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-next" / "SKILL.md",
 )
 
 J_BRAINSTORM_COMMANDS = (
     REPO / ".claude" / "commands" / "j-brainstorm.md",
     REPO / ".agents" / "skills" / "cmd-j-brainstorm" / "SKILL.md",
-    REPO / ".codex" / "prompts" / "j-brainstorm.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-brainstorm" / "SKILL.md",
 )
 
 PROSE_TELL_CONSUMERS = (
     REPO / ".claude" / "commands" / "j-paper.md",
     REPO / ".agents" / "skills" / "cmd-j-paper" / "SKILL.md",
-    REPO / ".codex" / "prompts" / "j-paper.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-paper" / "SKILL.md",
     REPO / ".claude" / "agents" / "documentation-writer.md",
     REPO / ".codex" / "agents" / "documentation-writer.toml",
@@ -406,7 +398,6 @@ WRITING_PLANS_SKILLS = tuple(p for p in PLAN_WORKFLOW_SKILLS if p.parent.name ==
 CODE_REVIEW_PR_SIZE_SURFACES = (
     *(root / "code-review-patterns" / "SKILL.md" for root in SKILL_TREE_ROOTS),
     REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
-    REPO / ".codex" / "prompts" / "j-diff-review.md",
 )
 
 # Local `main` can trail the remote, which makes a squash absorb commits that already landed.
@@ -425,7 +416,6 @@ BRANCH_BASE_REF_DOCS = (
 # A rebase's risk is its conflict resolutions; every copy scopes verification to them.
 REBASE_COMMANDS = (
     REPO / ".claude" / "commands" / "j-rebase.md",
-    REPO / ".codex" / "prompts" / "j-rebase.md",
     REPO / ".agents" / "skills" / "cmd-j-rebase" / "SKILL.md",
     REPO / ".gemini" / "antigravity-cli" / "skills" / "j-rebase" / "SKILL.md",
 )
@@ -453,7 +443,7 @@ def tracked_tree_files() -> list[str]:
 def discipline_body(text: str) -> list[str]:
     """The prose under the existing-code-discipline sections, normalized for cross-copy compare.
 
-    Heading level is dropped -- the two prompts nest the same sections one level deeper -- as are
+    Heading level is dropped -- the command skill nests the same sections one level deeper -- as are
     blank lines. Everything else has to match, so editing the reference and leaving a pasted copy
     behind fails here instead of drifting silently until someone reads both.
     """
@@ -472,11 +462,10 @@ def discipline_body(text: str) -> list[str]:
     return body
 
 
-# The reference plus the two prompts that paste its body, since Codex has no skill loader.
+# The reference twins and the Codex command skill that embeds their text.
 EXISTING_CODE_DISCIPLINE_OWNERS = (
     ".claude/references/workflow/existing-code-discipline.md",
     ".agents/references/workflow/existing-code-discipline.md",
-    ".codex/prompts/j-diff-review.md",
     ".agents/skills/cmd-j-diff-review/SKILL.md",
 )
 
@@ -643,7 +632,6 @@ CLAUDE_REFERENCES = "~/.claude/references/"
 REFERENCE_FORMS: dict[tuple[str, str], str] = {
     (".agents", "skills"): AGENTS_REFERENCES,
     (".gemini/antigravity-cli", "skills"): AGENTS_REFERENCES,
-    (".codex", "prompts"): AGENTS_REFERENCES,
     (".codex", "agents"): AGENTS_REFERENCES,
     (".gemini/config", "agents"): AGENTS_REFERENCES,
     (".claude", "skills"): "${CLAUDE_SKILL_DIR}/../../references/",
@@ -715,7 +703,6 @@ def command_copies(command: str) -> tuple[tuple[Path, str], ...]:
             REFERENCE_FORMS[(".claude", "commands")],
         ),
         (REPO / ".agents" / "skills" / f"cmd-{command}" / "SKILL.md", agents),
-        (REPO / ".codex" / "prompts" / f"{command}.md", REFERENCE_FORMS[(".codex", "prompts")]),
         (
             REPO / ".gemini" / "antigravity-cli" / "skills" / command / "SKILL.md",
             REFERENCE_FORMS[(".gemini/antigravity-cli", "skills")],
@@ -743,7 +730,6 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             for name in skill_directories(REPO / ".agents" / "skills")
             if name.startswith("cmd-j-")
         }
-        codex = {path.stem for path in (REPO / ".codex" / "prompts").glob("j-*.md")}
         claude = {path.stem for path in (REPO / ".claude" / "commands").glob("j-*.md")}
         antigravity = {
             name
@@ -751,7 +737,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             if name.startswith("j-")
         }
 
-        self.assertLessEqual(command_skills, codex)
+        self.assertFalse(list((REPO / ".codex" / "prompts").glob("*.md")), "use command skills")
         self.assertEqual(antigravity, claude - CLAUDE_ONLY_COMMANDS)
         # Claude is compared exactly so a deleted command fails instead of passing as a subset.
         self.assertEqual(command_skills, claude - CLAUDE_ONLY_COMMANDS)
@@ -1062,18 +1048,30 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertEqual(pinned, [], f"{path.name} pins an unapproved model version")
 
     def test_codex_model_allowlist_matches_only_exact_selected_names(self):
-        for name in ("gpt-6.1-sol", "gpt-6-astra"):
+        for name in ("gpt-6.2-astra", "gpt-6.2-sol", "gpt-6.1-terra", "gpt-6-luna"):
             with self.subTest(name=name):
                 self.assertEqual(CODEX_SELECTED_MODELS.sub("", f"`{name}`"), "``")
         for name in (
             "gpt-6-sol",
-            "gpt-6-luna",
+            "gpt-6.1-sol",
+            "gpt-6-astra",
             "gpt-5.6-sol",
-            "gpt-6.1-sol-2026-09-28",
-            "gpt-6-astra-pro",
+            "gpt-6.2-sol-2026-09-28",
+            "gpt-6.2-astra-pro",
         ):
             with self.subTest(name=name):
                 self.assertIsNotNone(PINNED_MODEL.search(CODEX_SELECTED_MODELS.sub("", name)))
+
+    def test_codex_delegation_guidance_pairs_models_with_effort(self):
+        guidance = (REPO / ".codex" / "AGENTS.md").read_text()
+        for model, effort in (
+            ("gpt-6.2-sol", "medium"),
+            ("gpt-6.2-astra", "high"),
+            ("gpt-6.1-terra", "medium"),
+            ("gpt-6-luna", "low"),
+        ):
+            with self.subTest(model=model):
+                self.assertRegex(guidance, rf"`{re.escape(model)}`[^\n]*?`{effort}`")
 
     def test_pr_workflows_report_the_url_and_reuse_the_open_pr(self):
         """Every asset that ends on a PR reports its URL, and never opens a second PR for a branch
@@ -1312,7 +1310,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             for p in (*PLAN_EXECUTION_CONSUMERS, *CLAUDE_PLAN_EXECUTION_COMMANDS)
             if "execute-plan" in str(p)
         ]
-        self.assertEqual(len(execute), 4)
+        self.assertEqual(len(execute), 3)
         for path in (*PLAN_WORKFLOW_SKILLS, *J_PLAN_COMMANDS, CLAUDE_J_PLAN_COMMAND, *execute):
             body = path.read_text(encoding="utf-8")
             with self.subTest(path=path.relative_to(REPO)):
@@ -1372,8 +1370,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     self.assertTrue(
                         f"`{ext}`" in body, f"{rel}: Step 3 maps no reference for {ext}"
                     )
-                    # Naming the file, not a prose label like "Python patterns": the Codex and
-                    # `.agents` trees have no skill loader, so a label resolves to nothing there.
+                    # The command needs a resolvable file for each language.
                     self.assertTrue(
                         f"`{ref}`" in body, f"{rel}: {ext} maps to no resolvable reference file"
                     )
@@ -1385,12 +1382,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
     def test_one_diff_review_workflow_per_tree(self):
         """`code-review-patterns` used to carry a second diff-review workflow whose Step 6 said
         report-only while the command's said fix-and-commit. The command owns the workflow; the
-        skill owns mindset, severity labels, and feedback. The two inlined command bodies keep a
-        disposition ladder because there the section *is* the command."""
-        inlined = (
-            REPO / ".codex" / "prompts" / "j-diff-review.md",
-            REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
-        )
+        skill owns mindset, severity labels, and feedback. The Codex command skill owns its disposition ladder."""
         checked = 0
         for tree in TREE_ROOTS:
             for path in sorted((REPO / tree).rglob("code-review-patterns/SKILL.md")):
@@ -1407,9 +1399,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                     )
                 checked += 1
         self.assertGreater(checked, 0, "no code-review-patterns copies compared; check is vacuous")
-        for path in inlined:
-            with self.subTest(path=path.relative_to(REPO)):
-                self.assertIn("Disposition Ladder", path.read_text(encoding="utf-8"))
+        command = REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md"
+        self.assertIn("Disposition Ladder", command.read_text(encoding="utf-8"))
 
     def test_branch_workflows_resolve_their_base_through_the_remote(self):
         for path in BRANCH_BASE_REF_DOCS:
@@ -1448,55 +1439,23 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertEqual(leftovers, [], f"{path.parent.name}: upstream leftover")
 
     def test_no_hook_restates_always_loaded_guidance(self):
-        """Hook output is for information the model does not already have -- see
-        `docs/adr/context-efficiency/hooks-do-not-restate-loaded-guidance.md`. The
-        PreToolUse:Bash guard restated the Bash section of `CLAUDE.md` and the SessionStart
-        banner restated its Knowledge base section, so both went. `UserPromptSubmit` stays: it
-        writes a log to disk and emits nothing into the conversation.
-
-        Claude's settings are JSON, so its hooks are checked as a parsed key set: that catches a
-        third emitting hook added later, which is the actual rule, and reformatting cannot evade
-        it.
-
-        Codex is TOML and `tomllib` is 3.11+, above the 3.9 floor `[tool.ty.environment]` pins for
-        `macos_setup`, so its check stays textual -- but on the bare key, not on one spelling of
-        the header. An earlier cut used `assertNotIn("[[hooks.PreToolUse]]", ...)`, which three
-        equivalent spellings walk straight past: `[[ hooks.PreToolUse ]]`,
-        `[[hooks."PreToolUse"]]`, and an inline `[hooks]` table with `PreToolUse = [ ... ]`. All
-        three parse to exactly the registration the literal form produces. Any TOML that registers
-        the hook has to name the key, so the absence of the key name is the property worth
-        asserting. Residual limit: a `\\u`-escaped spelling inside a quoted key would slip through.
-        Nobody writes that in a config they author themselves.
-
-        The PreCompact/SessionStart snapshot pattern in `references/workflow/hook-patterns.md` is
-        the case the ADR leaves open, and adopting it means editing this test on purpose.
-        """
         settings = json.loads((REPO / ".claude" / "settings.json").read_text())
-        self.assertEqual(sorted(settings.get("hooks", {})), ["UserPromptSubmit"])
-
+        self.assertFalse(settings.get("hooks", {}))
         codex = (REPO / ".codex" / "config.toml").read_text()
-        self.assertNotIn("PreToolUse", codex)
-        self.assertIn("[[hooks.UserPromptSubmit]]", codex)
-
+        for event in ("PreToolUse", "SessionStart"):
+            self.assertNotIn(event, codex)
         for tree in (".claude", ".codex"):
-            guard = REPO / tree / "hooks" / "guard-bash-output.sh"
-            self.assertFalse(guard.exists(), f"{tree}/hooks/ still ships the bash guard")
+            self.assertFalse((REPO / tree / "hooks" / "guard-bash-output.sh").exists())
 
-    def test_prompt_logging_is_registered_on_every_harness_that_has_hooks(self):
-        """`.codex/hooks/log-prompt.sh` shipped and synced since the tree was created, but
-        `.codex/config.toml` had no `[hooks]` table, so it never fired. Its Claude twin was
-        registered the whole time. Pin both so the asymmetry cannot come back."""
-        settings = json.loads((REPO / ".claude" / "settings.json").read_text())
-        claude = [
-            h["command"]
-            for entry in settings.get("hooks", {}).get("UserPromptSubmit", [])
-            for h in entry.get("hooks", [])
-        ]
-        self.assertTrue(any("log-prompt.sh" in c for c in claude), claude)
-
-        codex = (REPO / ".codex" / "config.toml").read_text()
-        self.assertIn("[[hooks.UserPromptSubmit]]", codex)
-        self.assertIn("log-prompt.sh", codex)
+    def test_prompt_loggers_are_retired(self):
+        for root, config in (
+            (".claude", "settings.json"),
+            (".codex", "config.toml"),
+            (".gemini", "antigravity-cli/settings.json"),
+        ):
+            with self.subTest(root=root):
+                self.assertNotIn("log-prompt.sh", (REPO / root / config).read_text())
+                self.assertFalse((REPO / root / "hooks" / "log-prompt.sh").exists())
 
     def test_worktree_base_ref_is_pinned_to_local_head(self):
         """`fresh`, the harness default, branches agent-isolation worktrees off origin/<default>."""
@@ -1838,42 +1797,44 @@ class AgentConfigArchitectureTests(unittest.TestCase):
                 self.assertRegex(content, CODEX_DESCRIPTION)
                 self.assertRegex(content, CODEX_INSTRUCTIONS)
 
-    def test_codex_subagents_default_to_sol_medium(self):
-        content = (REPO / ".codex" / "config.toml").read_text()
-        agents = re.search(r"(?ms)^\[agents\]\n(.*?)(?=^\[|\Z)", content)
-        self.assertIsNotNone(agents, "subagent defaults must live under [agents]")
-        assert agents is not None
-        self.assertRegex(
-            agents[1], re.compile(r'^default_subagent_model = "gpt-6\.1-sol"$', re.MULTILINE)
-        )
-        self.assertRegex(
-            agents[1], re.compile(r'^default_subagent_reasoning_effort = "medium"$', re.MULTILINE)
-        )
-
-    def test_codex_spawn_depth_matches_its_stated_cap(self):
-        """config.toml `max_depth` equals the "Max spawn depth is N" every tree's config states."""
-        content = (REPO / ".codex" / "config.toml").read_text()
-        agents = re.search(r"(?ms)^\[agents\]\n(.*?)(?=^\[|\Z)", content)
-        self.assertIsNotNone(agents, "config.toml must have an [agents] table")
-        assert agents is not None
-        depth = re.search(r"^max_depth\s*=\s*(\d+)\s*(?:#.*)?$", agents[1], re.MULTILINE)
-        self.assertIsNotNone(depth, "[agents] must set max_depth to an integer")
-        assert depth is not None
-        claude_env = json.loads((REPO / ".claude" / "settings.json").read_text()).get("env", {})
-        self.assertEqual(
-            claude_env.get("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"),
-            depth[1],
-            "Claude's spawn-depth setting must match .codex/config.toml max_depth",
-        )
-        for config in (
-            REPO / ".codex" / "AGENTS.md",
-            REPO / ".claude" / "CLAUDE.md",
-            REPO / ".gemini" / "GEMINI.md",
+    def test_codex_parent_and_subagent_settings(self):
+        config = (REPO / ".codex" / "config.toml").read_text()
+        root = config.split("[agents]", 1)[0]
+        for setting in (
+            'model = "gpt-6.2-astra"',
+            'model_reasoning_effort = "medium"',
+            'plan_mode_reasoning_effort = "xhigh"',
         ):
-            stated = re.findall(r"Max spawn depth is (\d+)", config.read_text())
-            with self.subTest(config=str(config.relative_to(REPO))):
+            self.assertIn(setting, root.splitlines())
+        for section, settings in (
+            (
+                "agents",
+                (
+                    'default_subagent_model = "gpt-6.2-sol"',
+                    'default_subagent_reasoning_effort = "medium"',
+                    "max_concurrent_threads_per_session = 6",
+                ),
+            ),
+            (
+                "features.multi_agent_v2",
+                ("enabled = true", "expose_spawn_agent_model_overrides = true"),
+            ),
+        ):
+            match = re.search(rf"(?ms)^\[{re.escape(section)}\]\n(.*?)(?=^\[|\Z)", config)
+            self.assertIsNotNone(match, section)
+            assert match is not None
+            for setting in settings:
+                self.assertIn(setting, match[1].splitlines())
+        self.assertNotRegex(config, re.compile(r"^(?:max_threads|max_depth)\s*=", re.MULTILINE))
+
+    def test_agent_guidance_matches_the_stated_spawn_depth(self):
+        settings = json.loads((REPO / ".claude" / "settings.json").read_text())
+        depth = settings["env"]["CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"]
+        self.assertEqual(depth, "3")
+        for config in ALWAYS_LOADED_CEILINGS:
+            with self.subTest(path=config):
                 self.assertEqual(
-                    stated, [depth[1]], "stated spawn depth must match .codex/config.toml max_depth"
+                    re.findall(r"Max spawn depth is (\d+)", config.read_text()), [depth]
                 )
 
     def test_gemini_md_names_only_shipped_gemini_paths(self):
@@ -1883,16 +1844,15 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             with self.subTest(path=legacy):
                 self.assertNotIn(legacy, text)
 
-    def test_codex_roles_allow_task_model_selection_at_high_effort(self):
+    def test_codex_roles_inherit_spawn_model_and_effort(self):
         agents = sorted((REPO / ".codex" / "agents").glob("*.toml"))
-        self.assertTrue(agents, "must exercise native Codex roles")
+        self.assertTrue(agents)
         for path in agents:
-            content = path.read_text()
-            with self.subTest(path=path.relative_to(REPO)):
-                self.assertRegex(
-                    content, re.compile(r'^model_reasoning_effort = "high"$', re.MULTILINE)
+            with self.subTest(path=path):
+                self.assertNotRegex(
+                    path.read_text(),
+                    re.compile(r"^\s*(?:model|model_reasoning_effort)\s*=", re.MULTILINE),
                 )
-                self.assertNotRegex(content, re.compile(r"^\s*model\s*=", re.MULTILINE))
 
     def test_gemini_agents_inherit_the_parent_model(self):
         """Settled in #93. A per-agent tier in the Gemini tree diverges silently from the Claude
@@ -2274,9 +2234,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         )
 
     def test_existing_code_discipline_is_one_document_in_every_tree(self):
-        """Four copies, one section set and one body. Two paste the text rather than linking it,
-        so an edit to the reference alone leaves the diff-review prompts stale -- and comparing
-        section names alone would not notice, because the prose is where the guidance lives."""
+        """The embedded diff-review guidance tracks the reference bodies as well as the headings."""
         bodies = {}
         for rel in EXISTING_CODE_DISCIPLINE_OWNERS:
             path = REPO / rel
@@ -2460,10 +2418,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             REPO / ".codex" / "agents" / "create-pr.toml",
             REPO / ".gemini" / "config" / "agents" / "create-pr.md",
         )
-        diff_review = (
-            REPO / ".codex" / "prompts" / "j-diff-review.md",
-            REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",
-        )
+        diff_review = (REPO / ".agents" / "skills" / "cmd-j-diff-review" / "SKILL.md",)
         self._assert_all_contain((*skills, *agents, *diff_review), "Merge Danger")
 
     def test_security_findings_carry_a_state(self):
@@ -2487,7 +2442,6 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         def command(name):
             return (
                 REPO / ".claude" / "commands" / f"{name}.md",
-                REPO / ".codex" / "prompts" / f"{name}.md",
                 REPO / ".agents" / "skills" / f"cmd-{name}" / "SKILL.md",
                 REPO / ".gemini" / "antigravity-cli" / "skills" / name / "SKILL.md",
             )

@@ -5,6 +5,8 @@ description: "Use when invoking the j-system-design workflow."
 
 # Team Design
 
+Load `design-first` for design-before-implementation discipline.
+
 Parse the user's provided input: it is a freeform system description that may contain file or directory references inline.
 - The entire string is the system description: do not strip paths from it.
 - Scan the text for path-like tokens (tokens containing `/`, or matching extensions like `.md`, `.ts`, `.py`, `.go`, `.rs`, `.json`, `.yaml`, `.toml`). These are explicit targets to include in document discovery.

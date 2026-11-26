@@ -23,7 +23,10 @@ description: "Use when independent tasks can run concurrently."
 
 ## The Dispatch Mechanism
 
-**Multiple subagent calls in a single message run in parallel.** Sequential messages do not.
+Dispatch each independent task before waiting for results. Spawn calls may return while agents keep
+running, so calls issued in separate messages can still overlap. Concurrency depends on the active
+harness and its agent limit; check its tool contract rather than treating message boundaries as a
+serialization rule.
 
 Each brief must be:
 

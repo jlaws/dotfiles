@@ -191,6 +191,11 @@ If the failure is intermittent or involves async timing, read `references/condit
 
 If the root cause traces through multiple upstream callers and you cannot isolate it by reading call sites alone, read `references/root-cause-tracing.md` for a systematic tracing procedure.
 
+For unwanted files created by tests, use the bundled `find-polluter.sh` from the project under test.
+It requires Bash, Python 3 (stdlib), and npm; quote the recursive test glob and choose a target that
+does not exist. It exits 2 for an inconclusive run (no matches, an existing target, or a failed test
+command without pollution), 1 when it finds pollution, and 0 after every matched test passes clean.
+
 ---
 
 ## Patterns by Issue Type

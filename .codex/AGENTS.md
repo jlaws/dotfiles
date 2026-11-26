@@ -17,7 +17,7 @@
 
 - Global Codex config lives under `~/.codex/`.
 - User skills live under `~/.agents/skills/` and domain references under `~/.agents/references/`.
-- Invoke command skills as `$cmd-j-*` (for example, `$cmd-j-tdd`). Codex slash-prompt fallbacks live in `~/.codex/prompts/`, and agent definitions live in `~/.codex/agents/`. `@` mentions files, plugins, or tools; it is not the custom-command prefix.
+- Invoke command skills as `$cmd-j-*` (for example, `$cmd-j-tdd`). Agent definitions live in `~/.codex/agents/`. `@` mentions files, plugins, or tools; it is not the custom-command prefix.
 - Before implementation, check whether an applicable skill already exists.
 
 ## Hallucination Prevention
@@ -144,12 +144,14 @@ When working in a git worktree:
 ## Task Delegation
 
 Choose the model by the assigned task, not the agent's role:
-- Default to `gpt-6.1-sol` with `high` effort for exploration, implementation, tests, docs, routine diagnosis, reviews, and PR work.
-- Use `gpt-6-astra` with `high` effort for creating or evaluating implementation plans, architecture decisions, or complex diagnosis with unresolved interactions across systems. State the task-specific reason when selecting Astra.
+- Default to `gpt-6.2-sol` with `medium` effort for exploration, implementation, tests, docs, routine diagnosis, reviews, and PR work.
+- Use `gpt-6.2-astra` with `high` effort for demanding work: creating or evaluating implementation plans, architecture decisions, or complex diagnosis with unresolved interactions across systems. State the task-specific reason when selecting Astra.
+- Use `gpt-6.1-terra` with `medium` effort for visual analysis and computer use.
+- Use `gpt-6-luna` with `low` effort for bounded, predictable tasks.
 - Gathering facts for a plan and conducting a final review do not automatically qualify for Astra. This policy takes precedence over generic workflow model tiers.
-- Pass the selected model and `high` effort when dispatching. Use a fresh context or a bounded context fork when required to apply model overrides; a full-history fork inherits the parent's model.
+- Pass explicit `model` and `reasoning_effort` overrides when dispatching. Use `fork_turns="none"` and provide the needed task context; a full-history fork inherits the parent's model and effort.
 
 Caps:
-- Max spawn depth is 3 (parent -> subagent -> two more tiers)
+- Max spawn depth is 3 (parent -> subagent -> two more tiers), enforced as a workflow limit.
 
 If a subagent realizes it needs a smarter model, it returns to the parent instead of escalating on its own.

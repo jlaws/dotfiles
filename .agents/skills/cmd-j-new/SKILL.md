@@ -41,7 +41,7 @@ If name fails validation, explain why and ask for a corrected name.
 ### 2B. Type-Specific
 
 **For commands:**
-1. **Takes arguments?** If yes, ask for argument-hint text
+1. **Takes input?** If yes, define the expected user input and fallback behavior
 2. **Invokes skills?** If yes, list available `.agents/skills/*/SKILL.md`
 3. **Invokes agents?** If yes, list available `.codex/agents/*.toml`
 
@@ -53,9 +53,9 @@ If name fails validation, explain why and ask for a corrected name.
 **For agents:**
 1. **Skills to load**: Which shared workflows should the agent invoke?
 2. **Reference library**: Which `~/.agents/references/` paths should the agent consult?
-3. **Model override?** Default inheritance or an installed Codex model
-4. **Reasoning effort?** Default inheritance or a supported effort value
-5. **Sandbox override?** Default inheritance or a narrower sandbox
+3. **Permissions**: Set the sandbox and approval policy on the parent session. The role inherits them.
+
+Role definitions MUST omit `model` and `model_reasoning_effort`. Select model and effort for the assigned task at dispatch, following the caller's routing policy. A role describes expertise, not a model tier.
 
 ## Phase 3: Generate Description
 
@@ -93,9 +93,9 @@ Generate the file using the correct template for the asset type.
 
 ### 4A. Command Template
 
-**File paths:** `.agents/skills/cmd-j-{name}/SKILL.md` and `.codex/prompts/j-{name}.md`
+**File path:** `.agents/skills/cmd-j-{name}/SKILL.md`
 
-Create both files. The skill is the primary `$cmd-j-{name}` command; the prompt is the `/prompts:j-{name}` fallback. Keep their workflow bodies aligned.
+Create the shared skill. Codex invokes it as `$cmd-j-{name}`. Do not create a Codex prompt fallback. Claude commands and Gemini command skills remain native counterparts.
 
 ```markdown
 ---
@@ -129,7 +129,14 @@ If no arguments provided, {fallback behavior}.
 - **agent:{agent-name}** -- {why referenced}
 ```
 
-For `.codex/prompts/j-{name}.md`, use `name: j-{name}`, add `argument-hint` when needed, replace "the user's provided input" with `$ARGUMENTS`.
+For an explicit-only command, add `agents/openai.yaml` beside `SKILL.md` with:
+
+```yaml
+policy:
+  allow_implicit_invocation: false
+```
+
+Keep this policy metadata when migrating commands. Command skills expose only `name` and `description` in their frontmatter.
 
 ### 4B. Skill Template
 
@@ -196,9 +203,6 @@ For **workflow/procedural skills**, also add:
 ```toml
 name = "{name}"
 description = "{generated description}"
-model = "{model}" # only if overridden
-model_reasoning_effort = "{effort}" # only if overridden
-sandbox_mode = "{sandbox}" # only if narrowed
 developer_instructions = """
 You are a {role description}. {One sentence about approach.}
 Load these shared skills when relevant: {skill names}.
@@ -212,9 +216,9 @@ Read relevant files under `~/.agents/references/{category}/`.
 Before writing, validate the generated content against skill-audit rules:
 
 ### All Types
-- [ ] Frontmatter has `---` delimiters
+- [ ] Markdown frontmatter has `---` delimiters; TOML role definitions use TOML fields
 - [ ] `name` field exists and is kebab-case
-- [ ] `name` matches the skill folder, prompt filename, or agent convention
+- [ ] `name` matches the skill folder or agent convention
 - [ ] `description` field exists and is under length limit
 - [ ] Description has WHAT + WHEN trigger pattern
 - [ ] No `<`/`>` in frontmatter values
@@ -222,8 +226,8 @@ Before writing, validate the generated content against skill-audit rules:
 
 ### Commands Only
 - [ ] Shared skill lives at `.agents/skills/cmd-j-{name}/SKILL.md`
-- [ ] Prompt fallback lives at `.codex/prompts/j-{name}.md`
-- [ ] If the prompt uses `$ARGUMENTS`, its frontmatter has `argument-hint`
+- [ ] No Codex prompt fallback is created
+- [ ] Explicit-only commands carry `agents/openai.yaml` with `policy.allow_implicit_invocation: false`
 - [ ] If body invokes a skill, that skill exists
 - [ ] If body invokes an agent, that agent exists
 - [ ] Body has 10+ words
@@ -239,7 +243,7 @@ Before writing, validate the generated content against skill-audit rules:
 - [ ] TOML file is flat in `.codex/agents/`
 - [ ] `name`, `description`, and `developer_instructions` exist
 - [ ] Any referenced skills or reference paths resolve
-- [ ] Optional model, reasoning, and sandbox values are supported
+- [ ] `model` and `model_reasoning_effort` are absent so dispatch routes by task
 
 Report any WARN or FAIL findings. Auto-fix where possible (e.g., truncate description, fix casing).
 
@@ -251,7 +255,7 @@ After writing:
 1. Confirm the file was created at the correct path
 2. If skill: confirm the directory was created
 3. Suggest: "Run `$cmd-j-skill-audit {type}s` to verify full conformance"
-4. Register and document the new asset. Commands require the shared skill plus native Claude, Codex, and Gemini command counterparts. Agents require native definitions in all three tool trees. Shared workflow skills require a `.claude/skills/` mirror with the same body. See `documentation-validation`.
+4. Register and document the new asset. Commands require the shared `cmd-j-*` skill (the Codex command), a native Claude command, and a Gemini command skill. Agents require native definitions in all three tool trees. Shared non-command skills must match their Gemini copies byte-for-byte. Claude skill bodies may differ; shared reference twins must expose the same headings. See `documentation-validation`.
 5. If the repository keeps an eval suite for its assets, add the new asset's cases (trigger and effect cases for a skill or command, effect cases for an agent). Offer to run its smoke target; it may bill.
 
 ---
@@ -262,18 +266,16 @@ After writing:
 |-------|---------|-------|-------|
 | name | Required | Required | Required |
 | description | Required | Required | Required |
-| argument-hint | Prompt fallback only | N/A | N/A |
 | developer_instructions | N/A | N/A | Required |
-| model | N/A | N/A | Optional |
+| model | N/A | N/A | Omit; select per task at dispatch |
 | `agents/openai.yaml` `policy.allow_implicit_invocation: false` | Shared command skill | Optional; set for a side-effect command nothing invokes | N/A |
-| model_reasoning_effort | N/A | N/A | Optional |
-| sandbox_mode | N/A | N/A | Optional |
+| model_reasoning_effort | N/A | N/A | Omit; select per task at dispatch |
 
 ### Body Conventions
 
 | Type | Convention |
 |------|-----------|
-| Command | Shared skill accepts user input; prompt fallback uses `$ARGUMENTS`; keep workflow bodies aligned |
+| Command | Shared skill accepts user input and is the Codex command; no prompt fallback |
 | Skill | Overview, When to Use, Core Pattern (with code example), Quick Reference table, Common Mistakes |
 | Agent | Focused TOML `developer_instructions` with shared skill and reference pointers |
 
