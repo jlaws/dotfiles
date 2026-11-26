@@ -37,7 +37,7 @@ We will keep **pre-approval out of skills and commands**:
 | `tee *` | writes any file; used only as a pipe sink | removed |
 | `npm test *`, `eslint *`, `prettier *` | run package scripts or load repo JS config | removed |
 | `git clone *`, `git clean *` | `--upload-pack` runs a command; `-fdx` deletes untracked work; no KB workflow runs either | removed |
-| `gh *` | `gh api` POSTs, `gh gist create`, `gh extension install`, `gh alias set --shell` | narrowed to `gh pr view/list/diff/checks/create/edit *`, `gh issue view/list *`, `gh run list/view *`, `gh repo view *` |
+| `gh *` | `gh api` POSTs, `gh gist create`, `gh extension install`, `gh alias set --shell` | narrowed to `gh pr view/list/diff/checks/create/edit/merge *`, `gh issue view/list/comment/close *`, `gh api *`, `gh run list/view *`, `gh repo view *` |
 | `python3`, `python`, `uv`, `cargo`, `make`, `ruff`, `rg`, `find` (Antigravity only) | `-c`, `run`, `build.rs`, the repo Makefile (which un-prompts the paid eval targets), `--pre`, `-exec` | removed |
 | `.codex/rules/default.rules` trailing one-line rules (`just ...`, `cargo ...`, benchmarks, a private `cd` path, `ps`, `ulimit`, `ci ...`) | another project's approvals, one naming a private path | deleted |
 | `tsc *`, `swiftlint *`, `swiftformat *`, `npm list/outdated/audit/info *`, `agent-browser *`, read utilities, `git push/reset/branch *`, `cp/mv/mkdir/touch/sed *` | no code execution; or workflow-critical with the limit recorded below | kept |
@@ -52,9 +52,8 @@ skill that runs a bundled script keeps a grant scoped to that script.
 **Accepted**: commands outside the settings allowlist prompt in default mode. That is rare in `auto`
 and `plan` mode, where most sessions run.
 **Now prompts**: on Claude and Codex, `npx`, `npm test`, `eslint`, `prettier`, `chmod`, `open`, `tee`,
-`awk`, `xargs`, `env`, `git clone`, `git clean`, `gh api`, `gh pr merge`, `gh issue comment`, and
-`gh issue close`. On Antigravity also `make`, `python3`, `python`, `uv`, `cargo`, `ruff`, `rg`, and
-`find`.
+`awk`, `xargs`, `env`, `git clone`, and `git clean`. On Antigravity also `make`, `python3`, `python`,
+`uv`, `cargo`, `ruff`, `rg`, and `find`.
 **Accepted limits** (recorded, not filed): the rule above is a bound on what the KB pre-approves,
 not a proof that nothing kept can run code. These kept entries can still run a program or reach a
 remote. Each is workflow-critical, and a prefix rule cannot bound a flag in a later position:
@@ -68,6 +67,9 @@ remote. Each is workflow-critical, and a prefix rule cannot bound a flag in a la
 - `cp`, `mv`, `mkdir`, `touch`: can overwrite hook scripts, settings, and shell rc files.
 - `agent-browser`: launches a browser and sends to any URL.
 - `gh pr create`, `gh pr edit`: `--body-file` reads any file into a remote; `--repo` picks the target.
+- `gh pr merge`, `gh issue comment`, `gh issue close`, `gh api`: added later at the owner's request.
+  `gh pr merge --admin` bypasses branch protection; `gh api` sends any method to any endpoint the
+  token can reach, including deletes; `--repo` picks the target.
 - `cat`, `head`, `tail`, `grep`: reading `~/.ssh/...` through them is not a `Read`, so the `Read`
   deny does not apply.
 
