@@ -65,7 +65,7 @@ cannot show a change, then one count line per suite. The classes, in order of pr
 
 For the effects suite it also prints `ASSET <asset> no discriminating case`; a workflow case spans
 several commands, so it belongs to no one asset. `MISSING <case>` names a live case absent from
-every baseline; it is not counted in the count line. The baselines hold the 162 effect cases that
+every baseline; it is not counted in the count line. The baselines hold only the effect cases that
 existed when they were recorded, so a case added since then reads `MISSING` until the next
 baseline. These lines are findings, not failures: the command exits 0. It exits 1 only when a
 baseline cannot be read (`--baselines <dir>` selects another directory).
@@ -1198,6 +1198,24 @@ using-git-worktrees).
 - Watch item: `using-git-worktrees--effect-isolated-from-origin` scored 0.5 mean on this branch (three
   runs; `edits-preserved`, `report`, `worktree-made` also failed) against 0.875 for the pre-plan KB (two
   runs). The sample is small and the skill changed here; the next baseline measures it.
+
+Smoke after the prompt-audit rewrite (#157, #158; 2026-11-25, Claude Code 2.1.332, Sonnet, one run
+per case; purpose `smoke-test-kb-citation-guard-and-effect-cases`, 10.77 USD): exit 0; 77 kb cases,
+28 below their stored kb score. In 23 of the 31 effect runs with a skill-load grader the Skill
+tool was never called, so `skill-loaded`-style graders failed across edited and unedited text alike.
+
+- A/B, one run each (purpose `smoke-ab-pre-plan-kb-prompt-audit`, 10.34 USD): the KB staged from
+  `87508ff`, before either PR, with that commit's own harness, on the same CLI. Over the 71 shared
+  cases, skill-load and trigger graders passed 34 of 62 in both arms; every other scored grader passed
+  94 of 109 (new) against 97 of 109 (old); mean case score 0.761 against 0.771. Per-case flips run
+  both ways. The skill-load drop follows the CLI, not the edits.
+- New cases `executing-plans--effect-recoverable-check` and
+  `post-ship-doc-sync--effect-apply-inside-plan` scored 0.75 each: every result grader passed, and
+  only the skill-load grader failed.
+  Review then added graders that check the fix itself (`median-wrapped`, `check-untouched`,
+  `tests-pass`) and replaced `clean-tree` with `readme-committed`. Rerun, one run each (same
+  purpose, 0.23 USD): every result grader passed; recoverable-check 0.857, apply-inside-plan 0.75,
+  each short only its skill-load grader.
 
 The next full baseline runs on 2.1.332 or later, so its scores are not comparable with 2026-12.
 

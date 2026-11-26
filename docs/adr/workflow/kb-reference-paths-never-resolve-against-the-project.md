@@ -168,6 +168,10 @@ expanded `~` itself, so how Claude's Read tool treats a literal `~` is unmeasure
   (every reference citation in the KB trees carries the prefix its tree and kind take) and
   `tests/test_evals.py::StageTests::test_staged_assets_cite_workspace_references` (staged eval
   copies cite `./.kb-references/` and hold no installed prefix).
+- Also pinned: `tests/test_agent_config.py::test_prefixed_citations_name_a_real_reference_or_skill`
+  (a short `<category>:<name>` citation names `references/<category>/<name>.md`, with any
+  `#anchor` matching a heading there, and `skill:<name>` names a skill, in the citing file's own
+  tree).
 
 ## Reversal Conditions
 
