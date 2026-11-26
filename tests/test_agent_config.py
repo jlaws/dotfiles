@@ -271,7 +271,7 @@ UNCONDITIONAL_STRUCTURE_PHRASES = (
 ALWAYS_LOADED_CEILINGS = {
     REPO / ".claude" / "CLAUDE.md": 8000,
     REPO / ".codex" / "AGENTS.md": 12700,
-    REPO / ".gemini" / "GEMINI.md": 17500,
+    REPO / ".gemini" / "GEMINI.md": 12500,
 }
 
 # A versioned model ID in a delegation ladder. The vendor word may be followed by up to two lowercase
@@ -285,6 +285,12 @@ PINNED_MODEL = re.compile(
 # generation must still fail the stale-model guard, as must any name in another tool's ladder.
 CODEX_SELECTED_MODELS = re.compile(
     r"(?<![\w.-])(?:gpt-6\.2-(?:astra|sol)|gpt-6\.1-terra|gpt-6-luna)(?![\w.-])"
+)
+GEMINI_SELECTED_MODELS = re.compile(
+    r"(?<![\w.-])(?:"
+    r"gemini-4-carbon-(?:low|medium|high)|"
+    r"gemini-4-(?:neon|hydrogen)-(?:low|medium|high|xhigh)"
+    r")(?![\w.-])"
 )
 
 # Every asset whose run ends on a pull request. Each reports the URL; `create-pr` additionally has
@@ -1039,6 +1045,8 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             lines = path.read_text(encoding="utf-8").splitlines()
             if path == REPO / ".codex" / "AGENTS.md":
                 lines = [CODEX_SELECTED_MODELS.sub("", line) for line in lines]
+            elif path == REPO / ".gemini" / "GEMINI.md":
+                lines = [GEMINI_SELECTED_MODELS.sub("", line) for line in lines]
             pinned = [
                 line
                 for line in lines
@@ -1046,6 +1054,65 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             ]
             with self.subTest(path=path.relative_to(REPO)):
                 self.assertEqual(pinned, [], f"{path.name} pins an unapproved model version")
+
+    def test_gemini_model_allowlist_matches_only_exact_selected_names(self):
+        for name in (
+            "gemini-4-carbon-low",
+            "gemini-4-carbon-medium",
+            "gemini-4-carbon-high",
+            "gemini-4-neon-low",
+            "gemini-4-neon-medium",
+            "gemini-4-neon-high",
+            "gemini-4-neon-xhigh",
+            "gemini-4-hydrogen-low",
+            "gemini-4-hydrogen-medium",
+            "gemini-4-hydrogen-high",
+            "gemini-4-hydrogen-xhigh",
+        ):
+            with self.subTest(name=name):
+                self.assertEqual(GEMINI_SELECTED_MODELS.sub("", f"`{name}`"), "``")
+        for name in (
+            "gemini-3.8-flash-high",
+            "gemini-4-argon-medium",
+            "gemini-4-carbon-xhigh",
+            "gemini-4-neon-2026-11",
+            "gemini-1.5-pro",
+            "gemini-4-carbon",
+        ):
+            with self.subTest(name=name):
+                self.assertIsNotNone(PINNED_MODEL.search(GEMINI_SELECTED_MODELS.sub("", name)))
+
+    def test_antigravity_default_settings(self):
+        agy = json.loads((REPO / ".gemini" / "antigravity-cli" / "settings.json").read_text())
+        self.assertEqual(agy.get("$schema"), "https://antigravity.google/schemas/v1/settings.json")
+        self.assertEqual(agy.get("model"), "Gemini 4 Carbon (Medium)")
+        self.assertIs(agy.get("showFeedbackSurvey"), False)
+
+    def test_gemini_md_uses_antigravity_tools_and_gemini_4_models(self):
+        text = (REPO / ".gemini" / "GEMINI.md").read_text(encoding="utf-8")
+        for required in (
+            "Gemini 4 Carbon (Medium)",
+            "gemini-pro-orchestrator",
+            "agy models",
+            "run_command",
+            "edit_file",
+            "search_web",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, text)
+        for retired in (
+            "gemini-3.8",
+            "Gemini 3.8",
+            "gemini-4-argon",
+            "Argon",
+            "Gemini 1.5",
+            "run_shell_command",
+            "grep_search",
+            "google_web_search",
+            "web_fetch",
+        ):
+            with self.subTest(retired=retired):
+                self.assertNotIn(retired, text)
 
     def test_codex_model_allowlist_matches_only_exact_selected_names(self):
         for name in ("gpt-6.2-astra", "gpt-6.2-sol", "gpt-6.1-terra", "gpt-6-luna"):

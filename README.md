@@ -263,14 +263,14 @@ plan is never kept only in conversation context.
 
 ### Gemini & Antigravity
 
-The `.gemini/` directory contains a configuration optimized for Google Antigravity:
+The `.gemini/` directory contains a configuration optimized for Google Antigravity CLI (`agy`) and the Gemini 4 model series:
 
-- **`GEMINI.md`** — persistent instructions (auto-loaded by Antigravity)
-- **`config/agents/*.md`** — specialist subagents with `subagent: true` YAML frontmatter
-- **`antigravity-cli/settings.json`** — Antigravity permissions equal to the Claude allow list, translated
-- **`antigravity-cli/skills/`** — global workflow and command skills (`j-*/SKILL.md`) auto-discovered by Antigravity at `~/.gemini/antigravity-cli/skills/`
+- **`GEMINI.md`** - persistent instructions and Gemini 4 routing guidance (auto-loaded by Antigravity)
+- **`config/agents/*.md`** - specialist subagents with `subagent: true`, `mainAgent: true`, and `model: inherit` YAML frontmatter
+- **`antigravity-cli/settings.json`** - default model (`Gemini 4 Carbon (Medium)`), feedback-survey opt-out, and Antigravity permissions translated from the Claude allow/deny baseline
+- **`antigravity-cli/skills/`** - global workflow and command skills (`j-*/SKILL.md`) auto-discovered at `~/.gemini/antigravity-cli/skills/`
 
-Skills are synchronized to `~/.gemini/antigravity-cli/skills/` to match Antigravity's global skill discovery location. Slash commands (`/j-*`) are implemented as native Antigravity skills. Specialist subagents reside in `~/.gemini/config/agents/`. Permissions in `~/.gemini/antigravity-cli/settings.json` equal the Claude allow list, translated. References remain shared at `~/.agents/references/`. Legacy Gemini CLI artifacts (`.gemini/commands/`, `.gemini/agents/`, `.gemini/policies/`, `.gemini/hooks/`, and root `.gemini/settings.json`) have been removed. The existing `setup.sh -c` sync covers everything.
+Sessions default to `Gemini 4 Carbon (Medium)` in `antigravity-cli/settings.json` (merged by `./setup.sh` while preserving machine-local settings). Switch models or reasoning effort via `--model <slug>`, `--effort <low|medium|high|xhigh|max>`, `/model`, or `/effort`: use **Carbon** (`low` to `high`) for architectural planning, complex diagnosis, and security/architecture audits; **Neon** (`low` to `xhigh`) for balanced multi-file engineering; **Hydrogen** (`low` to `xhigh`) for speed-optimized execution; or **Orchestrator** (`Orchestrator (Carbon)` / `Orchestrator (Neon)`) to pair a Carbon or Neon planner with a Hydrogen executor automatically. Specialist subagents inherit the active session model via `model: inherit`, and domain references remain shared at `~/.agents/references/`. Legacy Gemini CLI artifacts (`.gemini/commands/`, `.gemini/agents/`, `.gemini/policies/`, `.gemini/hooks/`, and root `.gemini/settings.json`) are omitted and pruned during `./setup.sh -c`.
 
 #### Recommended Plugins
 
