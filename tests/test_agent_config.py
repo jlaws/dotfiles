@@ -436,6 +436,20 @@ REBASE_COMMANDS = (
 REFERENCE_TREES = (REPO / ".claude" / "references", REPO / ".agents" / "references")
 
 
+def tracked_tree_files() -> list[str]:
+    """Tracked paths under the four KB trees. A failed `git ls-files` raises with git's own stderr,
+    which `check=True` alone would drop from the test output."""
+    result = subprocess.run(
+        ["git", "ls-files", "-z", *TREE_ROOTS],
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"git ls-files failed ({result.returncode}): {result.stderr.strip()}")
+    return [name for name in result.stdout.split("\0") if name]
+
+
 def discipline_body(text: str) -> list[str]:
     """The prose under the existing-code-discipline sections, normalized for cross-copy compare.
 
@@ -1623,13 +1637,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
     def test_kb_assets_carry_no_source_credit(self):
         """Credit lives in REFERENCES.md, one line per source (owner: writing-skills, Claims and
         evidence). Tracked `.md` and `.toml` files under the four trees only."""
-        tracked = subprocess.run(
-            ["git", "ls-files", "-z", *TREE_ROOTS],
-            cwd=REPO,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.split("\0")
+        tracked = tracked_tree_files()
         scanned = 0
         credits = []
         for name in tracked:
@@ -1651,13 +1659,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         rather than skipped silently."""
         self.assertIn(EM_DASH, "a \u2014 b", "EM_DASH is not the em dash; the check is vacuous")
         self.assertNotIn(EM_DASH, "a \u2013 b - c", "EM_DASH matches an en dash or a hyphen")
-        tracked = subprocess.run(
-            ["git", "ls-files", "-z", *TREE_ROOTS],
-            cwd=REPO,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.split("\0")
+        tracked = tracked_tree_files()
         scanned = 0
         dashes = []
         undecodable = []
@@ -1712,13 +1714,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             "-- list item",
         ):
             self.assertFalse(flagged(good), f"control wrongly rejected: {good!r}")
-        tracked = subprocess.run(
-            ["git", "ls-files", "-z", *TREE_ROOTS],
-            cwd=REPO,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.split("\0")
+        tracked = tracked_tree_files()
         scanned = 0
         problems = []
         for name in tracked:
@@ -1777,13 +1773,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         exist. The `assertGreater` is the positive control: without it, an over-narrow regex, an
         empty root list, or a wrong suffix filter all pass as silently as a clean tree.
         """
-        tracked = subprocess.run(
-            ["git", "ls-files", "-z", *TREE_ROOTS],
-            cwd=REPO,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.split("\0")
+        tracked = tracked_tree_files()
         missing = []
         scanned = []
         claims = 0
@@ -2223,13 +2213,7 @@ class AgentConfigArchitectureTests(unittest.TestCase):
             {entry.name for root in REFERENCE_TREES for entry in root.iterdir() if entry.is_dir()}
         )
         token = re.compile(r"(?:`|\*\*)(skill|%s):([\w*./-]+)(?:`|\*\*)" % "|".join(categories))
-        tracked = subprocess.run(
-            ["git", "ls-files", "-z", *TREE_ROOTS],
-            cwd=REPO,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.split("\0")
+        tracked = tracked_tree_files()
         cited = 0
         dangling = []
         for name in tracked:
