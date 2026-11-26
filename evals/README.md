@@ -65,7 +65,7 @@ cannot show a change, then one count line per suite. The classes, in order of pr
 
 For the effects suite it also prints `ASSET <asset> no discriminating case`; a workflow case spans
 several commands, so it belongs to no one asset. `MISSING <case>` names a live case absent from
-every baseline; it is not counted in the count line. The baselines hold the 162 effect cases that
+every baseline; it is not counted in the count line. The baselines hold only the effect cases that
 existed when they were recorded, so a case added since then reads `MISSING` until the next
 baseline. These lines are findings, not failures: the command exits 0. It exits 1 only when a
 baseline cannot be read (`--baselines <dir>` selects another directory).
