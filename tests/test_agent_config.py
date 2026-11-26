@@ -2205,33 +2205,67 @@ class AgentConfigArchitectureTests(unittest.TestCase):
         self.assertEqual(dangling, [], "shared citations do not resolve:\n" + "\n".join(dangling))
 
     def test_prefixed_citations_name_a_real_reference_or_skill(self):
-        """`<category>:<name>` (in backticks or bold) names `references/<category>/<name>.md`, and
-        `skill:<name>` names a skill, both in the citing file's own tree (`.claude` cites the
-        Claude tree; `.agents`, `.codex`, and `.gemini` cite `.agents`). A skill written in
-        category form, or a `languages:*` wildcard, resolves nowhere; that is the drift #157 swept."""
+        """`<category>:<name>` names `references/<category>/<name>.md` (an optional `#anchor` must
+        match a heading there), and `skill:<name>` names a skill folder holding `SKILL.md`, both in
+        the citing file's own tree: `.claude` cites the Claude tree; `.agents` and `.codex` cite
+        `.agents`; `.gemini` cites its own skills or `.agents`. A citation counts in backticks, in
+        bold, or bare in prose outside fences and code spans. A skill written in category form, or a
+        `languages:*` wildcard, resolves nowhere; that is the drift #157 swept."""
         categories = sorted(
             {entry.name for root in REFERENCE_TREES for entry in root.iterdir() if entry.is_dir()}
         )
-        token = re.compile(r"(?:`|\*\*)(skill|%s):([\w*./-]+)(?:`|\*\*)" % "|".join(categories))
-        tracked = tracked_tree_files()
-        cited = 0
+        kinds = "|".join(["skill", *map(re.escape, categories)])
+        segment = r"(?:\.\.?|[\w*-]+)"
+        target = r"((?:\.\.?|[A-Za-z*][\w*-]*)(?:/" + segment + r")*)(?:#([\w-]+))?"
+        delimited = re.compile(r"(`|\*\*)(" + kinds + r"):" + target + r"\1")
+        bare = re.compile(r"(?<![\w:/.`*#'\"-])(" + kinds + r"):" + target + r"(?![\w:/`*])")
+        bold = re.compile(r"\*\*[^*]+\*\*")
+
+        def slug(heading: str) -> str:
+            kept = re.sub(r"[^\w\- ]", "", heading.strip().lower())
+            return kept.replace(" ", "-")
+
+        def resolves(tree: str, kind: str, name: str, anchor: str) -> bool:
+            if {".", ".."} & set(name.split("/")):
+                return False
+            if kind == "skill":
+                roots = {
+                    ".claude": [REPO / ".claude" / "skills"],
+                    ".gemini": [REPO / ".gemini" / "antigravity-cli" / "skills"],
+                }.get(tree, []) + ([] if tree == ".claude" else [REPO / ".agents" / "skills"])
+                folders = [name] if tree == ".claude" else [name, f"cmd-{name}"]
+                return any((root / f / "SKILL.md").is_file() for root in roots for f in folders)
+            base = REPO / (".claude" if tree == ".claude" else ".agents") / "references"
+            reference = base / kind / f"{name}.md"
+            if not reference.is_file():
+                return False
+            if not anchor:
+                return True
+            text = reference.read_text(encoding="utf-8")
+            return anchor in {slug(h) for h in heading_texts(text)}
+
+        counts = {"skill": 0, "reference": 0}
         dangling = []
-        for name in tracked:
+        for name in tracked_tree_files():
             path = REPO / name
             if path.suffix not in {".md", ".toml"} or not path.is_file():
                 continue
-            tree = REPO / (".claude" if name.startswith(".claude/") else ".agents")
-            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                for kind, target in token.findall(line):
-                    cited += 1
-                    if kind == "skill":
-                        skills = tree / "skills"
-                        found = (skills / target).is_dir() or (skills / f"cmd-{target}").is_dir()
-                    else:
-                        found = (tree / "references" / kind / f"{target}.md").is_file()
-                    if not found:
-                        dangling.append(f"{name}:{lineno}: {kind}:{target}")
-        self.assertGreater(cited, 0, "no prefixed citations found; the check is vacuous")
+            tree = name.split("/", 1)[0]
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError as exc:
+                self.fail(f"{name}: not UTF-8 ({exc})")
+            for lineno, line in lines_outside_fences(text):
+                found = [m.group(2, 3, 4) for m in delimited.finditer(line)]
+                prose = CODE_SPAN.sub("", bold.sub("", line))
+                found += [m.group(1, 2, 3) for m in bare.finditer(prose)]
+                for kind, cited, anchor in found:
+                    counts["skill" if kind == "skill" else "reference"] += 1
+                    if not resolves(tree, kind, cited, anchor or ""):
+                        suffix = f"#{anchor}" if anchor else ""
+                        dangling.append(f"{name}:{lineno}: {kind}:{cited}{suffix}")
+        for kind, count in counts.items():
+            self.assertGreater(count, 0, f"no {kind} citations found; that half is vacuous")
         self.assertEqual(
             dangling,
             [],
