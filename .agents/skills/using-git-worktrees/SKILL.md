@@ -16,9 +16,9 @@ ls -d worktrees 2>/dev/null      # Alternative
 ```
 If both exist, `.worktrees` wins.
 
-### 2. Check CLAUDE.md
+### 2. Check Project Config
 ```bash
-grep -i "worktree.*director" CLAUDE.md 2>/dev/null
+grep -i "worktree.*director" CLAUDE.md AGENTS.md GEMINI.md 2>/dev/null
 ```
 If preference specified, use it.
 
@@ -94,7 +94,7 @@ loses work silently.
 
 1. **Commit everything.** Uncommitted changes are invisible to `git merge`, so anything left staged or
    modified is thrown away when the caller integrates.
-2. **Squash into one commit**, as three separate Bash tool calls:
+2. **Squash into one commit**, as three separate shell tool calls:
    ```bash
    git add -A
    ```
@@ -118,7 +118,7 @@ loses work silently.
 | `.worktrees/` exists | Use it (verify ignored) |
 | `worktrees/` exists | Use it (verify ignored) |
 | Both exist | Use `.worktrees/` |
-| Neither exists | Check CLAUDE.md, then ask user |
+| Neither exists | Check CLAUDE.md / AGENTS.md / GEMINI.md, then ask user |
 | Directory not ignored | Add to `.git/info/exclude`, or commit `.gitignore` alone |
 | Tests fail in baseline | Report failures + ask |
 | No start point in mind | Name one anyway: `origin/main`, a branch, or a SHA |

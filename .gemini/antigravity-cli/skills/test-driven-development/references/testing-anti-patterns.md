@@ -8,15 +8,10 @@ Tests must verify real behavior, not mock behavior. Mocks are a means to isolate
 
 **Core principle:** Test what the code does, not what the mocks do.
 
-**Following strict TDD prevents these anti-patterns.**
-
-## The Iron Laws
-
-```
-1. Assert on real behavior; a test of mock behavior proves only that the mock exists
-2. Keep test-only methods out of production classes; they ship and mislead callers
-3. Understand a dependency before mocking it; a wrong mock passes while the real call fails
-```
+Three patterns below produce tests that pass while proving nothing: asserting on mock behavior, adding
+test-only methods to production classes, and mocking a dependency you have not understood. Writing the
+test before the implementation tends to avoid all three, because there is no implementation yet to
+mirror.
 
 ## Anti-Pattern 1: Testing Mock Behavior
 
@@ -34,7 +29,7 @@ test('renders sidebar', () => {
 - Test passes when mock is present, fails when it's not
 - Tells you nothing about real behavior
 
-**your human partner's correction:** "Are we testing the behavior of a mock?"
+**Review check:** "Are we testing the behavior of a mock?"
 
 **The fix:**
 ```typescript
@@ -399,7 +394,7 @@ BEFORE writing a test:
 - Mocks missing methods real components have
 - Test breaks when mock changes
 
-**your human partner's question:** "Do we need to be using a mock here?"
+**Review check:** "Do we need to be using a mock here?"
 
 **Consider:** Integration tests with real components often simpler than complex mocks
 

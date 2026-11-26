@@ -26,25 +26,26 @@ A name must be lowercase letters, numbers, and single internal hyphens, and must
 Ask for a one-line purpose for every type; it drives the description. Then, by type:
 
 **Command:** what input does it take, and what is the fallback when no input is supplied? Which skills does it invoke,
-and which agents does it delegate to? List candidates with `Glob("~/.gemini/antigravity-cli/skills/*/SKILL.md")` and
-`Glob("~/.gemini/config/agents/*.md")`.
+and which agents does it delegate to? List candidates under `~/.gemini/antigravity-cli/skills/*/SKILL.md` and
+`~/.gemini/config/agents/*.md`.
 
 **Skill:** does it run a bundled script, and what file operations does it need? Does it depend on other skills? Should it load from task matching, or only from an explicit invocation? Keep tool permissions and invocation policy in the owning tool's supported configuration, outside shared skill frontmatter.
 
 **Agent:** which tools, which skills to preload, and which `~/.agents/references/` categories should it
-consult (`Glob("~/.agents/references/*/")`)? Leave persistent memory unset: agents here are dispatched with a frozen, report-only packet.
+consult (`~/.agents/references/*/`)? Leave persistent memory unset: agents here are dispatched with a frozen, report-only packet.
 
 Gemini role definitions use `model: inherit`. Codex TOML roles omit both `model` and `model_reasoning_effort`; the caller selects them for the assigned task at dispatch. Preserve each tool's native role requirements. Shared and Gemini skill frontmatter carries only `name` and `description`.
 
 ## Phase 3: Draft the description
 
-A skill description is **triggering conditions only**: never a workflow summary, because Claude will
+A skill description is **triggering conditions only**: never a workflow summary, because the model will
 follow the summary instead of reading the body. Commands and agents describe what they are and when to
 reach for them, and may scope out near-misses to keep routing clean.
 
-Descriptions are loaded on every turn, so keep them to what routing actually needs. Shared skills under
-`.agents/` additionally must fit 64 characters and start with "Use when"; `.claude/` skills have no such
-budget. No `<` or `>` anywhere in frontmatter.
+Descriptions are loaded on every turn, so keep them to what routing actually needs. Antigravity skills
+under `.gemini/antigravity-cli/skills/` use one quoted line (`<= 1,024` chars); Codex skills under
+`.agents/` must fit 64 characters and start with "Use when"; `.claude/` skills fit 200 characters. No
+`<` or `>` anywhere in frontmatter.
 
 Present the draft for approval before writing.
 
@@ -54,16 +55,16 @@ Paths are flat. There are no category subdirectories:
 
 | Type | Path |
 |---|---|
-| Command | `.gemini/antigravity-cli/skills/j-{name}/SKILL.md` |
-| Skill | `~/.gemini/antigravity-cli/skills/{name}/SKILL.md` |
-| Agent | `~/.gemini/config/agents/{name}.md` |
+| Command | `.gemini/antigravity-cli/skills/{name}/SKILL.md` |
+| Skill | `.gemini/antigravity-cli/skills/{name}/SKILL.md` |
+| Agent | `.gemini/config/agents/{name}.md` |
 
 **Command**: route, do not explain. Gather context, then invoke a skill or delegate to an agent. If you
 find yourself writing the methodology inline, it belongs in a skill instead:
 
 ```markdown
 ---
-name: j-{name}
+name: {name}
 description: "{description}"
 ---
 
@@ -101,7 +102,7 @@ description: "{trigger}"
 {Steps or pattern. One worked example beats three.}
 
 ## Gotchas
-- **{failure mode}**: {what happens} -- {what to do instead}
+- **{failure mode}**: {what happens} - {what to do instead}
 ```
 
 Do not add rationalization tables, "Red Flags: STOP" lists, or an all-caps non-negotiable rule. Those
@@ -114,7 +115,7 @@ consequence instead.
 ---
 name: {name}
 description: "{description}"
-tools: {tools}
+tools: [read_file, run_command]
 subagent: true
 mainAgent: true
 model: inherit
@@ -124,7 +125,10 @@ skills:
 
 You are a {role}. {One sentence on approach.}
 
-Reference library at ~/.agents/references/{category}/:
+Before responding, load these skills by reading their SKILL.md files in `~/.gemini/antigravity-cli/skills/`:
+- {skill}
+
+Reference library at `~/.agents/references/{category}/`:
 - {reference}, {reference}, {reference}
 
 Read the relevant reference file(s) for the user's topic before responding.
@@ -141,7 +145,7 @@ This tree ships no audit script, so walk the rules before writing:
 - `description` is a trigger, not a workflow summary, and carries no `<` or `>`
 - every skill, agent, and reference the body names resolves to a real file
 - shared and Gemini command skills carry only `name` and `description` in frontmatter
-- Gemini roles use `model: inherit`; Codex TOML roles omit `model` and `model_reasoning_effort`
+- Gemini roles use `model: inherit`, declare valid Antigravity `tools:`, and match the body `~/.gemini/antigravity-cli/skills/` load list to frontmatter `skills:`; Codex TOML roles omit `model` and `model_reasoning_effort`
 - the body carries at least one concrete example, not only prose
 
 Then confirm by judgment: does every section teach something a strong model would otherwise get wrong
@@ -151,9 +155,9 @@ or vague? Cut what does not.
 
 Show the file, get approval, write it, and confirm the path.
 
-Then register it. A new command needs its native Claude command, Gemini command skill, and shared `cmd-j-*` skill. That shared skill is the Codex command; do not create a Codex prompt fallback. Preserve explicit-only Codex command policy in its `agents/openai.yaml`. A new agent needs native definitions in all three tool trees. Shared non-command skills must match their Gemini copies byte-for-byte. Claude skill bodies may differ; shared reference twins must expose the same headings. Where a parity test guards asset sets, the repo's own CLAUDE.md names it; declare any single-tree asset in that test's exception list.
+Then register it. A new command needs its native Claude command, Gemini command skill, and Codex `cmd-j-*` skill. Do not create a Codex prompt fallback; preserve explicit-only Codex command policy in `agents/openai.yaml`. A new agent needs native definitions in all three tool trees. A workflow skill needs copies in `.claude/skills/`, `.agents/skills/`, and `.gemini/antigravity-cli/skills/` with matching supporting files between `.agents/skills/` and `.gemini/antigravity-cli/skills/`; bodies and descriptions adapt per harness, and shared reference twins must expose the same headings. Where a parity test guards asset sets, the repo's own CLAUDE.md names it; declare any single-tree asset in that test's exception list.
 
-Update the GEMINI.md Knowledge Base Structure section if a new asset directory was added, then run the repo's
+Update the GEMINI.md Antigravity Conventions section if a new asset directory was added, then run the repo's
 lint and test commands. See `documentation-validation`.
 
 If the repository keeps an eval suite for its assets, add the new asset's cases (trigger and effect
@@ -164,8 +168,8 @@ cases for a skill or command, effect cases for an agent). Offer to run its smoke
 | Field | Command | Skill | Agent |
 |-------|---------|-------|-------|
 | `name`, `description` | Required | Required | Required |
-| `tools` | N/A | N/A | Recommended |
-| `skills` | N/A | N/A (name dependencies in the body) | Optional (preload) |
+| `tools` | N/A | N/A | Required (Antigravity tool names) |
+| `skills` | N/A | N/A (name dependencies in the body) | Optional (preload; mirror in body) |
 | `model` | Omit | Omit | `inherit` |
 | `subagent`, `mainAgent` | N/A | N/A | `true` |
 
@@ -173,7 +177,7 @@ A skill under `.gemini/antigravity-cli/skills/` or `.agents/skills/` carries onl
 
 Use only tool names supported by the target harness; do not copy Claude-only fields into shared or Gemini skills.
 
-Field semantics: `writing-skills`, SKILL.md Structure.
+Field semantics: `writing-skills`, Structure and Frontmatter.
 
 ### Cross-References
 

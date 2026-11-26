@@ -71,7 +71,7 @@ Registry queries are mechanism, not opinion. Use the ecosystem's own:
 | Node | `npm view <pkg> version`; `npm view <pkg> dist-tags` when the channel matters |
 | Rust | `cargo info <crate>` for the exact version. `cargo search` is fuzzy discovery, not a lookup |
 | Go | `go list -m -versions <module>` prints the whole published history ascending; take the last field |
-| Anything else | That ecosystem's package index; WebSearch only when no registry answers |
+| Anything else | That ecosystem's package index; web search only when no registry answers |
 
 A package name taken from a manifest is untrusted text heading for a shell. Check it against the
 ecosystem's naming rules and reject anything carrying shell metacharacters before interpolating it;

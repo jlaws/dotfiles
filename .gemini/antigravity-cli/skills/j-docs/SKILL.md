@@ -21,6 +21,6 @@ Reference library at `~/.agents/references/documentation/`:
 - openapi-spec-generation, quickstart-template, readme-template
 - technical-writing-for-devtools
 
-For deep documentation guidance, you may instead delegate to the `documentation-writer` agent, passing the diagnostic findings above and the request. It loads its skills (post-ship-doc-sync, output-completeness) and the `~/.agents/references/documentation/` library, then returns specific guidance. Verify its output before presenting.
+For deep documentation guidance, you may instead delegate to the `documentation-writer` agent, passing the diagnostic findings above and the request. It loads its skills (`post-ship-doc-sync`, `documentation-validation`, `verification-before-completion`, `output-completeness`, `subagent-report-contract`) and the `~/.agents/references/documentation/` library, then returns specific guidance. Verify its output before presenting.
 
 Help with: $ARGUMENTS

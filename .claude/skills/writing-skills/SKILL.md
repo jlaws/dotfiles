@@ -9,8 +9,8 @@ A skill exists to teach what a strong model does not already know. Everything el
 task it was loaded to help with.
 
 **Codex reads `~/.agents/skills`, Gemini/Antigravity reads `~/.gemini/antigravity-cli/skills`, and Claude reads `~/.claude/skills`.** The trees have
-diverged on purpose: `.claude/` is written for the Claude 5 generation, `.agents/` serves the other
-tools. A parity test, where the repo has one, pins which skills exist in each, not what they say.
+diverged on purpose: `.claude/` is written for the Claude 5 generation, `.agents/skills/` serves Codex (GPT-6.2), and `.gemini/antigravity-cli/skills/`
+serves Google Antigravity (Gemini 4). Parity tests pin which skills and supporting files exist in each tree, not identical prose.
 
 ## What earns a place in a skill
 
@@ -145,9 +145,9 @@ not skill prose.
 skill costs context on every turn or only when it is relevant.
 
 **Description = triggering conditions only.** Never summarize the workflow there; testing showed
-Claude follows a description shortcut instead of reading the body. Shared skills under `.agents/`
-also carry a hard 64-character budget and must start with "Use when", enforced by `tests/`.
-A `.claude` skill description is one quoted line of at most 200 characters (`tests/`). A description
+Claude follows a description shortcut instead of reading the body. Codex skills under `.agents/`
+carry a hard 64-character budget and must start with "Use when", enforced by `tests/`.
+A `.claude` skill description is one quoted line of at most 200 characters, and a `.gemini/antigravity-cli` skill description is one quoted line of at most 1,024 characters (`tests/`). A description
 that misses its should-fire cases is tuned against `tune-` trigger cases and adopted only on `held-`
 cases (`docs/adr/workflow/skill-descriptions-are-tuned-against-held-out-triggers.md`).
 

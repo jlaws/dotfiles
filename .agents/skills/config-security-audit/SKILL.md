@@ -15,8 +15,8 @@ Scan every configuration surface across all trees. The repo root is the base.
 |------|-------|
 | Claude | `.claude/CLAUDE.md`, `.claude/settings.json`, `.claude/settings.local.json`, `.claude/hooks/`, `.claude/agents/`, `.claude/commands/` |
 | Codex | `.codex/AGENTS.md`, `.codex/config.toml`, `.codex/rules/`, `.codex/agents/`; local `.codex/hooks/`, `.codex/hooks.json`, and legacy `.codex/prompts/` if present. Codex commands are `.agents/skills/cmd-j-*/SKILL.md` |
-| Gemini | `.gemini/GEMINI.md`, `.gemini/antigravity-cli/settings.json`, `.gemini/antigravity-cli/skills/`, `.gemini/config/agents/`; legacy `.gemini/settings.json`, `.gemini/hooks/`, `.gemini/agents/`, `.gemini/commands/` if present |
-| Shared | `.agents/skills/`, `.agents/references/`, any MCP server config |
+| Gemini | `.gemini/GEMINI.md`, `.gemini/antigravity-cli/settings.json`, `.gemini/antigravity-cli/skills/`, `.gemini/config/agents/`, `.gemini/config/mcp_config.json`; legacy `.gemini/settings.json`, `.gemini/hooks/`, `.gemini/agents/`, `.gemini/commands/` if present |
+| Shared | `.agents/skills/`, `.agents/references/`, `.agents/mcp_config.json`, `.mcp.json`, or any other MCP server config |
 
 ## Checks
 
@@ -45,15 +45,15 @@ Track each as PASS / WARN / FAIL. Report actual values (redacted) on failure. Ex
 
 | # | Check |
 |---|-------|
-| INJ-1 | Commands/skills that ingest external content (WebFetch, reads of untrusted docs) treat it as data, not instructions |
+| INJ-1 | Commands/skills that ingest external content (fetched web pages, reads of untrusted docs) treat it as data, not instructions |
 | INJ-2 | No config file contains hidden or zero-width characters or off-screen instruction text |
 | INJ-3 | Agent/command prose does not blindly execute instructions embedded in fetched or piped content |
 | INJ-4 | MCP server configs pin trusted sources; no arbitrary remote instruction sources |
 
 ## Process
 
-1. Enumerate the scope files (Glob per tree), and record any you could not read. Optional or legacy paths that are absent are not unreadable. Inspect hook registrations in each harness's configuration as well as the referenced hook scripts; a script on disk alone does not establish that it runs.
-2. Run the checks (Grep patterns for A and B; read prose for C).
+1. Enumerate the scope files (`rg --files` per tree), and record any you could not read. Optional or legacy paths that are absent are not unreadable. Inspect hook registrations in each harness's configuration as well as the referenced hook scripts; a script on disk alone does not establish that it runs.
+2. Run the checks (`rg` patterns for A and B; read prose for C).
 3. Report grouped by severity; redact any secret you surface: show only the match location and type, never the value.
 4. Exit non-zero if any CRITICAL finding exists (a leaked secret or a destructive auto-approve).
 

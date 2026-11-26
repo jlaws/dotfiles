@@ -252,10 +252,14 @@ def _archive_dest(archive: Archive, dest: Path) -> Path:
     return archive.files_dir / str(dest).lstrip("/")
 
 
-# Home-anchored reference prefixes the repo text uses. Sync writes the absolute home path into
-# installed copies, so no tool resolves a reference against the project (ADR
-# kb-reference-paths-never-resolve-against-the-project).
-HOME_ANCHORS = ("~/.agents/references/", "~/.claude/references/")
+# Home-anchored reference and Antigravity skill prefixes the repo text uses. Sync writes the
+# absolute home path into installed copies so no tool resolves a reference against the project and
+# Antigravity's read_file receives absolute paths (ADR kb-reference-paths-never-resolve-against-the-project).
+HOME_ANCHORS = (
+    "~/.agents/references/",
+    "~/.claude/references/",
+    "~/.gemini/antigravity-cli/skills/",
+)
 EXPANDED_SUFFIXES = (".md", ".toml")
 
 
@@ -272,7 +276,7 @@ def _refuse_unsafe_home(home: Path) -> bool:
 
 
 def expand_home_anchors(text: str, home: Path) -> str:
-    """Rewrite the ``~/.agents/references/`` and ``~/.claude/references/`` prefixes under ``home``.
+    """Rewrite ``HOME_ANCHORS`` prefixes (references and Antigravity skills) under ``home``.
 
     A ``home`` containing a quote, backslash, or newline is not expanded into the text.
     """

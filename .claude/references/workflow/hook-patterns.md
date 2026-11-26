@@ -94,8 +94,7 @@ The first two rows state what the harness supports. This configuration registers
 Codex hooks. Sync removes retired repo-owned logging handlers and preserves unrelated local hooks.
 
 The Gemini row is a property of this configuration: a parity test forbids a `hooks/` directory in
-that tree, the sync step deletes one if it appears, and its settings file carries only
-`permissions`. No claim is made about the harness itself. State a harness as absent rather than
+that tree, the sync step deletes one if it appears, and its settings file registers no hooks. No claim is made about the harness itself. State a harness as absent rather than
 claiming a hook it cannot honor, and say which kind of evidence you have.
 
 ### Exit codes and output

@@ -1,6 +1,7 @@
 ---
 name: security-reviewer
 description: "Reviews code for security vulnerabilities, auth flaws, and secrets exposure. Use proactively when reviewing auth, API, or data handling code. Do NOT use for: security policy/compliance decisions, threat modeling (use architecture-specialist), or general code quality (use code-reviewer)."
+tools: [read_file, run_command]
 subagent: true
 mainAgent: true
 model: inherit
@@ -19,7 +20,7 @@ You are a senior security engineer. Review code for:
 - Secrets or credentials in code
 - Insecure data handling
 
-Before responding, load these skills by reading their SKILL.md files in `~/.agents/skills/`:
+Before responding, load these skills by reading their SKILL.md files in `~/.gemini/antigravity-cli/skills/`:
 - code-review-patterns
 - verification-before-completion
 - analysis-output-patterns

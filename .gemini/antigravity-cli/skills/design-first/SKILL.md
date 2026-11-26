@@ -9,15 +9,17 @@ description: "Use when designing features or behavior before coding."
 
 ## Hard Gate
 
-```
-DO NOT write any code, scaffold any project, or take any implementation
-action until you have presented a design and the user has approved it.
-This applies to EVERY feature regardless of perceived simplicity.
-```
+Present a design and get the user's approval before writing code or scaffolding. This holds for
+small work too, because the gate is what surfaces the unexamined assumption; the design for a tiny
+change is a sentence or two and the approval is one inline reply.
 
-## Anti-Pattern: "This Is Too Simple To Need A Design"
+## "This Is Too Simple to Need a Design"
 
-Every feature goes through this process. A utility function, a config change, a single component: all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple work), but you MUST present it and get approval.
+Simple-looking work is where unexamined assumptions cost the most, because nobody stops to check them. A
+utility function, a config change, or a single component still has a shape someone expects.
+
+Scale the design to the work; a few sentences is a complete design for something genuinely small. What
+matters is that the shape is agreed before it is built, not that the document is long.
 
 ## The Process
 
@@ -30,9 +32,9 @@ Every feature goes through this process. A utility function, a config change, a 
 ### Phase 2: Ask Clarifying Questions
 
 - One question at a time: don't overwhelm
-- Prefer multiple-choice questions when possible
+- Prefer multiple-choice questions via `ask_question` when possible
 - Each question carries your **recommended answer**: let the user confirm, not explain from scratch
-- **Research before asking**: if the codebase can answer it (Glob/Grep/Read), find out first; only ask what the code can't tell you
+- **Research before asking**: if the codebase can answer it (`rg`, `rg --files`, `read_file`), find out first; only ask what the code can't tell you
 - **Filter for blocking**: ask when a wrong answer means throwing work away, not adjusting it.
   Anything a minute of searching answers is research you owe, not a question. If the codebase
   contradicts itself on one of those, that *is* worth raising.
@@ -60,7 +62,7 @@ Every feature goes through this process. A utility function, a config change, a 
 
 ### Phase 5: Document
 
-- When called by `j-plan`, save the validated design into that workflow's existing plan file. Otherwise
+- When called by `/j-plan`, save the validated design into that workflow's existing plan file. Otherwise
   use `scratchpad/plans/<topic>-design.md` only after `git check-ignore -q scratchpad/` confirms that
   directory is ignored. If it does not, follow `writing-plans`' private
   `${TMPDIR:-/tmp}/j-plan/<repo-id>/` fallback. Never keep the only copy in context or commit it
@@ -97,17 +99,17 @@ Scale the process to the task's complexity:
 
 | Task Size | Questions | Approaches | Design Document |
 |-----------|-----------|------------|-----------------|
-| Tiny (utility function, config) | 1-2 quick questions | 1-2 sentences each | Skip (inline approval is fine) |
+| Tiny (utility function, config) | 0-1, only if blocking | 1-2 sentences each | Skip (inline approval is fine) |
 | Small (single component, endpoint) | 2-3 questions | 2-3 brief approaches | Optional (user's choice) |
-| Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes (save to the harness plan file) |
-| Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes (save to the harness plan file before proceeding) |
+| Medium (feature, multi-file change) | 3-5 questions | 2-3 detailed approaches with trade-offs | Yes (save to the persisted plan path) |
+| Large (system, architecture change) | Iterative questioning | Detailed approaches with diagrams | Yes (save to the persisted plan path before proceeding) |
 
-The process is the same regardless of size; the depth scales, not the steps. Even tiny tasks get clarifying questions.
+The process is the same regardless of size; the depth scales, not the steps. A tiny task gets a question only when the code cannot answer it and a wrong guess means redoing the work.
 
 ## Red Flags
 
 - Writing code before design approval
-- Skipping the question phase ("I know what they want")
+- Skipping a question the code cannot answer ("I know what they want")
 - Presenting only one approach
 - Over-designing before asking clarifying questions
 - Assuming requirements instead of asking

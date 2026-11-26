@@ -9,9 +9,6 @@ description: "Use when assessing code smells, health, or style."
 
 | Principle | Rule |
 |-----------|------|
-| SRP | One reason to change per function/class |
-| DRY | Extract after 2+ duplicates, not before |
-| YAGNI | Solve today's problem, not tomorrow's hypothetical |
 | Composition > Inheritance | Prefer protocols/interfaces |
 | Explicit > Implicit | Clarity beats cleverness |
 | Favor Uniformity | One way to do each thing (test framework, build tool, deploy method). Migrate quickly + add automatic checks to prevent reversion. Easier to (re-)learn, maintain, and hand off |
@@ -31,20 +28,12 @@ description: "Use when assessing code smells, health, or style."
 
 ## Code Smells Checklist
 
-**Naming**
-- Booleans: `is`/`has`/`can`/`should` prefix
-- Functions: verb prefix (`get`, `create`, `handle`, `fetch`)
-- Descriptive names; avoid abbreviations unless obvious
-
 **Functions**
 - Single responsibility, <30 lines
 - Max 3 parameters; use parameter object beyond that
-- Minimize side effects
-- Extract complex conditionals into named functions
 
 **Complexity**
 - Max 2 levels nesting; use early returns
-- Replace conditional chains with lookup maps/polymorphism
 
 **Make Invalid States Unrepresentable**
 - Use generics / type hints to catch issues at compile-time / static analysis (Python `list[str]`, Java `List<String>`, TS `Array<string>`)
@@ -62,26 +51,15 @@ description: "Use when assessing code smells, health, or style."
 - **Reinvented stdlib**: hand-rolled debounce, deep-clone, groupBy, retry loop, date math. Climb `code-efficiency-ladder` before writing any of them
 - **A config that never varies**: an option, flag, or parameter with exactly one value at every call site
 - **A new dependency for a few lines**: check what is already installed first
-- **God objects**: split by responsibility
-- **Magic values**: use named constants
-- **Swallowed exceptions**: handle meaningfully or propagate
-- **Commented-out code**: delete it, git has history
 
 **Process**
-- **Large PRs**: keep small and focused
-- **Skipping tests**: costs more later
-- **Vague commits**: use `fix: prevent null pointer in user lookup`
-- **TODOs without context**: include why, when, ticket: `// TODO(#123): handle rate limiting`
+- **TODOs**: acceptable only with a ticket and a reason, e.g. `// TODO(#123): handle rate limiting`. Prefer filing a ticket over leaving a bare marker. A bare `// TODO`, or one standing in for work that was in scope, is not acceptable.
 
 ## Style Defaults
 
 | Rule | Value |
 |------|-------|
-| Indentation | 2 spaces (no tabs) |
 | Line endings | LF (Unix) |
-| Final newline | Always |
-| Line length | 80-100 soft limit |
-| File size | Under 300 lines |
 | Test location | Colocated (`foo.ts` + `foo.test.ts`) or parallel (`src/` + `tests/`) |
 
 **Naming conventions:** JS/TS/Swift = `camelCase`, Python/Rust/Go = `snake_case`, Types = `PascalCase`, Constants = `SCREAMING_SNAKE_CASE`
@@ -97,7 +75,7 @@ description: "Use when assessing code smells, health, or style."
 | Rust | Rust Style Guide |
 | C#/.NET | Microsoft C# Coding Conventions |
 
-See each language skill for detailed naming and practice rules.
+See each language reference for detailed naming and practice rules.
 
 **Import order** (separated by blank lines): 1. Standard library, 2. Third-party, 3. Local modules
 
@@ -152,8 +130,8 @@ function processOrder(order: Order): Result {
 
 ## Deliberate Simplifications
 
-A shortcut that cuts a real corner with a known ceiling: a global lock, an O(n-squared) scan, a
-naive heuristic: gets marked where it lives:
+A shortcut that cuts a real corner with a known ceiling (a global lock, an O(n-squared) scan, a
+naive heuristic) gets marked where it lives:
 
 ```
 // SIMPLIFIED: global lock, per-account locks if throughput matters
@@ -179,6 +157,6 @@ and a SQL or Lisp simplification is the kind most worth finding.
 
 ## Cross-References
 
-- **reference:code-efficiency-ladder**: whether the code should exist at all, before any of the above applies
-- **reference:completeness-principle**: how thoroughly to build what is in scope
+- **workflow:code-efficiency-ladder**: whether the code should exist at all, before any of the above applies
+- **workflow:completeness-principle**: how thoroughly to build what is in scope
 - **skill:refactoring-and-debt**: removing what was already built

@@ -23,10 +23,8 @@ description: "Use when independent tasks can run concurrently."
 
 ## The Dispatch Mechanism
 
-Dispatch each independent task before waiting for results. Spawn calls may return while agents keep
-running, so calls issued in separate messages can still overlap. Concurrency depends on the active
-harness and its agent limit; check its tool contract rather than treating message boundaries as a
-serialization rule.
+Dispatch each independent task via `invoke_subagent` before waiting for results. Spawn calls return while subagents keep
+running in the background and wake the parent automatically when they finish; do not poll `manage_subagents` in a loop.
 
 Each brief must be:
 
@@ -75,7 +73,7 @@ Parallel agents finishing is not the end. After they return:
 
 ## Orchestration Limits & Patterns
 
-For large or automated fan-outs (e.g. the harness Workflow tool), apply these:
+For large or automated fan-outs (e.g. `run_workflow`), apply these:
 
 - **Concurrency cap**: run about 16 agents at once (or fewer); excess should queue, not all launch together.
 - **Total-spawn ceiling**: bound the total agents a run may create; a runaway loop is a bug.

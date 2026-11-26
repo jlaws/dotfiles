@@ -46,10 +46,12 @@ Product docs = README / API / CHANGELOG / usage. KB self-docs = the asset's own
 `description` and body, the KB-structure index, native asset parity, and any
 required shared workflow or reference mirror.
 
-Apply the repository's declared parity rules: shared non-command skills match their Gemini copies
-byte for byte; Claude skill bodies may diverge while asset names match subject to declared
-exceptions; reference twins share sections. `cmd-j-*` skills are Codex command entry points, with
-Claude and Gemini counterparts and Codex prompt fallbacks only when shipped.
+Apply the repository's declared parity rules: workflow skill sets match across Claude, Codex
+(`.agents/skills/`), and Antigravity (`.gemini/antigravity-cli/skills/`) subject to declared
+exceptions, with supporting files matched between `.agents/skills/` and
+`.gemini/antigravity-cli/skills/` while bodies and descriptions adapt per harness; reference twins
+share sections. `cmd-j-*` skills are Codex command entry points, paired with Claude `/j-*` commands
+and Antigravity `j-*` command skills.
 
 ## Declaring N/A
 
@@ -69,4 +71,4 @@ If a change genuinely needs no doc update, state it explicitly:
 ## Cross-References
 
 - **post-ship-doc-sync**: the heavy post-release sweep over a whole diff range; source of the Step 3 staleness heuristic this gate reuses. This skill is its lightweight per-change counterpart.
-- **verification-before-completion**: the universal completion gate; "Docs current" is one of its Common Failures rows. Run both before any done/PR claim.
+- **verification-before-completion**: verdict grammar and evidence hierarchy for reporting what you checked. "Docs current" is in What Counts as Proof of a Claim (updated, or an explicit N/A with a reason).

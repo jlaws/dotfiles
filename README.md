@@ -241,6 +241,24 @@ The `.claude/` directory is self-contained with `/j-*` commands, specialist agen
 
 `evals/` holds behavioral evals for the Claude tree, run through `claude plugin eval` on a staged copy of the tree. Every skill, command, and agent has trigger or effect cases, and baselines are under `evals/baselines/`. The runs bill an API key. See [`evals/README.md`](evals/README.md).
 
+#### Recommended Plugins
+
+**LSP Plugins** (code intelligence — goToDefinition, findReferences, hover, diagnostics):
+
+| Plugin | Language | Prerequisite |
+|--------|----------|-------------|
+| `pyright-lsp` | Python | `brew install pyright` (manual) |
+| `typescript-lsp` | TS/JS | `npm install -g typescript-language-server typescript` (in setup.sh) |
+| `swift-lsp` | Swift | Xcode (bundled) |
+| `rust-analyzer-lsp` | Rust | `rustup component add rust-analyzer` (manual) |
+
+**Workflow Plugins:**
+
+| Plugin | Adds |
+|--------|------|
+| `commit-commands` | `/commit`, `/commit-push-pr`, `/clean_gone` |
+| `claude-md-management` | `/revise-claude-md` for CLAUDE.md maintenance |
+
 ### Codex
 
 The `.codex/` directory contains Codex-native agents and command rules, configured for Codex CLI
@@ -263,32 +281,14 @@ plan is never kept only in conversation context.
 
 ### Gemini & Antigravity
 
-The `.gemini/` directory contains a configuration optimized for Google Antigravity:
+The `.gemini/` directory contains a configuration optimized for Google Antigravity CLI (`agy`) and the Gemini 4 model series:
 
-- **`GEMINI.md`** — persistent instructions (auto-loaded by Antigravity)
-- **`config/agents/*.md`** — specialist subagents with `subagent: true` YAML frontmatter
-- **`antigravity-cli/settings.json`** — Antigravity permissions equal to the Claude allow list, translated
-- **`antigravity-cli/skills/`** — global workflow and command skills (`j-*/SKILL.md`) auto-discovered by Antigravity at `~/.gemini/antigravity-cli/skills/`
+- **`GEMINI.md`** - persistent instructions and Gemini 4 routing guidance (auto-loaded by Antigravity)
+- **`config/agents/*.md`** - specialist subagents with `subagent: true`, `mainAgent: true`, `model: inherit`, and explicit Antigravity `tools:` YAML frontmatter
+- **`antigravity-cli/settings.json`** - default model (`Gemini 4 Carbon (Medium)`), feedback-survey opt-out, and Antigravity permissions translated from the Claude allow/deny baseline
+- **`antigravity-cli/skills/`** - Antigravity-tailored workflow and command skills (`j-*/SKILL.md`) auto-discovered at `~/.gemini/antigravity-cli/skills/`
 
-Skills are synchronized to `~/.gemini/antigravity-cli/skills/` to match Antigravity's global skill discovery location. Slash commands (`/j-*`) are implemented as native Antigravity skills. Specialist subagents reside in `~/.gemini/config/agents/`. Permissions in `~/.gemini/antigravity-cli/settings.json` equal the Claude allow list, translated. References remain shared at `~/.agents/references/`. Legacy Gemini CLI artifacts (`.gemini/commands/`, `.gemini/agents/`, `.gemini/policies/`, `.gemini/hooks/`, and root `.gemini/settings.json`) have been removed. The existing `setup.sh -c` sync covers everything.
-
-#### Recommended Plugins
-
-**LSP Plugins** (code intelligence — goToDefinition, findReferences, hover, diagnostics):
-
-| Plugin | Language | Prerequisite |
-|--------|----------|-------------|
-| `pyright-lsp` | Python | `brew install pyright` (manual) |
-| `typescript-lsp` | TS/JS | `npm install -g typescript-language-server typescript` (in setup.sh) |
-| `swift-lsp` | Swift | Xcode (bundled) |
-| `rust-analyzer-lsp` | Rust | `rustup component add rust-analyzer` (manual) |
-
-**Workflow Plugins:**
-
-| Plugin | Adds |
-|--------|------|
-| `commit-commands` | `/commit`, `/commit-push-pr`, `/clean_gone` |
-| `claude-md-management` | `/revise-claude-md` for CLAUDE.md maintenance |
+Sessions default to `Gemini 4 Carbon (Medium)` in `antigravity-cli/settings.json` (merged by `./setup.sh` while preserving machine-local settings). Switch models or reasoning effort via `--model <slug>`, `--effort <low|medium|high|xhigh|max>`, `/model`, or `/effort`: use **Carbon** (`low` to `high`) for architectural planning, complex diagnosis, and security/architecture audits; **Neon** (`low` to `xhigh`) for balanced multi-file engineering; **Hydrogen** (`low` to `xhigh`) for speed-optimized execution; or **Orchestrator** (`Orchestrator (Carbon)` / `Orchestrator (Neon)`) to pair a Carbon or Neon planner with a Hydrogen executor automatically. Specialist subagents inherit the active session model via `model: inherit`, and domain references remain shared at `~/.agents/references/`. Legacy Gemini CLI artifacts (`.gemini/commands/`, `.gemini/agents/`, `.gemini/policies/`, `.gemini/hooks/`, and root `.gemini/settings.json`) are omitted and pruned during `./setup.sh -c`.
 
 ## Credits
 

@@ -5,71 +5,52 @@ description: "Use when starting a task that may match an existing skill."
 
 # Skill-Lookup Discipline
 
-**Core principle:** Check for applicable skills BEFORE any implementation action.
+Check for an applicable skill before acting, not after. A skill exists because someone already hit the
+problem and wrote down what worked; finding it afterward means redoing that work, and the rework costs
+far more than the check.
 
-**Violating the letter of this rule is violating the spirit of this rule.**
+Check even when a match seems unlikely. Reading a skill and deciding it does not fit is cheap; the
+expensive case is discovering halfway through that one applied.
 
-## The Rule
+## The Check
 
-Invoke relevant skills BEFORE any response or action. Even a 1% chance a skill might apply means you should check. If the skill turns out to be wrong for the situation, you don't need to follow it.
+1. **Identify** the kind of work: feature, bug, refactor, review, plan.
+2. **Scan** `~/.gemini/antigravity-cli/skills/` and `~/.agents/references/` for applicable patterns.
+3. **Prune** to the smallest set that covers the task. Loading extras dilutes attention, which costs
+   quality and not just tokens.
+4. **Load** each matching `SKILL.md` with `read_file`.
+5. **Proceed**, following what they say.
 
-```
-BEFORE acting on any task:
-1. IDENTIFY: What kind of work is this? (feature, bug, refactor, review, plan, etc.)
-2. CHECK: Scan ~/.agents/skills/ and ~/.agents/references/ for applicable patterns
-3. PRUNE: Keep only the smallest set of skills that covers the task - loading extras dilutes attention
-4. LOAD: Read each matching SKILL.md with the available file-reading tool
-5. THEN: Proceed with the task following loaded skill guidance
-```
+The check comes before exploration, because skills often tell you *how* to explore. "Let me look at the
+codebase first" inverts the order and usually means exploring in a way a skill would have improved.
 
-## Skill Priority
+## Which First
 
-When multiple skills could apply, use this order:
+Process skills before implementation skills. Process skills decide how to approach the work, so they
+change what the implementation skills are applied to:
 
-1. **Process skills first** (design-first, debugging, verification): these determine HOW to approach the task
-2. **Implementation skills second** (code-quality, code-review-patterns, TDD): these guide execution
+- "Build feature X" -> `design-first`, then the implementation skills
+- "Fix this bug" -> `debugging-methodology`, then domain references
+- "Review this PR" -> `code-review-patterns`
 
-Examples:
-- "Build feature X" → design-first skill first, then implementation skills
-- "Fix this bug" → debugging skill first, then domain-specific references
-- "Review this PR" → code-review-patterns first
+## Announce It
 
-## Announce the Skill
+Say which skill and why before acting: **`Using [skill] to [purpose].`** This surfaces a wrong choice
+before you have built on it. If a skill carries a numbered process of 3-12 steps, track them with `update_steps` so none
+gets dropped.
 
-When you invoke a skill, say so before acting: **`Using [skill] to [purpose].`** This makes the workflow visible and surfaces a wrong-skill choice early, before you've acted on it.
+## How Closely to Follow a Skill
 
-If the skill contains a checklist or numbered process, create matching todos so each step is tracked to completion.
+Some skills encode a discipline where the sequence is the point: TDD's write-the-test-first,
+`debugging-methodology`'s find-the-cause-before-fixing. Departing from the sequence discards the thing
+that makes it work, so if you think you should, say why rather than doing it quietly.
 
-## Skill Types
+Others are principles to fit to the situation, like `code-quality` or `refactoring-and-debt`. Apply the
+reasoning, not the letter.
 
-**Rigid** (TDD, verification-before-completion, debugging): Follow exactly. Don't adapt away discipline.
+An instruction that says *what* to do ("add X", "fix Y") is not an instruction to skip *how*.
 
-**Flexible** (code-quality, refactoring-and-debt): Adapt principles to context.
+## When to Skip the Check
 
-The skill itself tells you which type it is.
-
-## Red Flags: STOP
-
-These thoughts mean you're rationalizing skipping a skill check:
-
-| Thought | Reality |
-|---------|---------|
-| "This is just a simple question" | Questions can be tasks. Check for skills. |
-| "I need more context first" | Skill check comes BEFORE exploration. |
-| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
-| "I can handle this quickly" | Quick tasks are where skipped skills cause the most rework. |
-| "This doesn't need a formal skill" | If a skill exists, use it. |
-| "I remember this skill" | Skills evolve. Read current version. |
-| "The skill is overkill" | Simple things become complex. Use it. |
-| "I'll just do this one thing first" | Check BEFORE doing anything. |
-| "I know what that means" | Knowing the concept ≠ following the workflow. |
-
-## User Instructions
-
-Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows. The user expects discipline.
-
-## When NOT to Check
-
-- Pure conversational responses (greetings, explanations with no action)
-- Reading files the user explicitly asked you to read
-- Git status / log / diff commands (informational only)
+Conversational replies with no action, reading a file you were asked to read, and informational git
+commands (`status`, `log`, `diff`).

@@ -144,4 +144,4 @@ Document ALL overrides with comments explaining why they exist.
 
 ## Integration
 
-**Uses:** `test-driven-development`, `verification-before-completion`
+**Uses:** `test-driven-development`

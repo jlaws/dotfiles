@@ -48,7 +48,7 @@ read target in Step 1.
 
 ## Step 1: Recon
 
-Dispatch one `Explore` agent to build the packet every later agent receives. Everything downstream
+Dispatch one `research` subagent to build the packet every later agent receives. Everything downstream
 depends on it, so this does not run in parallel with Step 2.
 
 - **Build/test shape**: entry points, key modules, test runner and its exact invocation,
@@ -56,7 +56,7 @@ depends on it, so this does not run in parallel with Step 2.
 - **Architecture diagnostics**: project shape from config files and directory structure (monolith,
   services, serverless); API patterns from route definitions, `openapi.yaml`, `swagger`, or GraphQL
   schemas.
-- **Prior art**: Glob `docs/`, `doc/`, `design/`, `adr/`, `adrs/`, `architecture/`, root `*.md`, and
+- **Prior art**: Search (`rg --files`) across `docs/`, `doc/`, `design/`, `adr/`, `adrs/`, `architecture/`, root `*.md`, and
   `**/adr/**/*.md`, `**/design-*.md`, `**/RFC-*.md`. Filter in two passes: by filename and path first,
   then by grepping contents for spec keywords for the ambiguous ones. Discard the clearly unrelated.
   Planning against a spec whose decisions were already settled in an ADR is the failure this prevents.
@@ -75,8 +75,7 @@ Write the frozen recon packet into the plan file under `## Planning Notes` befor
 ## Step 2: Fan out the research
 
 Dispatch the lenses in parallel, in a single message. Freeze one packet (the spec, the Step 1 recon output, the conventions digest, and the report-only contract below) and give it to every agent **verbatim**. Do not rely on
-an agent's own definition to supply the contract: `test-writer` and `documentation-writer` hold
-`Edit`/`Write`.
+an agent's own definition to supply the contract: `test-writer` and `documentation-writer` can edit files.
 
 > Report only. Return findings and design input; edit nothing. Cite `file:line` for anything you
 > assert about the existing code. If your lens does not apply to this spec, return "no findings -
@@ -144,8 +143,7 @@ Before writing, run the **redesign gate**. Any of these means fix the design, no
   (often by making the bad state impossible to represent) rather than asking the user to pick
   the least bad.
 
-Then write the plan per `writing-plans`, including its Mandatory Phase Skeleton, into the plan-mode
-plan file.
+Then write the plan per `writing-plans`, including its Mandatory Phase Skeleton, into the plan file.
 
 **Persist significant decisions as ADRs.** For each decision the plan settles, record the chosen
 approach, the alternatives rejected, the trade-offs accepted, and the conditions that would reverse
@@ -184,6 +182,6 @@ finalized plan has no open-questions section.**
 
 ## Step 6: Hand off
 
-Present the completed plan to the user for approval. Alongside it, summarize which lenses ran, what each surfaced, and
+Report `Plan saved to <plan-file-path>` first. Present the completed plan to the user for approval, and summarize which lenses ran, what each surfaced, and
 the plan's PR boundaries. Once approved, `writing-plans`' Execution Handoff applies: execute the plan in
 this session through /j-execute-plan, which picks the mode from the plan.

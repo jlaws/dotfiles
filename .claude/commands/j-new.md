@@ -154,9 +154,10 @@ Show the file, get approval, write it, and confirm the path.
 
 Then register it. A new command needs a canonical `.agents/skills/cmd-j-*` skill for Codex, a Claude
 `/j-*` command, and a Gemini `j-*` skill. Do not create a deprecated Codex prompt copy. A new agent
-needs native definitions in all three tool trees; a shared workflow skill needs an
-`.agents/skills/` source. `.claude/` skill and reference *bodies* have intentionally diverged from
-`.agents/`. Asset sets stay in parity, and reference twins expose the same ordered headings.
+needs native definitions in all three tool trees; a workflow skill needs copies in `.claude/skills/`,
+`.agents/skills/`, and `.gemini/antigravity-cli/skills/` (with matching supporting files between
+`.agents/skills/` and `.gemini/antigravity-cli/skills/`). Skill and reference *bodies* diverge per
+harness while asset sets stay in parity and reference twins expose the same ordered headings.
 Where a parity test guards those sets, the repo's own CLAUDE.md names it; declare any single-tree
 asset in that test's exception list.
 

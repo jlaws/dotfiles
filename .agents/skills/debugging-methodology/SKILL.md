@@ -5,24 +5,18 @@ description: "Use when investigating bugs, failures, or odd behavior."
 
 # Debugging Methodology
 
-## The Iron Law
+Find the cause before changing anything. A fix aimed at a symptom you have not explained either does
+not hold or moves the bug somewhere else, and each speculative attempt makes the state harder to reason
+about. Finish Phase 1 before proposing a fix.
 
-```
-NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
-```
+Report what you found, where (`file:line`), and the fix: finding first, explanation after. Read the
+relevant code before forming a theory about it, and when the cause is still unclear, say so rather than
+offering a guess as an answer.
 
-Random fixes waste time and create new bugs. Complete Phase 1 before proposing fixes.
+## Stop After Two Attempts
 
-## Debugging Directness
-
-- Read the relevant code before naming a cause; a guess sends the fix the wrong way.
-- State what you found, where (file:line), and the fix. One pass.
-- If the cause is unclear: say so explicitly instead of guessing.
-- No preamble, no hedging. Finding first, explanation after.
-
-## The Two-Attempt Rule
-
-After 2 failed fix attempts at the same problem, **STOP**:
+Two failed fixes at the same problem means the mental model is wrong, not that the next attempt needs to
+be bolder:
 
 | Attempts | Action |
 |----------|--------|
@@ -54,16 +48,18 @@ Before proposing any fix, decide where the fault actually lives:
 
 Fix a harness, checker, or environment fault where it lives; changing product code to make it pass hides the real fault. Misclassifying the locus is the most common cause of thrashing.
 
-**1. Read Error Messages Carefully**
-- Read stack traces completely; note line numbers, file paths, error codes
-- The error message often tells you exactly what's wrong; don't skim
-
-**2. Build a Red-Capable Loop**
+**1. Build a Red-Capable Loop**
 - Before any hypothesis, build one command you can run that fails on the user's exact symptom: a test, a script, or a request. No red-capable command, no Phase 2.
 - Run it once and record the failure. A loop that asserts a different symptom proves nothing about this one.
 - Shrink the repro until every remaining element is load-bearing.
 - For a flaky bug, raise the failure rate first (loop it, stress it, pin the seed or the clock) until a fix can be judged.
 - If no seam exists to observe the symptom, report that as a finding instead of guessing.
+- Reproduce before you plan the fix, not only before you write it. A fix plan built on a traced but
+  unreproduced cause fixes the wrong thing. In the plan, separate observed facts from hypotheses.
+
+**2. Locate the Failing Boundary**
+- When data crosses several components (service, queue, worker, store), log what enters and leaves each boundary once, then run the loop. The first boundary with wrong output is where to look.
+- Tag every temporary log with one unique prefix, such as `[DEBUG-4f2a]`, so cleanup is one `rg`.
 
 **3. Check Recent Changes**
 ```bash
@@ -71,38 +67,6 @@ git log --oneline -20                    # Recent commits
 git diff HEAD~5 -- src/                  # Recent code changes
 git log --all --oneline -- <file>        # History of specific file
 ```
-
-**4. Gather Evidence at Each Layer**
-
-For multi-component systems, trace at every boundary:
-
-Tag every temporary log with one unique prefix, such as `[DEBUG-4f2a]`, so cleanup is one `rg`.
-
-```bash
-# Trace data flow through each layer
-echo "=== Layer: HTTP Request ==="    # What's coming in?
-echo "=== Layer: Middleware ==="      # What transforms it?
-echo "=== Layer: Business Logic ==="  # What processes it?
-echo "=== Layer: Database ==="        # What gets persisted?
-echo "=== Layer: Response ==="        # What goes out?
-```
-
-**5. Trace Data Flow**: Where does the bad value originate? Keep tracing upstream until you find the source.
-
-**6. Ask "Why Does It Work Locally?"**
-
-When bugs appear in production/CI but not locally:
-
-| Factor | Local | Production |
-|--------|-------|------------|
-| Concurrency | Single user, sequential | Many users, concurrent |
-| Data volume | Seed data, small | Real data, large |
-| Configuration | Dev defaults | Production settings (pool sizes, timeouts, caches) |
-| Network | localhost, fast | Real latency, DNS, proxies |
-| Dependencies | Mocked or local | Real services, rate limits |
-| Timing | Debugger pauses, slow | Full speed, race conditions |
-
-Map every environmental difference. The bug lives in one of these gaps.
 
 ### Phase 2: Pattern Analysis
 
@@ -114,7 +78,7 @@ Map every environmental difference. The bug lives in one of these gaps.
 
 1. **Form Single Hypothesis**: "I think X is the root cause because Y"
 2. **Test Minimally**: Smallest possible change, one variable at a time
-3. **Verify**: Worked? → Phase 4. Didn't? → NEW hypothesis (don't add more fixes)
+3. **Verify**: Worked? -> Phase 4. Didn't? -> NEW hypothesis (don't add more fixes)
 
 #### Structured Hypothesis Investigation
 
@@ -161,7 +125,7 @@ Investigate each in turn:
 
 If the bug stems from invalid data flowing through multiple layers, read `references/defense-in-depth.md` to add validation at every layer and make it structurally impossible.
 
-**If 3+ Fixes Failed**: See Two-Attempt Rule above. STOP and discuss fundamentals.
+**If 3+ Fixes Failed**: see "Stop After Two Attempts" above; discuss fundamentals rather than retrying.
 
 ---
 
@@ -175,6 +139,9 @@ git bisect good v1.0.0            # This was good
 git bisect good   # or bad, repeat until found
 git bisect reset
 ```
+
+A timeout on a path that used to pass is a regression, not a budget problem. Bisect it. Raising the
+timeout, adding a retry, or adding a per-command override hides the slowdown and ships it.
 
 ### Differential Debugging
 
@@ -198,33 +165,6 @@ command without pollution), 1 when it finds pollution, and 0 after every matched
 
 ---
 
-## Patterns by Issue Type
-
-| Issue Type | Investigation Approach |
-|-----------|----------------------|
-| **Intermittent** | Add logging with timing, look for race conditions, stress test under load |
-| **Performance** | Profile first: common culprits: N+1 queries, unnecessary re-renders, sync I/O in async paths |
-| **Production-only** | Gather evidence (Sentry/logs/metrics), map local vs prod differences, reproduce under equivalent conditions |
-| **Connection/resource exhaustion** | Monitor pool metrics, check for leaks in error paths, look for N+1 patterns, check if `finally`/`defer` cleanup runs |
-| **Data-dependent** | Identify which data triggers it, find the minimum failing dataset, check for encoding/null/edge cases |
-
-For language-specific debugging tools (breakpoints, profilers, stack traces), see the corresponding language reference files.
-
-## Red Flags: STOP and Return to Phase 1
-
-- "Quick fix for now, investigate later"
-- "Just try changing X and see"
-- "I don't fully understand but this might work"
-- "One more fix attempt" (when already tried 2+)
-
-| Excuse | Reality |
-|--------|---------|
-| "Issue is simple" | Simple issues have root causes too |
-| "Emergency, no time" | Systematic is FASTER than thrashing |
-| "Multiple fixes saves time" | Can't isolate what worked |
-| "I see the problem" | Seeing symptoms ≠ understanding root cause |
-| "Just increase the pool size" | Treating symptoms hides the leak |
-
 ## Surface Errors
 
 | Masking Pattern | Do Instead |
@@ -236,20 +176,3 @@ For language-specific debugging tools (breakpoints, profilers, stack traces), se
 | Defensive null checks hiding broken contracts | Fix the broken contract upstream |
 
 If unfixable now: log it, track it, surface it. A silenced error hides the next bug.
-
-## Quick Debugging Checklist
-
-- [ ] Spelling errors / typos
-- [ ] Case sensitivity
-- [ ] Null/undefined values
-- [ ] Off-by-one errors
-- [ ] Async timing / race conditions
-- [ ] Scope issues / type mismatches
-- [ ] Missing dependencies / env vars
-- [ ] Cache / stale state
-- [ ] Error path cleanup (connections, file handles, locks)
-- [ ] Environment differences (local vs CI vs prod)
-
-## Integration
-
-**Uses:** `verification-before-completion`

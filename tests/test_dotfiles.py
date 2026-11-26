@@ -1056,12 +1056,16 @@ class SyncAgentsTests(unittest.TestCase):
 
 
 class ExpandHomeAnchorsTests(unittest.TestCase):
-    def test_expands_both_reference_prefixes(self):
-        text = "Read `~/.agents/references/a/b.md` and `~/.claude/references/c/d.md`."
+    def test_expands_reference_and_antigravity_skill_prefixes(self):
+        text = (
+            "Read `~/.agents/references/a/b.md`, `~/.claude/references/c/d.md`, "
+            "and `~/.gemini/antigravity-cli/skills/e/SKILL.md`."
+        )
         got = expand_home_anchors(text, Path("/Users/x"))
         self.assertEqual(
             got,
-            "Read `/Users/x/.agents/references/a/b.md` and `/Users/x/.claude/references/c/d.md`.",
+            "Read `/Users/x/.agents/references/a/b.md`, `/Users/x/.claude/references/c/d.md`, "
+            "and `/Users/x/.gemini/antigravity-cli/skills/e/SKILL.md`.",
         )
 
     def test_leaves_other_text_alone(self):
@@ -1089,6 +1093,10 @@ class ExpandedAnchorSyncTests(unittest.TestCase):
         self._write(".codex/agents/a.toml", 'developer_instructions = "~/.agents/references/x/"\n')
         self._write(".claude/commands/c.md", "See `~/.claude/references/x/y.md`.\n")
         self._write(".claude/skills/s/SKILL.md", "See ${CLAUDE_SKILL_DIR}/../../references/x/\n")
+        self._write(
+            ".gemini/config/agents/g.md",
+            "Load `~/.gemini/antigravity-cli/skills/s/SKILL.md` and `~/.agents/references/x/y.md`.\n",
+        )
 
         sync_agents(self.repo, self.home, self.archive)
 
@@ -1100,10 +1108,17 @@ class ExpandedAnchorSyncTests(unittest.TestCase):
         self.assertEqual(command, f"See `{self.home}/.claude/references/x/y.md`.\n")
         sibling = (self.home / ".claude/skills/s/SKILL.md").read_text()
         self.assertIn("${CLAUDE_SKILL_DIR}/../../references/x/", sibling)
+        gemini_agent = (self.home / ".gemini/config/agents/g.md").read_text()
+        self.assertEqual(
+            gemini_agent,
+            f"Load `{self.home}/.gemini/antigravity-cli/skills/s/SKILL.md` and "
+            f"`{self.home}/.agents/references/x/y.md`.\n",
+        )
         for installed in self.home.rglob("*"):
             if installed.is_file():
                 self.assertNotIn("~/.agents/references/", installed.read_text())
                 self.assertNotIn("~/.claude/references/", installed.read_text())
+                self.assertNotIn("~/.gemini/antigravity-cli/skills/", installed.read_text())
 
     def test_uninstall_restores_a_file_whose_anchors_were_expanded(self):
         self._write(".agents/skills/a/SKILL.md", "See `~/.agents/references/x/y.md`.\n")

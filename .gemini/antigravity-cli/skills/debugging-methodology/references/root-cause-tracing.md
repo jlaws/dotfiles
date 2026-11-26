@@ -100,7 +100,7 @@ Use `find-polluter.sh` in the skill directory, one level above this reference. R
 project under test, using its installed path:
 
 ```bash
-bash ~/.agents/skills/debugging-methodology/find-polluter.sh 'tmp/unexpected-test-output' 'src/**/*.test.ts'
+bash ~/.gemini/antigravity-cli/skills/debugging-methodology/find-polluter.sh 'tmp/unexpected-test-output' 'src/**/*.test.ts'
 ```
 
 Runs tests one-by-one, stops at first polluter. Requires Bash, Python 3 (stdlib), and npm. A quoted
@@ -160,11 +160,3 @@ Fix at the source when you can trace to it: a symptom fix leaves the trigger in 
 **Before operation:** Log before the dangerous operation, not after it fails
 **Include context:** Directory, cwd, environment variables, timestamps
 **Capture stack:** `new Error().stack` shows complete call chain
-
-## Real-World Impact
-
-From debugging session (2025-10-03):
-- Found root cause through 5-level trace
-- Fixed at source (getter validation)
-- Added 4 layers of defense
-- 1847 tests passed, zero pollution
