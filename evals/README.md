@@ -1213,7 +1213,9 @@ tool was never called, so `skill-loaded`-style graders failed across edited and 
   `post-ship-doc-sync--effect-apply-inside-plan` scored 0.75 each: every result grader passed, and
   only the skill-load grader failed.
   Review then added graders that check the fix itself (`median-wrapped`, `check-untouched`,
-  `tests-pass`) and replaced `clean-tree` with `readme-committed`; those have not run yet.
+  `tests-pass`) and replaced `clean-tree` with `readme-committed`. Rerun, one run each (same
+  purpose, 0.23 USD): every result grader passed; recoverable-check 0.857, apply-inside-plan 0.75,
+  each short only its skill-load grader.
 
 The next full baseline runs on 2.1.332 or later, so its scores are not comparable with 2026-12.
 
